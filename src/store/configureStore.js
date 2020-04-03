@@ -1,22 +1,9 @@
 import { createStore } from "redux"
 import { composeWithDevTools } from "redux-devtools-extension";
-import configureReducer from "./reducers";
+import createTableReducer from "./table";
 
-const store = createStore(configureReducer(), composeWithDevTools());
-store.asyncReducers = {};
-
-export function injectAsyncReducer(store, name, reducer) {
-    store.asyncReducers[name] = reducer;
-    reloadReducer(store);
+export default function configureStore(config) {
+    const reducer = createTableReducer(config);
+    const store = createStore(reducer, composeWithDevTools());
+    return store;
 }
-
-export function deleteAsyncReducer(store, name) {
-    delete store.asyncReducers[name];
-    reloadReducer(store);
-}
-
-function reloadReducer(store) {
-    store.replaceReducer(configureReducer(store.asyncReducers));
-}
-
-export default store;

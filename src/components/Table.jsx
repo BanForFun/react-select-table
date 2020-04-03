@@ -4,9 +4,8 @@ import Body from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import "./table.scss";
 import { Provider, connect } from 'react-redux';
-import store from '../store/configureStore';
-import createTableSlice from '../store/table';
-import { bindActionCreators } from 'redux';
+import configureStore from '../store/configureStore';
+import { setItems } from '../store/table';
 
 const SfcTable = () => {
     return (
@@ -20,30 +19,30 @@ const SfcTable = () => {
     )
 }
 
-function mapStateToProps(state, { name }) {
-    return state[name];
-}
+const ConnectedTable = connect()(SfcTable);
 
-function mapDispatchToProps(dispatch, { actions }) {
-    return bindActionCreators(actions, dispatch);
-}
-
-function Table(params) {
-    const [actions, setActions] = useState();
+function Table({ items, ...params }) {
+    const [store, setStore] = useState();
 
     useEffect(() => {
-        const { actions, dispose } = createTableSlice(params.name);
-        setActions(actions);
-        return dispose;
-    }, [name]);
+        if (items) {
+            const store = configureStore();
+            setStore(store);
+        } else
+            setStore(null);
+    }, []);
 
-    if (!actions) return null;
+    useEffect(() => {
+        store && store.dispatch(setItems(items))
+    }, [items, store]);
 
-    const ConnectedTable = connect(mapStateToProps, mapDispatchToProps)(SfcTable);
+    if (store === undefined) return null;
+    if (store === null)
+        return <SfcTable {...params} />;
+
     return <Provider store={store}>
-        <ConnectedTable {...params} actions={actions} />
+        <ConnectedTable {...params} />
     </Provider>
 }
-
 
 export default Table;

@@ -36,9 +36,9 @@ function Head({ columns, name, columnWidth, setColumnWidth }) {
         {columns.map((col, index) => {
             const { width, id } = col.props;
 
-            return <div key={`header_${name}_${id}`}
+            return <div key={`title_${name}_${id}`}
                 className="column" style={{ width }}>
-                <div className="content">{col.title}</div>
+                <div className="title">{col.title}</div>
                 <div className="seperator"
                     onMouseDown={() => setResizingIndex(index)} />
             </div>

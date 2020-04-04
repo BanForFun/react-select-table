@@ -4,15 +4,6 @@ import { pipe } from "lodash/fp";
 import { sortOrder } from "../constants/enums";
 
 export default function createTableReducer(options) {
-    const config = _.defaults(options,
-        {
-            itemParser: item => item,
-            itemFilter: () => true,
-            valueProperty: "id",
-            columnCount: 0,
-            minWidth: 2 //Percent
-        });
-
     function getDefaultWidth(count) {
         const width = 100 / count;
         return _.times(count, _.constant(width));
@@ -24,7 +15,7 @@ export default function createTableReducer(options) {
             order: sortOrder.Ascending
         },
         columnOrder: [],
-        columnWidth: getDefaultWidth(config.columnCount),
+        columnWidth: getDefaultWidth(options.columns.length),
         filter: {},
         items: {},
         tableItems: []
@@ -32,10 +23,10 @@ export default function createTableReducer(options) {
 
     return (state = initState, action) => produce(state, draft => {
         const parseItems = items =>
-            _.map(items, config.itemParser);
+            _.map(items, options.itemParser);
 
         const filterItems = (items, filter = state.filter) =>
-            _.filter(items, i => config.itemFilter(i, filter));
+            _.filter(items, i => options.itemFilter(i, filter));
 
         const sortItems = (items, sort = state.sort) =>
             _.sortBy(items, [sort.path], [sort.order]);
@@ -47,12 +38,12 @@ export default function createTableReducer(options) {
 
         switch (action.type) {
             case TABLE_SET_ITEMS:
-                draft.items = _.keyBy(action.items, config.valueProperty);
+                draft.items = _.keyBy(action.items, options.valueProperty);
                 draft.tableItems = transformItems(action.items);
                 break;
             case TABLE_SET_COLUMN_WIDTH: {
                 const { index, width } = action;
-                const { minWidth } = config;
+                const { minWidth } = options;
 
                 const thisWidth = state.columnWidth[index];
                 const nextWidth = state.columnWidth[index + 1];

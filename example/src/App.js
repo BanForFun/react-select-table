@@ -1,40 +1,37 @@
 import React from 'react'
 
-import Table from 'react-select-table'
+import testData from "./test-data";
+import Table, { createTableOptions } from 'react-select-table'
 import 'react-select-table/src/index.scss'
 
-const App = () => {
-  const items = [
-    { id: 1, text: "Patata" },
-    { id: 2, text: "Ntomata" },
-    { id: 3, text: "Marouli" },
-    { id: 4, text: "Karoto" }
-  ]
-
-  const columns = [
+const tableOptions = createTableOptions({
+  valueProperty: "id",
+  columns: [
     {
-      title: "Photo",
-      path: "photo"
+      title: "Φωτογραφία",
+      path: "thumbnail_url"
     },
     {
-      title: "Sex",
-      path: "Sex"
+      title: "Φύλλο",
+      path: "sex"
     },
     {
-      title: "Ownership",
-      path: "Ownership"
+      title: "Ιδιοκτησία",
+      path: "ownership"
     },
     {
-      title: "Name",
-      path: "Name"
+      title: "Κατάσταση",
+      path: "status"
     },
     {
-      title: "Barrenn",
-      path: "Barrenn"
+      title: "Μέγεθος",
+      path: "size"
     }
   ]
+});
 
-  return <Table items={items} columns={columns} name="test" />
+const App = () => {
+  return <Table items={testData} options={tableOptions} name="test" />
 }
 
 export default App

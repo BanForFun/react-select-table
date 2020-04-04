@@ -10,7 +10,8 @@ const tableOptions = createTableOptions({
   columns: [
     {
       title: "Φωτογραφία",
-      path: "thumbnail_url"
+      path: "thumbnail_url",
+      render: url => <img src={url} />
     },
     {
       title: "Φύλλο",

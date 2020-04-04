@@ -12,14 +12,15 @@ function Head({ columns, name, columnWidth, setColumnWidth }) {
 
     const onMouseMove = useCallback(e => {
         if (!isResizing) return;
+        const actualIndex = resizingIndex - 1;
         const bounds = header.current.getBoundingClientRect();
         const absX = e.clientX - bounds.x;
 
         const absPercent = absX * 100 / bounds.width;
-        const offset = _.sum(_.take(columnWidth, resizingIndex));
+        const offset = _.sum(_.take(columnWidth, actualIndex));
         const percent = absPercent - offset;
 
-        setColumnWidth(resizingIndex, percent);
+        setColumnWidth(actualIndex, percent);
     }, [resizingIndex, columnWidth, setColumnWidth]);
 
     useEffect(() => {
@@ -38,7 +39,9 @@ function Head({ columns, name, columnWidth, setColumnWidth }) {
 
             return <div key={`title_${name}_${id}`}
                 className="column" style={{ width }}>
-                <div className="title">{col.title}</div>
+                <div className="title"
+                    data-sortable={!col.render}>
+                    {col.title}</div>
                 <div className="seperator"
                     onMouseDown={() => setResizingIndex(index)} />
             </div>

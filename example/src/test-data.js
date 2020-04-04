@@ -19,7 +19,7 @@ export default [
         "status": "Φιλοξενία",
         "birth_date_estimated": 1,
         "birth_date": "2012-01-01",
-        "size": "Μιρκό",
+        "size": "Μικρό",
         "barrenness_date": null,
         "chip": "",
         "is_vaccinated": 1,

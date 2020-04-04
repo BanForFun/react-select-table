@@ -5,25 +5,29 @@
 
     table {
         width: 100%;
-        table-layout: fixed;
+        table-layout: fixed;   
     }
 
-    .title, td {
-        padding: 0.75rem;
-        padding-right: 0;
-        overflow: hidden;
+    thead th {
+        padding: 0;
     }
 
     tr {
         border-top: 1px solid gainsboro;
+
+        &:hover {
+            background-color: #e0e0e0;
+          }
+          &.active {
+            box-shadow: inset 0 -2px 0 #b1cc97;
+          }
+          &.selected {
+            background-color: #c4d9b1;
+          }
     }
 
-    th {
-        padding: 0;
-    }
-
-    .content {
-        margin-right: $seperator-width;
+    .title, .content {
+        padding: 0.75rem;
         overflow: hidden;
     }
 
@@ -31,30 +35,35 @@
         display: flex;
 
         &[data-resizing=true] .title {
-            cursor: col-resize;
+            cursor: col-resize !important;
         }
 
         .column {     
-            display: flex;
             user-select: none;
+            position: relative;
+            overflow: hidden;
 
-            &:last-child > .seperator {
-                display: none;
+            &:first-child > .seperator {
+                display: none;     
             }
         }
 
         .title {
             font-weight: bold;
             white-space: nowrap;
-            cursor: pointer;
+
+            &[data-sortable=true] {
+                cursor: pointer;
+            }
         }
 
         .seperator {
-            background-color: transparent;
-            margin-left: auto;
-            flex: none;
+            position: absolute;
+            left: 0;
+            top: 0;        
             width: $seperator-width;
             height: 100%;
+            opacity: 0;  
             cursor: col-resize;
         }
     }

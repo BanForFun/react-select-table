@@ -4,11 +4,7 @@ import { connect } from 'react-redux';
 import { setColumnWidth } from "../store/table";
 import { registerEventListeners } from '../utils/elementUtils';
 
-function Head({ columns, name, columnWidth, columnOrder, setColumnWidth }) {
-    const orderedColumns = columnOrder.length ?
-        _.sortBy(columns, col => columnOrder.indexOf(col.path)) :
-        columns;
-
+function Head({ columns, name, columnWidth, setColumnWidth }) {
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
 
@@ -37,16 +33,12 @@ function Head({ columns, name, columnWidth, columnOrder, setColumnWidth }) {
     return <div className="header" ref={header}
         data-resizing={isResizing}>
 
-        {orderedColumns.map((col, index) => {
-            const id = col.key || col.path;
-            const style = {
-                width: `${columnWidth[index]}%`
-                // "z-index": index
-            };
+        {columns.map((col, index) => {
+            const { width, id } = col.props;
 
             return <div key={`header_${name}_${id}`}
-                className="column" style={style}>
-                <div className="title">{col.title}</div>
+                className="column" style={{ width }}>
+                <div className="content">{col.title}</div>
                 <div className="seperator"
                     onMouseDown={() => setResizingIndex(index)} />
             </div>
@@ -55,7 +47,7 @@ function Head({ columns, name, columnWidth, columnOrder, setColumnWidth }) {
 }
 
 function mapStateToProps(state) {
-    return _.pick(state, "columnWidth", "columnOrder");
+    return _.pick(state, "columnWidth");
 }
 
 export default connect(mapStateToProps, {

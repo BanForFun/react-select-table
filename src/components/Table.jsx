@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import _ from "lodash";
 import PropTypes from "prop-types";
 import Head from "./Head";
 import Body from "./Body";
@@ -7,15 +8,26 @@ import { Provider, connect } from 'react-redux';
 import configureStore from '../store/configureStore';
 import { setItems } from '../store/table';
 
-const SfcTable = ({ name, columns }) => {
+const SfcTable = ({ name, columns, columnWidth, columnOrder }) => {
+    const orderedColumns = columnOrder.length ?
+        _.sortBy(columns, col => columnOrder.indexOf(col.path)) :
+        columns;
 
+    const parsedColumns = orderedColumns.map((col, index) => {
+        const props = {
+            width: `${columnWidth[index].toFixed(2)}%`,
+            id: col.key || col.path
+        };
+
+        return { ...col, props };
+    });
 
     return (
         <div className="react-select-table">
-            <Head name={name}
-                columns={columns} />
+            <Head name={name} columns={parsedColumns} />
             <table>
-                <ColumnResizer />
+                <ColumnResizer columns={parsedColumns}
+                    name={name} />
                 <Body />
             </table>
         </div>
@@ -23,7 +35,7 @@ const SfcTable = ({ name, columns }) => {
 }
 
 function mapStateToProps(state) {
-    return {};
+    return _.pick(state, "columnWidth", "columnOrder");
 }
 
 const mapDispatchToProps = {}

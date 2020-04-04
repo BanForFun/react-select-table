@@ -1,22 +1,28 @@
 .react-select-table {
-    width: 100%;
     height: 100%;
+
+    table {
+        width: 100%;
+    }
+
+    th {
+        padding: 0;
+    }
+
+    .content {
+        padding: 0.75rem;
+    }
 
     .header {
         display: flex;
-        align-items: stretch;
         overflow: hidden;
         border-bottom: 2px solid lightgray;
 
-        &[data-resizing=true] .column {
-            cursor: col-resize;
-            user-select: none;
+        &[data-resizing=true] .title {
+            cursor: col-resize;         
         }
 
-        .column {      
-            flex: 1 1 auto;    
-            box-sizing: border-box;
-            white-space: nowrap;
+        .column {     
             display: flex;
 
             &:last-child > .seperator {
@@ -24,15 +30,17 @@
             }
         }
 
-        .title {
-            flex: auto;
+        .content {
             font-weight: bold;
             overflow: hidden;
-            padding: 0.75rem;
+            white-space: nowrap;       
+            user-select: none;
+            cursor: pointer;
         }
 
         .seperator {
             background-color: lightsalmon;
+            margin-left: auto;
             flex: none;
             width: 6px;
             height: 100%;

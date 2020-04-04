@@ -3,9 +3,10 @@ import React from 'react'
 import testData from "./test-data";
 import Table, { createTableOptions } from 'react-select-table'
 import 'react-select-table/src/index.scss'
+import 'bootstrap/dist/css/bootstrap.css';
 
 const tableOptions = createTableOptions({
-  valueProperty: "id",
+  valueProperty: "pet_id",
   columns: [
     {
       title: "Φωτογραφία",
@@ -31,7 +32,10 @@ const tableOptions = createTableOptions({
 });
 
 const App = () => {
-  return <Table items={testData} options={tableOptions} name="test" />
+  return <Table
+    items={testData}
+    options={tableOptions}
+    name="test" />
 }
 
 export default App

@@ -26,7 +26,7 @@ const Body = ({ columns, name, options, items }) => {
             content = row[path];
 
         return <td key={`td_${name}_${value}_${props.id}`}>
-            {content}
+            <div className="content">{content}</div>
         </td>
     }
 

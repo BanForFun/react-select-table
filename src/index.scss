@@ -1,6 +1,8 @@
 .react-select-table {
     height: 100%;
 
+    $seperator-width: 6px;
+
     table {
         width: 100%;
         table-layout: fixed;
@@ -8,13 +10,25 @@
 
     .title, td {
         padding: 0.75rem;
+        padding-right: 0;
+        overflow: hidden;
+    }
+
+    tr {
+        border-top: 1px solid gainsboro;
+    }
+
+    th {
+        padding: 0;
+    }
+
+    .content {
+        margin-right: $seperator-width;
         overflow: hidden;
     }
 
     .header {
         display: flex;
-        overflow: hidden;
-        border-bottom: 2px solid lightgray;
 
         &[data-resizing=true] .title {
             cursor: col-resize;
@@ -36,10 +50,10 @@
         }
 
         .seperator {
-            background-color: lightsalmon;
+            background-color: transparent;
             margin-left: auto;
             flex: none;
-            width: 6px;
+            width: $seperator-width;
             height: 100%;
             cursor: col-resize;
         }

@@ -8,14 +8,14 @@ import { Provider, connect } from 'react-redux';
 import configureStore from '../store/configureStore';
 import { setItems } from '../store/table';
 
-const SfcTable = ({ name, options, columnWidth, columnOrder }) => {
+const SfcTable = ({ name, options, columnWidth, columnOrder, className }) => {
     const orderedColumns = columnOrder.length ?
         _.sortBy(options.columns, col => columnOrder.indexOf(col.path)) :
         options.columns;
 
     const parsedColumns = orderedColumns.map((col, index) => {
         const props = {
-            width: `${columnWidth[index].toFixed(2)}%`,
+            width: `${columnWidth[index]}%`,
             id: col.key || col.path
         };
 
@@ -30,7 +30,7 @@ const SfcTable = ({ name, options, columnWidth, columnOrder }) => {
     return (
         <div className="react-select-table">
             <Head {...params} />
-            <table>
+            <table className={className}>
                 <ColumnResizer {...params} />
                 <Body {...params} />
             </table>

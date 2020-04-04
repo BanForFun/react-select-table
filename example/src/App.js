@@ -1,7 +1,7 @@
 import React from 'react'
 
 import Table from 'react-select-table'
-import 'react-select-table/dist/index.css'
+import 'react-select-table/src/index.scss'
 
 const App = () => {
   const items = [
@@ -11,7 +11,30 @@ const App = () => {
     { id: 4, text: "Karoto" }
   ]
 
-  return <Table items={items} />
+  const columns = [
+    {
+      title: "Photo",
+      path: "photo"
+    },
+    {
+      title: "Sex",
+      path: "Sex"
+    },
+    {
+      title: "Ownership",
+      path: "Ownership"
+    },
+    {
+      title: "Name",
+      path: "Name"
+    },
+    {
+      title: "Barrenn",
+      path: "Barrenn"
+    }
+  ]
+
+  return <Table items={items} columns={columns} name="test" />
 }
 
 export default App

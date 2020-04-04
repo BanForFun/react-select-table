@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from "prop-types";
 import Head from "./Head";
 import Body from "./Body";
 import ColumnResizer from "./ColumnResizer";
-import "./table.scss";
 import { Provider, connect } from 'react-redux';
 import configureStore from '../store/configureStore';
 import { setItems } from '../store/table';
 
-const SfcTable = () => {
+const SfcTable = ({ name, columns }) => {
+
+
     return (
         <div className="react-select-table">
-            <Head />
+            <Head name={name}
+                columns={columns} />
             <table>
                 <ColumnResizer />
                 <Body />
@@ -19,14 +22,28 @@ const SfcTable = () => {
     )
 }
 
-const ConnectedTable = connect()(SfcTable);
+function mapStateToProps(state) {
+    return {};
+}
+
+const mapDispatchToProps = {}
+
+const ConnectedTable = connect(mapStateToProps, mapDispatchToProps)(SfcTable);
+
+ConnectedTable.propTypes = {
+    columns: PropTypes.array.isRequired,
+    name: PropTypes.string.isRequired
+}
 
 function Table({ items, ...params }) {
     const [store, setStore] = useState();
 
     useEffect(() => {
         if (items) {
-            const store = configureStore();
+            const store = configureStore({
+                valueProperty: params.valueProperty,
+                columnCount: params.columns.length
+            });
             setStore(store);
         } else
             setStore(null);

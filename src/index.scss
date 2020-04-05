@@ -5,16 +5,20 @@
 
     table {
         width: 100%;
-        table-layout: fixed;   
+        margin-bottom: 0;
+        table-layout: fixed;
     }
 
-    thead th {
+    table:first-child thead th {
+        border-bottom-width: 1px;
+    }
+
+    table:last-child thead th {
         padding: 0;
+        border-style: none;
     }
 
-    tr {
-        border-top: 1px solid gainsboro;
-
+    tbody tr {
         &:hover {
             background-color: #e0e0e0;
           }
@@ -27,14 +31,11 @@
     }
 
     .title, .content {
-        padding: 0.75rem;
         overflow: hidden;
     }
 
     .header {
-        display: flex;
-
-        &[data-resizing=true] .title {
+        &[data-resizing=true] .column {
             cursor: col-resize !important;
         }
 
@@ -42,6 +43,10 @@
             user-select: none;
             position: relative;
             overflow: hidden;
+
+            &[data-sortable=true] {
+                cursor: pointer;
+            }
 
             &:first-child > .seperator {
                 display: none;     
@@ -51,10 +56,7 @@
         .title {
             font-weight: bold;
             white-space: nowrap;
-
-            &[data-sortable=true] {
-                cursor: pointer;
-            }
+            display: inline;
         }
 
         .seperator {

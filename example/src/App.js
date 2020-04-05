@@ -36,6 +36,7 @@ const App = () => {
   return <Table
     items={testData}
     options={tableOptions}
+    className="table"
     name="test" />
 }
 

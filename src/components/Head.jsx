@@ -12,15 +12,15 @@ function Head({ columns, name, columnWidth, setColumnWidth }) {
 
     const onMouseMove = useCallback(e => {
         if (!isResizing) return;
-        const actualIndex = resizingIndex - 1;
+        const compatibleIndex = resizingIndex - 1;
         const bounds = header.current.getBoundingClientRect();
         const absX = e.clientX - bounds.x;
 
         const absPercent = absX * 100 / bounds.width;
-        const offset = _.sum(_.take(columnWidth, actualIndex));
+        const offset = _.sum(_.take(columnWidth, compatibleIndex));
         const percent = absPercent - offset;
 
-        setColumnWidth(actualIndex, percent);
+        setColumnWidth(compatibleIndex, percent);
     }, [resizingIndex, columnWidth, setColumnWidth]);
 
     useEffect(() => {
@@ -31,22 +31,23 @@ function Head({ columns, name, columnWidth, setColumnWidth }) {
         return dispose;
     }, [onMouseMove]);
 
-    return <div className="header" ref={header}
+    return <thead className="header" ref={header}
         data-resizing={isResizing}>
+        <tr>
+            {columns.map((col, index) => {
+                const { width, id } = col.props;
 
-        {columns.map((col, index) => {
-            const { width, id } = col.props;
+                return <th key={`title_${name}_${id}`}
+                    data-sortable={!col.render}
+                    className="column" style={{ width }}>
 
-            return <div key={`title_${name}_${id}`}
-                className="column" style={{ width }}>
-                <div className="title"
-                    data-sortable={!col.render}>
-                    {col.title}</div>
-                <div className="seperator"
-                    onMouseDown={() => setResizingIndex(index)} />
-            </div>
-        })}
-    </div>;
+                    <div className="title">{col.title}</div>
+                    <div className="seperator"
+                        onMouseDown={() => setResizingIndex(index)} />
+                </th>
+            })}
+        </tr>
+    </thead>;
 }
 
 function mapStateToProps(state) {

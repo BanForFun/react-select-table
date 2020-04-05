@@ -29,7 +29,9 @@ const SfcTable = ({ name, options, columnWidth, columnOrder, className }) => {
 
     return (
         <div className="react-select-table">
-            <Head {...params} />
+            <table className={className}>
+                <Head {...params} />
+            </table>
             <table className={className}>
                 <ColumnResizer {...params} />
                 <Body {...params} />

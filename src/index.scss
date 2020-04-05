@@ -56,6 +56,7 @@
 
         .column {
             position: relative;
+            border-left: 1px solid transparent;
 
             &[data-sortable=true] {
                 cursor: pointer;
@@ -86,8 +87,11 @@
             top: 0;        
             width: 6px;
             height: 100%;
-            opacity: 0;  
             cursor: col-resize;
+
+            &:active {
+                border-left: 1px dotted black;
+            }
         }
     }
 

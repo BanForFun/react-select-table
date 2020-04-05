@@ -10,6 +10,7 @@ const Body = ({
     items,
     selectedValues,
     activeValue,
+    onDoubleClick,
     selectItem
 }) => {
     const handleRowSelect = (e, value) => {
@@ -30,6 +31,7 @@ const Body = ({
 
         return <tr key={`tr_${name}_${value}`}
             className={classes.join(' ')}
+            onDoubleClick={() => onDoubleClick(value)}
             onMouseDown={e => handleRowSelect(e, value)}>
             {columns.map(col => renderColumn(row, col))}
         </tr>

@@ -28,6 +28,7 @@ function SfcTable(props) {
         className,
         clearSelection,
         valueProperty,
+        onDoubleClick,
         _setOption
     } = props;
 
@@ -78,20 +79,22 @@ function SfcTable(props) {
         return { ...col, props };
     });
 
+    const common = {
+        name, columns
+    }
+
     return (
         <div className="react-select-table">
             <table className={className}>
-                <Head name={name}
-                    columns={columns}
+                <Head {...common}
                     scrollBarWidth={scrollBarWidth} />
             </table>
             <div className="bodyContainer" ref={bodyContainer}
                 onMouseDown={handleMouseDown}>
                 <table className={className}>
-                    <ColumnResizer name={name}
-                        columns={columns} />
-                    <Body name={name}
-                        columns={columns}
+                    <ColumnResizer {...common} />
+                    <Body {...common}
+                        onDoubleClick={onDoubleClick}
                         valueProperty={valueProperty} />
                 </table>
             </div>

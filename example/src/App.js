@@ -32,6 +32,7 @@ const columns = [
 const App = () => {
   return (
     <Table
+      onDoubleClick={alert}
       items={testData}
       valueProperty="pet_id"
       columns={columns}

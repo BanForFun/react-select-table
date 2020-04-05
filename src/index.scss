@@ -15,7 +15,8 @@
         border-style: none;
     }
 
-    .bodyContainer {    
+    .bodyContainer {
+        position: relative;
         flex: auto;
         overflow-y: auto;
     }
@@ -48,6 +49,13 @@
             }
         }
     }
+
+    .selection {
+        border: 1px solid blue;
+        background-color: lightskyblue;
+        opacity: 0.5;
+        pointer-events: none;
+      }
 
     .header {
         &[data-resizing=true] .column {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import _ from "lodash";
 import PropTypes from "prop-types";
 import Head from "./Head";
@@ -7,9 +7,14 @@ import ColumnResizer from "./ColumnResizer";
 import { Provider, connect } from 'react-redux';
 import configureStore from '../store/configureStore';
 import {
-    setItems, clearSelection,
-    _setOption, _setColumnCount
+    setItems,
+    clearSelection,
+    setRowSelected,
+    _setOption,
+    _setColumnCount
 } from '../store/table';
+import Rect from '../models/rect';
+import { ensurePosVisible, registerEventListeners } from '../utils/elementUtils';
 
 const defaultOptions = {
     itemParser: item => item,
@@ -23,15 +28,136 @@ const defaultOptions = {
 function SfcTable(props) {
     const {
         name,
-        columnWidth,
-        columnOrder,
         className,
-        clearSelection,
         valueProperty,
         onDoubleClick,
+        isMultiselect,
+
+        //Redux state
+        items,
+        selectedValues,
+        columnWidth,
+        columnOrder,
+
+        //Redux actions
+        clearSelection,
+        setRowSelected,
         _setOption
     } = props;
 
+    const values = _.map(items, valueProperty);
+
+    //#region Drag selection
+
+    //Create row refs
+    const [rowRefs, setRowRefs] = useState({});
+    useEffect(() => {
+        const refs = _.map(values, React.createRef);
+        const refObj = _.zipObject(values, refs);
+        setRowRefs(refObj);
+    }, [items, valueProperty]);
+
+    //Calculate row bounds
+    const [rowBounds, setRowBounds] = useState([]);
+    const getRowBounds = () => values.map(val => {
+        const row = rowRefs[val].current;
+        const rect = Rect.fromPosSize(
+            row.offsetLeft, row.offsetTop,
+            row.scrollWidth, row.scrollHeight
+        );
+
+        return { value: val, bounds: rect };
+    })
+
+    //Drag start
+    const [selOrigin, setSelOrigin] = useState(null);
+    const dragStart = e => {
+        if (!isMultiselect || e.button !== 0) return;
+        const { scrollTop, scrollLeft } = e.target;
+        const { clientX: x, clientY: y } = e;
+
+        setLastMousePos([x, y]);
+        setRowBounds(getRowBounds());
+        setSelOrigin([x + scrollLeft, y + scrollTop]);
+    }
+
+    //Update selection rectangle
+    const [selRect, setSelRect] = useState(null);
+    const updateSelectRect = useCallback(
+        (mouseX, mouseY, autoScroll = true) => {
+            const [originX, originY] = selOrigin;
+            const container = bodyContainer.current;
+
+            const { scrollLeft, scrollTop } = container;
+            const relMouseX = mouseX + scrollLeft;
+            const relMouseY = mouseY + scrollTop;
+            const rect = Rect.fromPoints(relMouseX, relMouseY, originX, originY);
+
+            const bounds = container.getBoundingClientRect();
+            rect.offsetBy(-bounds.x, -bounds.y);
+
+            const relativeBounds = new Rect(0, 0,
+                container.scrollWidth, container.scrollHeight);
+            rect.limit(relativeBounds);
+
+            if (autoScroll)
+                ensurePosVisible(container, mouseX, mouseY);
+
+            setSelRect(rect);
+            for (let row of rowBounds) {
+                const { bounds, value } = row;
+                const intersects = rect.intersectsRectY(bounds);
+
+                if (selectedValues.includes(value) !== intersects)
+                    setRowSelected(value, intersects);
+            }
+        }, [selOrigin, selectedValues, rowBounds, setRowSelected]);
+
+    //Drag move
+    const [lastMousePos, setLastMousePos] = useState(null);
+    const dragMove = useCallback(e => {
+        if (!selOrigin) return;
+        updateSelectRect(e.clientX, e.clientY);
+        setLastMousePos([e.clientX, e.clientY]);
+    }, [selOrigin, updateSelectRect]);
+
+    //Drag end
+    const dragEnd = () => {
+        setSelRect(null);
+        setSelOrigin(null);
+    }
+
+    //Scroll
+    const handleScroll = () => {
+        if (!selOrigin) return;
+        const [x, y] = lastMousePos;
+        updateSelectRect(x, y, false);
+    }
+
+    //Register mouse move and up events
+    useEffect(() => {
+        const cleanup = registerEventListeners(window, {
+            "mousemove": dragMove,
+            "mouseup": dragEnd
+        });
+
+        return cleanup;
+    }, [dragMove]);
+
+    //Rendering
+    const renderSelectionRect = () => {
+        if (!selRect) return null;
+        const { left, top, width, height } = selRect;
+
+        return <div className="selection" style={{
+            position: "absolute",
+            left, top, width, height
+        }} />
+    }
+
+    //#endregion
+
+    //#region Body container overflow detection
     const [scrollBarWidth, setScrollBarWidth] = useState(0);
     const bodyContainer = useRef();
 
@@ -46,7 +172,9 @@ function SfcTable(props) {
 
         return observer.disconnect;
     }, []);
+    //#endregion
 
+    //Set reducer options
     const options = _.pick(props, ...Object.keys(defaultOptions));
     for (let option in options) {
         const value = options[option];
@@ -56,11 +184,21 @@ function SfcTable(props) {
         }, [value]);
     }
 
+    //#region Event Handlers
     const handleMouseDown = e => {
-        if (e.ctrlKey) return;
+        deselectRows(e);
+        dragStart(e);
+    }
+
+    //#endregion
+
+    //Deselect row
+    const deselectRows = e => {
+        if (e.currentTarget !== e.target || e.ctrlKey) return;
         clearSelection();
     }
 
+    //Column ordering and fitlering
     let orderedColumns = props.columns;
     if (columnOrder) {
         const ordered = _.sortBy(props.columns, col =>
@@ -70,6 +208,7 @@ function SfcTable(props) {
         orderedColumns = _.takeRight(ordered, columnOrder.length);
     }
 
+    //Column parsing
     const columns = orderedColumns.map((col, index) => {
         const props = {
             width: `${columnWidth[index]}%`,
@@ -89,11 +228,15 @@ function SfcTable(props) {
                 <Head {...common}
                     scrollBarWidth={scrollBarWidth} />
             </table>
-            <div className="bodyContainer" ref={bodyContainer}
+            <div className="bodyContainer"
+                ref={bodyContainer}
+                onScroll={handleScroll}
                 onMouseDown={handleMouseDown}>
+                {renderSelectionRect()}
                 <table className={className}>
                     <ColumnResizer {...common} />
                     <Body {...common}
+                        rowRefs={rowRefs}
                         onDoubleClick={onDoubleClick}
                         valueProperty={valueProperty} />
                 </table>
@@ -103,11 +246,22 @@ function SfcTable(props) {
 }
 
 function mapStateToProps(state) {
-    return _.pick(state, "columnWidth", "columnOrder");
+    const directMap = _.pick(state,
+        "columnWidth",
+        "columnOrder",
+        "selectedValues"
+    );
+
+    return {
+        ...directMap,
+        items: state.tableItems
+    }
 }
 
 export const ConnectedTable = connect(mapStateToProps, {
-    clearSelection, _setOption
+    clearSelection,
+    setRowSelected,
+    _setOption
 })(SfcTable);
 
 function Table(params) {

@@ -27,27 +27,43 @@ export default function createTableReducer() {
     let options = {};
 
     return (state = initState, action) => produce(state, draft => {
-        const { valueProperty, isMultiselect, deselectOnContainerClick } = options;
+        const {
+            valueProperty,
+            isMultiselect,
+            deselectOnContainerClick
+        } = options;
 
-        const parseItems = items =>
+        //Prefix methods that don't mutate draft state with an underscore
+        const _parseItems = items =>
             _.map(items, options.itemParser);
 
-        const filterItems = (items, filter = state.filter) =>
+        const _filterItems = (items, filter = state.filter) =>
             _.filter(items, i => options.itemFilter(i, filter));
 
-        const sortItems = (items, sort = state.sort) =>
+        const _sortItems = (items, sort = state.sort) =>
             _.orderBy(items, [sort.path], [sort.order]);
 
         const transformItems = items => {
-            const transform = pipe(parseItems, filterItems, sortItems);
-            return transform(items);
+            const transform = pipe(_parseItems, _filterItems, _sortItems);
+            draft.tableItems = transform(items);
+        }
+
+        const deselectRows = values => {
+            const { activeValue, selectedValues } = state;
+
+            //Update active value
+            if (values.includes(activeValue))
+                draft.activeValue = null;
+
+            //Update selected values
+            draft.selectedValues = _.difference(selectedValues, values);
         }
 
         switch (action.type) {
             //Items
             case TABLE_SET_ITEMS: {
                 draft.items = _.keyBy(action.items, valueProperty);
-                draft.tableItems = transformItems(action.items);
+                transformItems(action.items);
                 break;
             }
 
@@ -94,6 +110,24 @@ export default function createTableReducer() {
                     draft.selectedValues = [];
                 break;
             }
+            case TABLE_SET_ROW_SELECTED: {
+                const { value, selected } = action;
+                const values = [value];
+
+                if (!selected) {
+                    deselectRows(values);
+                    break;
+                }
+
+                //Row to be selected
+                if (!isMultiselect)
+                    draft.selectedValues = values;
+                else
+                    draft.selectedValues.push(value);
+
+                break;
+            }
+
 
             //Columns
             case TABLE_SET_COLUMN_WIDTH: {
@@ -130,8 +164,8 @@ export default function createTableReducer() {
                     sort.order = sortOrder.Ascending;
 
                 sort.path = newPath;
-                const filteredItems = filterItems(parseItems(state.items));
-                draft.tableItems = sortItems(filteredItems, sort);
+                const filteredItems = _filterItems(_parseItems(state.items));
+                draft.tableItems = _sortItems(filteredItems, sort);
                 break;
             }
 
@@ -153,9 +187,12 @@ export default function createTableReducer() {
     })
 }
 
+//Public actions
+
 export const TABLE_SET_ITEMS = "TABLE_SET_ITEMS";
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
+export const TABLE_SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
 export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
@@ -183,6 +220,13 @@ export function selectItem(value, ctrlKey = false, shiftKey = false) {
 export function clearSelection() {
     return { type: TABLE_CLEAR_SELECTION };
 }
+
+export function setRowSelected(value, selected) {
+    return { type: TABLE_SET_ROW_SELECTED, value, selected };
+}
+
+
+//Internal actions
 
 export const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
 export const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";

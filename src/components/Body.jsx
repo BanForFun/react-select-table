@@ -8,6 +8,7 @@ const Body = ({
     name,
     valueProperty,
     items,
+    rowRefs,
     selectedValues,
     activeValue,
     onDoubleClick,
@@ -15,7 +16,6 @@ const Body = ({
 }) => {
     const handleRowSelect = (e, value) => {
         selectItem(value, e.ctrlKey, e.shiftKey);
-        e.stopPropagation();
     }
 
     const renderRow = row => {
@@ -30,6 +30,7 @@ const Body = ({
             classes.push(...row.classes);
 
         return <tr key={`tr_${name}_${value}`}
+            ref={rowRefs[value]}
             className={classes.join(' ')}
             onDoubleClick={() => onDoubleClick(value)}
             onMouseDown={e => handleRowSelect(e, value)}>

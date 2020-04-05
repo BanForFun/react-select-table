@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback, useDebugValue } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import sortIcon from "../icons/angle-line.svg";
 import _ from "lodash";
 import { connect } from 'react-redux';

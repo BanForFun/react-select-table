@@ -6,14 +6,12 @@ import { selectItem } from "../store/table";
 const Body = ({
     columns,
     name,
-    options,
+    valueProperty,
     items,
     selectedValues,
     activeValue,
     selectItem
 }) => {
-    const { valueProperty } = options;
-
     const handleRowSelect = (e, value) => {
         selectItem(value, e.ctrlKey, e.shiftKey);
         e.stopPropagation();
@@ -27,10 +25,11 @@ const Body = ({
             classes.push("selected");
         if (activeValue === value)
             classes.push("active");
-        const className = classes.join(" ");
+        if (row.classes)
+            classes.push(...row.classes);
 
         return <tr key={`tr_${name}_${value}`}
-            className={className}
+            className={classes.join(' ')}
             onMouseDown={e => handleRowSelect(e, value)}>
             {columns.map(col => renderColumn(row, col))}
         </tr>

@@ -4,29 +4,31 @@ import { pipe } from "lodash/fp";
 import { sortOrder } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
 
-export default function createTableReducer(options) {
+const initState = {
+    sort: {
+        path: null,
+        order: sortOrder.Ascending
+    },
+    columnOrder: null,
+    columnWidth: [],
+    selectedValues: [],
+    activeValue: null,
+    filter: {},
+    items: {},
+    tableItems: []
+};
+
+export default function createTableReducer() {
     function getDefaultWidth(count) {
         const width = 100 / count;
         return _.times(count, _.constant(width));
     }
 
-    const initState = {
-        sort: {
-            path: null,
-            order: sortOrder.Ascending
-        },
-        columnOrder: [],
-        columnWidth: getDefaultWidth(options.columns.length),
-        selectedValues: [],
-        activeValue: null,
-        filter: {},
-        items: {},
-        tableItems: []
-    };
-
-    const { valueProperty, isMultiselect, deselectOnContainerClick } = options;
+    let options = {};
 
     return (state = initState, action) => produce(state, draft => {
+        const { valueProperty, isMultiselect, deselectOnContainerClick } = options;
+
         const parseItems = items =>
             _.map(items, options.itemParser);
 
@@ -134,6 +136,17 @@ export default function createTableReducer(options) {
             }
 
             //Filtering
+
+            //Internal
+            case TABLE_SET_COLUMN_COUNT: {
+                draft.columnOrder = null;
+                draft.columnWidth = getDefaultWidth(action.count);
+                break;
+            }
+            case TABLE_SET_OPTION: {
+                options[action.name] = action.value;
+                break;
+            }
             default:
                 return draft;
         }
@@ -169,4 +182,15 @@ export function selectItem(value, ctrlKey = false, shiftKey = false) {
 
 export function clearSelection() {
     return { type: TABLE_CLEAR_SELECTION };
+}
+
+export const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
+export const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+
+export function _setColumnCount(count) {
+    return { type: TABLE_SET_COLUMN_COUNT, count };
+}
+
+export function _setOption(name, value) {
+    return { type: TABLE_SET_OPTION, name, value };
 }

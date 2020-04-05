@@ -1,21 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import _ from "lodash";
-import PropTypes, { object } from "prop-types";
+import PropTypes from "prop-types";
 import Head from "./Head";
 import Body from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import { Provider, connect } from 'react-redux';
 import configureStore from '../store/configureStore';
-import { setItems, clearSelection } from '../store/table';
+import {
+    setItems, clearSelection,
+    _setOption, _setColumnCount
+} from '../store/table';
 
-function SfcTable({
-    name,
-    options,
-    columnWidth,
-    columnOrder,
-    className,
-    clearSelection
-}) {
+const defaultOptions = {
+    itemParser: item => item,
+    itemFilter: () => true,
+    minWidth: 3,
+    isMultiselect: true,
+    deselectOnContainerClick: true,
+    valueProperty: null
+};
+
+function SfcTable(props) {
+    const {
+        name,
+        columnWidth,
+        columnOrder,
+        className,
+        clearSelection,
+        valueProperty,
+        _setOption
+    } = props;
+
     const [scrollBarWidth, setScrollBarWidth] = useState(0);
     const bodyContainer = useRef();
 
@@ -29,23 +44,32 @@ function SfcTable({
         observer.observe(bodyContainer.current.firstElementChild);
 
         return observer.disconnect;
-    }, [])
+    }, []);
+
+    const options = _.pick(props, ...Object.keys(defaultOptions));
+    for (let option in options) {
+        const value = options[option];
+
+        useEffect(() => {
+            _setOption(option, value);
+        }, [value]);
+    }
 
     const handleMouseDown = e => {
         if (e.ctrlKey) return;
         clearSelection();
     }
 
-    let orderedColumns = options.columns;
-    if (columnOrder.length > 0) {
-        const ordered = _.sortBy(options.columns, col =>
+    let orderedColumns = props.columns;
+    if (columnOrder) {
+        const ordered = _.sortBy(props.columns, col =>
             columnOrder.indexOf(col.path));
         //Columns not included in the columnOrder list will have an index of -1
         //and be at the start of the ordered list
         orderedColumns = _.takeRight(ordered, columnOrder.length);
     }
 
-    const parsedColumns = orderedColumns.map((col, index) => {
+    const columns = orderedColumns.map((col, index) => {
         const props = {
             width: `${columnWidth[index]}%`,
             id: col.key || col.path
@@ -54,21 +78,21 @@ function SfcTable({
         return { ...col, props };
     });
 
-    const params = {
-        name, options,
-        columns: parsedColumns
-    }
-
     return (
         <div className="react-select-table">
             <table className={className}>
-                <Head {...params} scrollBarWidth={scrollBarWidth} />
+                <Head name={name}
+                    columns={columns}
+                    scrollBarWidth={scrollBarWidth} />
             </table>
             <div className="bodyContainer" ref={bodyContainer}
                 onMouseDown={handleMouseDown}>
                 <table className={className}>
-                    <ColumnResizer {...params} />
-                    <Body {...params} />
+                    <ColumnResizer name={name}
+                        columns={columns} />
+                    <Body name={name}
+                        columns={columns}
+                        valueProperty={valueProperty} />
                 </table>
             </div>
         </div>
@@ -79,58 +103,53 @@ function mapStateToProps(state) {
     return _.pick(state, "columnWidth", "columnOrder");
 }
 
-const ConnectedTable = connect(mapStateToProps, {
-    clearSelection
+export const ConnectedTable = connect(mapStateToProps, {
+    clearSelection, _setOption
 })(SfcTable);
 
-function Table({ items, ...params }) {
+function Table(params) {
+    const { items, columns } = params;
     const [store, setStore] = useState();
 
     useEffect(() => {
-        if (items) {
-            const store = configureStore(params.options);
-            setStore(store);
-        } else
-            setStore(null);
+        const store = configureStore();
+        setStore(store);
     }, []);
 
     useEffect(() => {
         store && store.dispatch(setItems(items))
-    }, [items, store]);
+    }, [store, items]);
 
-    if (store === undefined) return null;
-    if (store === null)
-        return <SfcTable {...params} />;
+    useEffect(() => {
+        store && store.dispatch(_setColumnCount(columns.length))
+    }, [store, columns]);
+
+    if (!store) return null;
 
     return <Provider store={store}>
         <ConnectedTable {...params} />
     </Provider>
 }
 
-const optionsShape = {
+Table.propTypes = {
+    name: PropTypes.string.isRequired,
     valueProperty: PropTypes.string.isRequired,
     columns: PropTypes.array.isRequired,
     itemParser: PropTypes.func,
     itemFilter: PropTypes.func,
-    minWidth: PropTypes.number
+    minWidth: PropTypes.number,
+    isMultiselect: PropTypes.bool,
+    deselectOnContainerClick: PropTypes.bool,
+    onContextMenu: PropTypes.func,
+    onDoubleClick: PropTypes.func,
+    onSelectionChange: PropTypes.func
 }
 
-Table.propTypes = {
-    options: PropTypes.shape(optionsShape),
-    name: PropTypes.string.isRequired
+Table.defaultProps = {
+    ...defaultOptions,
+    onContextMenu: () => { },
+    onDoubleClick: () => { },
+    onSelectionChange: () => { }
 }
 
 export default Table;
-
-export function createTableOptions(options) {
-    const defaultOptions = {
-        itemParser: item => item,
-        itemFilter: () => true,
-        minWidth: 3,
-        isMultiselect: true,
-        scrollBar: true,
-        deselectOnContainerClick: true
-    };
-
-    return _.defaults(options, defaultOptions);
-}

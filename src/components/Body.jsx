@@ -14,8 +14,10 @@ const Body = ({
 }) => {
     const { valueProperty } = options;
 
-    const handleRowSelect = (e, value) =>
+    const handleRowSelect = (e, value) => {
         selectItem(value, e.ctrlKey, e.shiftKey);
+        e.stopPropagation();
+    }
 
     const renderRow = row => {
         const value = row[valueProperty];

@@ -6,9 +6,22 @@ import Body from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import { Provider, connect } from 'react-redux';
 import configureStore from '../store/configureStore';
-import { setItems } from '../store/table';
+import { setItems, clearSelection } from '../store/table';
 
-function SfcTable({ name, options, columnWidth, columnOrder, className }) {
+function SfcTable({
+    name,
+    options,
+    columnWidth,
+    columnOrder,
+    className,
+    clearSelection
+}) {
+    const handleMouseDown = e => {
+        if (e.ctrlKey) return;
+        clearSelection();
+    }
+
+
     let orderedColumns = options.columns;
 
     if (columnOrder.length > 0) {
@@ -38,7 +51,8 @@ function SfcTable({ name, options, columnWidth, columnOrder, className }) {
             <table className={className}>
                 <Head {...params} />
             </table>
-            <div className="bodyContainer">
+            <div className="bodyContainer"
+                onMouseDown={handleMouseDown}>
                 <table className={className}>
                     <ColumnResizer {...params} />
                     <Body {...params} />
@@ -52,7 +66,9 @@ function mapStateToProps(state) {
     return _.pick(state, "columnWidth", "columnOrder");
 }
 
-const ConnectedTable = connect(mapStateToProps)(SfcTable);
+const ConnectedTable = connect(mapStateToProps, {
+    clearSelection
+})(SfcTable);
 
 function Table({ items, ...params }) {
     const [store, setStore] = useState();
@@ -92,3 +108,15 @@ Table.propTypes = {
 }
 
 export default Table;
+
+export function createTableOptions(options) {
+    const defaultOptions = {
+        itemParser: item => item,
+        itemFilter: () => true,
+        minWidth: 3,
+        isMultiselect: true,
+        deselectOnContainerClick: true
+    };
+
+    return _.defaults(options, defaultOptions);
+}

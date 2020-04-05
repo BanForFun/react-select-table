@@ -24,7 +24,7 @@ export default function createTableReducer(options) {
         tableItems: []
     };
 
-    const { valueProperty, isMultiselect } = options;
+    const { valueProperty, isMultiselect, deselectOnContainerClick } = options;
 
     return (state = initState, action) => produce(state, draft => {
         const parseItems = items =>
@@ -86,6 +86,12 @@ export default function createTableReducer(options) {
 
                 break;
             }
+            case TABLE_CLEAR_SELECTION: {
+                draft.activeValue = null;
+                if (deselectOnContainerClick)
+                    draft.selectedValues = [];
+                break;
+            }
 
             //Columns
             case TABLE_SET_COLUMN_WIDTH: {
@@ -139,6 +145,7 @@ export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
+export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
 
 export function setItems(items) {
     return { type: TABLE_SET_ITEMS, items };
@@ -158,4 +165,8 @@ export function sortBy(path) {
 
 export function selectItem(value, ctrlKey = false, shiftKey = false) {
     return { type: TABLE_SELECT_ROW, value, ctrlKey, shiftKey };
+}
+
+export function clearSelection() {
+    return { type: TABLE_CLEAR_SELECTION };
 }

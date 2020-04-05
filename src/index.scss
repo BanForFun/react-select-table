@@ -28,6 +28,7 @@
 
     td, th {
         overflow: hidden;
+        user-select: none;
     }
 
     tbody tr {
@@ -56,7 +57,6 @@
         }
 
         .column {
-            user-select: none;
             position: relative;
 
             &[data-sortable=true] {

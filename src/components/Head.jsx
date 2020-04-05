@@ -35,6 +35,7 @@ function Head({
 
     useEffect(() => {
         const onMouseUp = () => {
+            if (!resizingIndex) return;
             setResizingIndex(null);
             setIgnoreSort(true);
         }

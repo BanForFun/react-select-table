@@ -30,7 +30,7 @@
           }
     }
 
-    .title, .content {
+    .content {
         overflow: hidden;
     }
 
@@ -53,10 +53,19 @@
             }
         }
 
+        .sortIcon {
+            height: 1.25em;
+            margin-left: 0.25rem;
+
+            &[data-order=desc] {
+                transform: rotate(180deg);
+            }
+        }
+
         .title {
             font-weight: bold;
+            overflow: hidden;
             white-space: nowrap;
-            display: inline;
         }
 
         .seperator {

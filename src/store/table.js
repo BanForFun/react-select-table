@@ -37,10 +37,11 @@ export default function createTableReducer(options) {
         }
 
         switch (action.type) {
-            case TABLE_SET_ITEMS:
+            case TABLE_SET_ITEMS: {
                 draft.items = _.keyBy(action.items, options.valueProperty);
                 draft.tableItems = transformItems(action.items);
                 break;
+            }
             case TABLE_SET_COLUMN_WIDTH: {
                 const { index, width } = action;
                 const { minWidth } = options;
@@ -63,6 +64,20 @@ export default function createTableReducer(options) {
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
+            case TABLE_SORT_BY: {
+                const { sort } = draft;
+                const { path } = action;
+
+                if (sort.path === path && sort.order === sortOrder.Ascending)
+                    sort.order = sortOrder.Descending;
+                else
+                    sort.order = sortOrder.Ascending;
+
+                sort.path = path;
+                const filteredItems = filterItems(parseItems(state.items));
+                draft.tableItems = sortItems(filteredItems, sort);
+                break;
+            }
             default:
                 return draft;
         }
@@ -72,6 +87,7 @@ export default function createTableReducer(options) {
 export const TABLE_SET_ITEMS = "TABLE_SET_ITEMS";
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
+export const TABLE_SORT_BY = "TABLE_SORT_BY";
 
 export function setItems(items) {
     return { type: TABLE_SET_ITEMS, items };
@@ -83,4 +99,8 @@ export function setColumnWidth(index, width) {
 
 export function setColumnOrder(order) {
     return { type: TABLE_SET_COLUMN_ORDER, order };
+}
+
+export function sortBy(path) {
+    return { type: TABLE_SORT_BY, path };
 }

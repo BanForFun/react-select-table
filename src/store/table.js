@@ -29,7 +29,7 @@ export default function createTableReducer(options) {
             _.filter(items, i => options.itemFilter(i, filter));
 
         const sortItems = (items, sort = state.sort) =>
-            _.sortBy(items, [sort.path], [sort.order]);
+            _.orderBy(items, [sort.path], [sort.order]);
 
         const transformItems = items => {
             const transform = pipe(parseItems, filterItems, sortItems);
@@ -65,15 +65,15 @@ export default function createTableReducer(options) {
                 break;
             }
             case TABLE_SORT_BY: {
+                const newPath = action.path;
                 const { sort } = draft;
-                const { path } = action;
 
-                if (sort.path === path && sort.order === sortOrder.Ascending)
+                if (sort.path === newPath && sort.order === sortOrder.Ascending)
                     sort.order = sortOrder.Descending;
                 else
                     sort.order = sortOrder.Ascending;
 
-                sort.path = path;
+                sort.path = newPath;
                 const filteredItems = filterItems(parseItems(state.items));
                 draft.tableItems = sortItems(filteredItems, sort);
                 break;

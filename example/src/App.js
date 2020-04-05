@@ -7,6 +7,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 const tableOptions = createTableOptions({
   valueProperty: "pet_id",
+  scrollBar: true,
   columns: [
     {
       title: "Φωτογραφία",

@@ -10,6 +10,7 @@ function Head({
     name,
     columnWidth,
     sort,
+    scrollBarWidth,
     setColumnWidth,
     sortBy
 }) {
@@ -23,15 +24,17 @@ function Head({
     const onMouseMove = useCallback(e => {
         if (!isResizing) return;
         const compatibleIndex = resizingIndex - 1;
-        const bounds = header.current.getBoundingClientRect();
+        const element = header.current;
+        const bounds = element.getBoundingClientRect();
         const absX = e.clientX - bounds.x;
 
-        const absPercent = absX * 100 / (bounds.width - 16);
+        const offsetWidth = element.clientWidth - scrollBarWidth;
+        const absPercent = absX * 100 / offsetWidth;
         const offset = _.sum(_.take(columnWidth, compatibleIndex));
         const percent = absPercent - offset;
 
         setColumnWidth(compatibleIndex, percent);
-    }, [resizingIndex, columnWidth, setColumnWidth]);
+    }, [resizingIndex, columnWidth, setColumnWidth, scrollBarWidth]);
 
     useEffect(() => {
         const onMouseUp = () => {
@@ -85,7 +88,9 @@ function Head({
                         onMouseDown={() => setResizingIndex(index)} />
                 </th>
             })}
-            <th className="scrollMargin" />
+            {!!scrollBarWidth && <th className="scrollMargin"
+                width={`${scrollBarWidth}px`} />
+            }
         </tr>
     </thead>;
 }

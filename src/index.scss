@@ -15,14 +15,12 @@
         border-style: none;
     }
 
-    .bodyContainer {
-        overflow-y: scroll;
+    .bodyContainer {    
         flex: auto;
+        overflow-y: auto;
     }
-
+    
     .scrollMargin {
-        //Default scrollbar width
-        width: 16px;
         padding: 0;
     }
 

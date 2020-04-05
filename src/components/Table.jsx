@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import _ from "lodash";
-import PropTypes from "prop-types";
+import PropTypes, { object } from "prop-types";
 import Head from "./Head";
 import Body from "./Body";
 import ColumnResizer from "./ColumnResizer";
@@ -16,14 +16,27 @@ function SfcTable({
     className,
     clearSelection
 }) {
+    const [scrollBarWidth, setScrollBarWidth] = useState(0);
+    const bodyContainer = useRef();
+
+    useEffect(() => {
+        const handleResize = () => {
+            const container = bodyContainer.current;
+            setScrollBarWidth(container.offsetWidth - container.clientWidth);
+        }
+
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(bodyContainer.current.firstElementChild);
+
+        return observer.disconnect;
+    }, [])
+
     const handleMouseDown = e => {
         if (e.ctrlKey) return;
         clearSelection();
     }
 
-
     let orderedColumns = options.columns;
-
     if (columnOrder.length > 0) {
         const ordered = _.sortBy(options.columns, col =>
             columnOrder.indexOf(col.path));
@@ -49,9 +62,9 @@ function SfcTable({
     return (
         <div className="react-select-table">
             <table className={className}>
-                <Head {...params} />
+                <Head {...params} scrollBarWidth={scrollBarWidth} />
             </table>
-            <div className="bodyContainer"
+            <div className="bodyContainer" ref={bodyContainer}
                 onMouseDown={handleMouseDown}>
                 <table className={className}>
                     <ColumnResizer {...params} />
@@ -115,6 +128,7 @@ export function createTableOptions(options) {
         itemFilter: () => true,
         minWidth: 3,
         isMultiselect: true,
+        scrollBar: true,
         deselectOnContainerClick: true
     };
 

@@ -33,11 +33,12 @@ const tableOptions = createTableOptions({
 });
 
 const App = () => {
-  return <Table
-    items={testData}
-    options={tableOptions}
-    className="table"
-    name="test" />
+  return (
+    <Table
+      items={testData}
+      options={tableOptions}
+      className="table"
+      name="test" />)
 }
 
 export default App

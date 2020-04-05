@@ -6,7 +6,7 @@ import { setColumnWidth, sortBy } from "../store/table";
 import { registerEventListeners } from '../utils/elementUtils';
 
 function Head({ columns, name, columnWidth, sort,
-    setColumnWidth, sortBy }) {
+    isOverflowed, setColumnWidth, sortBy }) {
 
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
@@ -63,6 +63,7 @@ function Head({ columns, name, columnWidth, sort,
                         onMouseDown={() => setResizingIndex(index)} />
                 </th>
             })}
+            <th className="scrollMargin" />
         </tr>
     </thead>;
 }

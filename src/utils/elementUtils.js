@@ -12,3 +12,10 @@ export function registerEventListeners(element, map) {
         forEach("removeEventListener")
     }
 }
+
+export function isOverflowed(element) {
+    if (!element) return false;
+
+    return element.offsetHeight < element.scrollHeight ||
+        element.offsetWidth < element.scrollWidth;
+}

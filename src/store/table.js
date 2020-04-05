@@ -2,6 +2,7 @@ import produce from "immer";
 import _ from "lodash";
 import { pipe } from "lodash/fp";
 import { sortOrder } from "../constants/enums";
+import { sortTuple } from "../utils/mathUtils";
 
 export default function createTableReducer(options) {
     function getDefaultWidth(count) {
@@ -16,10 +17,14 @@ export default function createTableReducer(options) {
         },
         columnOrder: [],
         columnWidth: getDefaultWidth(options.columns.length),
+        selectedValues: [],
+        activeValue: null,
         filter: {},
         items: {},
         tableItems: []
     };
+
+    const { valueProperty, isMultiselect } = options;
 
     return (state = initState, action) => produce(state, draft => {
         const parseItems = items =>
@@ -37,11 +42,52 @@ export default function createTableReducer(options) {
         }
 
         switch (action.type) {
+            //Items
             case TABLE_SET_ITEMS: {
-                draft.items = _.keyBy(action.items, options.valueProperty);
+                draft.items = _.keyBy(action.items, valueProperty);
                 draft.tableItems = transformItems(action.items);
                 break;
             }
+
+            //Selection
+            case TABLE_SELECT_ROW: {
+                const { value, ctrlKey, shiftKey } = action;
+                let addToSelection = [value];
+
+                if (!isMultiselect) {
+                    draft.selectedValues = addToSelection;
+                    draft.activeValue = value;
+                    break;
+                }
+
+                const isSelected = state.selectedValues.includes(value);
+                let updateActiveValue = true;
+
+                if (shiftKey) {
+                    const values = _.map(state.tableItems, valueProperty);
+                    const pivotIndex = values.indexOf(state.activeValue);
+                    const newIndex = values.indexOf(value);
+
+                    const [startIndex, endIndex] = sortTuple(pivotIndex, newIndex);
+                    addToSelection = values.slice(startIndex, endIndex + 1);
+                    updateActiveValue = false;
+                } else if (ctrlKey && isSelected) {
+                    _.pull(draft.selectedValues, value);
+                    addToSelection = null;
+                }
+
+                if (ctrlKey)
+                    draft.selectedValues.push(...addToSelection);
+                else
+                    draft.selectedValues = addToSelection;
+
+                if (updateActiveValue)
+                    draft.activeValue = value;
+
+                break;
+            }
+
+            //Columns
             case TABLE_SET_COLUMN_WIDTH: {
                 const { index, width } = action;
                 const { minWidth } = options;
@@ -64,6 +110,8 @@ export default function createTableReducer(options) {
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
+
+            //Sorting
             case TABLE_SORT_BY: {
                 const newPath = action.path;
                 const { sort } = draft;
@@ -78,6 +126,8 @@ export default function createTableReducer(options) {
                 draft.tableItems = sortItems(filteredItems, sort);
                 break;
             }
+
+            //Filtering
             default:
                 return draft;
         }
@@ -88,6 +138,7 @@ export const TABLE_SET_ITEMS = "TABLE_SET_ITEMS";
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
+export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
 
 export function setItems(items) {
     return { type: TABLE_SET_ITEMS, items };
@@ -103,4 +154,8 @@ export function setColumnOrder(order) {
 
 export function sortBy(path) {
     return { type: TABLE_SORT_BY, path };
+}
+
+export function selectItem(value, ctrlKey = false, shiftKey = false) {
+    return { type: TABLE_SELECT_ROW, value, ctrlKey, shiftKey };
 }

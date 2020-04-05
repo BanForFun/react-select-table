@@ -21,7 +21,8 @@
     }
 
     .scrollMargin {
-        width: 1rem;
+        //Default scrollbar width
+        width: 16px;
         padding: 0;
     }
 
@@ -54,7 +55,7 @@
             cursor: col-resize !important;
         }
 
-        .column {     
+        .column {
             user-select: none;
             position: relative;
 

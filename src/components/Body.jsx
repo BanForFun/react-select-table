@@ -1,14 +1,35 @@
 import _ from "lodash";
 import React from 'react';
 import { connect } from "react-redux";
+import { selectItem } from "../store/table";
 
-const Body = ({ columns, name, options, items }) => {
+const Body = ({
+    columns,
+    name,
+    options,
+    items,
+    selectedValues,
+    activeValue,
+    selectItem
+}) => {
     const { valueProperty } = options;
+
+    const handleRowSelect = (e, value) =>
+        selectItem(value, e.ctrlKey, e.shiftKey);
 
     const renderRow = row => {
         const value = row[valueProperty];
 
-        return <tr key={`tr_${name}_${value}`}>
+        const classes = [];
+        if (selectedValues.includes(value))
+            classes.push("selected");
+        if (activeValue === value)
+            classes.push("active");
+        const className = classes.join(" ");
+
+        return <tr key={`tr_${name}_${value}`}
+            className={className}
+            onMouseDown={e => handleRowSelect(e, value)}>
             {columns.map(col => renderColumn(row, col))}
         </tr>
     }
@@ -37,9 +58,13 @@ const Body = ({ columns, name, options, items }) => {
 
 function mapStateToProps(state) {
     return {
-        items: state.tableItems
+        items: state.tableItems,
+        selectedValues: state.selectedValues,
+        activeValue: state.activeValue
     };
 }
 
 
-export default connect(mapStateToProps)(Body);
+export default connect(mapStateToProps, {
+    selectItem
+})(Body);

@@ -9,9 +9,15 @@ import configureStore from '../store/configureStore';
 import { setItems } from '../store/table';
 
 function SfcTable({ name, options, columnWidth, columnOrder, className }) {
-    const orderedColumns = columnOrder.length ?
-        _.sortBy(options.columns, col => columnOrder.indexOf(col.path)) :
-        options.columns;
+    let orderedColumns = options.columns;
+
+    if (columnOrder.length > 0) {
+        const ordered = _.sortBy(options.columns, col =>
+            columnOrder.indexOf(col.path));
+        //Columns not included in the columnOrder list will have an index of -1
+        //and be at the start of the ordered list
+        orderedColumns = _.takeRight(ordered, columnOrder.length);
+    }
 
     const parsedColumns = orderedColumns.map((col, index) => {
         const props = {

@@ -29,7 +29,7 @@ const App = () => {
     <div className="h-100">
       <Table
         onDoubleClick={alert}
-        items={testData}
+        items={testData.slice(0, 200)}
         valueProperty="id"
         columns={columns}
         className="table"

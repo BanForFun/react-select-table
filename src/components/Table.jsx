@@ -103,13 +103,16 @@ function SfcTable(props) {
         for (let value of values) {
             const { current } = rowRefs[value];
 
+            //Calculate top and bottom position
             const top = current.offsetTop;
-            if (top < topVisible) continue;
+            const bottom = top + current.scrollHeight;
+
+            //Skip if rows not visible
+            if (bottom < topVisible) continue;
             if (top > bottomVisible) return;
 
-            const bottom = top + current.scrollHeight;
+            //Check for collision with selection rectangle
             const intersects = bottom > rect.top && top < rect.bottom;
-
             if (selectedValues.includes(value) !== intersects)
                 setRowSelected(value, intersects);
         }

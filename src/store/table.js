@@ -4,6 +4,7 @@ import { pipe } from "lodash/fp";
 import { sortOrder } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
 import { pullFirst } from "../utils/arrayUtils";
+import { deleteKeys } from "../utils/objectUtils";
 
 const initState = {
     sort: {
@@ -75,6 +76,13 @@ export default function createTableReducer() {
                 const value = newItem[valueProperty];
                 draft.items[value] = newItem;
                 updateItems();
+                break;
+            }
+            case TABLE_DELETE_ROWS: {
+                const { values } = action;
+                deleteKeys(draft.items, values);
+                updateItems();
+                deselectRows(values);
                 break;
             }
 
@@ -201,6 +209,7 @@ export default function createTableReducer() {
 export const TABLE_SET_ROWS = "TABLE_SET_ROWS";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_ADD_ROW = "TABLE_ADD_ROW";
+export const TABLE_DELETE_ROWS = "TABLE_DELETE_ROWS";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -216,6 +225,10 @@ export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 //Internal
 const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
 const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+
+export function deleteRows(...values) {
+    return { type: TABLE_DELETE_ROWS, values };
+}
 
 export function addRow(newItem) {
     return { type: TABLE_ADD_ROW, newItem };

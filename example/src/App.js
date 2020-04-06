@@ -7,6 +7,10 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 const columns = [
   {
+    title: "Id",
+    path: "id"
+  },
+  {
     title: "Name",
     path: "name"
   },

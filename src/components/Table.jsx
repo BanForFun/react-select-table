@@ -17,7 +17,11 @@ import {
     _setColumnCount
 } from '../store/table';
 import Rect from '../models/rect';
-import { ensurePosVisible, registerEventListeners } from '../utils/elementUtils';
+import {
+    ensurePosVisible,
+    registerEventListeners,
+    ensureRowVisible
+} from '../utils/elementUtils';
 
 const defaultOptions = {
     itemParser: item => item,
@@ -91,7 +95,7 @@ function SfcTable(props) {
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
     const updateSelectRect = useCallback(
-        (mouseX, mouseY, autoScroll = true) => {
+        (mouseX, mouseY, ) => {
             const [originX, originY] = selOrigin;
             const container = bodyContainer.current;
 
@@ -107,10 +111,9 @@ function SfcTable(props) {
                 container.scrollWidth, container.scrollHeight);
             rect.limit(relativeBounds);
 
-            if (autoScroll)
-                ensurePosVisible(container, mouseX, mouseY);
-
+            ensurePosVisible(container, mouseX, mouseY);
             setSelRect(rect);
+
             for (let row of rowBounds) {
                 const { bounds, value } = row;
                 const intersects = rect.intersectsRectY(bounds);
@@ -139,7 +142,7 @@ function SfcTable(props) {
     const handleScroll = useCallback(() => {
         if (!selOrigin) return;
         const [x, y] = lastMousePos;
-        updateSelectRect(x, y, true);
+        updateSelectRect(x, y);
     }, [selOrigin, lastMousePos, updateSelectRect]);
 
     //Register mouse move and up events
@@ -211,7 +214,9 @@ function SfcTable(props) {
                 break;
         }
     }
+    //#endregion
 
+    //keyboard selection
     const handleKeyboardSelection = (e, offset) => {
         const activeIndex = values.indexOf(activeValue);
         if (activeIndex < 0) return;
@@ -219,16 +224,15 @@ function SfcTable(props) {
         const offsetIndex = activeIndex + offset;
         if (!_.inRange(offsetIndex, 0, values.length)) return;
 
-        const selectValue = values[offsetIndex];
+        const offsetValue = values[offsetIndex];
         const onlyCtrl = e.ctrlKey && !e.shiftKey;
 
-        if (onlyCtrl)
-            setActiveRow(selectValue);
-        else
-            selectItem(selectValue, e.ctrlKey, e.shiftKey);
-    }
+        if (onlyCtrl) setActiveRow(offsetValue);
+        else selectItem(offsetValue, e.ctrlKey, e.shiftKey);
 
-    //#endregion
+        e.preventDefault();
+        ensureRowVisible(rowRefs[offsetValue].current, bodyContainer.current);
+    }
 
     //Deselect row
     const deselectRows = e => {

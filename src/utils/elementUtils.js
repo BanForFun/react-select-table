@@ -13,19 +13,17 @@ export function registerEventListeners(element, map) {
     }
 }
 
-export function ensureRowVisible(item, list) {
-    const lowestYVisible = list.scrollTop + list.clientHeight;
+export function ensureRowVisible(item, parent) {
+    const lowestYVisible = parent.scrollTop + parent.clientHeight;
     const lowestYHighlighted = item.offsetTop + item.scrollHeight;
 
     const scrollDown = lowestYVisible < lowestYHighlighted;
-    const scrollUp = item.offsetTop < list.scrollTop;
+    const scrollUp = item.offsetTop < parent.scrollTop;
 
-    if (scrollDown) {
-        const itemOffsetBottom = item.offsetTop + item.scrollHeight;
-        const scrollPos = itemOffsetBottom - list.clientHeight;
-        list.scrollTop = scrollPos;
-    } else if (scrollUp)
-        list.scrollTop = item.offsetTop;
+    if (scrollDown)
+        parent.scrollTop = lowestYHighlighted - parent.clientHeight;
+    else if (scrollUp)
+        parent.scrollTop = item.offsetTop;
 }
 
 export function ensurePosVisible(element, clientX, clientY) {

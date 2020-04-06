@@ -3,6 +3,7 @@ import _ from "lodash";
 import { pipe } from "lodash/fp";
 import { sortOrder } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
+import { pullFirst } from "../utils/arrayUtils";
 
 const initState = {
     sort: {
@@ -15,6 +16,7 @@ const initState = {
     activeValue: null,
     filter: {},
     items: {},
+    pivotValue: null,
     tableItems: []
 };
 
@@ -33,6 +35,8 @@ export default function createTableReducer() {
             deselectOnContainerClick
         } = options;
 
+        const values = _.map(state.tableItems, valueProperty);
+
         //Prefix methods that don't mutate draft state with an underscore
         const _parseItems = items =>
             _.map(items, options.itemParser);
@@ -49,14 +53,12 @@ export default function createTableReducer() {
         }
 
         const deselectRows = values => {
-            const { activeValue, selectedValues } = state;
-
             //Update active value
-            if (values.includes(activeValue))
+            if (values.includes(state.activeValue))
                 draft.activeValue = null;
 
             //Update selected values
-            draft.selectedValues = _.difference(selectedValues, values);
+            _.pull(draft.selectedValues, ...values);
         }
 
         switch (action.type) {
@@ -79,49 +81,44 @@ export default function createTableReducer() {
                 }
 
                 const isSelected = state.selectedValues.includes(value);
-                let updateActiveValue = true;
-
                 if (shiftKey) {
-                    const values = _.map(state.tableItems, valueProperty);
-                    const pivotIndex = values.indexOf(state.activeValue);
+                    const pivotIndex = values.indexOf(state.pivotValue);
                     const newIndex = values.indexOf(value);
 
                     const [startIndex, endIndex] = sortTuple(pivotIndex, newIndex);
                     addToSelection = values.slice(startIndex, endIndex + 1);
-                    updateActiveValue = false;
                 } else if (ctrlKey && isSelected) {
-                    _.pull(draft.selectedValues, value);
+                    pullFirst(draft.selectedValues, value);
                     addToSelection = null;
                 }
 
-                if (ctrlKey)
-                    draft.selectedValues.push(...addToSelection);
-                else
-                    draft.selectedValues = addToSelection;
-
-                if (updateActiveValue)
-                    draft.activeValue = value;
-
+                //Set active value
+                draft.activeValue = value;
+                //Set pivot value
+                if (!shiftKey) draft.pivotValue = value;
+                //Set selected values
+                if (ctrlKey) draft.selectedValues.push(...addToSelection);
+                else draft.selectedValues = addToSelection;
                 break;
             }
             case TABLE_CLEAR_SELECTION: {
                 draft.activeValue = null;
+                draft.pivotValue = null;
                 if (deselectOnContainerClick)
                     draft.selectedValues = [];
                 break;
             }
             case TABLE_SET_ROW_SELECTED: {
                 const { value, selected } = action;
-                const values = [value];
 
                 if (!selected) {
-                    deselectRows(values);
+                    pullFirst(draft.selectedValues, value);
                     break;
                 }
 
                 //Row to be selected
                 if (!isMultiselect)
-                    draft.selectedValues = values;
+                    draft.selectedValues = [value];
                 else
                     draft.selectedValues.push(value);
 
@@ -129,6 +126,11 @@ export default function createTableReducer() {
             }
             case TABLE_SELECT_ALL: {
                 draft.selectedValues = _.map(state.tableItems, valueProperty);
+                break;
+            }
+            case TABLE_SET_ACTIVE_ROW: {
+                draft.activeValue = action.value;
+                draft.pivotValue = action.value;
                 break;
             }
 
@@ -198,6 +200,7 @@ export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
 export const TABLE_SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
 export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
+export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
 export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
@@ -222,6 +225,10 @@ export function selectItem(value, ctrlKey = false, shiftKey = false) {
     return { type: TABLE_SELECT_ROW, value, ctrlKey, shiftKey };
 }
 
+export function setActiveRow(value) {
+    return { type: TABLE_SET_ACTIVE_ROW, value };
+}
+
 export function clearSelection() {
     return { type: TABLE_CLEAR_SELECTION };
 }
@@ -233,7 +240,6 @@ export function selectAll() {
 export function setRowSelected(value, selected) {
     return { type: TABLE_SET_ROW_SELECTED, value, selected };
 }
-
 
 //Internal actions
 

@@ -11,6 +11,8 @@ import {
     clearSelection,
     setRowSelected,
     selectAll,
+    setActiveRow,
+    selectItem,
     _setOption,
     _setColumnCount
 } from '../store/table';
@@ -38,10 +40,13 @@ function SfcTable(props) {
         items,
         selectedValues,
         columnWidth,
+        activeValue,
         columnOrder,
 
         //Redux actions
         selectAll,
+        setActiveRow,
+        selectItem,
         clearSelection,
         setRowSelected,
         _setOption
@@ -196,10 +201,31 @@ function SfcTable(props) {
     const handleKeyDown = e => {
         switch (e.keyCode) {
             case 65: //A
-                if (e.ctrlKey)
-                    selectAll();
+                if (e.ctrlKey) selectAll();
+                break;
+            case 38: //Up
+                handleKeyboardSelection(e, -1);
+                break;
+            case 40: //Down
+                handleKeyboardSelection(e, 1);
                 break;
         }
+    }
+
+    const handleKeyboardSelection = (e, offset) => {
+        const activeIndex = values.indexOf(activeValue);
+        if (activeIndex < 0) return;
+
+        const offsetIndex = activeIndex + offset;
+        if (!_.inRange(offsetIndex, 0, values.length)) return;
+
+        const selectValue = values[offsetIndex];
+        const onlyCtrl = e.ctrlKey && !e.shiftKey;
+
+        if (onlyCtrl)
+            setActiveRow(selectValue);
+        else
+            selectItem(selectValue, e.ctrlKey, e.shiftKey);
     }
 
     //#endregion
@@ -265,7 +291,8 @@ function mapStateToProps(state) {
     const directMap = _.pick(state,
         "columnWidth",
         "columnOrder",
-        "selectedValues"
+        "selectedValues",
+        "activeValue"
     );
 
     return {
@@ -278,6 +305,8 @@ export const ConnectedTable = connect(mapStateToProps, {
     clearSelection,
     setRowSelected,
     selectAll,
+    selectItem,
+    setActiveRow,
     _setOption
 })(SfcTable);
 

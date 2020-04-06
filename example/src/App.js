@@ -19,10 +19,10 @@ const columns = [
 
 const App = () => {
   return (
-    <div className="p-5 h-100">
+    <div className="h-100">
       <Table
         onDoubleClick={alert}
-        items={testData.slice(0, 2)}
+        items={testData.slice(0, 200)}
         valueProperty="id"
         columns={columns}
         className="table"

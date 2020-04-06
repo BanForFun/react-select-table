@@ -118,6 +118,12 @@ export default function createTableReducer() {
                 updateItems();
                 break;
             }
+            case TABLE_PATCH_ROW: {
+                const { value, patch } = action;
+                Object.assign(draft.items[value], patch);
+                updateItems();
+                break;
+            }
 
             //Selection
             case TABLE_SELECT_ROW: {
@@ -245,6 +251,7 @@ export const TABLE_ADD_ROW = "TABLE_ADD_ROW";
 export const TABLE_DELETE_ROWS = "TABLE_DELETE_ROWS";
 export const TABLE_REPLACE_ROW = "TABLE_REPLACE_ROW";
 export const TABLE_SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
+export const TABLE_PATCH_ROW = "TABLE_PATCH_ROW";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -260,6 +267,10 @@ export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 //Internal
 const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
 const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+
+export function patchRow(value, patch) {
+    return { type: TABLE_PATCH_ROW, value, patch };
+}
 
 export function setRowValue(oldValue, newValue) {
     return { type: TABLE_SET_ROW_VALUE, oldValue, newValue };

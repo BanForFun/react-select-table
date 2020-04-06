@@ -16,7 +16,7 @@ function Head({
 }) {
 
     const [resizingIndex, setResizingIndex] = useState(null);
-    const [ignoreSort, setIgnoreSort] = useState(false);
+    const ignoreSort = useRef(false);
     const header = useRef();
 
     const isResizing = resizingIndex !== null;
@@ -39,8 +39,8 @@ function Head({
     useEffect(() => {
         const onMouseUp = () => {
             if (!resizingIndex) return;
+            ignoreSort.current = true;
             setResizingIndex(null);
-            setIgnoreSort(true);
         }
 
         const dispose = registerEventListeners(document, {
@@ -50,21 +50,21 @@ function Head({
         return dispose;
     }, [onMouseMove]);
 
+    const raiseSort = path => {
+        if (ignoreSort.current) {
+            ignoreSort.current = false;
+            return;
+        }
+
+        sortBy(path)
+    }
+
     function renderSortIcon(colPath) {
         const { path, order } = sort;
 
         if (colPath !== path) return null;
         return <img className="sortIcon" src={sortIcon}
             data-order={order} />
-    }
-
-    const handleHeaderClick = path => {
-        if (ignoreSort) {
-            setIgnoreSort(false);
-            return;
-        }
-
-        sortBy(path);
     }
 
     return <thead className="header" ref={header}
@@ -77,7 +77,7 @@ function Head({
 
                 return <th key={`title_${name}_${id}`}
                     data-sortable={isSortable}
-                    onClick={() => isSortable && handleHeaderClick(path)}
+                    onClick={() => isSortable && raiseSort(path)}
                     className="column" style={{ width }}>
 
                     <div className="title">

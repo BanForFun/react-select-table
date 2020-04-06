@@ -73,8 +73,14 @@ function SfcTable(props) {
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = e => {
         if (!isMultiselect || e.button !== 0) return;
-        const { scrollTop, scrollLeft } = e.target;
         const { clientX: x, clientY: y } = e;
+        const { scrollTop, scrollLeft,
+            clientWidth, clientHeight } = e.currentTarget;
+        const bounds = e.currentTarget.getBoundingClientRect();
+
+        //Return if click on scrollbar
+        if (x > bounds.x + clientWidth) return;
+        if (y > bounds.x + clientHeight) return;
 
         setLastMousePos([x, y]);
         setRowBounds(getRowBounds());
@@ -123,20 +129,21 @@ function SfcTable(props) {
 
     //Drag end
     const dragEnd = () => {
-        setSelRect(null);
         setSelOrigin(null);
+        setSelRect(null);
+        setRowBounds([])
     }
 
     //Scroll
-    const handleScroll = () => {
+    const handleScroll = useCallback(() => {
         if (!selOrigin) return;
         const [x, y] = lastMousePos;
-        updateSelectRect(x, y, false);
-    }
+        updateSelectRect(x, y, true);
+    }, [selOrigin, lastMousePos, updateSelectRect]);
 
     //Register mouse move and up events
     useEffect(() => {
-        const cleanup = registerEventListeners(window, {
+        const cleanup = registerEventListeners(document, {
             "mousemove": dragMove,
             "mouseup": dragEnd
         });

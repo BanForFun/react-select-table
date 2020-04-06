@@ -8,36 +8,26 @@ import 'bootstrap/dist/css/bootstrap.css';
 const columns = [
   {
     title: "Φωτογραφία",
-    path: "thumbnail_url",
+    path: "thumbnailUrl",
     render: url => <img src={url} height="100px" />
   },
   {
-    title: "Φύλλο",
-    path: "sex"
-  },
-  {
-    title: "Ιδιοκτησία",
-    path: "ownership"
-  },
-  {
-    title: "Κατάσταση",
-    path: "status"
-  },
-  {
-    title: "Μέγεθος",
-    path: "size"
+    title: "Τίτλος",
+    path: "title"
   }
 ];
 
 const App = () => {
   return (
-    <Table
-      onDoubleClick={alert}
-      items={testData}
-      valueProperty="pet_id"
-      columns={columns}
-      className="table"
-      name="test" />)
+    <div className="p-5 h-100">
+      <Table
+        onDoubleClick={alert}
+        items={testData.slice(0, 200)}
+        valueProperty="id"
+        columns={columns}
+        className="table"
+        name="test" />
+    </div>)
 }
 
 export default App

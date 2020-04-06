@@ -31,6 +31,7 @@ const App = () => {
         onDoubleClick={alert}
         items={testData.slice(0, 2)}
         valueProperty="id"
+        deselectOnContainerClick={false}
         onContextMenu={console.log}
         columns={columns}
         className="table"

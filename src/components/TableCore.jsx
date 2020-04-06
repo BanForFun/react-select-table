@@ -243,9 +243,9 @@ function TableCore(props) {
         raiseItemOpen(false);
     }
 
-    const handleContextMenu = e => {
+    const handleContextMenu = useCallback(e => {
         contextMenu(null, e.ctrlKey);
-    }
+    }, [contextMenu]);
 
     const handleKeyDown = e => {
         switch (e.keyCode) {

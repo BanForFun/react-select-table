@@ -3,7 +3,7 @@ import _ from "lodash";
 import { pipe } from "lodash/fp";
 import { sortOrder } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
-import { pullFirst } from "../utils/arrayUtils";
+import { pullFirst, encloseInArray } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 
 const initState = {
@@ -71,6 +71,7 @@ export default function createTableReducer() {
 
             //Update selected values
             _.pull(draft.selectedValues, ...values);
+            raiseSelectionChange();
         }
 
         const setActivePivotValue = value => {
@@ -78,8 +79,14 @@ export default function createTableReducer() {
             draft.activeValue = value;
         }
 
-        const raiseOnContextMenu = () =>
-            options.onContextMenu([...draft.selectedValues]);
+        const raiseContextMenu = () => {
+            const selected = [...draft.selectedValues];
+            const active = encloseInArray(draft.activeValue);
+            options.onContextMenu(deselectOnContainerClick ? selected : active);
+        }
+
+        const raiseSelectionChange = () =>
+            options.onSelectionChange([...draft.selectedValues]);
 
         switch (action.type) {
             //Items
@@ -162,7 +169,7 @@ export default function createTableReducer() {
                     addToSelection = values.slice(startIndex, endIndex + 1);
                 } else if (ctrlKey && isSelected) {
                     pullFirst(draft.selectedValues, value);
-                    addToSelection = null;
+                    addToSelection = [];
                 }
 
                 //Set active value
@@ -203,12 +210,17 @@ export default function createTableReducer() {
             case TABLE_CONTEXT_MENU: {
                 const { value, ctrlKey } = action;
 
+                if (ctrlKey) {
+                    raiseContextMenu();
+                    break;
+                }
+
                 setActivePivotValue(value);
                 const isSelected = state.selectedValues.includes(value);
-                if (deselectOnContainerClick && !ctrlKey && !isSelected)
+                if (deselectOnContainerClick && !isSelected)
                     draft.selectedValues = value ? [value] : [];
 
-                raiseOnContextMenu();
+                raiseContextMenu();
                 break;
             }
 

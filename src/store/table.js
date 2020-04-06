@@ -73,6 +73,14 @@ export default function createTableReducer() {
             _.pull(draft.selectedValues, ...values);
         }
 
+        const setActivePivotValue = value => {
+            draft.pivotValue = value;
+            draft.activeValue = value;
+        }
+
+        const raiseOnContextMenu = () =>
+            options.onContextMenu([...draft.selectedValues]);
+
         switch (action.type) {
             //Items
             case TABLE_SET_ROWS: {
@@ -167,8 +175,7 @@ export default function createTableReducer() {
                 break;
             }
             case TABLE_CLEAR_SELECTION: {
-                draft.activeValue = null;
-                draft.pivotValue = null;
+                setActivePivotValue(null);
                 if (deselectOnContainerClick)
                     draft.selectedValues = [];
                 break;
@@ -190,8 +197,18 @@ export default function createTableReducer() {
                 break;
             }
             case TABLE_SET_ACTIVE_ROW: {
-                draft.activeValue = action.value;
-                draft.pivotValue = action.value;
+                setActivePivotValue(action.value);
+                break;
+            }
+            case TABLE_CONTEXT_MENU: {
+                const { value, ctrlKey } = action;
+
+                setActivePivotValue(value);
+                const isSelected = state.selectedValues.includes(value);
+                if (deselectOnContainerClick && !ctrlKey && !isSelected)
+                    draft.selectedValues = value ? [value] : [];
+
+                raiseOnContextMenu();
                 break;
             }
 
@@ -273,10 +290,15 @@ export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
 export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
 export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
 export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
+export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 
 //Internal
 const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
 const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+
+export function contextMenu(value, ctrlKey) {
+    return { type: TABLE_CONTEXT_MENU, value, ctrlKey };
+}
 
 export function setFilter(filter) {
     return { type: TABLE_SET_FILTER, filter };

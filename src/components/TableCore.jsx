@@ -10,6 +10,7 @@ import {
     selectAll,
     setActiveRow,
     selectRow,
+    contextMenu,
     _setOption
 } from '../store/table';
 import Rect from '../models/rect';
@@ -18,15 +19,16 @@ import {
     registerEventListeners,
     ensureRowVisible
 } from '../utils/elementUtils';
-import { defaultOptions } from './Table';
 
 function TableCore(props) {
     const {
         name,
         className,
         valueProperty,
-        onItemsOpen,
         isMultiselect,
+
+        //Events
+        onItemsOpen,
 
         //Redux state
         items,
@@ -39,6 +41,7 @@ function TableCore(props) {
         selectAll,
         setActiveRow,
         selectItem,
+        contextMenu,
         clearSelection,
         setRowSelected,
         _setOption
@@ -224,14 +227,24 @@ function TableCore(props) {
         }, [value]);
     }
 
+    //onItemOpen event
+    const raiseItemOpen = enterKey => {
+        if (selectedValues.length === 0) return;
+        onItemsOpen(selectedValues, enterKey);
+    }
+
     //#region Event Handlers
     const handleMouseDown = e => {
         deselectRows(e);
         dragStart(e);
     }
 
-    const handleDoubleClick = e => {
+    const handleDoubleClick = () => {
         raiseItemOpen(false);
+    }
+
+    const handleContextMenu = e => {
+        contextMenu(null, e.ctrlKey);
     }
 
     const handleKeyDown = e => {
@@ -252,12 +265,6 @@ function TableCore(props) {
     }
     //#endregion
 
-    //onItemOpen event
-    const raiseItemOpen = enterKey => {
-        if (selectedValues.length === 0) return;
-        onItemsOpen(selectedValues, enterKey);
-    }
-
     //keyboard selection
     const handleKeyboardSelection = (e, offset) => {
         const activeIndex = values.indexOf(activeValue);
@@ -276,9 +283,12 @@ function TableCore(props) {
         e.preventDefault();
     }
 
-    //Deselect row
+    //Deselect rows
     const deselectRows = e => {
-        if (e.currentTarget !== e.target || e.ctrlKey) return;
+        if (e.currentTarget !== e.target ||
+            e.ctrlKey ||
+            e.button !== 0) return;
+
         clearSelection();
     }
 
@@ -302,28 +312,29 @@ function TableCore(props) {
         return { ...col, props };
     });
 
-    const common = {
+    const commonParams = {
         name, columns
     }
 
     return (
         <div className="react-select-table">
             <table className={className}>
-                <Head {...common}
+                <Head {...commonParams}
                     scrollBarWidth={scrollBarWidth} />
             </table>
             <div className="bodyContainer"
                 ref={bodyContainer}
-                onScroll={handleScroll}
-            >
+                onScroll={handleScroll}>
                 <div className="tableContainer" tabIndex="0"
                     onKeyDown={handleKeyDown}
                     onDoubleClick={handleDoubleClick}
+                    onContextMenu={handleContextMenu}
                     onMouseDown={handleMouseDown}>
                     {renderSelectionRect()}
                     <table className={className}>
-                        <ColumnResizer {...common} />
-                        <Body {...common} rowRefs={rowRefs}
+                        <ColumnResizer {...commonParams} />
+                        <Body {...commonParams}
+                            rowRefs={rowRefs}
                             valueProperty={valueProperty} />
                     </table>
                 </div>
@@ -351,6 +362,27 @@ export default connect(mapStateToProps, {
     setRowSelected,
     selectAll,
     selectRow,
+    contextMenu,
     setActiveRow,
     _setOption
 })(TableCore);
+
+function defaultItemFilter(item, filter) {
+    for (let key in filter) {
+        if (item[key] !== filter[key])
+            return false;
+    }
+
+    return true;
+}
+
+export const defaultOptions = {
+    itemParser: item => item,
+    itemFilter: defaultItemFilter,
+    onContextMenu: () => { },
+    onSelectionChange: () => { },
+    minWidth: 3,
+    isMultiselect: true,
+    deselectOnContainerClick: true,
+    valueProperty: null
+};

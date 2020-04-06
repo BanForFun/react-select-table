@@ -2,7 +2,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { Provider } from "react-redux";
 import PropTypes from "prop-types";
-import TableCore from "./TableCore";
+import TableCore, { defaultOptions } from "./TableCore";
 import configureStore from '../store/configureStore';
 import { setRows, setFilter, _setColumnCount } from "../store/table";
 
@@ -39,31 +39,13 @@ function Table(params) {
     </Provider>
 }
 
-function defaultItemFilter(item, filter) {
-    for (let key in filter) {
-        if (item[key] !== filter[key])
-            return false;
-    }
-
-    return true;
-}
-
-export const defaultOptions = {
-    itemParser: item => item,
-    itemFilter: defaultItemFilter,
-    minWidth: 3,
-    isMultiselect: true,
-    deselectOnContainerClick: true,
-    valueProperty: null
-};
-
-const columnShape = {
+const columnShape = PropTypes.shape({
     title: PropTypes.string,
     key: PropTypes.string,
     path: PropTypes.string,
     render: PropTypes.func,
     classNames: PropTypes.array
-}
+});
 
 Table.propTypes = {
     name: PropTypes.string.isRequired,
@@ -83,9 +65,7 @@ Table.propTypes = {
 
 Table.defaultProps = {
     ...defaultOptions,
-    onContextMenu: () => { },
-    onItemsOpen: () => { },
-    onSelectionChange: () => { }
+    onItemsOpen: () => { }
 }
 
 export default Table;

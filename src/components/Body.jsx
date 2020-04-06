@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React from 'react';
 import { connect } from "react-redux";
-import { selectRow } from "../store/table";
+import { selectRow, setActiveRow, contextMenu } from "../store/table";
 
 const Body = ({
     columns,
@@ -11,10 +11,17 @@ const Body = ({
     rowRefs,
     selectedValues,
     activeValue,
+    contextMenu,
     selectRow
 }) => {
     const handleRowSelect = (e, value) => {
+        if (e.button !== 0) return;
         selectRow(value, e.ctrlKey, e.shiftKey);
+    }
+
+    const handleRowContextMenu = (e, value) => {
+        e.stopPropagation();
+        contextMenu(value, e.ctrlKey);
     }
 
     const renderRow = row => {
@@ -31,6 +38,7 @@ const Body = ({
         return <tr key={`tr_${name}_${value}`}
             ref={rowRefs[value]}
             className={classes.join(' ')}
+            onContextMenu={e => handleRowContextMenu(e, value)}
             onMouseDown={e => handleRowSelect(e, value)}>
             {columns.map(col => renderColumn(row, col))}
         </tr>
@@ -68,5 +76,5 @@ function mapStateToProps(state) {
 
 
 export default connect(mapStateToProps, {
-    selectRow
+    selectRow, setActiveRow, contextMenu
 })(Body);

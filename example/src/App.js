@@ -29,9 +29,9 @@ const App = () => {
     <div className="h-100">
       <Table
         onDoubleClick={alert}
-        items={testData.slice(0, 200)}
+        items={testData.slice(0, 2)}
         valueProperty="id"
-        filter={{ id: 10 }}
+        onContextMenu={console.log}
         columns={columns}
         className="table"
         name="test" />

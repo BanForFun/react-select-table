@@ -28,11 +28,10 @@ const App = () => {
   return (
     <div className="h-100">
       <Table
-        onDoubleClick={alert}
         items={testData.slice(0, 2)}
         valueProperty="id"
-        deselectOnContainerClick={false}
-        onContextMenu={console.log}
+        isMultiselect={false}
+        onSelectionChange={console.log}
         columns={columns}
         className="table"
         name="test" />

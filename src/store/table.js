@@ -64,14 +64,14 @@ export default function createTableReducer() {
         }
 
         const deselectRows = values => {
-            if (values.length === 0) return;
             //Update active value
             if (values.includes(state.activeValue))
                 draft.activeValue = null;
 
             //Update selected values
-            _.pull(draft.selectedValues, ...values);
-            raiseSelectionChange();
+            const { length } = _.pullAll(draft.selectedValues, values);
+            if (length < state.selectedValues.length)
+                raiseSelectionChange();
         }
 
         const setActivePivotValue = value => {
@@ -124,8 +124,10 @@ export default function createTableReducer() {
 
                 //Update selection
                 const selectedIndex = state.selectedValues.indexOf(oldValue);
-                if (selectedIndex >= 0)
+                if (selectedIndex >= 0) {
                     draft.selectedValues[selectedIndex] = newValue;
+                    raiseSelectionChange();
+                }
 
                 const withValue = {
                     ...state.items[oldValue],
@@ -157,6 +159,7 @@ export default function createTableReducer() {
                 if (!isMultiselect) {
                     draft.selectedValues = addToSelection;
                     draft.activeValue = value;
+                    raiseSelectionChange();
                     break;
                 }
 
@@ -177,30 +180,36 @@ export default function createTableReducer() {
                 //Set pivot value
                 if (!shiftKey) draft.pivotValue = value;
                 //Set selected values
-                if (ctrlKey) draft.selectedValues.push(...addToSelection);
-                else draft.selectedValues = addToSelection;
+                if (ctrlKey)
+                    draft.selectedValues.push(...addToSelection);
+                else
+                    draft.selectedValues = addToSelection;
+
+                raiseSelectionChange();
                 break;
             }
             case TABLE_CLEAR_SELECTION: {
                 setActivePivotValue(null);
-                if (deselectOnContainerClick)
+                if (deselectOnContainerClick) {
                     draft.selectedValues = [];
+                    raiseSelectionChange();
+                }
                 break;
             }
             case TABLE_SET_ROW_SELECTED: {
                 const { value, selected } = action;
-                if (!selected) {
-                    pullFirst(draft.selectedValues, value);
-                    break;
-                }
 
-                //Row to be selected
-                if (!isMultiselect) draft.selectedValues = [value];
-                else draft.selectedValues.push(value);
+                if (!selected)
+                    pullFirst(draft.selectedValues, value);
+                else
+                    draft.selectedValues.push(value);
+
+                raiseSelectionChange();
                 break;
             }
             case TABLE_SELECT_ALL: {
                 draft.selectedValues = values;
+                raiseSelectionChange();
                 break;
             }
             case TABLE_SET_ACTIVE_ROW: {
@@ -217,8 +226,10 @@ export default function createTableReducer() {
 
                 setActivePivotValue(value);
                 const isSelected = state.selectedValues.includes(value);
-                if (deselectOnContainerClick && !isSelected)
+                if (deselectOnContainerClick && !isSelected) {
                     draft.selectedValues = value ? [value] : [];
+                    raiseSelectionChange();
+                }
 
                 raiseContextMenu();
                 break;

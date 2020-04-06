@@ -26,6 +26,7 @@ function TableCore(props) {
         className,
         valueProperty,
         isMultiselect,
+        deselectOnContainerClick,
 
         //Events
         onItemsOpen,
@@ -73,15 +74,17 @@ function TableCore(props) {
 
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
-    const dragStart = e => {
-        if (!isMultiselect || e.button !== 0) return;
+    const dragStart = useCallback(e => {
+        const dragEnabled = deselectOnContainerClick && isMultiselect;
+        if (!dragEnabled || e.button !== 0) return;
+
         const { clientX: x, clientY: y } = e;
         const { scrollTop, scrollLeft } = bodyContainer.current;
 
         setLastMousePos([x, y]);
         // setRowBounds(getRowBounds());
         setSelOrigin([x + scrollLeft, y + scrollTop]);
-    }
+    }, [deselectOnContainerClick, isMultiselect]);
 
     //Update row collision
     const updateRowCollision = useCallback(rect => {
@@ -234,10 +237,10 @@ function TableCore(props) {
     }
 
     //#region Event Handlers
-    const handleMouseDown = e => {
+    const handleMouseDown = useCallback(e => {
         deselectRows(e);
         dragStart(e);
-    }
+    }, [dragStart])
 
     const handleDoubleClick = () => {
         raiseItemOpen(false);
@@ -245,7 +248,7 @@ function TableCore(props) {
 
     const handleContextMenu = useCallback(e => {
         contextMenu(null, e.ctrlKey);
-    }, [contextMenu]);
+    }, [contextMenu])
 
     const handleKeyDown = e => {
         switch (e.keyCode) {
@@ -286,8 +289,7 @@ function TableCore(props) {
     //Deselect rows
     const deselectRows = e => {
         if (e.currentTarget !== e.target ||
-            e.ctrlKey ||
-            e.button !== 0) return;
+            e.ctrlKey || e.button !== 0) return;
 
         clearSelection();
     }

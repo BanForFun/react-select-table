@@ -68,17 +68,17 @@ function SfcTable(props) {
         setRowRefs(refObj);
     }, [items, valueProperty]);
 
-    //Calculate row bounds
-    const [rowBounds, setRowBounds] = useState([]);
-    const getRowBounds = () => values.map(val => {
-        const row = rowRefs[val].current;
-        const rect = Rect.fromPosSize(
-            row.offsetLeft, row.offsetTop,
-            row.scrollWidth, row.scrollHeight
-        );
+    // //Calculate row bounds
+    // const [rowBounds, setRowBounds] = useState([]);
+    // const getRowBounds = () => values.map(val => {
+    //     const row = rowRefs[val].current;
+    //     const rect = Rect.fromPosSize(
+    //         row.offsetLeft, row.offsetTop,
+    //         row.scrollWidth, row.scrollHeight
+    //     );
 
-        return { value: val, bounds: rect };
-    })
+    //     return { value: val, bounds: rect };
+    // })
 
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
@@ -88,7 +88,7 @@ function SfcTable(props) {
         const { scrollTop, scrollLeft } = bodyContainer.current;
 
         setLastMousePos([x, y]);
-        setRowBounds(getRowBounds());
+        // setRowBounds(getRowBounds());
         setSelOrigin([x + scrollLeft, y + scrollTop]);
     }
 
@@ -100,22 +100,36 @@ function SfcTable(props) {
         const topVisible = scrollTop;
         const bottomVisible = scrollTop + clientHeight;
 
-        //Find top and bottom most visible rows
-        const startIndex = _.findIndex(rowBounds, row =>
-            row.bounds.bottom > topVisible);
-        const endIndex = _.findIndex(rowBounds, row =>
-            row.bounds.top > bottomVisible, startIndex);
+        for (let value of values) {
+            const { current } = rowRefs[value];
 
-        //Check visible rows for collision with rectangle
-        const visibleRowBounds = _.slice(rowBounds, startIndex, endIndex);
-        for (let row of visibleRowBounds) {
-            const { bounds, value } = row;
-            const intersects = rect.intersectsRectY(bounds);
+            const top = current.offsetTop;
+            if (top < topVisible) continue;
+            if (top > bottomVisible) return;
+
+            const bottom = top + current.scrollHeight;
+            const intersects = bottom > rect.top && top < rect.bottom;
 
             if (selectedValues.includes(value) !== intersects)
                 setRowSelected(value, intersects);
         }
-    }, [rowBounds, setRowSelected, selectedValues]);
+
+        // //Find top and bottom most visible rows
+        // const startIndex = _.findIndex(rowBounds, row =>
+        //     row.bounds.bottom > topVisible);
+        // const endIndex = _.findIndex(rowBounds, row =>
+        //     row.bounds.top > bottomVisible, startIndex);
+
+        // //Check visible rows for collision with rectangle
+        // const visibleRowBounds = _.slice(rowBounds, startIndex, endIndex);
+        // for (let row of visibleRowBounds) {
+        //     const { bounds, value } = row;
+        //     const intersects = rect.intersectsRectY(bounds);
+
+        //     if (selectedValues.includes(value) !== intersects)
+        //         setRowSelected(value, intersects);
+        // }
+    }, [setRowSelected, selectedValues]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
@@ -159,7 +173,7 @@ function SfcTable(props) {
     const dragEnd = () => {
         setSelOrigin(null);
         setSelRect(null);
-        setRowBounds([])
+        // setRowBounds([]);
     }
 
     //Scroll

@@ -7,13 +7,16 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 const columns = [
   {
-    title: "Φωτογραφία",
-    path: "thumbnailUrl",
-    render: url => <img src={url} height="100px" />
+    title: "Name",
+    path: "name"
   },
   {
-    title: "Τίτλος",
-    path: "title"
+    title: "Email",
+    path: "email"
+  },
+  {
+    title: "Body",
+    path: "body"
   }
 ];
 
@@ -22,7 +25,7 @@ const App = () => {
     <div className="h-100">
       <Table
         onDoubleClick={alert}
-        items={testData.slice(0, 200)}
+        items={testData}
         valueProperty="id"
         columns={columns}
         className="table"

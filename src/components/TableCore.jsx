@@ -25,7 +25,7 @@ function TableCore(props) {
         name,
         className,
         valueProperty,
-        onDoubleClick,
+        onItemsOpen,
         isMultiselect,
 
         //Redux state
@@ -230,6 +230,10 @@ function TableCore(props) {
         dragStart(e);
     }
 
+    const handleDoubleClick = e => {
+        raiseItemOpen(false);
+    }
+
     const handleKeyDown = e => {
         switch (e.keyCode) {
             case 65: //A
@@ -241,9 +245,18 @@ function TableCore(props) {
             case 40: //Down
                 handleKeyboardSelection(e, 1);
                 break;
+            case 13: //Enter
+                raiseItemOpen(true);
+                break;
         }
     }
     //#endregion
+
+    //onItemOpen event
+    const raiseItemOpen = enterKey => {
+        if (selectedValues.length === 0) return;
+        onItemsOpen(selectedValues, enterKey);
+    }
 
     //keyboard selection
     const handleKeyboardSelection = (e, offset) => {
@@ -305,13 +318,12 @@ function TableCore(props) {
             >
                 <div className="tableContainer" tabIndex="0"
                     onKeyDown={handleKeyDown}
+                    onDoubleClick={handleDoubleClick}
                     onMouseDown={handleMouseDown}>
                     {renderSelectionRect()}
                     <table className={className}>
                         <ColumnResizer {...common} />
-                        <Body {...common}
-                            rowRefs={rowRefs}
-                            onDoubleClick={onDoubleClick}
+                        <Body {...common} rowRefs={rowRefs}
                             valueProperty={valueProperty} />
                     </table>
                 </div>

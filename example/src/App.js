@@ -31,6 +31,7 @@ const App = () => {
         onDoubleClick={alert}
         items={testData.slice(0, 200)}
         valueProperty="id"
+        filter={{ id: 10 }}
         columns={columns}
         className="table"
         name="test" />

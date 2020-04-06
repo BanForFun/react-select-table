@@ -11,7 +11,6 @@ const Body = ({
     rowRefs,
     selectedValues,
     activeValue,
-    onDoubleClick,
     selectRow
 }) => {
     const handleRowSelect = (e, value) => {
@@ -26,13 +25,12 @@ const Body = ({
             classes.push("selected");
         if (activeValue === value)
             classes.push("active");
-        if (row.classes)
-            classes.push(...row.classes);
+        if (row.classNames)
+            classes.push(...row.classNames);
 
         return <tr key={`tr_${name}_${value}`}
             ref={rowRefs[value]}
             className={classes.join(' ')}
-            onDoubleClick={() => onDoubleClick(value)}
             onMouseDown={e => handleRowSelect(e, value)}>
             {columns.map(col => renderColumn(row, col))}
         </tr>

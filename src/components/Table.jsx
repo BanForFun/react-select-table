@@ -39,19 +39,36 @@ function Table(params) {
     </Provider>
 }
 
+function defaultItemFilter(item, filter) {
+    for (let key in filter) {
+        if (item[key] !== filter[key])
+            return false;
+    }
+
+    return true;
+}
+
 export const defaultOptions = {
     itemParser: item => item,
-    itemFilter: () => true,
+    itemFilter: defaultItemFilter,
     minWidth: 3,
     isMultiselect: true,
     deselectOnContainerClick: true,
     valueProperty: null
 };
 
+const columnShape = {
+    title: PropTypes.string,
+    key: PropTypes.string,
+    path: PropTypes.string,
+    render: PropTypes.func,
+    classNames: PropTypes.array
+}
+
 Table.propTypes = {
     name: PropTypes.string.isRequired,
     valueProperty: PropTypes.string.isRequired,
-    columns: PropTypes.array.isRequired,
+    columns: PropTypes.arrayOf(columnShape).isRequired,
     items: PropTypes.array,
     filter: PropTypes.object,
     itemParser: PropTypes.func,
@@ -60,14 +77,14 @@ Table.propTypes = {
     isMultiselect: PropTypes.bool,
     deselectOnContainerClick: PropTypes.bool,
     onContextMenu: PropTypes.func,
-    onDoubleClick: PropTypes.func,
+    onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func
 }
 
 Table.defaultProps = {
     ...defaultOptions,
     onContextMenu: () => { },
-    onDoubleClick: () => { },
+    onItemsOpen: () => { },
     onSelectionChange: () => { }
 }
 

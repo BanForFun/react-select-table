@@ -110,18 +110,14 @@ export default function createTableReducer() {
             }
             case TABLE_SET_ROW_SELECTED: {
                 const { value, selected } = action;
-
                 if (!selected) {
                     pullFirst(draft.selectedValues, value);
                     break;
                 }
 
                 //Row to be selected
-                if (!isMultiselect)
-                    draft.selectedValues = [value];
-                else
-                    draft.selectedValues.push(value);
-
+                if (!isMultiselect) draft.selectedValues = [value];
+                else draft.selectedValues.push(value);
                 break;
             }
             case TABLE_SELECT_ALL: {

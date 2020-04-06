@@ -50,12 +50,21 @@ export default function createTableReducer() {
             return _.orderBy(items, [path], [order]);
         }
 
-        const updateItems = () => {
+        const updateItems = (updateSelection = false) => {
+            //Update items
             const transform = pipe(_parseItems, _filterItems, _sortItems);
-            draft.tableItems = transform(draft.items);
+            const newItems = transform(draft.items);
+            draft.tableItems = newItems;
+
+            //Deselect values that no longer exist
+            if (!updateSelection) return;
+            const newValues = _.map(newItems, valueProperty);
+            const deselect = _.difference(draft.selectedValues, newValues);
+            deselectRows(deselect);
         }
 
         const deselectRows = values => {
+            if (values.length === 0) return;
             //Update active value
             if (values.includes(state.activeValue))
                 draft.activeValue = null;
@@ -68,12 +77,8 @@ export default function createTableReducer() {
             //Items
             case TABLE_SET_ROWS: {
                 const { items } = action;
-                const newValues = _.map(items, valueProperty)
-                draft.items = _.zipObject(newValues, items);
-                updateItems();
-
-                const deselect = _.difference(state.selectedValues, newValues);
-                deselectRows(deselect);
+                draft.items = _.keyBy(items, valueProperty);
+                updateItems(true);
                 break;
             }
             case TABLE_ADD_ROW: {
@@ -87,7 +92,6 @@ export default function createTableReducer() {
                 const { values } = action;
                 deleteKeys(draft.items, values);
                 updateItems();
-
                 deselectRows(values);
                 break;
             }
@@ -122,6 +126,11 @@ export default function createTableReducer() {
                 const { value, patch } = action;
                 Object.assign(draft.items[value], patch);
                 updateItems();
+                break;
+            }
+            case TABLE_SET_FILTER: {
+                draft.filter = action.filter;
+                updateItems(true);
                 break;
             }
 
@@ -245,8 +254,9 @@ export default function createTableReducer() {
 }
 
 //Rows
-export const TABLE_SET_ROWS = "TABLE_SET_ROWS";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
+export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
+export const TABLE_SET_ROWS = "TABLE_SET_ROWS";
 export const TABLE_ADD_ROW = "TABLE_ADD_ROW";
 export const TABLE_DELETE_ROWS = "TABLE_DELETE_ROWS";
 export const TABLE_REPLACE_ROW = "TABLE_REPLACE_ROW";
@@ -267,6 +277,10 @@ export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 //Internal
 const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
 const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+
+export function setFilter(filter) {
+    return { type: TABLE_SET_FILTER, filter };
+}
 
 export function patchRow(value, patch) {
     return { type: TABLE_PATCH_ROW, value, patch };

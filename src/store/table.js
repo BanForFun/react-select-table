@@ -37,6 +37,7 @@ export default function createTableReducer() {
         } = options;
 
         const values = _.map(state.tableItems, valueProperty);
+        let updateSelection = false;
 
         //Prefix methods that don't mutate draft state with an underscore
         const _parseItems = items =>
@@ -126,7 +127,7 @@ export default function createTableReducer() {
                 const selectedIndex = state.selectedValues.indexOf(oldValue);
                 if (selectedIndex >= 0) {
                     draft.selectedValues[selectedIndex] = newValue;
-                    raiseSelectionChange();
+                    updateSelection = true;
                 }
 
                 const withValue = {
@@ -153,13 +154,14 @@ export default function createTableReducer() {
 
             //Selection
             case TABLE_SELECT_ROW: {
+                updateSelection = true;
+
                 const { value, ctrlKey, shiftKey } = action;
                 let addToSelection = [value];
 
                 if (!isMultiselect) {
                     draft.selectedValues = addToSelection;
                     draft.activeValue = value;
-                    raiseSelectionChange();
                     break;
                 }
 
@@ -185,14 +187,13 @@ export default function createTableReducer() {
                 else
                     draft.selectedValues = addToSelection;
 
-                raiseSelectionChange();
                 break;
             }
             case TABLE_CLEAR_SELECTION: {
                 setActivePivotValue(null);
                 if (deselectOnContainerClick) {
                     draft.selectedValues = [];
-                    raiseSelectionChange();
+                    updateSelection = true;
                 }
                 break;
             }
@@ -204,12 +205,13 @@ export default function createTableReducer() {
                 else
                     draft.selectedValues.push(value);
 
-                raiseSelectionChange();
+                updateSelection = true;
                 break;
             }
             case TABLE_SELECT_ALL: {
+                if (!isMultiselect) break;
                 draft.selectedValues = values;
-                raiseSelectionChange();
+                updateSelection = true;
                 break;
             }
             case TABLE_SET_ACTIVE_ROW: {
@@ -219,16 +221,13 @@ export default function createTableReducer() {
             case TABLE_CONTEXT_MENU: {
                 const { value, ctrlKey } = action;
 
-                if (ctrlKey) {
-                    raiseContextMenu();
-                    break;
-                }
-
-                setActivePivotValue(value);
-                const isSelected = state.selectedValues.includes(value);
-                if (deselectOnContainerClick && !isSelected) {
-                    draft.selectedValues = value ? [value] : [];
-                    raiseSelectionChange();
+                if (!ctrlKey) {
+                    setActivePivotValue(value);
+                    const isSelected = state.selectedValues.includes(value);
+                    if (deselectOnContainerClick && !isSelected) {
+                        draft.selectedValues = value ? [value] : [];
+                        updateSelection = true;
+                    }
                 }
 
                 raiseContextMenu();
@@ -290,6 +289,10 @@ export default function createTableReducer() {
             default:
                 break;
         }
+
+        if (updateSelection && _.difference(
+            state.selectedValues, draft.selectedValues).length > 0)
+            raiseSelectionChange();
     })
 }
 

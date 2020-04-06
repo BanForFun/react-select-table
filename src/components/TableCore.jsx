@@ -41,7 +41,7 @@ function TableCore(props) {
         //Redux actions
         selectAll,
         setActiveRow,
-        selectItem,
+        selectRow,
         contextMenu,
         clearSelection,
         setRowSelected,
@@ -280,7 +280,7 @@ function TableCore(props) {
         const onlyCtrl = e.ctrlKey && !e.shiftKey;
 
         if (onlyCtrl) setActiveRow(offsetValue);
-        else selectItem(offsetValue, e.ctrlKey, e.shiftKey);
+        else selectRow(offsetValue, e.ctrlKey, e.shiftKey);
 
         ensureRowVisible(rowRefs[offsetValue].current, bodyContainer.current);
         e.preventDefault();

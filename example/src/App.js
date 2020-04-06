@@ -4,6 +4,7 @@ import testData from "./test-data";
 import Table from 'react-select-table'
 import 'react-select-table/src/index.scss'
 import 'bootstrap/dist/css/bootstrap.css';
+import { array } from 'prop-types';
 
 const columns = [
   {
@@ -28,10 +29,9 @@ const App = () => {
   return (
     <div className="h-100">
       <Table
-        items={testData.slice(0, 2)}
-        valueProperty="id"
-        isMultiselect={false}
+        items={testData}
         onSelectionChange={console.log}
+        valueProperty="id"
         columns={columns}
         className="table"
         name="test" />

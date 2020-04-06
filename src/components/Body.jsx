@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React from 'react';
 import { connect } from "react-redux";
-import { selectItem } from "../store/table";
+import { selectRow } from "../store/table";
 
 const Body = ({
     columns,
@@ -12,10 +12,10 @@ const Body = ({
     selectedValues,
     activeValue,
     onDoubleClick,
-    selectItem
+    selectRow
 }) => {
     const handleRowSelect = (e, value) => {
-        selectItem(value, e.ctrlKey, e.shiftKey);
+        selectRow(value, e.ctrlKey, e.shiftKey);
     }
 
     const renderRow = row => {
@@ -70,5 +70,5 @@ function mapStateToProps(state) {
 
 
 export default connect(mapStateToProps, {
-    selectItem
+    selectRow
 })(Body);

@@ -41,15 +41,17 @@ export default function createTableReducer() {
         const _parseItems = items =>
             _.map(items, options.itemParser);
 
-        const _filterItems = (items, filter = state.filter) =>
-            _.filter(items, i => options.itemFilter(i, filter));
+        const _filterItems = items =>
+            _.filter(items, i => options.itemFilter(i, draft.filter));
 
-        const _sortItems = (items, sort = state.sort) =>
-            _.orderBy(items, [sort.path], [sort.order]);
+        const _sortItems = items => {
+            const { path, order } = draft.sort;
+            return _.orderBy(items, [path], [order]);
+        }
 
-        const transformItems = items => {
+        const updateItems = () => {
             const transform = pipe(_parseItems, _filterItems, _sortItems);
-            draft.tableItems = transform(items);
+            draft.tableItems = transform(draft.items);
         }
 
         const deselectRows = values => {
@@ -63,9 +65,16 @@ export default function createTableReducer() {
 
         switch (action.type) {
             //Items
-            case TABLE_SET_ITEMS: {
+            case TABLE_SET_ROWS: {
                 draft.items = _.keyBy(action.items, valueProperty);
-                transformItems(action.items);
+                updateItems();
+                break;
+            }
+            case TABLE_ADD_ROW: {
+                const { newItem } = action;
+                const value = newItem[valueProperty];
+                draft.items[value] = newItem;
+                updateItems();
                 break;
             }
 
@@ -121,7 +130,7 @@ export default function createTableReducer() {
                 break;
             }
             case TABLE_SELECT_ALL: {
-                draft.selectedValues = _.map(state.tableItems, valueProperty);
+                draft.selectedValues = values;
                 break;
             }
             case TABLE_SET_ACTIVE_ROW: {
@@ -166,8 +175,7 @@ export default function createTableReducer() {
                     sort.order = sortOrder.Ascending;
 
                 sort.path = newPath;
-                const filteredItems = _filterItems(_parseItems(state.items));
-                draft.tableItems = _sortItems(filteredItems, sort);
+                updateItems();
                 break;
             }
 
@@ -184,25 +192,37 @@ export default function createTableReducer() {
                 break;
             }
             default:
-                return draft;
+                break;
         }
     })
 }
 
-//Public actions
+//Rows
+export const TABLE_SET_ROWS = "TABLE_SET_ROWS";
+export const TABLE_SORT_BY = "TABLE_SORT_BY";
+export const TABLE_ADD_ROW = "TABLE_ADD_ROW";
 
-export const TABLE_SET_ITEMS = "TABLE_SET_ITEMS";
+//Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
+
+//Selection
 export const TABLE_SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
-export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
-export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
-export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
 export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
+export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
+export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 
-export function setItems(items) {
-    return { type: TABLE_SET_ITEMS, items };
+//Internal
+const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
+const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+
+export function addRow(newItem) {
+    return { type: TABLE_ADD_ROW, newItem };
+}
+
+export function setRows(items) {
+    return { type: TABLE_SET_ROWS, items };
 }
 
 export function setColumnWidth(index, width) {
@@ -217,7 +237,7 @@ export function sortBy(path) {
     return { type: TABLE_SORT_BY, path };
 }
 
-export function selectItem(value, ctrlKey = false, shiftKey = false) {
+export function selectRow(value, ctrlKey = false, shiftKey = false) {
     return { type: TABLE_SELECT_ROW, value, ctrlKey, shiftKey };
 }
 
@@ -236,11 +256,6 @@ export function selectAll() {
 export function setRowSelected(value, selected) {
     return { type: TABLE_SET_ROW_SELECTED, value, selected };
 }
-
-//Internal actions
-
-export const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
-export const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
 
 export function _setColumnCount(count) {
     return { type: TABLE_SET_COLUMN_COUNT, count };

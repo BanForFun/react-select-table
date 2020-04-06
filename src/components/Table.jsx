@@ -7,12 +7,12 @@ import ColumnResizer from "./ColumnResizer";
 import { Provider, connect } from 'react-redux';
 import configureStore from '../store/configureStore';
 import {
-    setItems,
+    setRows,
     clearSelection,
     setRowSelected,
     selectAll,
     setActiveRow,
-    selectItem,
+    selectRow,
     _setOption,
     _setColumnCount
 } from '../store/table';
@@ -350,7 +350,7 @@ export const ConnectedTable = connect(mapStateToProps, {
     clearSelection,
     setRowSelected,
     selectAll,
-    selectItem,
+    selectRow,
     setActiveRow,
     _setOption
 })(SfcTable);
@@ -365,7 +365,7 @@ function Table(params) {
     }, []);
 
     useEffect(() => {
-        store && store.dispatch(setItems(items))
+        store && store.dispatch(setRows(items))
     }, [store, items]);
 
     useEffect(() => {

@@ -10,6 +10,7 @@ import {
     setItems,
     clearSelection,
     setRowSelected,
+    selectAll,
     _setOption,
     _setColumnCount
 } from '../store/table';
@@ -40,6 +41,7 @@ function SfcTable(props) {
         columnOrder,
 
         //Redux actions
+        selectAll,
         clearSelection,
         setRowSelected,
         _setOption
@@ -74,13 +76,7 @@ function SfcTable(props) {
     const dragStart = e => {
         if (!isMultiselect || e.button !== 0) return;
         const { clientX: x, clientY: y } = e;
-        const { scrollTop, scrollLeft,
-            clientWidth, clientHeight } = e.currentTarget;
-        const bounds = e.currentTarget.getBoundingClientRect();
-
-        //Return if click on scrollbar
-        if (x > bounds.x + clientWidth) return;
-        if (y > bounds.x + clientHeight) return;
+        const { scrollTop, scrollLeft } = bodyContainer.current;
 
         setLastMousePos([x, y]);
         setRowBounds(getRowBounds());
@@ -197,6 +193,15 @@ function SfcTable(props) {
         dragStart(e);
     }
 
+    const handleKeyDown = e => {
+        switch (e.keyCode) {
+            case 65: //A
+                if (e.ctrlKey)
+                    selectAll();
+                break;
+        }
+    }
+
     //#endregion
 
     //Deselect row
@@ -238,15 +243,19 @@ function SfcTable(props) {
             <div className="bodyContainer"
                 ref={bodyContainer}
                 onScroll={handleScroll}
-                onMouseDown={handleMouseDown}>
-                {renderSelectionRect()}
-                <table className={className}>
-                    <ColumnResizer {...common} />
-                    <Body {...common}
-                        rowRefs={rowRefs}
-                        onDoubleClick={onDoubleClick}
-                        valueProperty={valueProperty} />
-                </table>
+            >
+                <div className="tableContainer" tabIndex="0"
+                    onKeyDown={handleKeyDown}
+                    onMouseDown={handleMouseDown}>
+                    {renderSelectionRect()}
+                    <table className={className}>
+                        <ColumnResizer {...common} />
+                        <Body {...common}
+                            rowRefs={rowRefs}
+                            onDoubleClick={onDoubleClick}
+                            valueProperty={valueProperty} />
+                    </table>
+                </div>
             </div>
         </div>
     )
@@ -268,6 +277,7 @@ function mapStateToProps(state) {
 export const ConnectedTable = connect(mapStateToProps, {
     clearSelection,
     setRowSelected,
+    selectAll,
     _setOption
 })(SfcTable);
 

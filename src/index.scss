@@ -21,6 +21,11 @@
         flex: auto;
         overflow-y: auto;
     }
+
+    .tableContainer {
+        outline: none;
+        min-height: 100%;
+    }
     
     .scrollMargin {
         padding: 0;

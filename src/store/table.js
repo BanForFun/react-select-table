@@ -127,6 +127,10 @@ export default function createTableReducer() {
 
                 break;
             }
+            case TABLE_SELECT_ALL: {
+                draft.selectedValues = _.map(state.tableItems, valueProperty);
+                break;
+            }
 
 
             //Columns
@@ -193,6 +197,7 @@ export const TABLE_SET_ITEMS = "TABLE_SET_ITEMS";
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
 export const TABLE_SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
+export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
 export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
@@ -219,6 +224,10 @@ export function selectItem(value, ctrlKey = false, shiftKey = false) {
 
 export function clearSelection() {
     return { type: TABLE_CLEAR_SELECTION };
+}
+
+export function selectAll() {
+    return { type: TABLE_SELECT_ALL };
 }
 
 export function setRowSelected(value, selected) {

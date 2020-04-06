@@ -67,10 +67,11 @@ export default function createTableReducer() {
         switch (action.type) {
             //Items
             case TABLE_SET_ROWS: {
-                draft.items = _.keyBy(action.items, valueProperty);
+                const { items } = action;
+                const newValues = _.map(items, valueProperty)
+                draft.items = _.zipObject(newValues, items);
                 updateItems();
 
-                const newValues = Object.keys(draft.items);
                 const deselect = _.difference(state.selectedValues, newValues);
                 deselectRows(deselect);
                 break;
@@ -92,6 +93,28 @@ export default function createTableReducer() {
             }
             case TABLE_REPLACE_ROW: {
                 draft.items[action.value] = action.newItem;
+                updateItems();
+                break;
+            }
+            case TABLE_SET_ROW_VALUE: {
+                const { oldValue, newValue } = action;
+
+                //Update active value
+                if (state.activeValue === oldValue)
+                    draft.activeValue = newValue;
+
+                //Update selection
+                const selectedIndex = state.selectedValues.indexOf(oldValue);
+                if (selectedIndex >= 0)
+                    draft.selectedValues[selectedIndex] = newValue;
+
+                const withValue = {
+                    ...state.items[oldValue],
+                    [valueProperty]: newValue
+                };
+
+                draft.items[newValue] = withValue;
+                delete draft.items[oldValue];
                 updateItems();
                 break;
             }
@@ -221,6 +244,7 @@ export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_ADD_ROW = "TABLE_ADD_ROW";
 export const TABLE_DELETE_ROWS = "TABLE_DELETE_ROWS";
 export const TABLE_REPLACE_ROW = "TABLE_REPLACE_ROW";
+export const TABLE_SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -236,6 +260,10 @@ export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 //Internal
 const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
 const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+
+export function setRowValue(oldValue, newValue) {
+    return { type: TABLE_SET_ROW_VALUE, oldValue, newValue };
+}
 
 export function replaceRow(value, newItem) {
     return { type: TABLE_REPLACE_ROW, value, newItem };

@@ -3,6 +3,7 @@ import _ from "lodash";
 import Head from "./Head";
 import Body from "./Body";
 import ColumnResizer from "./ColumnResizer";
+import PropTypes from "prop-types";
 import { connect } from 'react-redux';
 import {
     clearSelection,
@@ -199,7 +200,7 @@ function TableCore(props) {
     //#region Reducer updater
 
     //Set reducer options
-    const options = _.pick(props, ...Object.keys(defaultOptions));
+    const options = _.pick(props, ...Object.keys(defaultReducerOptions));
     for (let name in options) {
         const value = options[name];
         useEffect(() => { _setOption(name, value) }, [value]);
@@ -284,10 +285,9 @@ function TableCore(props) {
     //#endregion
 
     //Column ordering and fitlering
-    let orderedColumns = props.columns;
+    let orderedColumns = columns;
     if (columnOrder) {
-        const ordered = _.sortBy(props.columns, col =>
-            columnOrder.indexOf(col.path));
+        const ordered = _.sortBy(columns, c => columnOrder.indexOf(c.path));
         //Columns not included in the columnOrder list will have an index of -1
         //and be at the start of the ordered list
         orderedColumns = _.takeRight(ordered, columnOrder.length);
@@ -371,7 +371,7 @@ function defaultItemFilter(item, filter) {
     return true;
 }
 
-export const defaultOptions = {
+const defaultReducerOptions = {
     itemParser: item => item,
     itemFilter: defaultItemFilter,
     onContextMenu: () => { },
@@ -381,3 +381,35 @@ export const defaultOptions = {
     deselectOnContainerClick: true,
     valueProperty: null
 };
+
+const columnShape = PropTypes.shape({
+    title: PropTypes.string,
+    key: PropTypes.string,
+    path: PropTypes.string,
+    render: PropTypes.func,
+    classNames: PropTypes.array
+});
+
+export const propTypes = {
+    name: PropTypes.string.isRequired,
+    valueProperty: PropTypes.string.isRequired,
+    columns: PropTypes.arrayOf(columnShape).isRequired,
+    items: PropTypes.array,
+    filter: PropTypes.object,
+    itemParser: PropTypes.func,
+    itemFilter: PropTypes.func,
+    minWidth: PropTypes.number,
+    isMultiselect: PropTypes.bool,
+    deselectOnContainerClick: PropTypes.bool,
+    onContextMenu: PropTypes.func,
+    onItemsOpen: PropTypes.func,
+    onSelectionChange: PropTypes.func
+}
+
+export const defaultProps = {
+    ...defaultReducerOptions,
+    onItemsOpen: () => { }
+}
+
+TableCore.propTypes = propTypes;
+TableCore.defaultProps = defaultProps;

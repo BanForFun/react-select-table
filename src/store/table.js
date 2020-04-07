@@ -320,8 +320,8 @@ export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 
 //Internal
-const TABLE_SET_COLUMN_COUNT = "__TABLE_SET_COLUMN_COUNT__";
-const TABLE_SET_OPTION = "__TABLE_SET_OPTION__";
+const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
+const TABLE_SET_OPTION = "TABLE_SET_OPTION";
 
 export function contextMenu(value, ctrlKey) {
     return { type: TABLE_CONTEXT_MENU, value, ctrlKey };

@@ -84,9 +84,9 @@ function Head({
                         onMouseDown={() => setResizingIndex(index)} />
                 </th>
             })}
-            {!!scrollBarWidth &&
-                <th className={styles.scrollMargin} width={`${scrollBarWidth}px`} />
-            }
+            {!!scrollBarWidth && <th
+                className={styles.scrollMargin}
+                width={`${scrollBarWidth}px`} />}
         </tr>
     </thead>;
 }

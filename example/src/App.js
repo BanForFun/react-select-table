@@ -30,12 +30,11 @@ const App = () => {
     console.log(title, msg);
 
   return (
-    <div className="h-100 pl-5">
+    <div className="h-100">
       <Table
-        items={testData.slice(0, 2)}
+        items={testData.slice(0, 100)}
         valueProperty="id"
         columns={columns}
-        className="table"
         name="test" />
     </div>)
 }

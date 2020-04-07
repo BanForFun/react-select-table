@@ -45,22 +45,20 @@
         border: none !important;
     }
 
-    tbody tr {
-        &:hover {
-            background-color: #e0e0e0;
-        }
+    tr:hover {
+        background-color: #e0e0e0;
+    }
+    
+    tr.active {
+        box-shadow: inset 0 -2px 0 #b1cc97;
+    }
+    
+    tr.selected {
+        background-color: #c4d9b1;
+    }
 
-        &.active {
-            box-shadow: inset 0 -2px 0 #b1cc97;
-        }
-
-        &.selected {
-            background-color: #c4d9b1;
-        }
-
-        &:first-child td, &:first-child th {
-            border-top: none;
-        }
+    tr:first-child > * {
+        border-top: none;
     }
 }
 
@@ -96,6 +94,7 @@
 .sortIcon {
     height: 1.25em;
     margin-left: 0.25rem;
+    vertical-align: text-top;
 
     &[data-order=desc] {
         transform: rotate(180deg);

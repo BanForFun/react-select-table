@@ -127,7 +127,7 @@ function TableCore(props) {
         //     if (selectedValues.includes(value) !== intersects)
         //         setRowSelected(value, intersects);
         // }
-    }, [setRowSelected, selectedValues]);
+    }, [setRowSelected, selectedValues, rowRefs]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
@@ -238,11 +238,40 @@ function TableCore(props) {
         onItemsOpen(selectedValues, enterKey);
     }
 
+    const selectFromKeyboard = useCallback((e, value) => {
+        const onlyCtrl = e.ctrlKey && !e.shiftKey;
+        if (onlyCtrl) setActiveRow(value);
+        else selectRow(value, e.ctrlKey, e.shiftKey);
+
+        ensureRowVisible(rowRefs[value].current, bodyContainer.current);
+        e.preventDefault();
+    }, [rowRefs, selectRow, setActiveRow]);
+
+    //Handle up/down arrows
+    const selectAtOffset = useCallback((e, offset) => {
+        const activeIndex = values.indexOf(activeValue);
+        if (activeIndex < 0) return;
+
+        const offsetIndex = activeIndex + offset;
+        if (!_.inRange(offsetIndex, 0, values.length)) return;
+
+        const offsetValue = values[offsetIndex];
+        selectFromKeyboard(e, offsetValue);
+    }, [selectFromKeyboard, activeValue]);
+
+    //Deselect rows
+    const deselectRows = useCallback(e => {
+        if (e.currentTarget !== e.target ||
+            e.ctrlKey || e.button !== 0) return;
+
+        clearSelection();
+    }, [clearSelection])
+
     //#region Event Handlers
     const handleMouseDown = useCallback(e => {
         deselectRows(e);
         dragStart(e);
-    }, [dragStart])
+    }, [dragStart, deselectRows])
 
     const handleDoubleClick = () => {
         raiseItemOpen(false);
@@ -252,49 +281,29 @@ function TableCore(props) {
         contextMenu(null, e.ctrlKey);
     }, [contextMenu])
 
-    const handleKeyDown = e => {
+    const handleKeyDown = useCallback(e => {
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey) selectAll();
                 break;
             case 38: //Up
-                handleKeyboardSelection(e, -1);
+                selectAtOffset(e, -1);
                 break;
             case 40: //Down
-                handleKeyboardSelection(e, 1);
+                selectAtOffset(e, 1);
                 break;
             case 13: //Enter
                 raiseItemOpen(true);
                 break;
+            case 36: //Home
+                selectFromKeyboard(e, values[0]);
+                break;
+            case 35: //End
+                selectFromKeyboard(e, _.last(values));
+                break;
         }
-    }
+    }, [selectFromKeyboard, selectAtOffset]);
     //#endregion
-
-    //keyboard selection
-    const handleKeyboardSelection = (e, offset) => {
-        const activeIndex = values.indexOf(activeValue);
-        if (activeIndex < 0) return;
-
-        const offsetIndex = activeIndex + offset;
-        if (!_.inRange(offsetIndex, 0, values.length)) return;
-
-        const offsetValue = values[offsetIndex];
-        const onlyCtrl = e.ctrlKey && !e.shiftKey;
-
-        if (onlyCtrl) setActiveRow(offsetValue);
-        else selectRow(offsetValue, e.ctrlKey, e.shiftKey);
-
-        ensureRowVisible(rowRefs[offsetValue].current, bodyContainer.current);
-        e.preventDefault();
-    }
-
-    //Deselect rows
-    const deselectRows = e => {
-        if (e.currentTarget !== e.target ||
-            e.ctrlKey || e.button !== 0) return;
-
-        clearSelection();
-    }
 
     //Column ordering and fitlering
     let orderedColumns = props.columns;

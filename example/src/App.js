@@ -1,7 +1,7 @@
 import React from 'react'
 
 import testData from "./test-data";
-import Table from 'react-select-table';
+import { Table, TableStore } from 'react-select-table';
 import 'react-select-table/dist/index.css';
 import 'bootstrap/dist/css/bootstrap.css';
 

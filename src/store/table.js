@@ -21,7 +21,7 @@ const initState = {
     tableItems: []
 };
 
-export default function createTableReducer() {
+export function createTableReducer() {
     function getDefaultWidth(count) {
         const width = 100 / count;
         return _.times(count, _.constant(width));

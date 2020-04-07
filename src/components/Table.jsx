@@ -4,10 +4,10 @@ import { Provider } from "react-redux";
 import PropTypes from "prop-types";
 import TableCore, { defaultOptions } from "./TableCore";
 import configureStore from '../store/configureStore';
-import { setRows, setFilter, _setColumnCount } from "../store/table";
+import { setRows, setFilter } from "../store/table";
 
 function Table(params) {
-    const { items, columns, filter } = params;
+    const { items, filter } = params;
     const [store, setStore] = useState();
 
     const dispatch = useCallback(action => {
@@ -23,10 +23,6 @@ function Table(params) {
     useEffect(() =>
         dispatch(setRows(items)),
         [dispatch, items]);
-
-    useEffect(() =>
-        dispatch(_setColumnCount(columns.length)),
-        [dispatch, columns]);
 
     useEffect(() =>
         dispatch(setFilter(filter)),

@@ -11,7 +11,8 @@ import {
     setActiveRow,
     selectRow,
     contextMenu,
-    _setOption
+    _setOption,
+    _setColumnCount
 } from '../store/table';
 import Rect from '../models/rect';
 import {
@@ -27,6 +28,7 @@ function TableCore(props) {
         className,
         valueProperty,
         isMultiselect,
+        columns,
         deselectOnContainerClick,
 
         //Events
@@ -46,7 +48,8 @@ function TableCore(props) {
         contextMenu,
         clearSelection,
         setRowSelected,
-        _setOption
+        _setOption,
+        _setColumnCount
     } = props;
 
     const values = _.map(items, valueProperty);
@@ -60,18 +63,6 @@ function TableCore(props) {
         const refObj = _.zipObject(values, refs);
         setRowRefs(refObj);
     }, [items, valueProperty]);
-
-    // //Calculate row bounds
-    // const [rowBounds, setRowBounds] = useState([]);
-    // const getRowBounds = () => values.map(val => {
-    //     const row = rowRefs[val].current;
-    //     const rect = Rect.fromPosSize(
-    //         row.offsetLeft, row.offsetTop,
-    //         row.scrollWidth, row.scrollHeight
-    //     );
-
-    //     return { value: val, bounds: rect };
-    // })
 
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
@@ -111,23 +102,7 @@ function TableCore(props) {
             if (selectedValues.includes(value) !== intersects)
                 setRowSelected(value, intersects);
         }
-
-        // //Find top and bottom most visible rows
-        // const startIndex = _.findIndex(rowBounds, row =>
-        //     row.bounds.bottom > topVisible);
-        // const endIndex = _.findIndex(rowBounds, row =>
-        //     row.bounds.top > bottomVisible, startIndex);
-
-        // //Check visible rows for collision with rectangle
-        // const visibleRowBounds = _.slice(rowBounds, startIndex, endIndex);
-        // for (let row of visibleRowBounds) {
-        //     const { bounds, value } = row;
-        //     const intersects = rect.intersectsRectY(bounds);
-
-        //     if (selectedValues.includes(value) !== intersects)
-        //         setRowSelected(value, intersects);
-        // }
-    }, [setRowSelected, selectedValues, rowRefs]);
+    }, [selectedValues, rowRefs]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
@@ -171,7 +146,6 @@ function TableCore(props) {
     const dragEnd = () => {
         setSelOrigin(null);
         setSelRect(null);
-        // setRowBounds([]);
     }
 
     //Scroll
@@ -222,15 +196,19 @@ function TableCore(props) {
     }, []);
     //#endregion
 
+    //#region Reducer updater
+
     //Set reducer options
     const options = _.pick(props, ...Object.keys(defaultOptions));
-    for (let option in options) {
-        const value = options[option];
-
-        useEffect(() => {
-            _setOption(option, value);
-        }, [value]);
+    for (let name in options) {
+        const value = options[name];
+        useEffect(() => { _setOption(name, value) }, [value]);
     }
+
+    //Set column count
+    useEffect(() => { _setColumnCount(columns.length) }, [columns]);
+
+    //#endregion
 
     //onItemOpen event
     const raiseItemOpen = enterKey => {
@@ -245,7 +223,7 @@ function TableCore(props) {
 
         ensureRowVisible(rowRefs[value].current, bodyContainer.current);
         e.preventDefault();
-    }, [rowRefs, selectRow, setActiveRow]);
+    }, [rowRefs]);
 
     //Handle up/down arrows
     const selectAtOffset = useCallback((e, offset) => {
@@ -260,26 +238,26 @@ function TableCore(props) {
     }, [selectFromKeyboard, activeValue]);
 
     //Deselect rows
-    const deselectRows = useCallback(e => {
+    const deselectRows = e => {
         if (e.currentTarget !== e.target ||
             e.ctrlKey || e.button !== 0) return;
 
         clearSelection();
-    }, [clearSelection])
+    }
 
     //#region Event Handlers
     const handleMouseDown = useCallback(e => {
         deselectRows(e);
         dragStart(e);
-    }, [dragStart, deselectRows])
+    }, [dragStart])
 
     const handleDoubleClick = () => {
         raiseItemOpen(false);
     }
 
-    const handleContextMenu = useCallback(e => {
+    const handleContextMenu = e => {
         contextMenu(null, e.ctrlKey);
-    }, [contextMenu])
+    }
 
     const handleKeyDown = useCallback(e => {
         switch (e.keyCode) {
@@ -316,7 +294,7 @@ function TableCore(props) {
     }
 
     //Column parsing
-    const columns = orderedColumns.map((col, index) => {
+    const parsedColumns = orderedColumns.map((col, index) => {
         const props = {
             width: `${columnWidth[index]}%`,
             id: col.key || col.path
@@ -326,7 +304,8 @@ function TableCore(props) {
     });
 
     const commonParams = {
-        name, columns
+        name,
+        columns: parsedColumns
     }
 
     return (
@@ -379,7 +358,8 @@ export default connect(mapStateToProps, {
     selectRow,
     contextMenu,
     setActiveRow,
-    _setOption
+    _setOption,
+    _setColumnCount
 })(TableCore);
 
 function defaultItemFilter(item, filter) {

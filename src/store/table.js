@@ -3,7 +3,7 @@ import _ from "lodash";
 import { pipe } from "lodash/fp";
 import { sortOrder } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
-import { pullFirst, encloseInArray } from "../utils/arrayUtils";
+import { pullFirst, encloseInArray, areArraysEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 
 const initState = {
@@ -112,6 +112,7 @@ export default function createTableReducer() {
                 break;
             }
             case TABLE_REPLACE_ROW: {
+                //Value property should not be changed
                 draft.items[action.value] = action.newItem;
                 updateItems();
                 break;
@@ -141,6 +142,7 @@ export default function createTableReducer() {
                 break;
             }
             case TABLE_PATCH_ROW: {
+                //Value property should not be changed
                 const { value, patch } = action;
                 Object.assign(draft.items[value], patch);
                 updateItems();
@@ -290,8 +292,7 @@ export default function createTableReducer() {
                 break;
         }
 
-        if (updateSelection && _.difference(
-            state.selectedValues, draft.selectedValues).length > 0)
+        if (updateSelection && !areArraysEqual(state.selectedValues, draft.selectedValues))
             raiseSelectionChange();
     })
 }

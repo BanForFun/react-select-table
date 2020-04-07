@@ -26,11 +26,14 @@ const columns = [
 ];
 
 const App = () => {
+
+  const log = title => msg =>
+    console.log(title, msg);
+
   return (
     <div className="h-100">
       <Table
-        items={testData}
-        onSelectionChange={console.log}
+        items={testData.slice(0, 2)}
         valueProperty="id"
         columns={columns}
         className="table"

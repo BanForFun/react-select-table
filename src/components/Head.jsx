@@ -4,6 +4,7 @@ import _ from "lodash";
 import { connect } from 'react-redux';
 import { setColumnWidth, sortBy } from "../store/table";
 import { registerEventListeners } from '../utils/elementUtils';
+import styles from "../index.scss";
 
 function Head({
     columns,
@@ -63,12 +64,11 @@ function Head({
         const { path, order } = sort;
 
         if (colPath !== path) return null;
-        return <img className="sortIcon" src={sortIcon}
+        return <img className={styles.sortIcon} src={sortIcon}
             data-order={order} />
     }
 
-    return <thead className="header" ref={header}
-        data-resizing={isResizing}>
+    return <thead ref={header} data-resizing={isResizing}>
         <tr>
             {columns.map((col, index) => {
                 const { width, id } = col.props;
@@ -76,20 +76,16 @@ function Head({
                 const isSortable = !col.render && !!path;
 
                 return <th key={`title_${name}_${id}`}
-                    data-sortable={isSortable}
-                    onClick={() => isSortable && raiseSort(path)}
-                    className="column" style={{ width }}>
-
-                    <div className="title">
-                        {col.title}
-                        {isSortable && renderSortIcon(path)}
-                    </div>
-                    <div className="seperator"
+                    data-sortable={isSortable} style={{ width }}
+                    onClick={() => isSortable && raiseSort(path)}>
+                    {col.title}
+                    {isSortable && renderSortIcon(path)}
+                    <div className={styles.seperator}
                         onMouseDown={() => setResizingIndex(index)} />
                 </th>
             })}
-            {!!scrollBarWidth && <th className="scrollMargin"
-                width={`${scrollBarWidth}px`} />
+            {!!scrollBarWidth &&
+                <th className={styles.scrollMargin} width={`${scrollBarWidth}px`} />
             }
         </tr>
     </thead>;

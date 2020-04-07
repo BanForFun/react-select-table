@@ -2,6 +2,7 @@ import _ from "lodash";
 import React from 'react';
 import { connect } from "react-redux";
 import { selectRow, setActiveRow, contextMenu } from "../store/table";
+import styles from "../index.scss";
 
 const Body = ({
     columns,
@@ -29,9 +30,9 @@ const Body = ({
 
         const classes = [];
         if (selectedValues.includes(value))
-            classes.push("selected");
+            classes.push(styles.selected);
         if (activeValue === value)
-            classes.push("active");
+            classes.push(styles.active);
         if (row.classNames)
             classes.push(...row.classNames);
 

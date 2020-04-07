@@ -1,10 +1,9 @@
 import React from 'react'
 
 import testData from "./test-data";
-import Table from 'react-select-table'
-import 'react-select-table/src/index.scss'
+import Table from 'react-select-table';
+import 'react-select-table/dist/index.css';
 import 'bootstrap/dist/css/bootstrap.css';
-import { array } from 'prop-types';
 
 const columns = [
   {
@@ -31,7 +30,7 @@ const App = () => {
     console.log(title, msg);
 
   return (
-    <div className="h-100">
+    <div className="h-100 pl-5">
       <Table
         items={testData.slice(0, 2)}
         valueProperty="id"

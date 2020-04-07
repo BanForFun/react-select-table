@@ -1,4 +1,4 @@
-.react-select-table {
+.container {
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -7,32 +7,42 @@
 
     table {
         width: 100%;
-        margin-bottom: 0;
-        table-layout: fixed;
-    }
-
-    .resizer th {
-        padding: 0;
-        border-style: none;
-    }
-
-    .bodyContainer {
-        position: relative;
-        flex: auto;
-        overflow-y: auto;
-    }
-
-    .tableContainer {
-        outline: none;
-        min-height: 100%;
-    }
-    
-    .scrollMargin {
-        padding: 0;
+        table-layout: fixed;   
+        margin-bottom: 0;    
     }
 
     td, th {
         overflow: hidden;
+    }
+}
+
+.headContainer {  
+    thead[data-resizing=true] th {
+        cursor: col-resize;
+    }
+
+    th {
+        white-space: nowrap;
+        position: relative;
+
+        &[data-sortable=true] {
+            cursor: pointer;
+        }
+
+        &:first-child > .seperator {
+            display: none;     
+        }
+    }
+}
+
+.bodyContainer  {
+    position: relative;
+    flex: auto;
+    overflow-y: auto;
+
+    thead th {
+        padding: 0;
+        border: none !important;
     }
 
     tbody tr {
@@ -52,54 +62,42 @@
             border-top: none;
         }
     }
+}
 
-    .selection {
-        border: 1px solid blue;
-        background-color: lightskyblue;
-        opacity: 0.5;
-        pointer-events: none;
-      }
+.tableContainer {
+    outline: none;
+    min-height: 100%;
+}
 
-      .column {
-        position: relative;
-        border-left: 1px solid transparent;
+.scrollMargin {
+    padding: 0 !important;
+}
 
-        &[data-sortable=true] {
-            cursor: pointer;
-        }
+.seperator {
+    position: absolute;
+    left: 0;
+    top: 0;        
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
 
-        &:first-child > .seperator {
-            display: none;     
-        }
+    &:active {
+        border-left: 1px dotted black;
+    }
+}
+
+.selection {
+    border: 1px solid blue;
+    background-color: lightskyblue;
+    opacity: 0.5;
+    pointer-events: none;
     }
 
-    .sortIcon {
-        height: 1.25em;
-        margin-left: 0.25rem;
+.sortIcon {
+    height: 1.25em;
+    margin-left: 0.25rem;
 
-        &[data-order=desc] {
-            transform: rotate(180deg);
-        }
-    }
-
-    .title {
-        white-space: nowrap;
-    }
-
-    .seperator {
-        position: absolute;
-        left: 0;
-        top: 0;        
-        width: 6px;
-        height: 100%;
-        cursor: col-resize;
-
-        &:active {
-            border-left: 1px dotted black;
-        }
-    }
-
-    .header[data-resizing=true] .column {
-        cursor: col-resize !important;
+    &[data-order=desc] {
+        transform: rotate(180deg);
     }
 }

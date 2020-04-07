@@ -19,6 +19,7 @@ import {
     registerEventListeners,
     ensureRowVisible
 } from '../utils/elementUtils';
+import styles from "../index.scss";
 
 function TableCore(props) {
     const {
@@ -194,11 +195,12 @@ function TableCore(props) {
     const renderSelectionRect = () => {
         if (!selRect) return null;
         const { left, top, width, height } = selRect;
-
-        return <div className="selection" style={{
+        const style = {
             position: "absolute",
             left, top, width, height
-        }} />
+        };
+
+        return <div className={styles.selection} style={style} />
     }
 
     //#endregion
@@ -319,15 +321,17 @@ function TableCore(props) {
     }
 
     return (
-        <div className="react-select-table">
-            <table className={className}>
-                <Head {...commonParams}
-                    scrollBarWidth={scrollBarWidth} />
-            </table>
-            <div className="bodyContainer"
+        <div className={styles.container}>
+            <div className={styles.headContainer}>
+                <table className={className}>
+                    <Head {...commonParams}
+                        scrollBarWidth={scrollBarWidth} />
+                </table>
+            </div>
+            <div className={styles.bodyContainer}
                 ref={bodyContainer}
                 onScroll={handleScroll}>
-                <div className="tableContainer" tabIndex="0"
+                <div className={styles.tableContainer} tabIndex="0"
                     onKeyDown={handleKeyDown}
                     onDoubleClick={handleDoubleClick}
                     onContextMenu={handleContextMenu}

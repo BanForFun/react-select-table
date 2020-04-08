@@ -1,6 +1,6 @@
 {
   "name": "react-select-table",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "React listview control with keyboard shortcut support",
   "author": "BanForFun",
   "license": "MIT",
@@ -44,8 +44,6 @@
     "node-sass": "^4.13.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^1.19.1",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
     "react-scripts": "^3.4.1"
   },
   "files": [

@@ -18,10 +18,11 @@ const initState = {
     filter: {},
     items: {},
     pivotValue: null,
-    tableItems: []
+    tableItems: [],
+    isLoading: true
 };
 
-export function createTableReducer() {
+export function createTable() {
     function getDefaultWidth(count) {
         const width = 100 / count;
         return _.times(count, _.constant(width));
@@ -94,6 +95,7 @@ export function createTableReducer() {
             case TABLE_SET_ROWS: {
                 const { items } = action;
                 draft.items = _.keyBy(items, valueProperty);
+                draft.isLoading = false;
                 updateItems(true);
                 break;
             }

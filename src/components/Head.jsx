@@ -80,8 +80,8 @@ function Head({
                     onClick={() => isSortable && raiseSort(path)}>
                     {col.title}
                     {isSortable && renderSortIcon(path)}
-                    <div className={styles.seperator}
-                        onMouseDown={() => setResizingIndex(index)} />
+                    {index > 0 && <div className={styles.seperator}
+                        onMouseDown={() => setResizingIndex(index)} />}
                 </th>
             })}
             {!!scrollBarWidth && <th

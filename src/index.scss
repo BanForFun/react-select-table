@@ -24,12 +24,12 @@
         white-space: nowrap;
         position: relative;
 
-        &[data-sortable=true] {
-            cursor: pointer;
+        &:empty:only-child {
+            display: none;
         }
 
-        &:first-child > .seperator {
-            display: none;     
+        &[data-sortable=true] {
+            cursor: pointer;
         }
     }
 }
@@ -88,7 +88,7 @@
     background-color: lightskyblue;
     opacity: 0.5;
     pointer-events: none;
-    }
+}
 
 .sortIcon {
     height: 1.25em;

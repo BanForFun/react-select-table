@@ -26,10 +26,12 @@ import styles from "../index.scss";
 function TableCore(props) {
     const {
         name,
+        context,
         className,
         valueProperty,
         isMultiselect,
         columns,
+        emptyPlaceholder,
         deselectOnContainerClick,
 
         //Events
@@ -311,6 +313,7 @@ function TableCore(props) {
 
     const commonParams = {
         name,
+        context,
         columns: parsedColumns
     }
 
@@ -337,6 +340,7 @@ function TableCore(props) {
                             rowRefs={rowRefs}
                             valueProperty={valueProperty} />
                     </table>
+                    {items.length === 0 && emptyPlaceholder}
                 </div>
             </div>
         </div>
@@ -401,6 +405,7 @@ export const propTypes = {
     name: PropTypes.string.isRequired,
     valueProperty: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
+    emptyPlaceholder: PropTypes.element,
     items: PropTypes.array,
     filter: PropTypes.object,
     itemParser: PropTypes.func,

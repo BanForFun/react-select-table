@@ -16,3 +16,23 @@ code {
 #root {
   height: 100vh;
 }
+
+.container {
+  display: flex;
+  height: 700px;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+.container > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.rst-container {
+  flex: auto;
+}
+
+span {
+  font-family: Arial, Helvetica, sans-serif;
+}

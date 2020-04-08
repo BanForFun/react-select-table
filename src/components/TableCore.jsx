@@ -223,7 +223,6 @@ function TableCore(props) {
         else selectRow(value, e.ctrlKey, e.shiftKey);
 
         ensureRowVisible(rowRefs[value].current, bodyContainer.current);
-        e.preventDefault();
     }, [rowRefs]);
 
     //Handle up/down arrows
@@ -261,6 +260,8 @@ function TableCore(props) {
     }
 
     const handleKeyDown = useCallback(e => {
+        let preventDefault = true;
+
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey) selectAll();
@@ -280,7 +281,12 @@ function TableCore(props) {
             case 35: //End
                 selectFromKeyboard(e, _.last(values));
                 break;
+            default:
+                preventDefault = false;
+                break;
         }
+
+        if (preventDefault) e.preventDefault();
     }, [selectFromKeyboard, selectAtOffset]);
     //#endregion
 
@@ -387,7 +393,8 @@ const columnShape = PropTypes.shape({
     key: PropTypes.string,
     path: PropTypes.string,
     render: PropTypes.func,
-    classNames: PropTypes.array
+    classNames: PropTypes.array,
+    isHeader: PropTypes.bool
 });
 
 export const propTypes = {

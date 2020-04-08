@@ -47,7 +47,7 @@ const Body = ({
 
     const renderColumn = (row, column) => {
         const value = row[valueProperty];
-        const { props, path, render } = column;
+        const { props, path, render, isHeader } = column;
 
         let content = null;
         if (path && render)
@@ -57,9 +57,9 @@ const Body = ({
         else if (path)
             content = row[path];
 
-        return <td key={`td_${name}_${value}_${props.id}`}>
-            {content}
-        </td>
+        const key = `cell_${name}_${value}_${props.id}`;
+        if (isHeader) return <th key={key}>{content}</th>;
+        return <td key={key}>{content}</td>
     }
 
     return <tbody>

@@ -73,7 +73,7 @@ function Head({
             {columns.map((col, index) => {
                 const { width, id } = col.props;
                 const { path } = col;
-                const isSortable = !col.render && !!path;
+                const isSortable = !!path;
 
                 return <th key={`title_${name}_${id}`}
                     data-sortable={isSortable} style={{ width }}

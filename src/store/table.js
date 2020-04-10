@@ -1,16 +1,14 @@
 import produce from "immer";
 import _ from "lodash";
 import { pipe } from "lodash/fp";
-import { sortOrder } from "../constants/enums";
+import { sortOrders } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
 import { pullFirst, encloseInArray, areArraysEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 
-const initState = {
-    sort: {
-        path: null,
-        order: sortOrder.Ascending
-    },
+const defaultState = {
+    sortPath: null,
+    sortOrder: sortOrders.Ascending,
     columnOrder: null,
     columnWidth: [],
     selectedValues: [],
@@ -22,7 +20,7 @@ const initState = {
     isLoading: true
 };
 
-export function createTable() {
+export function createTable(initState = {}) {
     function getDefaultWidth(count) {
         const width = 100 / count;
         return _.times(count, _.constant(width));
@@ -30,7 +28,8 @@ export function createTable() {
 
     let options = {};
 
-    return (state = initState, action) => produce(state, draft => {
+    const _initState = { ...defaultState, ...initState };
+    return (state = _initState, action) => produce(state, draft => {
         const {
             valueProperty,
             isMultiselect,
@@ -47,10 +46,8 @@ export function createTable() {
         const _filterItems = items =>
             _.filter(items, i => options.itemFilter(i, draft.filter));
 
-        const _sortItems = items => {
-            const { path, order } = draft.sort;
-            return _.orderBy(items, [path], [order]);
-        }
+        const _sortItems = items =>
+            _.orderBy(items, [draft.sortPath], [draft.sortOrder]);
 
         const updateItems = (updateSelection = false) => {
             //Update items
@@ -90,6 +87,12 @@ export function createTable() {
         const raiseSelectionChange = () =>
             options.onSelectionChange([...draft.selectedValues]);
 
+        const clearSelection = () => {
+            draft.selectedValues = [];
+            if (state.selectedValues.length > 0)
+                raiseSelectionChange();
+        }
+
         switch (action.type) {
             //Items
             case TABLE_SET_ROWS: {
@@ -109,8 +112,8 @@ export function createTable() {
             case TABLE_DELETE_ROWS: {
                 const { values } = action;
                 deleteKeys(draft.items, values);
-                updateItems();
                 deselectRows(values);
+                updateItems();
                 break;
             }
             case TABLE_REPLACE_ROW: {
@@ -155,6 +158,17 @@ export function createTable() {
                 updateItems(true);
                 break;
             }
+            case TABLE_CLEAR_ROWS: {
+                //Clear items
+                draft.items = {};
+                draft.tableItems = [];
+                draft.isLoading = true;
+
+                //Clear selection
+                setActivePivotValue(null);
+                clearSelection();
+                break;
+            }
 
             //Selection
             case TABLE_SELECT_ROW: {
@@ -195,10 +209,9 @@ export function createTable() {
             }
             case TABLE_CLEAR_SELECTION: {
                 setActivePivotValue(null);
-                if (deselectOnContainerClick) {
-                    draft.selectedValues = [];
-                    updateSelection = true;
-                }
+                if (deselectOnContainerClick)
+                    clearSelection();
+
                 break;
             }
             case TABLE_SET_ROW_SELECTED: {
@@ -266,14 +279,13 @@ export function createTable() {
             //Sorting
             case TABLE_SORT_BY: {
                 const newPath = action.path;
-                const { sort } = draft;
 
-                if (sort.path === newPath && sort.order === sortOrder.Ascending)
-                    sort.order = sortOrder.Descending;
+                if (state.sortPath === newPath && state.sortOrder === sortOrders.Ascending)
+                    draft.sortOrder = sortOrders.Descending;
                 else
-                    sort.order = sortOrder.Ascending;
+                    draft.sortOrder = sortOrders.Ascending;
 
-                sort.path = newPath;
+                draft.sortPath = newPath;
                 updateItems();
                 break;
             }
@@ -308,6 +320,7 @@ export const TABLE_DELETE_ROWS = "TABLE_DELETE_ROWS";
 export const TABLE_REPLACE_ROW = "TABLE_REPLACE_ROW";
 export const TABLE_SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
 export const TABLE_PATCH_ROW = "TABLE_PATCH_ROW";
+export const TABLE_CLEAR_ROWS = "TABLE_CLEAR_ROWS";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -324,6 +337,10 @@ export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 //Internal
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 const TABLE_SET_OPTION = "TABLE_SET_OPTION";
+
+export function clearRows() {
+    return { type: TABLE_CLEAR_ROWS };
+}
 
 export function contextMenu(value, ctrlKey) {
     return { type: TABLE_CONTEXT_MENU, value, ctrlKey };

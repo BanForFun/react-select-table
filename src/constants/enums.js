@@ -1,4 +1,4 @@
-export const sortOrder = {
+export const sortOrders = {
     Ascending: "asc",
     Descending: "desc"
 }

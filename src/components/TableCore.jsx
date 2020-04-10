@@ -39,6 +39,7 @@ function TableCore(props) {
 
         //Redux state
         items,
+        isLoading,
         selectedValues,
         columnWidth,
         activeValue,
@@ -209,7 +210,10 @@ function TableCore(props) {
     }
 
     //Set column count
-    useEffect(() => { _setColumnCount(columns.length) }, [columns]);
+    useEffect(() => {
+        if (columnOrder) return;
+        _setColumnCount(columns.length)
+    }, [columns, columnOrder]);
 
     //#endregion
 
@@ -312,10 +316,11 @@ function TableCore(props) {
     });
 
     const commonParams = {
-        name,
-        context,
+        name, context,
         columns: parsedColumns
     }
+
+    const showPlaceholder = items.length === 0 && !isLoading;
 
     return (
         <div className={styles.container}>
@@ -340,24 +345,27 @@ function TableCore(props) {
                             rowRefs={rowRefs}
                             valueProperty={valueProperty} />
                     </table>
-                    {items.length === 0 && emptyPlaceholder}
+                    {showPlaceholder && emptyPlaceholder}
                 </div>
             </div>
         </div>
     )
 }
 
-function mapStateToProps(state) {
-    const directMap = _.pick(state,
+function mapStateToProps(state, { statePath }) {
+    const subState = _.get(state, statePath, state);
+
+    const directMap = _.pick(subState,
         "columnWidth",
         "columnOrder",
         "selectedValues",
-        "activeValue"
+        "activeValue",
+        "isLoading"
     );
 
     return {
         ...directMap,
-        items: state.tableItems
+        items: subState.tableItems
     }
 }
 
@@ -406,6 +414,7 @@ export const propTypes = {
     valueProperty: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
     emptyPlaceholder: PropTypes.element,
+    statePath: PropTypes.arrayOf(PropTypes.string),
     items: PropTypes.array,
     filter: PropTypes.object,
     itemParser: PropTypes.func,

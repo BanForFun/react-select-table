@@ -10,7 +10,8 @@ function Head({
     columns,
     name,
     columnWidth,
-    sort,
+    sortOrder,
+    sortPath,
     scrollBarWidth,
     setColumnWidth,
     sortBy
@@ -61,11 +62,9 @@ function Head({
     }
 
     function renderSortIcon(colPath) {
-        const { path, order } = sort;
-
-        if (colPath !== path) return null;
+        if (colPath !== sortPath) return null;
         return <img className={styles.sortIcon} src={sortIcon}
-            data-order={order} />
+            data-order={sortOrder} />
     }
 
     return <thead ref={header} data-resizing={isResizing}>
@@ -92,7 +91,7 @@ function Head({
 }
 
 function mapStateToProps(state) {
-    return _.pick(state, "columnWidth", "sort");
+    return _.pick(state, "columnWidth", "sortOrder", "sortPath");
 }
 
 export default connect(mapStateToProps, {

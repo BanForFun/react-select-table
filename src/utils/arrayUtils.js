@@ -6,6 +6,9 @@ export function pullFirst(array, item) {
 }
 
 export function areArraysEqual(array1, array2) {
+    //Compare lengths
+    if (array1.length !== array2.length) return false;
+    //Compare items
     return _.isEqual(_.sortBy(array1), _.sortBy(array2))
 }
 

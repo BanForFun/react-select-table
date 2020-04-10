@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import _ from "lodash";
 import Head from "./Head";
 import Body from "./Body";
@@ -22,6 +22,7 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
+import useRefWithCallback from '../hooks/useRefWithCallback';
 
 function TableCore(props) {
     const {
@@ -31,6 +32,7 @@ function TableCore(props) {
         valueProperty,
         isMultiselect,
         columns,
+        overlay,
         emptyPlaceholder,
         deselectOnContainerClick,
 
@@ -57,6 +59,23 @@ function TableCore(props) {
     } = props;
 
     const values = _.map(items, valueProperty);
+
+    //#region Reducer updater
+
+    //Set reducer options
+    const options = _.pick(props, ...Object.keys(defaultReducerOptions));
+    for (let name in options) {
+        const value = options[name];
+        useEffect(() => { _setOption(name, value) }, [value]);
+    }
+
+    //Set column count
+    useEffect(() => {
+        if (columnOrder) return;
+        _setColumnCount(columns.length)
+    }, [columns, columnOrder]);
+
+    //#endregion
 
     //#region Drag selection
 
@@ -185,9 +204,7 @@ function TableCore(props) {
 
     //#region Body container overflow detection
     const [scrollBarWidth, setScrollBarWidth] = useState(0);
-    const bodyContainer = useRef();
-
-    useEffect(() => {
+    const [bodyContainer, setBodyContainer] = useRefWithCallback(() => {
         const handleResize = () => {
             const container = bodyContainer.current;
             setScrollBarWidth(container.offsetWidth - container.clientWidth);
@@ -196,25 +213,8 @@ function TableCore(props) {
         const observer = new ResizeObserver(handleResize);
         observer.observe(bodyContainer.current.firstElementChild);
 
-        return observer.disconnect;
-    }, []);
-    //#endregion
-
-    //#region Reducer updater
-
-    //Set reducer options
-    const options = _.pick(props, ...Object.keys(defaultReducerOptions));
-    for (let name in options) {
-        const value = options[name];
-        useEffect(() => { _setOption(name, value) }, [value]);
-    }
-
-    //Set column count
-    useEffect(() => {
-        if (columnOrder) return;
-        _setColumnCount(columns.length)
-    }, [columns, columnOrder]);
-
+        return () => observer.disconnect();
+    });
     //#endregion
 
     //onItemOpen event
@@ -296,6 +296,8 @@ function TableCore(props) {
     }, [selectFromKeyboard, selectAtOffset]);
     //#endregion
 
+    if (overlay) return overlay;
+
     //Column ordering and fitlering
     let orderedColumns = columns;
     if (columnOrder) {
@@ -331,7 +333,7 @@ function TableCore(props) {
                 </table>
             </div>
             <div className={styles.bodyContainer}
-                ref={bodyContainer}
+                ref={setBodyContainer}
                 onScroll={handleScroll}>
                 <div className={styles.tableContainer} tabIndex="0"
                     onKeyDown={handleKeyDown}
@@ -413,8 +415,9 @@ export const propTypes = {
     name: PropTypes.string.isRequired,
     valueProperty: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
-    emptyPlaceholder: PropTypes.element,
     statePath: PropTypes.arrayOf(PropTypes.string),
+    emptyPlaceholder: PropTypes.element,
+    overlay: PropTypes.element,
     items: PropTypes.array,
     filter: PropTypes.object,
     itemParser: PropTypes.func,

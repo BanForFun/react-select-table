@@ -17,26 +17,24 @@ const defaultState = {
     items: {},
     pivotValue: null,
     tableItems: [],
-    isLoading: true
+    isLoading: true,
+    isMultiselect: true,
+    deselectOnContainerClick: true,
+    valueProperty: null,
+    minColumnWidth: 3
 };
 
-export function createTable(initState = {}) {
+export function createTable(initState = {}, options = {}) {
     function getDefaultWidth(count) {
         const width = 100 / count;
         return _.times(count, _.constant(width));
     }
 
-    let options = {};
+    _.defaults(initState, defaultState);
+    _.defaults(options, defaultOptions);
 
-    const _initState = { ...defaultState, ...initState };
-    return (state = _initState, action) => produce(state, draft => {
-        const {
-            valueProperty,
-            isMultiselect,
-            deselectOnContainerClick
-        } = options;
-
-        const values = _.map(state.tableItems, valueProperty);
+    return (state = initState, action) => produce(state, draft => {
+        const values = _.map(state.tableItems, state.valueProperty);
         let updateSelection = false;
 
         //Prefix methods that don't mutate draft state with an underscore
@@ -57,7 +55,7 @@ export function createTable(initState = {}) {
 
             //Deselect values that no longer exist
             if (!updateSelection) return;
-            const newValues = _.map(newItems, valueProperty);
+            const newValues = _.map(newItems, draft.valueProperty);
             const deselect = _.difference(draft.selectedValues, newValues);
             deselectRows(deselect);
         }
@@ -81,13 +79,16 @@ export function createTable(initState = {}) {
         const raiseContextMenu = () => {
             const selected = [...draft.selectedValues];
             const active = encloseInArray(draft.activeValue);
-            options.onContextMenu(deselectOnContainerClick ? selected : active);
+            options.onContextMenu(draft.deselectOnContainerClick ? selected : active);
         }
 
         const raiseSelectionChange = () =>
             options.onSelectionChange([...draft.selectedValues]);
 
-        const clearSelection = () => {
+        const clearSelection = (clearSelectedValues = true) => {
+            setActivePivotValue(null);
+
+            if (!clearSelectedValues) return;
             draft.selectedValues = [];
             if (state.selectedValues.length > 0)
                 raiseSelectionChange();
@@ -97,14 +98,14 @@ export function createTable(initState = {}) {
             //Items
             case TABLE_SET_ROWS: {
                 const { items } = action;
-                draft.items = _.keyBy(items, valueProperty);
+                draft.items = _.keyBy(items, state.valueProperty);
                 draft.isLoading = false;
                 updateItems(true);
                 break;
             }
             case TABLE_ADD_ROW: {
                 const { newItem } = action;
-                const value = newItem[valueProperty];
+                const value = newItem[state.valueProperty];
                 draft.items[value] = newItem;
                 updateItems();
                 break;
@@ -138,7 +139,7 @@ export function createTable(initState = {}) {
 
                 const withValue = {
                     ...state.items[oldValue],
-                    [valueProperty]: newValue
+                    [state.valueProperty]: newValue
                 };
 
                 draft.items[newValue] = withValue;
@@ -153,11 +154,6 @@ export function createTable(initState = {}) {
                 updateItems();
                 break;
             }
-            case TABLE_SET_FILTER: {
-                draft.filter = action.filter;
-                updateItems(true);
-                break;
-            }
             case TABLE_CLEAR_ROWS: {
                 //Clear items
                 draft.items = {};
@@ -165,7 +161,6 @@ export function createTable(initState = {}) {
                 draft.isLoading = true;
 
                 //Clear selection
-                setActivePivotValue(null);
                 clearSelection();
                 break;
             }
@@ -177,7 +172,7 @@ export function createTable(initState = {}) {
                 const { value, ctrlKey, shiftKey } = action;
                 let addToSelection = [value];
 
-                if (!isMultiselect) {
+                if (!state.isMultiselect) {
                     draft.selectedValues = addToSelection;
                     draft.activeValue = value;
                     break;
@@ -208,10 +203,7 @@ export function createTable(initState = {}) {
                 break;
             }
             case TABLE_CLEAR_SELECTION: {
-                setActivePivotValue(null);
-                if (deselectOnContainerClick)
-                    clearSelection();
-
+                clearSelection(state.deselectOnContainerClick);
                 break;
             }
             case TABLE_SET_ROW_SELECTED: {
@@ -226,7 +218,7 @@ export function createTable(initState = {}) {
                 break;
             }
             case TABLE_SELECT_ALL: {
-                if (!isMultiselect) break;
+                if (!state.isMultiselect) break;
                 draft.selectedValues = values;
                 updateSelection = true;
                 break;
@@ -241,7 +233,7 @@ export function createTable(initState = {}) {
                 if (!ctrlKey) {
                     setActivePivotValue(value);
                     const isSelected = state.selectedValues.includes(value);
-                    if (deselectOnContainerClick && !isSelected) {
+                    if (state.deselectOnContainerClick && !isSelected) {
                         draft.selectedValues = value ? [value] : [];
                         updateSelection = true;
                     }
@@ -251,18 +243,34 @@ export function createTable(initState = {}) {
                 break;
             }
 
+            //Options
+            case TABLE_SET_VALUE_PROPERTY: {
+                //Update option
+                const { propName } = action;
+                draft.valueProperty = propName;
+
+                //Update items
+                const items = Object.keys(state.items);
+                draft.items = _.keyBy(items, propName);
+                updateItems();
+
+                //Update selection
+                clearSelection();
+                break;
+            }
+
 
             //Columns
             case TABLE_SET_COLUMN_WIDTH: {
                 const { index, width } = action;
-                const { minWidth } = options;
+                const { minColumnWidth } = state;
 
                 const thisWidth = state.columnWidth[index];
                 const nextWidth = state.columnWidth[index + 1];
                 const availableWidth = thisWidth + nextWidth;
-                const maxWidth = availableWidth - minWidth;
+                const maxWidth = availableWidth - minColumnWidth;
 
-                const limitedWidth = _.clamp(width, minWidth, maxWidth);
+                const limitedWidth = _.clamp(width, minColumnWidth, maxWidth);
                 draft.columnWidth[index] = limitedWidth;
                 draft.columnWidth[index + 1] = availableWidth - limitedWidth;
                 break;
@@ -291,15 +299,16 @@ export function createTable(initState = {}) {
             }
 
             //Filtering
+            case TABLE_SET_FILTER: {
+                draft.filter = action.filter;
+                updateItems(true);
+                break;
+            }
 
             //Internal
             case TABLE_SET_COLUMN_COUNT: {
                 draft.columnOrder = null;
                 draft.columnWidth = getDefaultWidth(action.count);
-                break;
-            }
-            case TABLE_SET_OPTION: {
-                options[action.name] = action.value;
                 break;
             }
             default:
@@ -312,8 +321,6 @@ export function createTable(initState = {}) {
 }
 
 //Rows
-export const TABLE_SORT_BY = "TABLE_SORT_BY";
-export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
 export const TABLE_SET_ROWS = "TABLE_SET_ROWS";
 export const TABLE_ADD_ROW = "TABLE_ADD_ROW";
 export const TABLE_DELETE_ROWS = "TABLE_DELETE_ROWS";
@@ -321,6 +328,11 @@ export const TABLE_REPLACE_ROW = "TABLE_REPLACE_ROW";
 export const TABLE_SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
 export const TABLE_PATCH_ROW = "TABLE_PATCH_ROW";
 export const TABLE_CLEAR_ROWS = "TABLE_CLEAR_ROWS";
+
+//Options
+export const TABLE_SORT_BY = "TABLE_SORT_BY";
+export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
+export const TABLE_SET_VALUE_PROPERTY = "TABLE_SET_VALUE_PROPERTY";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -336,7 +348,11 @@ export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 
 //Internal
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
-const TABLE_SET_OPTION = "TABLE_SET_OPTION";
+const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
+
+export function setValueProperty(propName) {
+    return { type: TABLE_SET_VALUE_PROPERTY, propName };
+}
 
 export function clearRows() {
     return { type: TABLE_CLEAR_ROWS };
@@ -410,6 +426,20 @@ export function _setColumnCount(count) {
     return { type: TABLE_SET_COLUMN_COUNT, count };
 }
 
-export function _setOption(name, value) {
-    return { type: TABLE_SET_OPTION, name, value };
+export function _setEventHandler(name, callback) {
+    return { type: TABLE_SET_EVENT_HANDLER, name, callback };
 }
+
+function defaultItemFilter(item, filter) {
+    for (let key in filter) {
+        if (item[key] !== filter[key])
+            return false;
+    }
+
+    return true;
+}
+
+const defaultOptions = {
+    itemParser: item => item,
+    itemFilter: defaultItemFilter
+};

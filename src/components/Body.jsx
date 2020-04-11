@@ -71,7 +71,8 @@ function mapStateToProps(state) {
     return {
         items: state.tableItems,
         selectedValues: state.selectedValues,
-        activeValue: state.activeValue
+        activeValue: state.activeValue,
+        valueProperty: state.valueProperty
     };
 }
 

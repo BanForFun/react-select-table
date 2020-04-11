@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import _ from "lodash";
 import Head from "./Head";
 import Body from "./Body";
@@ -12,7 +12,7 @@ import {
     setActiveRow,
     selectRow,
     contextMenu,
-    _setOption,
+    _setEventHandler,
     _setColumnCount
 } from '../store/table';
 import Rect from '../models/rect';
@@ -22,7 +22,6 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
-import useRefWithCallback from '../hooks/useRefWithCallback';
 
 function TableCore(props) {
     const {
@@ -32,7 +31,6 @@ function TableCore(props) {
         valueProperty,
         isMultiselect,
         columns,
-        overlay,
         emptyPlaceholder,
         deselectOnContainerClick,
 
@@ -54,20 +52,13 @@ function TableCore(props) {
         contextMenu,
         clearSelection,
         setRowSelected,
-        _setOption,
+        _setEventHandler,
         _setColumnCount
     } = props;
 
     const values = _.map(items, valueProperty);
 
     //#region Reducer updater
-
-    //Set reducer options
-    const options = _.pick(props, ...Object.keys(defaultReducerOptions));
-    for (let name in options) {
-        const value = options[name];
-        useEffect(() => { _setOption(name, value) }, [value]);
-    }
 
     //Set column count
     useEffect(() => {
@@ -204,7 +195,9 @@ function TableCore(props) {
 
     //#region Body container overflow detection
     const [scrollBarWidth, setScrollBarWidth] = useState(0);
-    const [bodyContainer, setBodyContainer] = useRefWithCallback(() => {
+    const bodyContainer = useRef();
+
+    useEffect(() => {
         const handleResize = () => {
             const container = bodyContainer.current;
             setScrollBarWidth(container.offsetWidth - container.clientWidth);
@@ -214,7 +207,7 @@ function TableCore(props) {
         observer.observe(bodyContainer.current.firstElementChild);
 
         return () => observer.disconnect();
-    });
+    }, []);
     //#endregion
 
     //onItemOpen event
@@ -296,8 +289,6 @@ function TableCore(props) {
     }, [selectFromKeyboard, selectAtOffset]);
     //#endregion
 
-    if (overlay) return overlay;
-
     //Column ordering and fitlering
     let orderedColumns = columns;
     if (columnOrder) {
@@ -333,7 +324,7 @@ function TableCore(props) {
                 </table>
             </div>
             <div className={styles.bodyContainer}
-                ref={setBodyContainer}
+                ref={bodyContainer}
                 onScroll={handleScroll}>
                 <div className={styles.tableContainer} tabIndex="0"
                     onKeyDown={handleKeyDown}
@@ -344,8 +335,7 @@ function TableCore(props) {
                     <table className={className}>
                         <ColumnResizer {...commonParams} />
                         <Body {...commonParams}
-                            rowRefs={rowRefs}
-                            valueProperty={valueProperty} />
+                            rowRefs={rowRefs} />
                     </table>
                     {showPlaceholder && emptyPlaceholder}
                 </div>
@@ -362,7 +352,10 @@ function mapStateToProps(state, { statePath }) {
         "columnOrder",
         "selectedValues",
         "activeValue",
-        "isLoading"
+        "isLoading",
+        "valueProperty",
+        "isMultiselect",
+        "deselectOnContainerClick"
     );
 
     return {
@@ -378,29 +371,9 @@ export default connect(mapStateToProps, {
     selectRow,
     contextMenu,
     setActiveRow,
-    _setOption,
+    _setEventHandler,
     _setColumnCount
 })(TableCore);
-
-function defaultItemFilter(item, filter) {
-    for (let key in filter) {
-        if (item[key] !== filter[key])
-            return false;
-    }
-
-    return true;
-}
-
-const defaultReducerOptions = {
-    itemParser: item => item,
-    itemFilter: defaultItemFilter,
-    onContextMenu: () => { },
-    onSelectionChange: () => { },
-    minWidth: 3,
-    isMultiselect: true,
-    deselectOnContainerClick: true,
-    valueProperty: null
-};
 
 const columnShape = PropTypes.shape({
     title: PropTypes.string,
@@ -413,27 +386,15 @@ const columnShape = PropTypes.shape({
 
 export const propTypes = {
     name: PropTypes.string.isRequired,
-    valueProperty: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
     statePath: PropTypes.arrayOf(PropTypes.string),
     emptyPlaceholder: PropTypes.element,
-    overlay: PropTypes.element,
-    items: PropTypes.array,
-    filter: PropTypes.object,
-    itemParser: PropTypes.func,
-    itemFilter: PropTypes.func,
-    minWidth: PropTypes.number,
-    isMultiselect: PropTypes.bool,
-    deselectOnContainerClick: PropTypes.bool,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func
 }
 
-export const defaultProps = {
-    ...defaultReducerOptions,
-    onItemsOpen: () => { }
-}
-
 TableCore.propTypes = propTypes;
-TableCore.defaultProps = defaultProps;
+TableCore.defaultProps = {
+    onItemsOpen: () => { }
+};

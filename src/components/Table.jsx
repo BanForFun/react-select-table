@@ -1,30 +1,29 @@
 
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import { Provider } from "react-redux";
-import TableCore, { propTypes, defaultProps } from "./TableCore";
+import TableCore, { propTypes } from "./TableCore";
 import configureStore from '../store/configureStore';
-import { setRows, setFilter } from "../store/table";
+import { setRows, setFilter, setValueProperty } from "../store/table";
 
-function Table({ items, filter, ...params }) {
+function Table({ items, filter, valueProperty, ...params }) {
     const [store, setStore] = useState();
-
-    const dispatch = useCallback(action => {
-        if (!store) return;
-        store.dispatch(action);
-    }, [store]);
 
     useEffect(() => {
         const store = configureStore();
         setStore(store);
     }, []);
 
-    useEffect(() =>
-        dispatch(setRows(items)),
-        [dispatch, items]);
+    function useAutoDispatch(actionCreator, param) {
+        useEffect(() => {
+            if (!store || param === undefined) return;
+            store.dispatch(actionCreator(param));
+        }, [store, param]);
+    }
 
-    useEffect(() =>
-        dispatch(setFilter(filter)),
-        [dispatch, filter]);
+    useAutoDispatch(setValueProperty, valueProperty);
+    useAutoDispatch(setFilter, filter);
+    useAutoDispatch(setRows, items);
 
     if (!store) return null;
 
@@ -35,5 +34,14 @@ function Table({ items, filter, ...params }) {
 
 export default Table;
 
-Table.propTypes = propTypes;
-Table.defaultProps = defaultProps;
+Table.propTypes = {
+    ...propTypes,
+    valueProperty: PropTypes.string.isRequired,
+    items: PropTypes.array.isRequired,
+    filter: PropTypes.object,
+    minColumnWidth: PropTypes.number,
+    isMultiselect: PropTypes.bool,
+    deselectOnContainerClick: PropTypes.bool,
+    itemParser: PropTypes.func,
+    itemFilter: PropTypes.func
+}

@@ -29,7 +29,7 @@ function renderCheckOrX(bool) {
 
 function App() {
 
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState();
   const [selection, setSelection] = useState([]);
 
   useEffect(() => {
@@ -54,14 +54,17 @@ function App() {
       </div>
       <div className="pl-3 w-75">
         <h1>Table</h1>
-        <Table
-          items={todos}
-          onItemsOpen={alert}
-          onSelectionChange={setSelection}
-          valueProperty="id"
-          columns={columns}
-          className="table"
-          name="test" />
+        {todos ? (
+          <Table
+            items={todos}
+            onItemsOpen={alert}
+            onSelectionChange={setSelection}
+            valueProperty="id"
+            columns={columns}
+            className="table"
+            name="test" />) :
+          <p>Loading...</p>
+        }
       </div>
 
     </div>)

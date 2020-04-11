@@ -33,7 +33,7 @@ function TableCore(props) {
         isMultiselect,
         columns,
         emptyPlaceholder,
-        listboxMode,
+        isListbox,
 
         //Events
         onItemsOpen,
@@ -89,7 +89,7 @@ function TableCore(props) {
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback(e => {
-        const dragEnabled = !listboxMode && isMultiselect;
+        const dragEnabled = !isListbox && isMultiselect;
         if (!dragEnabled || e.button !== 0) return;
 
         const { clientX: x, clientY: y } = e;
@@ -98,7 +98,7 @@ function TableCore(props) {
         setLastMousePos([x, y]);
         // setRowBounds(getRowBounds());
         setSelOrigin([x + scrollLeft, y + scrollTop]);
-    }, [listboxMode, isMultiselect]);
+    }, [isListbox, isMultiselect]);
 
     //Update row collision
     const updateRowCollision = useCallback(rect => {
@@ -362,7 +362,7 @@ function mapStateToProps(state, { statePath }) {
         "isLoading",
         "valueProperty",
         "isMultiselect",
-        "listboxMode"
+        "isListbox"
     );
 
     return {

@@ -58,6 +58,8 @@ function App() {
           <Table
             items={todos}
             onItemsOpen={alert}
+            filter={{ id: 1 }}
+            isListbox={true}
             isMultiselect={false}
             onSelectionChange={setSelection}
             valueProperty="id"

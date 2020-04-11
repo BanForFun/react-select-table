@@ -19,7 +19,7 @@ const defaultState = {
     tableItems: [],
     isLoading: true,
     isMultiselect: true,
-    listboxMode: false,
+    isListbox: false,
     valueProperty: null,
     minColumnWidth: 3
 };
@@ -83,7 +83,7 @@ export function createTable(initState = {}, options = {}) {
         const raiseContextMenu = () => {
             const selected = [...draft.selectedValues];
             const active = inArray(draft.activeValue);
-            eventHandlers.onContextMenu(state.listboxMode ? active : selected);
+            eventHandlers.onContextMenu(state.isListbox ? active : selected);
         }
 
         const raiseSelectionChange = () =>
@@ -206,7 +206,7 @@ export function createTable(initState = {}, options = {}) {
                 break;
             }
             case TABLE_CLEAR_SELECTION: {
-                clearSelection(!state.listboxMode);
+                clearSelection(!state.isListbox);
                 break;
             }
             case TABLE_SET_ROW_SELECTED: {
@@ -236,7 +236,7 @@ export function createTable(initState = {}, options = {}) {
                 if (!ctrlKey) {
                     setActivePivotValue(value);
                     const isSelected = state.selectedValues.includes(value);
-                    if (!state.listboxMode && !isSelected) {
+                    if (!state.isListbox && !isSelected) {
                         draft.selectedValues = value ? [value] : [];
                         updateSelection = true;
                     }
@@ -253,6 +253,10 @@ export function createTable(initState = {}, options = {}) {
                     draft.selectedValues = inArray(state.selectedValues[0]);
                     updateSelection = true;
                 }
+                break;
+            }
+            case TABLE_SET_LISTBOX_MODE: {
+                draft.isListbox = action.isListbox;
                 break;
             }
 
@@ -363,11 +367,15 @@ export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
 export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
-// export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
+export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
 //Internal
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
+
+export function setListboxMode(isListbox) {
+    return { type: TABLE_SET_LISTBOX_MODE, isListbox };
+}
 
 export function setMultiselect(isMultiselect) {
     return { type: TABLE_SET_MULTISELECT, isMultiselect }

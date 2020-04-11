@@ -9,7 +9,9 @@ import {
     setFilter,
     setValueProperty,
     setMultiselect,
-    setListboxMode
+    setListboxMode,
+    setPredicate,
+    setParser
 } from "../store/table";
 
 function Table({
@@ -18,6 +20,8 @@ function Table({
     valueProperty,
     isMultiselect,
     isListbox,
+    itemParser,
+    itemPredicate,
     ...params
 }) {
     const [store, setStore] = useState();
@@ -39,6 +43,8 @@ function Table({
     useAutoDispatch(setRows, items);
     useAutoDispatch(setMultiselect, isMultiselect);
     useAutoDispatch(setListboxMode, isListbox);
+    useAutoDispatch(setParser, itemParser);
+    useAutoDispatch(setPredicate, itemPredicate);
 
     if (!store) return null;
 
@@ -58,5 +64,5 @@ Table.propTypes = {
     isMultiselect: PropTypes.bool,
     isListbox: PropTypes.bool,
     itemParser: PropTypes.func,
-    itemFilter: PropTypes.func
+    itemPredicate: PropTypes.func
 }

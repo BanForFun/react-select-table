@@ -61,6 +61,7 @@ function App() {
             filter={{ id: 1 }}
             isListbox={true}
             isMultiselect={false}
+            itemPredicate={() => true}
             onSelectionChange={setSelection}
             valueProperty="id"
             columns={columns}

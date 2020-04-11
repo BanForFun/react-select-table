@@ -167,6 +167,33 @@ export function createTable(initState = {}, options = {}) {
                 clearSelection();
                 break;
             }
+            case TABLE_SORT_BY: {
+                const newPath = action.path;
+
+                if (state.sortPath === newPath && state.sortOrder === sortOrders.Ascending)
+                    draft.sortOrder = sortOrders.Descending;
+                else
+                    draft.sortOrder = sortOrders.Ascending;
+
+                draft.sortPath = newPath;
+                updateItems();
+                break;
+            }
+            case TABLE_SET_FILTER: {
+                draft.filter = action.filter;
+                updateItems(true);
+                break;
+            }
+            case TABLE_SET_PARSER: {
+                options.itemParser = action.parser;
+                updateItems(true);
+                break;
+            }
+            case TABLE_SET_PREDICATE: {
+                options.itemFilter = action.predicate;
+                updateItems(true);
+                break;
+            }
 
             //Selection
             case TABLE_SELECT_ROW: {
@@ -300,27 +327,6 @@ export function createTable(initState = {}, options = {}) {
                 break;
             }
 
-            //Sorting
-            case TABLE_SORT_BY: {
-                const newPath = action.path;
-
-                if (state.sortPath === newPath && state.sortOrder === sortOrders.Ascending)
-                    draft.sortOrder = sortOrders.Descending;
-                else
-                    draft.sortOrder = sortOrders.Ascending;
-
-                draft.sortPath = newPath;
-                updateItems();
-                break;
-            }
-
-            //Filtering
-            case TABLE_SET_FILTER: {
-                draft.filter = action.filter;
-                updateItems(true);
-                break;
-            }
-
             //Internal
             case TABLE_SET_COLUMN_COUNT: {
                 draft.columnOrder = null;
@@ -351,8 +357,8 @@ export const TABLE_CLEAR_ROWS = "TABLE_CLEAR_ROWS";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
 export const TABLE_SET_VALUE_PROPERTY = "TABLE_SET_VALUE_PROPERTY";
-// export const TABLE_SET_PARSE_FUNC = "TABLE_SET_PARSE_FUNC";
-// export const TABLE_SET_FILTER_FUNC = "TABLE_SET_FILTER_FUNC";
+export const TABLE_SET_PARSER = "TABLE_SET_PARSER";
+export const TABLE_SET_PREDICATE = "TABLE_SET_PREDICATE";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -372,6 +378,14 @@ export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 //Internal
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
+
+export function setPredicate(predicate) {
+    return { type: TABLE_SET_PREDICATE, predicate };
+}
+
+export function setParser(parser) {
+    return { type: TABLE_SET_PARSER, parser };
+}
 
 export function setListboxMode(isListbox) {
     return { type: TABLE_SET_LISTBOX_MODE, isListbox };

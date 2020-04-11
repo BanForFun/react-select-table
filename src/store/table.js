@@ -3,7 +3,7 @@ import _ from "lodash";
 import { pipe } from "lodash/fp";
 import { sortOrders } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
-import { pullFirst, encloseInArray, areArraysEqual } from "../utils/arrayUtils";
+import { pullFirst, inArray, areArraysEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 
 const defaultState = {
@@ -19,7 +19,7 @@ const defaultState = {
     tableItems: [],
     isLoading: true,
     isMultiselect: true,
-    listboxMode: true,
+    listboxMode: false,
     valueProperty: null,
     minColumnWidth: 3
 };
@@ -71,9 +71,8 @@ export function createTable(initState = {}, options = {}) {
                 draft.activeValue = null;
 
             //Update selected values
-            const { length } = _.pullAll(draft.selectedValues, values);
-            if (length < state.selectedValues.length)
-                raiseSelectionChange();
+            _.pullAll(draft.selectedValues, values);
+            updateSelection = true;
         }
 
         const setActivePivotValue = value => {
@@ -83,7 +82,7 @@ export function createTable(initState = {}, options = {}) {
 
         const raiseContextMenu = () => {
             const selected = [...draft.selectedValues];
-            const active = encloseInArray(draft.activeValue);
+            const active = inArray(draft.activeValue);
             eventHandlers.onContextMenu(state.listboxMode ? active : selected);
         }
 
@@ -95,8 +94,7 @@ export function createTable(initState = {}, options = {}) {
 
             if (!clearSelectedValues) return;
             draft.selectedValues = [];
-            if (state.selectedValues.length > 0)
-                raiseSelectionChange();
+            updateSelection = true;
         }
 
         switch (action.type) {
@@ -247,6 +245,16 @@ export function createTable(initState = {}, options = {}) {
                 raiseContextMenu();
                 break;
             }
+            case TABLE_SET_MULTISELECT: {
+                const { isMultiselect } = action;
+                draft.isMultiselect = isMultiselect;
+
+                if (!isMultiselect) {
+                    draft.selectedValues = inArray(state.selectedValues[0]);
+                    updateSelection = true;
+                }
+                break;
+            }
 
             //Options
             case TABLE_SET_VALUE_PROPERTY: {
@@ -354,12 +362,16 @@ export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
 export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
 export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
-// export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
+export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
 // export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
 //Internal
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
+
+export function setMultiselect(isMultiselect) {
+    return { type: TABLE_SET_MULTISELECT, isMultiselect }
+}
 
 export function setValueProperty(name) {
     return { type: TABLE_SET_VALUE_PROPERTY, name };

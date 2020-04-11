@@ -58,6 +58,7 @@ function App() {
           <Table
             items={todos}
             onItemsOpen={alert}
+            isMultiselect={false}
             onSelectionChange={setSelection}
             valueProperty="id"
             columns={columns}

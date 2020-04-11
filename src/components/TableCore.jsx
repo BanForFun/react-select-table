@@ -33,7 +33,7 @@ function TableCore(props) {
         isMultiselect,
         columns,
         emptyPlaceholder,
-        deselectOnContainerClick,
+        listboxMode,
 
         //Events
         onItemsOpen,
@@ -89,7 +89,7 @@ function TableCore(props) {
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback(e => {
-        const dragEnabled = deselectOnContainerClick && isMultiselect;
+        const dragEnabled = !listboxMode && isMultiselect;
         if (!dragEnabled || e.button !== 0) return;
 
         const { clientX: x, clientY: y } = e;
@@ -98,7 +98,7 @@ function TableCore(props) {
         setLastMousePos([x, y]);
         // setRowBounds(getRowBounds());
         setSelOrigin([x + scrollLeft, y + scrollTop]);
-    }, [deselectOnContainerClick, isMultiselect]);
+    }, [listboxMode, isMultiselect]);
 
     //Update row collision
     const updateRowCollision = useCallback(rect => {
@@ -342,8 +342,7 @@ function TableCore(props) {
                     {renderSelectionRect()}
                     <table className={className}>
                         <ColumnResizer {...commonParams} />
-                        <Body {...commonParams}
-                            rowRefs={rowRefs} />
+                        <Body {...commonParams} rowRefs={rowRefs} />
                     </table>
                     {showPlaceholder && emptyPlaceholder}
                 </div>
@@ -363,7 +362,7 @@ function mapStateToProps(state, { statePath }) {
         "isLoading",
         "valueProperty",
         "isMultiselect",
-        "deselectOnContainerClick"
+        "listboxMode"
     );
 
     return {

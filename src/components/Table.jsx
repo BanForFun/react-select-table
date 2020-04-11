@@ -41,7 +41,7 @@ Table.propTypes = {
     filter: PropTypes.object,
     minColumnWidth: PropTypes.number,
     isMultiselect: PropTypes.bool,
-    deselectOnContainerClick: PropTypes.bool,
+    listboxMode: PropTypes.bool,
     itemParser: PropTypes.func,
     itemFilter: PropTypes.func
 }

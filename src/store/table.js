@@ -19,7 +19,7 @@ const defaultState = {
     tableItems: [],
     isLoading: true,
     isMultiselect: true,
-    deselectOnContainerClick: true,
+    listboxMode: true,
     valueProperty: null,
     minColumnWidth: 3
 };
@@ -84,7 +84,7 @@ export function createTable(initState = {}, options = {}) {
         const raiseContextMenu = () => {
             const selected = [...draft.selectedValues];
             const active = encloseInArray(draft.activeValue);
-            eventHandlers.onContextMenu(state.deselectOnContainerClick ? selected : active);
+            eventHandlers.onContextMenu(state.listboxMode ? active : selected);
         }
 
         const raiseSelectionChange = () =>
@@ -208,7 +208,7 @@ export function createTable(initState = {}, options = {}) {
                 break;
             }
             case TABLE_CLEAR_SELECTION: {
-                clearSelection(state.deselectOnContainerClick);
+                clearSelection(!state.listboxMode);
                 break;
             }
             case TABLE_SET_ROW_SELECTED: {
@@ -238,7 +238,7 @@ export function createTable(initState = {}, options = {}) {
                 if (!ctrlKey) {
                     setActivePivotValue(value);
                     const isSelected = state.selectedValues.includes(value);
-                    if (state.deselectOnContainerClick && !isSelected) {
+                    if (!state.listboxMode && !isSelected) {
                         draft.selectedValues = value ? [value] : [];
                         updateSelection = true;
                     }
@@ -251,12 +251,11 @@ export function createTable(initState = {}, options = {}) {
             //Options
             case TABLE_SET_VALUE_PROPERTY: {
                 //Update option
-                const { propName } = action;
-                draft.valueProperty = propName;
+                draft.valueProperty = action.name;
 
                 //Update items
-                const items = Object.keys(state.items);
-                draft.items = _.keyBy(items, propName);
+                const items = Object.values(state.items);
+                draft.items = _.keyBy(items, action.name);
                 updateItems();
 
                 //Update selection
@@ -337,15 +336,16 @@ export const TABLE_REPLACE_ROW = "TABLE_REPLACE_ROW";
 export const TABLE_SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
 export const TABLE_PATCH_ROW = "TABLE_PATCH_ROW";
 export const TABLE_CLEAR_ROWS = "TABLE_CLEAR_ROWS";
-
-//Options
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
 export const TABLE_SET_VALUE_PROPERTY = "TABLE_SET_VALUE_PROPERTY";
+// export const TABLE_SET_PARSE_FUNC = "TABLE_SET_PARSE_FUNC";
+// export const TABLE_SET_FILTER_FUNC = "TABLE_SET_FILTER_FUNC";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
+// export const TABLE_SET_MIN_COLUMN_WIDTH = "TABLE_SET_MIN_COLUMN_WIDTH";
 
 //Selection
 export const TABLE_SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
@@ -354,13 +354,15 @@ export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
 export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
 export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
 export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
+// export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
+// export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
 //Internal
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
 
-export function setValueProperty(propName) {
-    return { type: TABLE_SET_VALUE_PROPERTY, propName };
+export function setValueProperty(name) {
+    return { type: TABLE_SET_VALUE_PROPERTY, name };
 }
 
 export function clearRows() {

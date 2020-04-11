@@ -326,6 +326,10 @@ export function createTable(initState = {}, options = {}) {
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
+            case TABLE_SET_MIN_COLUMN_WIDTH: {
+                draft.minColumnWidth = action.percent;
+                break;
+            }
 
             //Internal
             case TABLE_SET_COLUMN_COUNT: {
@@ -363,7 +367,7 @@ export const TABLE_SET_PREDICATE = "TABLE_SET_PREDICATE";
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
 export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
-// export const TABLE_SET_MIN_COLUMN_WIDTH = "TABLE_SET_MIN_COLUMN_WIDTH";
+export const TABLE_SET_MIN_COLUMN_WIDTH = "TABLE_SET_MIN_COLUMN_WIDTH";
 
 //Selection
 export const TABLE_SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
@@ -378,6 +382,10 @@ export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 //Internal
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
+
+export function setMinColumnWidth(percent) {
+    return { type: TABLE_SET_MIN_COLUMN_WIDTH, percent };
+}
 
 export function setPredicate(predicate) {
     return { type: TABLE_SET_PREDICATE, predicate };

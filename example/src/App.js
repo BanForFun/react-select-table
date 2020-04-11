@@ -58,10 +58,9 @@ function App() {
           <Table
             items={todos}
             onItemsOpen={alert}
-            filter={{ id: 1 }}
             isListbox={true}
+            minColumnWidth={10}
             isMultiselect={false}
-            itemPredicate={() => true}
             onSelectionChange={setSelection}
             valueProperty="id"
             columns={columns}

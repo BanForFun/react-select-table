@@ -11,7 +11,8 @@ import {
     setMultiselect,
     setListboxMode,
     setPredicate,
-    setParser
+    setParser,
+    setMinColumnWidth
 } from "../store/table";
 
 function Table({
@@ -22,6 +23,7 @@ function Table({
     isListbox,
     itemParser,
     itemPredicate,
+    minColumnWidth,
     ...params
 }) {
     const [store, setStore] = useState();
@@ -45,6 +47,7 @@ function Table({
     useAutoDispatch(setListboxMode, isListbox);
     useAutoDispatch(setParser, itemParser);
     useAutoDispatch(setPredicate, itemPredicate);
+    useAutoDispatch(setMinColumnWidth, minColumnWidth);
 
     if (!store) return null;
 

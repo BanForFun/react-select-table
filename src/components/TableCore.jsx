@@ -13,7 +13,8 @@ import {
     selectRow,
     contextMenu,
     _setEventHandler,
-    _setColumnCount
+    _setColumnCount,
+    defaultEventHandlers
 } from '../store/table';
 import Rect from '../models/rect';
 import {
@@ -59,6 +60,13 @@ function TableCore(props) {
     const values = _.map(items, valueProperty);
 
     //#region Reducer updater
+
+    //Register event handlers
+    for (let name in defaultEventHandlers) {
+        const handler = props[name];
+        useEffect(() => { _setEventHandler(name, handler) },
+            [handler]);
+    };
 
     //Set column count
     useEffect(() => {
@@ -396,5 +404,6 @@ export const propTypes = {
 
 TableCore.propTypes = propTypes;
 TableCore.defaultProps = {
-    onItemsOpen: () => { }
+    ...defaultEventHandlers,
+    onItemsOpen: () => { },
 };

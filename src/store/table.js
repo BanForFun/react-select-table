@@ -33,6 +33,11 @@ export function createTable(initState = {}, options = {}) {
     _.defaults(initState, defaultState);
     _.defaults(options, defaultOptions);
 
+    const eventHandlers = {
+        onContextMenu: () => { },
+        onSelectionChange: () => { }
+    };
+
     return (state = initState, action) => produce(state, draft => {
         const values = _.map(state.tableItems, state.valueProperty);
         let updateSelection = false;
@@ -79,11 +84,11 @@ export function createTable(initState = {}, options = {}) {
         const raiseContextMenu = () => {
             const selected = [...draft.selectedValues];
             const active = encloseInArray(draft.activeValue);
-            options.onContextMenu(draft.deselectOnContainerClick ? selected : active);
+            eventHandlers.onContextMenu(state.deselectOnContainerClick ? selected : active);
         }
 
         const raiseSelectionChange = () =>
-            options.onSelectionChange([...draft.selectedValues]);
+            eventHandlers.onSelectionChange([...draft.selectedValues]);
 
         const clearSelection = (clearSelectedValues = true) => {
             setActivePivotValue(null);
@@ -311,6 +316,10 @@ export function createTable(initState = {}, options = {}) {
                 draft.columnWidth = getDefaultWidth(action.count);
                 break;
             }
+            case TABLE_SET_EVENT_HANDLER: {
+                eventHandlers[action.name] = action.callback;
+                break;
+            }
             default:
                 break;
         }
@@ -443,3 +452,8 @@ const defaultOptions = {
     itemParser: item => item,
     itemFilter: defaultItemFilter
 };
+
+export const defaultEventHandlers = {
+    onContextMenu: () => { },
+    onSelectionChange: () => { }
+}

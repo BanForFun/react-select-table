@@ -391,7 +391,7 @@ const columnShape = PropTypes.shape({
     isHeader: PropTypes.bool
 });
 
-export const propTypes = {
+TableCore.propTypes = {
     name: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
     statePath: PropTypes.arrayOf(PropTypes.string),
@@ -399,9 +399,8 @@ export const propTypes = {
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func
-}
+};
 
-TableCore.propTypes = propTypes;
 TableCore.defaultProps = {
     ...defaultEventHandlers,
     onItemsOpen: () => { },

@@ -19,9 +19,8 @@ code {
 
 .container {
   display: flex;
-  height: 700px;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding: 3rem 0;
+  height: 100%;
 }
 
 .container > div {
@@ -35,4 +34,17 @@ code {
 
 span {
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.change {
+  animation: pulse 1s;
+}
+
+@keyframes pulse {
+  from {
+    color: darkorange
+  }
+  to {
+    color: black;
+  }
 }

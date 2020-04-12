@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
-import TableCore, { propTypes } from "./TableCore";
+import TableCore from "./TableCore";
 import configureStore from '../store/configureStore';
 import {
     setRows,
@@ -59,7 +59,7 @@ function Table({
 export default Table;
 
 Table.propTypes = {
-    ...propTypes,
+    ...TableCore.propTypes,
     valueProperty: PropTypes.string.isRequired,
     items: PropTypes.array.isRequired,
     filter: PropTypes.object,

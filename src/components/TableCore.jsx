@@ -387,7 +387,6 @@ const columnShape = PropTypes.shape({
     key: PropTypes.string,
     path: PropTypes.string,
     render: PropTypes.func,
-    classNames: PropTypes.array,
     isHeader: PropTypes.bool
 });
 

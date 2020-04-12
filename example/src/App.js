@@ -73,7 +73,7 @@ function App() {
         {todos ? (
           <Table
             items={todos}
-            minColumnWidth={10}
+            minColumnWidth={3}
             isListbox={isListbox}
             isMultiselect={isMultiselect}
             onContextMenu={setContextMenu}

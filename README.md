@@ -38,7 +38,7 @@ This library contains two components:
 
 Say for example that we want to render the items below:
 
-```javascript
+```react
 [
     {
         pet_id: 1,
@@ -51,7 +51,7 @@ Say for example that we want to render the items below:
 
 For displaying text, the column object should include the following properties. The property value at `path` is resolved and rendered. The `title` string is displayed on the header.
 
-```javascript
+```react
 {
     title: "Name",
     path: "name"
@@ -60,7 +60,7 @@ For displaying text, the column object should include the following properties. 
 
 We can set the `isHeader` property to true, so that a `th` element is used instead of `td`.
 
-```javascript
+```react
 {
 	title: "Id",
 	path: "pet_id",
@@ -125,7 +125,7 @@ Called when the user double-clicks or presses `Enter`.
 
 Import the `Table` component.
 
-```javascript
+```react
 import { Table } from 'react-select-table'
 ```
 
@@ -149,10 +149,12 @@ The minimum column width percentage relative to the table width.
 
 Default: **true**
 
-If set to false, the following shortcuts are disabled:
+If set to false, the following features are disabled:
 
-* `Shift`/`Ctrl` + `Click`/`Home`/`End`/`Up`/`Down`
+* `Shift`+ `Click`/`Home`/`End`/`Up`/`Down`
+* `Ctrl` + `Click`
 * `Ctrl` + `A`
+* Drag selection.
 
 #### `isListbox` _Boolean_
 
@@ -163,6 +165,7 @@ If set to true:
 * Clicking on empty space below the items won't clear the selection.
 * Right clicking won't select the row below the cursor.
 * The active value will be passed to `onContextMenu` instead of the selected values.
+* Drag selection is disabled.
 
 #### `itemParser(row)` _Function_
 
@@ -180,7 +183,7 @@ This object is passed as the first parameter to the `itemPredicate` method.
 
 __With the default implementation__ of `itemPredicate`, this object can contain key-value pairs of property paths and matching values. For example:
 
-```javascript
+```react
 {
     id: "1",
     title: "react-select-table",

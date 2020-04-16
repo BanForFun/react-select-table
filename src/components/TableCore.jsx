@@ -298,13 +298,9 @@ function TableCore(props) {
     //#endregion
 
     //Column ordering and fitlering
-    let orderedColumns = columns;
-    if (columnOrder) {
-        const ordered = _.sortBy(columns, c => columnOrder.indexOf(c.path));
-        //Columns not included in the columnOrder list will have an index of -1
-        //and be at the start of the ordered list
-        orderedColumns = _.takeRight(ordered, columnOrder.length);
-    }
+    let orderedColumns = columnOrder
+        ? columnOrder.map(i => columns[i])
+        : columns;
 
     //Column parsing
     const parsedColumns = orderedColumns.map((col, index) => {

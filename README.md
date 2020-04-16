@@ -42,8 +42,8 @@ Say for example that we want to render the items below:
 [
     {
         pet_id: 1,
-        photo_url: "",
-        name: "Lefki",
+        photo_url: "https://www.petsdb.gr/files/assets/images/lefki.jpg",
+        name: "Lefki", 
         birth_date: "2019-04-03"
     }
 ]
@@ -151,8 +151,8 @@ Default: **true**
 
 If set to false, the following features are disabled:
 
-* `Shift`+ `Click`/`Home`/`End`/`Up`/`Down`
-* `Ctrl` + `Click`
+* `Shift`+ `Home`/`End`/`Up`/`Down`
+* `Ctrl`/`Shift`  + `Click`
 * `Ctrl` + `A`
 * Drag selection.
 

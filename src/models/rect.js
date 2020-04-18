@@ -13,41 +13,11 @@ export default class Rect {
         return new Rect(left, top, right, bottom);
     }
 
-    static fromPosSize(x, y, width, height) {
-        const right = x + width;
-        const bottom = y + height;
-
-        return new Rect(x, y, right, bottom);
-    }
-
-    static fromBounds(b) {
-        return new Rect(b.left, b.top, b.right, b.bottom);
-    }
-
     constructor(left, top, right, bottom) {
         this.left = left;
         this.top = top;
         this.right = right;
         this.bottom = bottom;
-    }
-
-    intersectsRect(rect) {
-        return this.intersectsRectX(rect) &&
-            this.intersectsRectY(rect);
-    }
-
-    intersectsRectY(rect) {
-        return rect.bottom > this.top &&
-            rect.top < this.bottom;
-    }
-
-    intersectsRectX(rect) {
-        return rect.left < this.right &&
-            rect.right > this.left;
-    }
-
-    clone() {
-        return Rect.fromBounds(this);
     }
 
     offsetBy(x, y) {

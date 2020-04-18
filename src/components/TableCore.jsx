@@ -23,6 +23,7 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
+import { getDecimalPart } from '../utils/mathUtils';
 
 function TableCore(props) {
     const {
@@ -143,9 +144,14 @@ function TableCore(props) {
             const bounds = container.getBoundingClientRect();
             rect.offsetBy(-bounds.x, -bounds.y);
 
+            //Calculate subpixels
+            const subpixelsX = getDecimalPart(bounds.x);
+            const subpixelsY = getDecimalPart(bounds.y);
+
             //Restrict rectangle to table body bounds
             const relativeBounds = new Rect(0, 0,
-                container.scrollWidth, container.scrollHeight);
+                container.scrollWidth - subpixelsX,
+                container.scrollHeight - subpixelsY);
             rect.limit(relativeBounds);
 
             //Scroll if neccessary

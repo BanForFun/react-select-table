@@ -36,9 +36,11 @@ This library contains two components:
 
 #### `columns` _Array_
 
+> __Required__
+
 Say for example that we want to render the items below:
 
-```react
+```javascript
 [
     {
         pet_id: 1,
@@ -51,7 +53,7 @@ Say for example that we want to render the items below:
 
 For displaying text, the column object should include the following properties. The property value at `path` is resolved and rendered. The `title` string is displayed on the header.
 
-```react
+```javascript
 {
     title: "Name",
     path: "name"
@@ -60,7 +62,7 @@ For displaying text, the column object should include the following properties. 
 
 We can set the `isHeader` property to true, so that a `th` element is used instead of `td`.
 
-```react
+```javascript
 {
 	title: "Id",
 	path: "pet_id",
@@ -77,7 +79,7 @@ The `render` method is called with two parameters:
 
 It can return either a component or (in this case) a string.
 
-```react
+```javascript
 {
 	title: "Birth date",
 	path: "birth_date",
@@ -89,7 +91,7 @@ Columns that have a `path` property are sortable by default. To avoid this, we c
 
 __Warning__: If `path` is not provided, the `render` method is called with the single parameter being the whole item.
 
-```react
+```javascript
 {
     title: "Photo",
     key: "photo",
@@ -99,41 +101,64 @@ __Warning__: If `path` is not provided, the `render` method is called with the s
 
 #### `name` _String_
 
+> __Required__
+
 Used for the generation of the react `key` properties for the rows and columns.
 
 #### `emptyPlaceholder` _Component_
+
+> **Default**: `null`
 
 Rendered when the table contains no items.
 
 #### `onContextMenu(values)` _Function_
 
-`values`: The rows that the context menu affects.
+> **Default**: `() => {}`
+
+Called when the user right-clicks on a row or the table container.
+
+| Parameter | Type    | Description                                                  |
+| --------- | ------- | ------------------------------------------------------------ |
+| `values`  | *Array* | If `isListbox` is false (default), the selected values. Otherwise, the active value. |
 
 #### `onItemsOpen(values, enterKey)` _Function_
 
-Called when the user double-clicks or presses `Enter`.
+> **Default**: `() => {}`
 
-`values`: The array of selected values
+Called when the user double-clicks or presses the enter key.
 
-`enterKey`: True if caused by `Enter` key press, false if caused by double click.
+| Parameter  | Type      | Description                                                  |
+| ---------- | --------- | ------------------------------------------------------------ |
+| `values`   | *Array*   | The selected values.                                         |
+| `enterKey` | *Boolean* | True if caused by enter key press, false if caused by double click. |
 
 #### `onSelectionChange(values)` _Function_
 
-`values`: The new selected values
+> **Default**: `() => {}`
+
+Called when the selection changes.
+
+| Parameter | Type    | Description          |
+| --------- | ------- | -------------------- |
+| `values`  | *Array* | The selected values. |
 
 ### Table API
 
 Import the `Table` component.
 
-```react
+```javascript
 import { Table } from 'react-select-table'
 ```
 
 #### `items` _Array_
 
+> **Required**
+
 The item properties can be anything you want, with the exception of `classNames`. This property can be set to an array of CSS class names which will be applied to the `tr` element.
 
 #### `valueProperty` _String_
+
+> **Required**
 
 Must be set to a path that contains a unique value for each row. 
 
@@ -141,13 +166,13 @@ Warning: The value at the provided path is interpreted as a string. Unexpected b
 
 #### `minColumnWidth` _Number_
 
-Default: **3**
+> __Default__: `3`
 
 The minimum column width percentage relative to the table width.
 
 #### `isMultiselect` _Boolean_
 
-Default: **true**
+> **Default**: `true`
 
 If set to false, the following features are disabled:
 
@@ -158,7 +183,7 @@ If set to false, the following features are disabled:
 
 #### `isListbox` _Boolean_
 
-Default: **false**
+> **Default**: `false`
 
 If set to true:
 
@@ -169,21 +194,42 @@ If set to true:
 
 #### `itemParser(row)` _Function_
 
+> **Returns:** *object*
+>
+> **Default**: `row => row`
+
 Called for each row before adding it to the table. Must return the modified row.
 
-#### `itemPredicate(filter, row)` _Function_
+#### `itemPredicate(row, filter)` _Function_
+
+> **Returns**: *boolean*
+>
+> **Default**: 
+>
+> ```javascript
+> (row, filter) => {
+> 	for (let key in filter) {
+>          if (row[key] !== filter[key])
+>              return false;
+>      }
+> 
+>      return true;
+> }
+> ```
 
 Called for each row to decide whether it should be displayed. Must return a boolean.
 
-Note: The items will first pass from the `itemParser` method.
+Note: The rows will first pass from the `itemParser` method.
 
 #### `filter` _Object_
+
+> **Default**: `{}`
 
 This object is passed as the first parameter to the `itemPredicate` method.
 
 __With the default implementation__ of `itemPredicate`, this object can contain key-value pairs of property paths and matching values. For example:
 
-```react
+```javascript
 {
     id: "1",
     title: "react-select-table",

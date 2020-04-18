@@ -24,13 +24,21 @@ const defaultState = {
     minColumnWidth: 3
 };
 
-export function createTable(initState = {}, options = {}) {
-    function getDefaultWidth(count) {
-        const width = 100 / count;
-        return _.times(count, _.constant(width));
-    }
+function getDefaultWidth(count) {
+    const width = 100 / count;
+    return _.times(count, _.constant(width));
+}
 
+function validateInitialState(state) {
+    const count = state.columnWidth.length;
+    if (state.columnOrder && count === 0)
+        state.columnWidth = getDefaultWidth(count);
+}
+
+export function createTable(initState = {}, options = {}) {
     _.defaults(initState, defaultState);
+    validateInitialState(initState);
+
     _.defaults(options, defaultOptions);
 
     const eventHandlers = {
@@ -99,8 +107,9 @@ export function createTable(initState = {}, options = {}) {
 
         switch (action.type) {
             //Items
+            case "FORM_GROUP_SET_DATA":
             case TABLE_SET_ROWS: {
-                const { items } = action;
+                const { data: items } = action;
                 draft.items = _.keyBy(items, state.valueProperty);
                 draft.isLoading = false;
                 updateItems(true);
@@ -180,7 +189,7 @@ export function createTable(initState = {}, options = {}) {
                 break;
             }
             case TABLE_SET_FILTER: {
-                draft.filter = action.filter;
+                draft.filter = _.omitBy(action.filter, _.isUndefined);
                 updateItems(true);
                 break;
             }
@@ -308,8 +317,8 @@ export function createTable(initState = {}, options = {}) {
                 const { index, width } = action;
                 const { minColumnWidth } = state;
 
-                const thisWidth = state.columnWidth[index];
-                const nextWidth = state.columnWidth[index + 1];
+                const thisWidth = draft.columnWidth[index];
+                const nextWidth = draft.columnWidth[index + 1];
                 const availableWidth = thisWidth + nextWidth;
                 const maxWidth = availableWidth - minColumnWidth;
 
@@ -440,7 +449,7 @@ export function addRow(newItem) {
 }
 
 export function setRows(items) {
-    return { type: TABLE_SET_ROWS, items };
+    return { type: TABLE_SET_ROWS, data: items };
 }
 
 export function setColumnWidth(index, width) {

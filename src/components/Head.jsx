@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import sortIcon from "../assets/angle-line.svg";
 import _ from "lodash";
 import { connect } from 'react-redux';
 import { setColumnWidth, sortBy } from "../store/table";
 import { registerEventListeners } from '../utils/elementUtils';
 import styles from "../index.scss";
+import SortIcon from './SortIcon';
 
 function Head({
     columns,
@@ -63,8 +63,7 @@ function Head({
 
     function renderSortIcon(colPath) {
         if (colPath !== sortPath) return null;
-        return <img className={styles.sortIcon} src={sortIcon}
-            data-order={sortOrder} />
+        return <SortIcon order={sortOrder} />
     }
 
     return <thead ref={header} data-resizing={isResizing}>

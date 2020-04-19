@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 
 import { Table } from 'react-select-table';
-import 'react-select-table/dist/index.css';
 import 'bootstrap/dist/css/bootstrap.css';
+import 'react-select-table/dist/index.css';
 import PulseLabel from './components/PulseLabel';
 import CheckBox from './components/CheckBox';
 

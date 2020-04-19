@@ -40,11 +40,7 @@ export function createTable(initState = {}, options = {}) {
     validateInitialState(initState);
 
     _.defaults(options, defaultOptions);
-
-    const eventHandlers = {
-        onContextMenu: () => { },
-        onSelectionChange: () => { }
-    };
+    const eventHandlers = _.clone(defaultEventHandlers);
 
     return (state = initState, action) => produce(state, draft => {
         const values = _.map(state.tableItems, state.valueProperty);
@@ -193,16 +189,6 @@ export function createTable(initState = {}, options = {}) {
                 updateItems(true);
                 break;
             }
-            case TABLE_SET_PARSER: {
-                options.itemParser = action.parser;
-                updateItems(true);
-                break;
-            }
-            case TABLE_SET_PREDICATE: {
-                options.itemFilter = action.predicate;
-                updateItems(true);
-                break;
-            }
 
             //Selection
             case TABLE_SELECT_ROW: {
@@ -346,8 +332,8 @@ export function createTable(initState = {}, options = {}) {
                 draft.columnWidth = getDefaultWidth(action.count);
                 break;
             }
-            case TABLE_SET_EVENT_HANDLER: {
-                eventHandlers[action.name] = action.callback;
+            case TABLE_SET_EVENT_HANDLERS: {
+                Object.assign(eventHandlers, action.handlers);
                 break;
             }
             default:
@@ -370,8 +356,6 @@ export const TABLE_CLEAR_ROWS = "TABLE_CLEAR_ROWS";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
 export const TABLE_SET_VALUE_PROPERTY = "TABLE_SET_VALUE_PROPERTY";
-export const TABLE_SET_PARSER = "TABLE_SET_PARSER";
-export const TABLE_SET_PREDICATE = "TABLE_SET_PREDICATE";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -389,21 +373,12 @@ export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
 export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
 //Internal
+const TABLE_SET_EVENT_HANDLERS = "TABLE_SET_EVENT_HANDLERS";
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
-const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
 
 export function setMinColumnWidth(percent) {
     return { type: TABLE_SET_MIN_COLUMN_WIDTH, percent };
 }
-
-export function setPredicate(predicate) {
-    return { type: TABLE_SET_PREDICATE, predicate };
-}
-
-export function setParser(parser) {
-    return { type: TABLE_SET_PARSER, parser };
-}
-
 export function setListboxMode(isListbox) {
     return { type: TABLE_SET_LISTBOX_MODE, isListbox };
 }
@@ -488,10 +463,9 @@ export function _setColumnCount(count) {
     return { type: TABLE_SET_COLUMN_COUNT, count };
 }
 
-export function _setEventHandler(name, callback) {
-    return { type: TABLE_SET_EVENT_HANDLER, name, callback };
+export function _setEventHandlers(handlers) {
+    return { type: TABLE_SET_EVENT_HANDLERS, handlers };
 }
-
 function defaultItemFilter(item, filter) {
     for (let key in filter) {
         if (item[key] !== filter[key])
@@ -506,7 +480,7 @@ const defaultOptions = {
     itemFilter: defaultItemFilter
 };
 
-export const defaultEventHandlers = {
+const defaultEventHandlers = {
     onContextMenu: () => { },
     onSelectionChange: () => { }
 }

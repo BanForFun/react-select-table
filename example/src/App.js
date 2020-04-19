@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { Table } from 'react-select-table';
+import { Table, configureTableStore } from 'react-select-table';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-select-table/dist/index.css';
 import PulseLabel from './components/PulseLabel';
@@ -29,6 +29,8 @@ function renderCheckOrX(bool) {
     <i className="fa fa-times text-danger" />;
 }
 
+const tableStore = configureTableStore();
+
 function App() {
 
   const [todos, setTodos] = useState();
@@ -49,6 +51,7 @@ function App() {
 
     getTodos();
   }, []);
+
   return (
     <div className="container">
       <div className="w-25">
@@ -67,6 +70,7 @@ function App() {
         <h1>Table</h1>
         {todos ? (
           <Table
+            store={tableStore}
             items={todos}
             minColumnWidth={3}
             isListbox={isListbox}

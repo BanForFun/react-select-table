@@ -1,23 +1,21 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
-import TableCore from "./TableCore";
-import configureStore from '../store/configureStore';
+import TableCore from "./TableCore.jsx";
 import {
     setRows,
     setFilter,
     setValueProperty,
     setMultiselect,
     setListboxMode,
-    setPredicate,
-    setParser,
     setMinColumnWidth
 } from "../store/table";
 
 function Table({
     items,
     filter,
+    store,
     valueProperty,
     isMultiselect,
     isListbox,
@@ -26,13 +24,6 @@ function Table({
     minColumnWidth,
     ...params
 }) {
-    const [store, setStore] = useState();
-
-    useEffect(() => {
-        const store = configureStore();
-        setStore(store);
-    }, []);
-
     function useAutoDispatch(actionCreator, param) {
         useEffect(() => {
             if (!store || param === undefined) return;
@@ -45,8 +36,6 @@ function Table({
     useAutoDispatch(setRows, items);
     useAutoDispatch(setMultiselect, isMultiselect);
     useAutoDispatch(setListboxMode, isListbox);
-    useAutoDispatch(setParser, itemParser);
-    useAutoDispatch(setPredicate, itemPredicate);
     useAutoDispatch(setMinColumnWidth, minColumnWidth);
 
     if (!store) return null;
@@ -60,12 +49,11 @@ export default Table;
 
 Table.propTypes = {
     ...TableCore.propTypes,
+    store: PropTypes.any.isRequired,
     valueProperty: PropTypes.string.isRequired,
     items: PropTypes.array.isRequired,
     filter: PropTypes.object,
     minColumnWidth: PropTypes.number,
     isMultiselect: PropTypes.bool,
-    isListbox: PropTypes.bool,
-    itemParser: PropTypes.func,
-    itemPredicate: PropTypes.func
+    isListbox: PropTypes.bool
 }

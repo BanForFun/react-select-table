@@ -53,15 +53,10 @@ function App() {
     <div className="container">
       <div className="w-25">
         <h1>Settings</h1>
-        <div className="alert alert-warning">
-          The performance is awfull when the developer tools are open
-        </div>
-
         <CheckBox label="Multiselect" id="isMultiselect"
           value={isMultiselect} onChange={setMultiselect} />
         <CheckBox label="Listbox mode" id="isListbox"
           value={isListbox} onChange={setListBox} />
-        <div>Disables item deselection when user clicks on empty space</div>
 
         <h1 className="mt-3">Events</h1>
         <PulseLabel title="Selection" items={selection} />

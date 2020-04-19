@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import sortIcon from "../icons/angle-line.svg";
+import sortIcon from "../assets/angle-line.svg";
 import _ from "lodash";
 import { connect } from 'react-redux';
 import { setColumnWidth, sortBy } from "../store/table";

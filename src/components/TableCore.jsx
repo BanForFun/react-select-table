@@ -23,7 +23,6 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
-import { getDecimalPart } from '../utils/mathUtils';
 
 function TableCore(props) {
     const {
@@ -144,14 +143,10 @@ function TableCore(props) {
             const bounds = container.getBoundingClientRect();
             rect.offsetBy(-bounds.x, -bounds.y);
 
-            //Calculate subpixels
-            const subpixelsX = getDecimalPart(bounds.x);
-            const subpixelsY = getDecimalPart(bounds.y);
-
             //Restrict rectangle to table body bounds
+            const tableBounds = getTableContainer().getBoundingClientRect();
             const relativeBounds = new Rect(0, 0,
-                container.scrollWidth - subpixelsX,
-                container.scrollHeight - subpixelsY);
+                tableBounds.width, tableBounds.height);
             rect.limit(relativeBounds);
 
             //Scroll if neccessary
@@ -211,14 +206,18 @@ function TableCore(props) {
     const [scrollBarWidth, setScrollBarWidth] = useState(0);
     const bodyContainer = useRef();
 
+    const getTableContainer = useCallback(() =>
+        bodyContainer.current.firstElementChild, []);
+
     useEffect(() => {
         const handleResize = () => {
-            const container = bodyContainer.current;
-            setScrollBarWidth(container.offsetWidth - container.clientWidth);
+            const ctr = bodyContainer.current;
+            const vertical = ctr.offsetWidth - ctr.clientWidth;
+            setScrollBarWidth(vertical);
         }
 
         const observer = new ResizeObserver(handleResize);
-        observer.observe(bodyContainer.current.firstElementChild);
+        observer.observe(getTableContainer());
 
         return () => observer.disconnect();
     }, []);

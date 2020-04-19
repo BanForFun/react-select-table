@@ -9,9 +9,9 @@
 * Sticky header
 * Row drag selection
 * Keyboard shortcut support (`Shift` + `Click` to select range etc.)
-* Redux and parameter api
+* Redux and parameter API
 * Row deselection when table container is clicked
-* Selection change event
+* Optional redux item management
 
 ## Installation
 
@@ -32,7 +32,15 @@ This library contains two components:
 1. `TableCore` which uses redux for state management
 2. `Table` which is a wrapper for `TableCore` and uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility.
 
-### Common API
+## Examples
+
+[Simple todo example](https://codesandbox.io/s/rst-simple-wk07o)
+
+More examples coming soon.
+
+## Common API
+
+Applies to both `Table` and `TableCore`.
 
 #### `columns` _Array_
 
@@ -87,9 +95,7 @@ It can return either a component or (in this case) a string.
 }
 ```
 
-Columns that have a `path` property are sortable by default. To avoid this, we can use the `key` property instead.
-
-__Warning__: If `path` is not provided, the `render` method is called with the single parameter being the whole item.
+Columns that have a `path` property are sortable by default. To avoid this, we can use the `key` property instead. If `path` is not provided, the `render` method is called with the single parameter being the whole item. You have to get the property yourself inside the render method.
 
 ```javascript
 {
@@ -119,7 +125,7 @@ Called when the user right-clicks on a row or the table container.
 
 | Parameter | Type    | Description                                                  |
 | --------- | ------- | ------------------------------------------------------------ |
-| `values`  | *Array* | If `isListbox` is false (default), the selected values. Otherwise, the active value. |
+| `values`  | *Array* | If `isListbox` is false (default), the selected values.<br/>Otherwise, the active value in an array. |
 
 #### `onItemsOpen(values, enterKey)` _Function_
 
@@ -142,7 +148,7 @@ Called when the selection changes.
 | --------- | ------- | -------------------- |
 | `values`  | *Array* | The selected values. |
 
-### Table API
+## Table API
 
 Import the `Table` component.
 
@@ -209,11 +215,11 @@ Called for each row before adding it to the table. Must return the modified row.
 > ```javascript
 > (row, filter) => {
 > 	for (let key in filter) {
->          if (row[key] !== filter[key])
->              return false;
->      }
+> 		if (row[key] !== filter[key])
+> 			return false;
+> 	}
 > 
->      return true;
+> 	return true;
 > }
 > ```
 
@@ -238,3 +244,11 @@ __With the default implementation__ of `itemPredicate`, this object can contain 
 ```
 
 The above filter will only allow rows that have a `title` property set to `"react-select-table"` and an `author` property set to `"BanForFun"`. Any extra properties will be ignored (Like `id` in this instance).
+
+## TableCore API
+
+Coming soon
+
+## CSS Styling
+
+Coming soon

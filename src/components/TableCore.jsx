@@ -22,6 +22,10 @@ class TableCore extends Component {
         this.registerEventHandlers();
     }
 
+    componentDidUpdate(prevProps) {
+        this.updateColumnCount(prevProps);
+    }
+
     get values() {
         return _.map(this.props.items, this.props.valueProperty);
     }
@@ -36,6 +40,14 @@ class TableCore extends Component {
         }
 
         this.props._setEventHandlers(this.eventHandlers);
+    }
+
+    updateColumnCount(prevProps) {
+        if (this.props.columnOrder) return;
+
+        const count = this.props.columns.length;
+        if (prevProps.columns.length === count) return;
+        this.props._setColumnCount(count);
     }
 
     render() {

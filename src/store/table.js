@@ -480,7 +480,7 @@ const defaultOptions = {
     itemFilter: defaultItemFilter
 };
 
-const defaultEventHandlers = {
+export const defaultEventHandlers = {
     onContextMenu: () => { },
     onSelectionChange: () => { }
 }

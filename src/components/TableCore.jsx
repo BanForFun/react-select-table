@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import _ from "lodash";
 import PropTypes from "prop-types";
 import { connect } from 'react-redux';
 import {
@@ -9,11 +10,34 @@ import {
     selectRow,
     contextMenu,
     _setEventHandlers,
-    _setColumnCount
+    _setColumnCount,
+    defaultEventHandlers
 } from '../store/table';
 
 class TableCore extends Component {
-    state = {}
+    state = {};
+    eventHandlers = {};
+
+    componentDidMount() {
+        this.registerEventHandlers();
+    }
+
+    get values() {
+        return _.map(this.props.items, this.props.valueProperty);
+    }
+
+    registerEventHandlers() {
+        for (let name in defaultEventHandlers) {
+            this.eventHandlers[name] = params => {
+                const handler = this.props[name];
+                if (!handler) return;
+                handler(params);
+            };
+        }
+
+        this.props._setEventHandlers(this.eventHandlers);
+    }
+
     render() {
         return <p>Hello</p>;
     }

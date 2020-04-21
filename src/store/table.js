@@ -332,8 +332,8 @@ export function createTable(initState = {}, options = {}) {
                 draft.columnWidth = getDefaultWidth(action.count);
                 break;
             }
-            case TABLE_SET_EVENT_HANDLERS: {
-                Object.assign(eventHandlers, action.handlers);
+            case TABLE_SET_EVENT_HANDLER: {
+                eventHandlers[action.name] = action.callback;
                 break;
             }
             default:
@@ -373,12 +373,13 @@ export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
 export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
 //Internal
-const TABLE_SET_EVENT_HANDLERS = "TABLE_SET_EVENT_HANDLERS";
+const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
 const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 
 export function setMinColumnWidth(percent) {
     return { type: TABLE_SET_MIN_COLUMN_WIDTH, percent };
 }
+
 export function setListboxMode(isListbox) {
     return { type: TABLE_SET_LISTBOX_MODE, isListbox };
 }
@@ -463,8 +464,8 @@ export function _setColumnCount(count) {
     return { type: TABLE_SET_COLUMN_COUNT, count };
 }
 
-export function _setEventHandlers(handlers) {
-    return { type: TABLE_SET_EVENT_HANDLERS, handlers };
+export function _setEventHandler(name, callback) {
+    return { type: TABLE_SET_EVENT_HANDLER, name, callback };
 }
 function defaultItemFilter(item, filter) {
     for (let key in filter) {

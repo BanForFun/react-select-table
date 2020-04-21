@@ -1,5 +1,8 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import _ from "lodash";
+import Head from "./Head";
+import Body from "./Body";
+import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
 import { connect } from 'react-redux';
 import {
@@ -9,50 +12,345 @@ import {
     setActiveRow,
     selectRow,
     contextMenu,
-    _setEventHandlers,
+    _setEventHandler,
     _setColumnCount,
     defaultEventHandlers
 } from '../store/table';
+import Rect from '../models/rect';
+import {
+    ensurePosVisible,
+    registerEventListeners,
+    ensureRowVisible
+} from '../utils/elementUtils';
+import styles from "../index.scss";
 
-class TableCore extends Component {
-    state = {};
-    eventHandlers = {};
+function TableCore(props) {
+    const {
+        name,
+        context,
+        className,
+        valueProperty,
+        isMultiselect,
+        columns,
+        emptyPlaceholder,
+        isListbox,
 
-    componentDidMount() {
-        this.registerEventHandlers();
+        //Events
+        onItemsOpen,
+
+        //Redux state
+        items,
+        isLoading,
+        selectedValues,
+        columnWidth,
+        activeValue,
+        columnOrder,
+
+        //Redux actions
+        selectAll,
+        setActiveRow,
+        selectRow,
+        contextMenu,
+        clearSelection,
+        setRowSelected,
+        _setEventHandler,
+        _setColumnCount
+    } = props;
+
+    const values = _.map(items, valueProperty);
+
+    //#region Reducer updater
+
+    //Register event handlers
+    for (let name in defaultEventHandlers) {
+        const handler = props[name];
+        useEffect(() => {
+            _setEventHandler(name, handler)
+        }, [handler]);
+    };
+
+    //Set column count
+    useEffect(() => {
+        if (columnOrder) return;
+        _setColumnCount(columns.length)
+    }, [columns.length, columnOrder]);
+
+    //#endregion
+
+    //#region Drag selection
+
+    //Create row refs
+    const [rowRefs, setRowRefs] = useState({});
+    useEffect(() => {
+        const refs = _.map(values, React.createRef);
+        const refObj = _.zipObject(values, refs);
+        setRowRefs(refObj);
+    }, [items, valueProperty]);
+
+    //Drag start
+    const [selOrigin, setSelOrigin] = useState(null);
+    const dragStart = useCallback(e => {
+        const dragEnabled = !isListbox && isMultiselect;
+        if (!dragEnabled || e.button !== 0) return;
+
+        const { clientX: x, clientY: y } = e;
+        const { scrollTop, scrollLeft } = bodyContainer.current;
+
+        setLastMousePos([x, y]);
+        // setRowBounds(getRowBounds());
+        setSelOrigin([x + scrollLeft, y + scrollTop]);
+    }, [isListbox, isMultiselect]);
+
+    //Update row collision
+    const updateRowCollision = useCallback(rect => {
+        const { scrollTop, clientHeight } = bodyContainer.current;
+
+        //Calculate top and bottom most visible points
+        const topVisible = scrollTop;
+        const bottomVisible = scrollTop + clientHeight;
+
+        for (let value of values) {
+            const { current } = rowRefs[value];
+
+            //Calculate top and bottom position
+            const top = current.offsetTop;
+            const bottom = top + current.scrollHeight;
+
+            //Skip if rows not visible
+            if (bottom < topVisible) continue;
+            if (top > bottomVisible) return;
+
+            //Check for collision with selection rectangle
+            const intersects = bottom > rect.top && top < rect.bottom;
+            if (selectedValues.includes(value) !== intersects)
+                setRowSelected(value, intersects);
+        }
+    }, [selectedValues, rowRefs]);
+
+    //Update selection rectangle
+    const [selRect, setSelRect] = useState(null);
+    const updateSelectRect = useCallback(
+        (mouseX, mouseY) => {
+            const [originX, originY] = selOrigin;
+            const container = bodyContainer.current;
+
+            //Calculate rectangle relative to viewport
+            const { scrollLeft, scrollTop } = container;
+            const relMouseX = mouseX + scrollLeft;
+            const relMouseY = mouseY + scrollTop;
+            const rect = Rect.fromPoints(relMouseX, relMouseY, originX, originY);
+
+            //Calculate rectangle relative to table body
+            const bounds = container.getBoundingClientRect();
+            rect.offsetBy(-bounds.x, -bounds.y);
+
+            //Restrict rectangle to table body bounds
+            const tableBounds = getTableContainer().getBoundingClientRect();
+            const relativeBounds = new Rect(0, 0,
+                tableBounds.width, tableBounds.height);
+            rect.limit(relativeBounds);
+
+            //Scroll if neccessary
+            ensurePosVisible(container, mouseX, mouseY);
+            //Update collisions
+            updateRowCollision(rect);
+            //Set rectangle in state
+            setSelRect(rect);
+        }, [selOrigin, updateRowCollision]);
+
+    //Drag move
+    const [lastMousePos, setLastMousePos] = useState(null);
+    const dragMove = useCallback(e => {
+        if (!selOrigin) return;
+        updateSelectRect(e.clientX, e.clientY);
+        setLastMousePos([e.clientX, e.clientY]);
+    }, [selOrigin, updateSelectRect]);
+
+    //Drag end
+    const dragEnd = () => {
+        setSelOrigin(null);
+        setSelRect(null);
     }
 
-    componentDidUpdate(prevProps) {
-        this.updateColumnCount(prevProps);
+    //Scroll
+    const handleScroll = useCallback(() => {
+        if (!selOrigin) return;
+        const [x, y] = lastMousePos;
+        updateSelectRect(x, y);
+    }, [selOrigin, lastMousePos, updateSelectRect]);
+
+    //Register mouse move and up events
+    useEffect(() => {
+        const cleanup = registerEventListeners(window, {
+            "mousemove": dragMove,
+            "mouseup": dragEnd
+        });
+
+        return cleanup;
+    }, [dragMove]);
+
+    //Rendering
+    const renderSelectionRect = () => {
+        if (!selRect) return null;
+        const { left, top, width, height } = selRect;
+        const style = {
+            position: "absolute",
+            left, top, width, height
+        };
+
+        return <div className={styles.selection} style={style} />
     }
 
-    get values() {
-        return _.map(this.props.items, this.props.valueProperty);
-    }
+    //#endregion
 
-    registerEventHandlers() {
-        for (let name in defaultEventHandlers) {
-            this.eventHandlers[name] = params => {
-                const handler = this.props[name];
-                if (!handler) return;
-                handler(params);
-            };
+    //#region Body container overflow detection
+    const [scrollBarWidth, setScrollBarWidth] = useState(0);
+    const bodyContainer = useRef();
+
+    const getTableContainer = useCallback(() =>
+        bodyContainer.current.firstElementChild, []);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const ctr = bodyContainer.current;
+            const vertical = ctr.offsetWidth - ctr.clientWidth;
+            setScrollBarWidth(vertical);
         }
 
-        this.props._setEventHandlers(this.eventHandlers);
+        const observer = new ResizeObserver(handleResize);
+        observer.observe(getTableContainer());
+
+        return () => observer.disconnect();
+    }, []);
+    //#endregion
+
+    //onItemOpen event
+    const raiseItemOpen = enterKey => {
+        if (selectedValues.length === 0) return;
+        onItemsOpen(selectedValues, enterKey);
     }
 
-    updateColumnCount(prevProps) {
-        if (this.props.columnOrder) return;
+    const selectFromKeyboard = useCallback((e, value) => {
+        const onlyCtrl = e.ctrlKey && !e.shiftKey;
+        if (onlyCtrl) setActiveRow(value);
+        else selectRow(value, e.ctrlKey, e.shiftKey);
 
-        const count = this.props.columns.length;
-        if (prevProps.columns.length === count) return;
-        this.props._setColumnCount(count);
+        ensureRowVisible(rowRefs[value].current, bodyContainer.current);
+    }, [rowRefs]);
+
+    //Handle up/down arrows
+    const selectAtOffset = useCallback((e, offset) => {
+        const activeIndex = values.indexOf(activeValue);
+        if (activeIndex < 0) return;
+
+        const offsetIndex = activeIndex + offset;
+        if (!_.inRange(offsetIndex, 0, values.length)) return;
+
+        const offsetValue = values[offsetIndex];
+        selectFromKeyboard(e, offsetValue);
+    }, [selectFromKeyboard, activeValue]);
+
+    //Deselect rows
+    const deselectRows = e => {
+        if (e.currentTarget !== e.target ||
+            e.ctrlKey || e.button !== 0) return;
+
+        clearSelection();
     }
 
-    render() {
-        return <p>Hello</p>;
+    //#region Event Handlers
+    const handleMouseDown = useCallback(e => {
+        deselectRows(e);
+        dragStart(e);
+    }, [dragStart])
+
+    const handleDoubleClick = () => {
+        raiseItemOpen(false);
     }
+
+    const handleContextMenu = e => {
+        contextMenu(null, e.ctrlKey);
+    }
+
+    const handleKeyDown = useCallback(e => {
+        let preventDefault = true;
+
+        switch (e.keyCode) {
+            case 65: //A
+                if (e.ctrlKey) selectAll();
+                break;
+            case 38: //Up
+                selectAtOffset(e, -1);
+                break;
+            case 40: //Down
+                selectAtOffset(e, 1);
+                break;
+            case 13: //Enter
+                raiseItemOpen(true);
+                break;
+            case 36: //Home
+                selectFromKeyboard(e, values[0]);
+                break;
+            case 35: //End
+                selectFromKeyboard(e, _.last(values));
+                break;
+            default:
+                preventDefault = false;
+                break;
+        }
+
+        if (preventDefault) e.preventDefault();
+    }, [selectFromKeyboard, selectAtOffset]);
+    //#endregion
+
+    const parsedColumns = useMemo(() => {
+        //Column ordering and fitlering
+        const orderedColumns = columnOrder
+            ? columnOrder.map(i => columns[i])
+            : columns;
+
+        //Column parsing
+        return orderedColumns.map((col, index) => ({
+            ...col, props: {
+                width: `${columnWidth[index]}%`,
+                id: col.key || col.path
+            }
+        }));
+    }, [columnOrder, columnWidth, columns]);
+
+    const commonParams = {
+        name, context,
+        columns: parsedColumns
+    }
+
+    const showPlaceholder = items.length === 0 && !isLoading;
+
+    return (
+        <div className={styles.container}>
+            <div className={styles.headContainer}>
+                <table className={className}>
+                    <Head {...commonParams}
+                        scrollBarWidth={scrollBarWidth} />
+                </table>
+            </div>
+            <div className={styles.bodyContainer}
+                ref={bodyContainer}
+                onScroll={handleScroll}>
+                <div className={styles.tableContainer} tabIndex="0"
+                    onKeyDown={handleKeyDown}
+                    onDoubleClick={handleDoubleClick}
+                    onContextMenu={handleContextMenu}
+                    onMouseDown={handleMouseDown}>
+                    {renderSelectionRect()}
+                    <table className={className}>
+                        <ColumnResizer {...commonParams} />
+                        <Body {...commonParams} rowRefs={rowRefs} />
+                    </table>
+                    {showPlaceholder && emptyPlaceholder}
+                </div>
+            </div>
+        </div>
+    )
 }
 
 function mapStateToProps(state, { statePath }) {
@@ -82,8 +380,8 @@ export default connect(mapStateToProps, {
     selectRow,
     contextMenu,
     setActiveRow,
-    _setColumnCount,
-    _setEventHandlers
+    _setEventHandler,
+    _setColumnCount
 })(TableCore);
 
 const columnShape = PropTypes.shape({
@@ -105,5 +403,6 @@ TableCore.propTypes = {
 };
 
 TableCore.defaultProps = {
-    onItemsOpen: () => { }
+    ...defaultEventHandlers,
+    onItemsOpen: () => { },
 };

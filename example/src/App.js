@@ -29,8 +29,6 @@ function renderCheckOrX(bool) {
     <i className="fa fa-times text-danger" />;
 }
 
-const tableStore = configureTableStore();
-
 function App() {
 
   const [todos, setTodos] = useState();
@@ -68,9 +66,9 @@ function App() {
       </div>
       <div className="pl-3 w-75">
         <h1>Table</h1>
+
         {todos ? (
           <Table
-            store={tableStore}
             items={todos}
             minColumnWidth={3}
             isListbox={isListbox}

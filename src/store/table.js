@@ -13,7 +13,7 @@ const defaultState = {
     columnWidth: [],
     selectedValues: [],
     activeValue: null,
-    filter: {},
+    filter: null,
     items: {},
     pivotValue: null,
     tableItems: [],

@@ -404,6 +404,8 @@ TableCore.propTypes = {
     name: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
     statePath: PropTypes.arrayOf(PropTypes.string),
+    context: PropTypes.any,
+    className: PropTypes.string,
     emptyPlaceholder: PropTypes.element,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,

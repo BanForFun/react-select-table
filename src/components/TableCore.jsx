@@ -57,7 +57,9 @@ function TableCore(props) {
         _setColumnCount
     } = props;
 
-    const values = _.map(items, valueProperty);
+    const values = useMemo(() =>
+        _.map(items, valueProperty),
+        [items, valueProperty]);
 
     //#region Reducer updater
 
@@ -66,26 +68,25 @@ function TableCore(props) {
         const handler = props[name];
         useEffect(() => {
             _setEventHandler(name, handler)
-        }, [handler]);
+        }, [handler, _setEventHandler]);
     };
 
     //Set column count
     useEffect(() => {
         if (columnOrder) return;
         _setColumnCount(columns.length)
-    }, [columns.length, columnOrder]);
+    }, [columns.length, columnOrder, _setColumnCount]);
 
     //#endregion
 
     //#region Drag selection
 
     //Create row refs
-    const [rowRefs, setRowRefs] = useState({});
+    const [rowRefs, setRowRefs] = useState([]);
     useEffect(() => {
-        const refs = _.map(values, React.createRef);
-        const refObj = _.zipObject(values, refs);
-        setRowRefs(refObj);
-    }, [items, valueProperty]);
+        const refs = Array.from({ length: items.length }, React.createRef);
+        setRowRefs(refs);
+    }, [items.length]);
 
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
@@ -97,7 +98,6 @@ function TableCore(props) {
         const { scrollTop, scrollLeft } = bodyContainer.current;
 
         setLastMousePos([x, y]);
-        // setRowBounds(getRowBounds());
         setSelOrigin([x + scrollLeft, y + scrollTop]);
     }, [isListbox, isMultiselect]);
 
@@ -109,8 +109,9 @@ function TableCore(props) {
         const topVisible = scrollTop;
         const bottomVisible = scrollTop + clientHeight;
 
-        for (let value of values) {
-            const { current } = rowRefs[value];
+        for (let i = 0; i < values.length; i++) {
+            const value = values[i];
+            const { current } = rowRefs[i];
 
             //Calculate top and bottom position
             const top = current.offsetTop;
@@ -125,7 +126,7 @@ function TableCore(props) {
             if (selectedValues.includes(value) !== intersects)
                 setRowSelected(value, intersects);
         }
-    }, [selectedValues, rowRefs]);
+    }, [selectedValues, rowRefs, setRowSelected, values]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
@@ -167,10 +168,10 @@ function TableCore(props) {
     }, [selOrigin, updateSelectRect]);
 
     //Drag end
-    const dragEnd = () => {
+    const dragEnd = useCallback(() => {
         setSelOrigin(null);
         setSelRect(null);
-    }
+    }, []);
 
     //Scroll
     const handleScroll = useCallback(() => {
@@ -190,7 +191,7 @@ function TableCore(props) {
     }, [dragMove]);
 
     //Rendering
-    const renderSelectionRect = () => {
+    const renderSelectionRect = useCallback(() => {
         if (!selRect) return null;
         const { left, top, width, height } = selRect;
         const style = {
@@ -199,7 +200,7 @@ function TableCore(props) {
         };
 
         return <div className={styles.selection} style={style} />
-    }
+    }, [selRect]);
 
     //#endregion
 
@@ -225,18 +226,20 @@ function TableCore(props) {
     //#endregion
 
     //onItemOpen event
-    const raiseItemOpen = enterKey => {
+    const raiseItemOpen = useCallback(enterKey => {
         if (selectedValues.length === 0) return;
         onItemsOpen(selectedValues, enterKey);
-    }
+    }, [selectedValues])
 
-    const selectFromKeyboard = useCallback((e, value) => {
+    const selectFromKeyboard = useCallback((e, index) => {
+        const value = values[index];
+
         const onlyCtrl = e.ctrlKey && !e.shiftKey;
         if (onlyCtrl) setActiveRow(value);
         else selectRow(value, e.ctrlKey, e.shiftKey);
 
-        ensureRowVisible(rowRefs[value].current, bodyContainer.current);
-    }, [rowRefs]);
+        ensureRowVisible(rowRefs[index].current, bodyContainer.current);
+    }, [rowRefs, setActiveRow, selectRow]);
 
     //Handle up/down arrows
     const selectAtOffset = useCallback((e, offset) => {
@@ -246,31 +249,30 @@ function TableCore(props) {
         const offsetIndex = activeIndex + offset;
         if (!_.inRange(offsetIndex, 0, values.length)) return;
 
-        const offsetValue = values[offsetIndex];
-        selectFromKeyboard(e, offsetValue);
-    }, [selectFromKeyboard, activeValue]);
+        selectFromKeyboard(e, offsetIndex);
+    }, [selectFromKeyboard, activeValue, values]);
 
     //Deselect rows
-    const deselectRows = e => {
+    const deselectRows = useCallback(e => {
         if (e.currentTarget !== e.target ||
             e.ctrlKey || e.button !== 0) return;
 
         clearSelection();
-    }
+    }, [clearSelection]);
 
     //#region Event Handlers
     const handleMouseDown = useCallback(e => {
         deselectRows(e);
         dragStart(e);
-    }, [dragStart])
+    }, [dragStart, deselectRows])
 
-    const handleDoubleClick = () => {
+    const handleDoubleClick = useCallback(() => {
         raiseItemOpen(false);
-    }
+    }, [raiseItemOpen]);
 
-    const handleContextMenu = e => {
+    const handleContextMenu = useCallback(e => {
         contextMenu(null, e.ctrlKey);
-    }
+    }, [contextMenu]);
 
     const handleKeyDown = useCallback(e => {
         let preventDefault = true;
@@ -289,10 +291,10 @@ function TableCore(props) {
                 raiseItemOpen(true);
                 break;
             case 36: //Home
-                selectFromKeyboard(e, values[0]);
+                selectFromKeyboard(e, 0);
                 break;
             case 35: //End
-                selectFromKeyboard(e, _.last(values));
+                selectFromKeyboard(e, items.length - 1);
                 break;
             default:
                 preventDefault = false;
@@ -300,7 +302,13 @@ function TableCore(props) {
         }
 
         if (preventDefault) e.preventDefault();
-    }, [selectFromKeyboard, selectAtOffset]);
+    }, [
+        selectFromKeyboard,
+        selectAtOffset,
+        raiseItemOpen,
+        selectAll,
+        items
+    ]);
     //#endregion
 
     const parsedColumns = useMemo(() => {

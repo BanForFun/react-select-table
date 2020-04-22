@@ -29,6 +29,10 @@ function renderCheckOrX(bool) {
     <i className="fa fa-times text-danger" />;
 }
 
+const tableStore = configureTableStore({
+  itemParser: item => ({ ...item, id: item.id.toString() })
+})
+
 function App() {
 
   const [todos, setTodos] = useState();
@@ -69,6 +73,7 @@ function App() {
 
         {todos ? (
           <Table
+            store={tableStore}
             items={todos}
             minColumnWidth={3}
             isListbox={isListbox}

@@ -25,7 +25,7 @@ const Body = ({
         contextMenu(value, e.ctrlKey);
     }
 
-    const renderRow = row => {
+    const renderRow = (row, index) => {
         const value = row[valueProperty];
 
         const classes = [];
@@ -37,7 +37,7 @@ const Body = ({
             classes.push(...row.classNames);
 
         return <tr key={`tr_${name}_${value}`}
-            ref={rowRefs[value]}
+            ref={rowRefs[index]}
             className={classes.join(' ')}
             onContextMenu={e => handleRowContextMenu(e, value)}
             onMouseDown={e => handleRowSelect(e, value)}>

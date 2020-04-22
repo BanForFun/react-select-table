@@ -27,6 +27,10 @@
         &[data-sortable=true] {
             cursor: pointer;
         }
+
+        &:empty {
+            padding: 0;
+        }
     }
 }
 

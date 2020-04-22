@@ -40,11 +40,7 @@ export function createTable(initState = {}, options = {}) {
     validateInitialState(initState);
 
     _.defaults(options, defaultOptions);
-
-    const eventHandlers = {
-        onContextMenu: () => { },
-        onSelectionChange: () => { }
-    };
+    const eventHandlers = _.clone(defaultEventHandlers);
 
     return (state = initState, action) => produce(state, draft => {
         const values = _.map(state.tableItems, state.valueProperty);
@@ -55,7 +51,7 @@ export function createTable(initState = {}, options = {}) {
             _.map(items, options.itemParser);
 
         const _filterItems = items =>
-            _.filter(items, i => options.itemFilter(i, draft.filter));
+            _.filter(items, i => options.itemPredicate(i, draft.filter));
 
         const _sortItems = items =>
             _.orderBy(items, [draft.sortPath], [draft.sortOrder]);
@@ -190,16 +186,6 @@ export function createTable(initState = {}, options = {}) {
             }
             case TABLE_SET_FILTER: {
                 draft.filter = _.omitBy(action.filter, _.isUndefined);
-                updateItems(true);
-                break;
-            }
-            case TABLE_SET_PARSER: {
-                options.itemParser = action.parser;
-                updateItems(true);
-                break;
-            }
-            case TABLE_SET_PREDICATE: {
-                options.itemFilter = action.predicate;
                 updateItems(true);
                 break;
             }
@@ -370,8 +356,6 @@ export const TABLE_CLEAR_ROWS = "TABLE_CLEAR_ROWS";
 export const TABLE_SORT_BY = "TABLE_SORT_BY";
 export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
 export const TABLE_SET_VALUE_PROPERTY = "TABLE_SET_VALUE_PROPERTY";
-export const TABLE_SET_PARSER = "TABLE_SET_PARSER";
-export const TABLE_SET_PREDICATE = "TABLE_SET_PREDICATE";
 
 //Columns
 export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
@@ -389,19 +373,11 @@ export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
 export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
 //Internal
-const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
+const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 
 export function setMinColumnWidth(percent) {
     return { type: TABLE_SET_MIN_COLUMN_WIDTH, percent };
-}
-
-export function setPredicate(predicate) {
-    return { type: TABLE_SET_PREDICATE, predicate };
-}
-
-export function setParser(parser) {
-    return { type: TABLE_SET_PARSER, parser };
 }
 
 export function setListboxMode(isListbox) {
@@ -491,7 +467,6 @@ export function _setColumnCount(count) {
 export function _setEventHandler(name, callback) {
     return { type: TABLE_SET_EVENT_HANDLER, name, callback };
 }
-
 function defaultItemFilter(item, filter) {
     for (let key in filter) {
         if (item[key] !== filter[key])
@@ -503,7 +478,7 @@ function defaultItemFilter(item, filter) {
 
 const defaultOptions = {
     itemParser: item => item,
-    itemFilter: defaultItemFilter
+    itemPredicate: defaultItemFilter
 };
 
 export const defaultEventHandlers = {

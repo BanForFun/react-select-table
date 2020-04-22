@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 
-import { Table } from 'react-select-table';
+import { Table, configureTableStore } from 'react-select-table';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-select-table/dist/index.css';
 import PulseLabel from './components/PulseLabel';
@@ -30,7 +30,7 @@ function renderCheckOrX(bool) {
 }
 
 function App() {
-
+  const tableStore = useRef(configureTableStore());
   const [todos, setTodos] = useState();
 
   const [isMultiselect, setMultiselect] = useState(true);
@@ -49,6 +49,7 @@ function App() {
 
     getTodos();
   }, []);
+
   return (
     <div className="container">
       <div className="w-25">
@@ -65,8 +66,10 @@ function App() {
       </div>
       <div className="pl-3 w-75">
         <h1>Table</h1>
+
         {todos ? (
           <Table
+            store={tableStore.current}
             items={todos}
             minColumnWidth={3}
             isListbox={isListbox}

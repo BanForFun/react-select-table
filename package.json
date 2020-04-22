@@ -1,10 +1,16 @@
 {
   "name": "react-select-table",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "React listview control with keyboard shortcut support",
   "author": "BanForFun",
   "license": "MIT",
   "repository": "BanForFun/react-select-table",
+  "keywords": [
+    "react",
+    "table",
+    "listview",
+    "selection"
+  ],
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
   "source": "src/index.js",
@@ -13,7 +19,7 @@
   },
   "scripts": {
     "build": "microbundle-crl --no-compress --css-modules rst-[local] --format modern,cjs",
-    "start": "microbundle-crl watch --no-compress --format modern,cjs",
+    "start": "microbundle-crl watch --no-compress --css-modules rst-[local] --format modern,cjs",
     "prepublish": "run-s build",
     "test": "run-s test:unit test:lint test:build",
     "test:build": "run-s build",

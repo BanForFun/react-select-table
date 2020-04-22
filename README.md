@@ -25,11 +25,11 @@ In your `App.js` import the stylesheet.
 import 'react-select-table/dist/index.css';
 ````
 
-## Usage
+## Introduction
 
 This library contains two components: 
 
-1. `TableCore` which uses redux for state management
+1. `TableCore` which uses redux for state management.
 2. `Table` which is a wrapper for `TableCore` and uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility.
 
 ## Examples
@@ -38,7 +38,7 @@ This library contains two components:
 
 More examples coming soon.
 
-## Common API
+## Common props
 
 Applies to both `Table` and `TableCore`.
 
@@ -72,9 +72,9 @@ We can set the `isHeader` property to true, so that a `th` element is used inste
 
 ```javascript
 {
-	title: "Id",
-	path: "pet_id",
-	isHeader: true
+    title: "Id",
+    path: "pet_id",
+    isHeader: true
 }
 ```
 
@@ -89,9 +89,9 @@ It can return either a component or (in this case) a string.
 
 ```javascript
 {
-	title: "Birth date",
-	path: "birth_date",
-	render: date => new Date(date).toLocaleDateString()
+    title: "Birth date",
+    path: "birth_date",
+    render: date => new Date(date).toLocaleDateString()
 }
 ```
 
@@ -117,7 +117,7 @@ Used for the generation of the react `key` properties for the rows and columns.
 
 Rendered when the table contains no items.
 
-#### `onContextMenu(values)` _Function_
+#### `onContextMenu` _Function_
 
 > **Default**: `() => {}`
 
@@ -127,18 +127,20 @@ Called when the user right-clicks on a row or the table container.
 | --------- | ------- | ------------------------------------------------------------ |
 | `values`  | *Array* | If `isListbox` is false (default), the selected values.<br/>Otherwise, the active value in an array. |
 
-#### `onItemsOpen(values, enterKey)` _Function_
+#### `onItemsOpen` _Function_
 
 > **Default**: `() => {}`
 
-Called when the user double-clicks or presses the enter key.
+Called when the user double-clicks or presses the enter key. 
+
+This event will not be raised if no rows are selected, meaning that `values` can never be empty.
 
 | Parameter  | Type      | Description                                                  |
 | ---------- | --------- | ------------------------------------------------------------ |
 | `values`   | *Array*   | The selected values.                                         |
 | `enterKey` | *Boolean* | True if caused by enter key press, false if caused by double click. |
 
-#### `onSelectionChange(values)` _Function_
+#### `onSelectionChange` _Function_
 
 > **Default**: `() => {}`
 
@@ -150,11 +152,90 @@ Called when the selection changes.
 
 ## Table API
 
-Import the `Table` component.
+### Setup
+
+Import the `Table` component and the `configureTableStore` method.
 
 ```javascript
-import { Table } from 'react-select-table'
+import { Table, configureTableStore } from 'react-select-table'
 ```
+
+The `configureTableStore` method must be called once for every table component. This method returns an object which must be passed to the `Table` component using the `store` prop. You can call it inside `useRef` for functional components or store the return value in a local variable for class components.
+
+Functional component example
+
+```react
+import React, { useRef } from "react"
+
+function App() {
+    const tableStore = useRef(configureTableStore());
+    
+    return (
+        <Table 
+            store={tableStore.current}
+            // ...Other props
+        />
+    )
+}
+```
+
+Class component example
+
+```react
+import React, { Component } from "react";
+
+class App extends Component {
+    tableStore = configureTableStore();
+
+    render() {
+        return (
+            <Table 
+                store={tableStore}
+                // ...Other props
+            />
+        )
+    }
+}
+```
+
+You can optionally pass options as a parameter to the `configureTableStore` method. The options object can have the below properties:
+
+#### `itemParser` _Function_
+
+> **Returns:** *object*
+>
+> **Default**: `row => row`
+
+Called for each row before adding it to the table. Returns the modified row.
+
+#### `itemPredicate` _Function_
+
+> **Returns**: *boolean*
+>
+> **Default**: 
+>
+> ```javascript
+> (row, filter) => {
+>     for (let key in filter) {
+>         if (row[key] !== filter[key])
+>             return false;
+>     }
+> 
+>     return true;
+> }
+> ```
+
+Called for each row to decide whether it should be displayed.
+
+Note: The rows first pass from the [`itemParser`](#itemparser-function) method.
+
+### Props
+
+#### `store` *Object*
+
+> **Required**
+
+Refer to the [Setup](#setup) section. If not provided, the table will not be rendered.
 
 #### `items` _Array_
 
@@ -166,9 +247,7 @@ The item properties can be anything you want, with the exception of `classNames`
 
 > **Required**
 
-Must be set to a path that contains a unique value for each row. 
-
-Warning: The value at the provided path is interpreted as a string. Unexpected behavior will occur if two values that are equal when converted to string are present at the same time, for example: `1` and `"1"`.
+Must be set to a path that contains a unique value for each row (ex. `id`). 
 
 #### `minColumnWidth` _Number_
 
@@ -194,46 +273,17 @@ If set to false, the following features are disabled:
 If set to true:
 
 * Clicking on empty space below the items won't clear the selection.
-* Right clicking won't select the row below the cursor.
-* The active value will be passed to `onContextMenu` instead of the selected values.
+* Right clicking won't select the row below the cursor, it will just be set to active.
+* The active value will be passed to [`onContextMenu`](#oncontextmenu-function) instead of the selected values.
 * Drag selection is disabled.
-
-#### `itemParser(row)` _Function_
-
-> **Returns:** *object*
->
-> **Default**: `row => row`
-
-Called for each row before adding it to the table. Must return the modified row.
-
-#### `itemPredicate(row, filter)` _Function_
-
-> **Returns**: *boolean*
->
-> **Default**: 
->
-> ```javascript
-> (row, filter) => {
-> 	for (let key in filter) {
-> 		if (row[key] !== filter[key])
-> 			return false;
-> 	}
-> 
-> 	return true;
-> }
-> ```
-
-Called for each row to decide whether it should be displayed. Must return a boolean.
-
-Note: The rows will first pass from the `itemParser` method.
 
 #### `filter` _Object_
 
 > **Default**: `{}`
 
-This object is passed as the first parameter to the `itemPredicate` method.
+This object is passed as the second parameter to [`itemPredicate`](#itempredicate-function).
 
-__With the default implementation__ of `itemPredicate`, this object can contain key-value pairs of property paths and matching values. For example:
+__With the default implementation__, this object can contain key-value pairs of property paths and matching values. For example:
 
 ```javascript
 {

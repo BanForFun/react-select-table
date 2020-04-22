@@ -185,7 +185,7 @@ export function createTable(initState = {}, options = {}) {
                 break;
             }
             case TABLE_SET_FILTER: {
-                draft.filter = _.omitBy(action.filter, _.isUndefined);
+                draft.filter = action.filter;
                 updateItems(true);
                 break;
             }
@@ -467,7 +467,10 @@ export function _setColumnCount(count) {
 export function _setEventHandler(name, callback) {
     return { type: TABLE_SET_EVENT_HANDLER, name, callback };
 }
+
 function defaultItemFilter(item, filter) {
+    if (!filter) return true;
+
     for (let key in filter) {
         if (item[key] !== filter[key])
             return false;

@@ -13,6 +13,10 @@
 * Row deselection when table container is clicked
 * Optional redux item management
 
+## 0.1.0 - Breaking changes
+
+* `itemParser` and `itemPredicate`. See [Setup](#setup) section for new usage.
+
 ## Installation
 
 ```shell
@@ -216,8 +220,10 @@ Called for each row before adding it to the table. Returns the modified row.
 >
 > ```javascript
 > (row, filter) => {
+>     if (!filter) return true;
+> 
 >     for (let key in filter) {
->         if (row[key] !== filter[key])
+>         if (item[key] !== filter[key])
 >             return false;
 >     }
 > 

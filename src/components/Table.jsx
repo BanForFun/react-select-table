@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import TableCore from "./TableCore.jsx";
@@ -11,12 +11,11 @@ import {
     setListboxMode,
     setMinColumnWidth
 } from "../store/table";
-import configureStore from "../store/configureStore";
 
 function Table({
     items,
     filter,
-    store: customStore,
+    store,
     valueProperty,
     isMultiselect,
     isListbox,
@@ -25,15 +24,6 @@ function Table({
     minColumnWidth,
     ...params
 }) {
-    const [store, setStore] = useState();
-
-    useEffect(() => {
-        if (customStore === undefined)
-            customStore = configureStore();
-
-        setStore(customStore);
-    }, [customStore]);
-
     function useAutoDispatch(actionCreator, param) {
         useEffect(() => {
             if (!store || param === undefined) return;
@@ -61,7 +51,7 @@ Table.propTypes = {
     ...TableCore.propTypes,
     valueProperty: PropTypes.string.isRequired,
     items: PropTypes.array.isRequired,
-    store: PropTypes.any,
+    store: PropTypes.any.isRequired,
     filter: PropTypes.object,
     minColumnWidth: PropTypes.number,
     isMultiselect: PropTypes.bool,

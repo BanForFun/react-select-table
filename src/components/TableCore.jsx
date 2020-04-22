@@ -188,19 +188,7 @@ function TableCore(props) {
         });
 
         return cleanup;
-    }, [dragMove]);
-
-    //Rendering
-    const renderSelectionRect = useCallback(() => {
-        if (!selRect) return null;
-        const { left, top, width, height } = selRect;
-        const style = {
-            position: "absolute",
-            left, top, width, height
-        };
-
-        return <div className={styles.selection} style={style} />
-    }, [selRect]);
+    }, [dragMove, dragEnd]);
 
     //#endregion
 
@@ -333,6 +321,18 @@ function TableCore(props) {
 
     const showPlaceholder = items.length === 0 && !isLoading;
 
+    //Selection rectangle
+    const selectionRect = useMemo(() => {
+        if (!selRect) return null;
+        const { left, top, width, height } = selRect;
+        const style = {
+            position: "absolute",
+            left, top, width, height
+        };
+
+        return <div className={styles.selection} style={style} />
+    }, [selRect]);
+
     return (
         <div className={styles.container}>
             <div className={styles.headContainer}>
@@ -349,7 +349,7 @@ function TableCore(props) {
                     onDoubleClick={handleDoubleClick}
                     onContextMenu={handleContextMenu}
                     onMouseDown={handleMouseDown}>
-                    {renderSelectionRect()}
+                    {selectionRect}
                     <table className={className}>
                         <ColumnResizer {...commonParams} />
                         <Body {...commonParams} rowRefs={rowRefs} />

@@ -29,9 +29,7 @@ function renderCheckOrX(bool) {
     <i className="fa fa-times text-danger" />;
 }
 
-const tableStore = configureTableStore({
-  itemParser: item => ({ ...item, id: item.id.toString() })
-})
+const tableStore = configureTableStore();
 
 function App() {
 

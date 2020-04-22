@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 
 import { Table, configureTableStore } from 'react-select-table';
 import 'bootstrap/dist/css/bootstrap.css';
@@ -29,10 +29,8 @@ function renderCheckOrX(bool) {
     <i className="fa fa-times text-danger" />;
 }
 
-const tableStore = configureTableStore();
-
 function App() {
-
+  const tableStore = useRef(configureTableStore());
   const [todos, setTodos] = useState();
 
   const [isMultiselect, setMultiselect] = useState(true);
@@ -71,7 +69,7 @@ function App() {
 
         {todos ? (
           <Table
-            store={tableStore}
+            store={tableStore.current}
             items={todos}
             minColumnWidth={3}
             isListbox={isListbox}

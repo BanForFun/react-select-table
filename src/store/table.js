@@ -51,7 +51,7 @@ export function createTable(initState = {}, options = {}) {
             _.map(items, options.itemParser);
 
         const _filterItems = items =>
-            _.filter(items, i => options.itemFilter(i, draft.filter));
+            _.filter(items, i => options.itemPredicate(i, draft.filter));
 
         const _sortItems = items =>
             _.orderBy(items, [draft.sortPath], [draft.sortOrder]);
@@ -478,7 +478,7 @@ function defaultItemFilter(item, filter) {
 
 const defaultOptions = {
     itemParser: item => item,
-    itemFilter: defaultItemFilter
+    itemPredicate: defaultItemFilter
 };
 
 export const defaultEventHandlers = {

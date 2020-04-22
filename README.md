@@ -72,9 +72,9 @@ We can set the `isHeader` property to true, so that a `th` element is used inste
 
 ```javascript
 {
-	title: "Id",
-	path: "pet_id",
-	isHeader: true
+    title: "Id",
+    path: "pet_id",
+    isHeader: true
 }
 ```
 
@@ -89,9 +89,9 @@ It can return either a component or (in this case) a string.
 
 ```javascript
 {
-	title: "Birth date",
-	path: "birth_date",
-	render: date => new Date(date).toLocaleDateString()
+    title: "Birth date",
+    path: "birth_date",
+    render: date => new Date(date).toLocaleDateString()
 }
 ```
 
@@ -117,7 +117,7 @@ Used for the generation of the react `key` properties for the rows and columns.
 
 Rendered when the table contains no items.
 
-#### `onContextMenu(values)` _Function_ {#onContextMenu}
+#### `onContextMenu` _Function_
 
 > **Default**: `() => {}`
 
@@ -127,7 +127,7 @@ Called when the user right-clicks on a row or the table container.
 | --------- | ------- | ------------------------------------------------------------ |
 | `values`  | *Array* | If `isListbox` is false (default), the selected values.<br/>Otherwise, the active value in an array. |
 
-#### `onItemsOpen(values, enterKey)` _Function_
+#### `onItemsOpen` _Function_
 
 > **Default**: `() => {}`
 
@@ -140,7 +140,7 @@ This event will not be raised if no rows are selected, meaning that `values` can
 | `values`   | *Array*   | The selected values.                                         |
 | `enterKey` | *Boolean* | True if caused by enter key press, false if caused by double click. |
 
-#### `onSelectionChange(values)` _Function_
+#### `onSelectionChange` _Function_
 
 > **Default**: `() => {}`
 
@@ -152,7 +152,7 @@ Called when the selection changes.
 
 ## Table API
 
-### Setup {#setup}
+### Setup
 
 Import the `Table` component and the `configureTableStore` method.
 
@@ -171,9 +171,9 @@ function App() {
     const tableStore = useRef(configureTableStore());
     
     return (
-    	<Table 
+        <Table 
             store={tableStore.current}
-			// ...Other props
+            // ...Other props
         />
     )
 }
@@ -187,9 +187,9 @@ import React, { Component } from "react";
 class App extends Component {
     tableStore = configureTableStore();
 
-	render() {
+    render() {
         return (
-        	<Table 
+            <Table 
                 store={tableStore}
                 // ...Other props
             />
@@ -198,13 +198,9 @@ class App extends Component {
 }
 ```
 
-
-
-
-
 You can optionally pass options as a parameter to the `configureTableStore` method. The options object can have the below properties:
 
-#### `itemParser(row)` _Function_ {#itemParser}
+#### `itemParser` _Function_
 
 > **Returns:** *object*
 >
@@ -212,7 +208,7 @@ You can optionally pass options as a parameter to the `configureTableStore` meth
 
 Called for each row before adding it to the table. Returns the modified row.
 
-#### `itemPredicate(row, filter)` _Function_ {#itemPredicate}
+#### `itemPredicate` _Function_
 
 > **Returns**: *boolean*
 >
@@ -220,18 +216,18 @@ Called for each row before adding it to the table. Returns the modified row.
 >
 > ```javascript
 > (row, filter) => {
-> 	for (let key in filter) {
-> 		if (row[key] !== filter[key])
-> 			return false;
-> 	}
+>     for (let key in filter) {
+>         if (row[key] !== filter[key])
+>             return false;
+>     }
 > 
-> 	return true;
+>     return true;
 > }
 > ```
 
 Called for each row to decide whether it should be displayed.
 
-Note: The rows first pass from the [`itemParser`](#itemParser) method.
+Note: The rows first pass from the [`itemParser`](#itemparser-function) method.
 
 ### Props
 
@@ -278,14 +274,14 @@ If set to true:
 
 * Clicking on empty space below the items won't clear the selection.
 * Right clicking won't select the row below the cursor, it will just be set to active.
-* The active value will be passed to [`onContextMenu`](#onContextMenu) instead of the selected values.
+* The active value will be passed to [`onContextMenu`](#oncontextmenu-function) instead of the selected values.
 * Drag selection is disabled.
 
 #### `filter` _Object_
 
 > **Default**: `{}`
 
-This object is passed as the second parameter to [`itemPredicate`](#itemPredicate).
+This object is passed as the second parameter to [`itemPredicate`](#itempredicate-function).
 
 __With the default implementation__, this object can contain key-value pairs of property paths and matching values. For example:
 

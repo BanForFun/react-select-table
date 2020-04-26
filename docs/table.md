@@ -135,7 +135,7 @@ If set to true:
 
 * Clicking on empty space below the items won't clear the selection.
 * Right clicking won't select the row below the cursor, it will just be set to active.
-* The active value will be passed to [`onContextMenu`](#oncontextmenu-function) instead of the selected values.
+* The active value will be passed to [`onContextMenu`](./common.md#oncontextmenu-function) instead of the selected values.
 * Drag selection is disabled.
 
 #### `filter` _Any_

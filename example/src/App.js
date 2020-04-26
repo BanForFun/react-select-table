@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 
-import { Table, configureTableStore } from 'react-select-table';
+import { Table, useTableStore } from 'react-select-table';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-select-table/dist/index.css';
 import PulseLabel from './components/PulseLabel';
@@ -30,7 +30,7 @@ function renderCheckOrX(bool) {
 }
 
 function App() {
-  const tableStore = useRef(configureTableStore());
+  const tableStore = useTableStore();
   const [todos, setTodos] = useState();
 
   const [isMultiselect, setMultiselect] = useState(true);
@@ -40,13 +40,14 @@ function App() {
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
-  useEffect(() => {
-    async function getTodos() {
-      const response = await fetch("https://jsonplaceholder.typicode.com/todos");
-      const data = await response.json();
-      setTodos(data.slice(0, 100));
-    }
+  const getTodos = useCallback(async () => {
+    setTodos(null);
+    const response = await fetch("https://jsonplaceholder.typicode.com/todos");
+    const data = await response.json();
+    setTodos(data.slice(0, 100));
+  }, []);
 
+  useEffect(() => {
     getTodos();
   }, []);
 
@@ -63,13 +64,14 @@ function App() {
         <PulseLabel title="Selection" items={selection} />
         <PulseLabel title="Context menu" items={contextMenu} />
         <PulseLabel title="Open items" items={openItems} />
+        <button className="btn btn-primary" onClick={getTodos}>Refresh</button>
       </div>
       <div className="pl-3 w-75">
         <h1>Table</h1>
 
         {todos ? (
           <Table
-            store={tableStore.current}
+            store={tableStore}
             items={todos}
             minColumnWidth={3}
             isListbox={isListbox}

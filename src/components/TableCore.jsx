@@ -68,14 +68,14 @@ function TableCore(props) {
         const handler = props[name];
         useEffect(() => {
             _setEventHandler(name, handler)
-        }, [handler, _setEventHandler]);
+        }, [handler]);
     };
 
     //Set column count
     useEffect(() => {
         if (columnOrder) return;
         _setColumnCount(columns.length)
-    }, [columns.length, columnOrder, _setColumnCount]);
+    }, [columns.length, columnOrder]);
 
     //#endregion
 
@@ -126,7 +126,7 @@ function TableCore(props) {
             if (selectedValues.includes(value) !== intersects)
                 setRowSelected(value, intersects);
         }
-    }, [selectedValues, rowRefs, setRowSelected, values]);
+    }, [selectedValues, rowRefs, values]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
@@ -227,7 +227,7 @@ function TableCore(props) {
         else selectRow(value, e.ctrlKey, e.shiftKey);
 
         ensureRowVisible(rowRefs[index].current, bodyContainer.current);
-    }, [rowRefs, setActiveRow, selectRow]);
+    }, [rowRefs, values]);
 
     //Handle up/down arrows
     const selectAtOffset = useCallback((e, offset) => {
@@ -246,7 +246,7 @@ function TableCore(props) {
             e.ctrlKey || e.button !== 0) return;
 
         clearSelection();
-    }, [clearSelection]);
+    }, []);
 
     //#region Event Handlers
     const handleMouseDown = useCallback(e => {
@@ -260,7 +260,7 @@ function TableCore(props) {
 
     const handleContextMenu = useCallback(e => {
         contextMenu(null, e.ctrlKey);
-    }, [contextMenu]);
+    }, []);
 
     const handleKeyDown = useCallback(e => {
         let preventDefault = true;
@@ -294,7 +294,6 @@ function TableCore(props) {
         selectFromKeyboard,
         selectAtOffset,
         raiseItemOpen,
-        selectAll,
         items
     ]);
     //#endregion

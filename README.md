@@ -15,8 +15,8 @@
 
 ## 0.1.0 - Breaking changes
 
-* New required prop. See [setup](/docs/table.md#setup) section for details.
-* `itemParser` and `itemPredicate` now constant. See [options](/docs/table.md#options) section for new usage.
+* Table: New required prop. See [setup](/docs/table.md#setup) section for details.
+* Table: `itemParser` and `itemPredicate` now constant. See [options](/docs/table.md#options) section for new usage.
 
 I'm sorry but expect more breaking changes while the project is in beta. Feedback is welcome.
 

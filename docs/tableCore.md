@@ -1,3 +1,8 @@
 ## TableCore usage
 
-Comming soon
+### State
+
+#### `sortPath` *string*
+
+> **Default**: `null`
+

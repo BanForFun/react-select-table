@@ -284,12 +284,15 @@ export function createTable(initState = {}, options = {}) {
 
             //Options
             case TABLE_SET_VALUE_PROPERTY: {
+                const { name } = action;
+                if (state.valueProperty === name) break;
+
                 //Update option
-                draft.valueProperty = action.name;
+                draft.valueProperty = name;
 
                 //Update items
                 const items = Object.values(state.items);
-                draft.items = _.keyBy(items, action.name);
+                draft.items = _.keyBy(items, name);
                 updateItems();
 
                 //Update selection
@@ -328,8 +331,11 @@ export function createTable(initState = {}, options = {}) {
 
             //Internal
             case TABLE_SET_COLUMN_COUNT: {
+                const { count } = action;
+                if (state.columnWidth.length === count) break;
+
                 draft.columnOrder = null;
-                draft.columnWidth = getDefaultWidth(action.count);
+                draft.columnWidth = getDefaultWidth(count);
                 break;
             }
             case TABLE_SET_EVENT_HANDLER: {

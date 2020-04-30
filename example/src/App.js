@@ -47,9 +47,7 @@ function App() {
     setTodos(data.slice(0, 100));
   }, []);
 
-  useEffect(() => {
-    getTodos();
-  }, []);
+  useEffect(getTodos, [getTodos]);
 
   return (
     <div className="container">

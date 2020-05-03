@@ -2,35 +2,33 @@
 
 ### Setup
 
-Import the `Table` component and the `configureTableStore` method.
+The `configureTableStore` (for class components) or `useTableStore` (for functional components) method must be called once for every table component. These methods return an object which must be passed to the `Table` component using the `store` prop. 
 
-```javascript
-import { Table, configureTableStore } from 'react-select-table'
-```
+You can optionally pass an [options](./core.md#options-object) object as a parameter to either method.
 
-The `configureTableStore` method must be called once for every table component. This method returns an object which must be passed to the `Table` component using the `store` prop. You can call it inside `useRef` for functional components or store the return value in a local variable for class components.
-
-Functional component example
+**Functional component**
 
 ```react
-import React, { useRef } from "react"
+import React from 'react'
+import { Table, useTableStore } from 'react-select-table'
 
 function App() {
-    const tableStore = useRef(configureTableStore());
+    const tableStore = useTableStore();
     
     return (
         <Table 
-            store={tableStore.current}
+            store={tableStore}
             // ...Other props
         />
     )
 }
 ```
 
-Class component example
+**Class component**
 
 ```react
-import React, { Component } from "react";
+import React, { Component } from 'react';
+import { Table, configureTableStore } from 'react-select-table'
 
 class App extends Component {
     tableStore = configureTableStore();
@@ -38,7 +36,7 @@ class App extends Component {
     render() {
         return (
             <Table 
-                store={tableStore}
+                store={this.tableStore}
                 // ...Other props
             />
         )
@@ -46,112 +44,74 @@ class App extends Component {
 }
 ```
 
-### Options
-
-You can optionally pass options as a parameter to the `configureTableStore` method. The options object can have the below properties:
-
-#### `itemParser` _Function_
-
-> **Returns:** *object*
->
-> **Default**: `item => item`
-
-| Parameter | Type     | Description          |
-| --------- | -------- | -------------------- |
-| `item`    | *Object* | Table item to parse. |
-
-Called for each row before adding it to the table. Returns the modified row.
-
-#### `itemPredicate` _Function_
-
-> **Returns**: *boolean*
->
-> **Default**: 
->
-> ```javascript
-> (item, filter) => {
->     if (!filter) return true;
-> 
->     for (let key in filter) {
->         if (item[key] !== filter[key])
->             return false;
->     }
-> 
->     return true;
-> }
-> ```
-
-| Parameter | Type     | Description                             |
-| --------- | -------- | --------------------------------------- |
-| `item`    | *Object* | Table item to filter.                   |
-| `filter`  | *Any*    | The [`filter`][#filter-any] prop value. |
-
-Called for each row to decide whether it should be displayed.
-
-Note: The items first pass from the [`itemParser`](#itemparser-function) method.
-
 ### Props
 
-#### `store` *Object*
+#### `store` *object*
 
 > **Required**
 
-Refer to the [Setup](#setup) section. If not provided, the table will not be rendered.
+Refer to the [setup](#setup) section. If not provided, the table will not be rendered.
 
-#### `items` _Array_
-
-> **Required**
-
-The item properties can be anything you want, with the exception of `classNames`. This property can be set to an array of CSS class names which will be applied to the `tr` element.
-
-#### `valueProperty` _String_
+#### `items` _array of object_
 
 > **Required**
+>
+> **Action**: [`setRows`](./core.md#setrows)
 
-Must be set to a path that contains a unique value for each row (ex. `id`). 
+The items' properties can be anything you want, with the exception of `classNames`. This property can be set to an array of CSS class name strings which will be applied to the `tr` element.
 
-#### `minColumnWidth` _Number_
+#### [`columns`](./core.md#columns-array-of-column) _array of [Column](./core.md#column-object)_
+> **Required**
 
-> __Default__: `3`
+#### [`name`](./core.md#name-string) _string_
+> **Required**
 
-The minimum column width percentage relative to the table width.
+#### `valueProperty` _string_
 
-#### `isMultiselect` _Boolean_
+> **Required**
+>
+> **Action**: [`setValueProperty`](./core.md#setvalueproperty)
 
-> **Default**: `true`
+#### [`className`](./core.md#classname-string) _string_
 
-If set to false, the following features are disabled:
+> **Default:** `""`
 
-* `Shift`+ `Home`/`End`/`Up`/`Down`
-* `Ctrl`/`Shift`  + `Click`
-* `Ctrl` + `A`
-* Drag selection.
-
-#### `isListbox` _Boolean_
-
-> **Default**: `false`
-
-If set to true:
-
-* Clicking on empty space below the items won't clear the selection.
-* Right clicking won't select the row below the cursor, it will just be set to active.
-* The active value will be passed to [`onContextMenu`](./common.md#oncontextmenu-function) instead of the selected values.
-* Drag selection is disabled.
-
-#### `filter` _Any_
+#### [`emptyPlaceholder`](./core.md#emptyplaceholder-component) _component_
 
 > **Default**: `null`
 
-This object is passed as the second parameter to [`itemPredicate`](#itempredicate-function).
+#### [`onContextMenu`](./core.md#oncontextmenu-function) _function_
 
-__With the default implementation__, this object can contain key-value pairs of property paths and matching values. For example:
+>  **Default**: `() => {}`
 
-```javascript
-{
-    id: "1",
-    title: "react-select-table",
-    author: "BanForFun"
-}
-```
+#### [`onItemsOpen`](./core.md#onitemsopen-function) _function_
 
-The above filter will only allow rows that have a `title` property set to `"react-select-table"` and an `author` property set to `"BanForFun"`. Any extra properties will be ignored (Like `id` in this instance).
+> **Default**: `() => {}`
+
+#### [`onSelectionChange`](./core.md#onselectionchange-function) _function_
+
+> **Default**: `() => {}`
+
+#### `minColumnWidth` *number*
+
+> **Default**: `3`
+>
+> **Action**: [`setMinColumnWidth`](./core.md#setmincolumnwidth)
+
+#### `isMultiselect` *boolean*
+
+> **Default**: `true`
+>
+> **Action**: [`setMultiselect`](./core.md#setmultiselect)
+
+#### `isListbox` *boolean*
+
+> **Default**: `false`
+>
+> **Action**: [`setListboxMode`](./core.md#setlistboxmode)
+
+#### `filter` *any*
+
+> **Default**: `null`
+>
+> **Action**: [`setFilter`](./core.md#setfilter)

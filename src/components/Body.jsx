@@ -46,18 +46,13 @@ const Body = ({
     }
 
     const renderColumn = (row, column) => {
-        const value = row[valueProperty];
+        const rowValue = row[valueProperty];
         const { props, path, render, isHeader } = column;
 
-        let content = null;
-        if (path && render)
-            content = render(row[path], row);
-        else if (render)
-            content = render(row);
-        else if (path)
-            content = row[path];
+        const value = _.get(row, path);
+        const content = render ? render(value, row) : value;
 
-        const key = `cell_${name}_${value}_${props.id}`;
+        const key = `cell_${name}_${rowValue}_${props.id}`;
         if (isHeader) return <th key={key}>{content}</th>;
         return <td key={key}>{content}</td>
     }

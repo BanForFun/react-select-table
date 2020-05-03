@@ -52,7 +52,7 @@ Table.propTypes = {
     valueProperty: PropTypes.string.isRequired,
     items: PropTypes.array.isRequired,
     store: PropTypes.any.isRequired,
-    filter: PropTypes.object,
+    filter: PropTypes.any,
     minColumnWidth: PropTypes.number,
     isMultiselect: PropTypes.bool,
     isListbox: PropTypes.bool

@@ -56,10 +56,11 @@ export function createTable(initState = {}, options = {}) {
         const _sortItems = items =>
             _.orderBy(items, [draft.sortPath], [draft.sortOrder]);
 
+        const _transformItems = pipe(_parseItems, _filterItems, _sortItems);
+
         const updateItems = (updateSelection = false) => {
-            //Update items
-            const transform = pipe(_parseItems, _filterItems, _sortItems);
-            const newItems = transform(draft.items);
+            //Update items   
+            const newItems = _transformItems(draft.items);
             draft.tableItems = newItems;
 
             //Deselect values that no longer exist

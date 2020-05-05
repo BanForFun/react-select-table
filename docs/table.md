@@ -58,7 +58,7 @@ Refer to the [setup](#setup) section. If not provided, the table will not be ren
 >
 > **Action**: [`setRows`](./core.md#setrows)
 
-The items' properties can be anything you want, with the exception of `classNames`. This property can be set to an array of CSS class name strings which will be applied to the `tr` element.
+If an item has a `className` property set to an array of CSS class name strings, they will be applied to the `tr` element.
 
 #### [`columns`](./core.md#columns-array-of-column) _array of [Column](./core.md#column-object)_
 > **Required**
@@ -66,7 +66,7 @@ The items' properties can be anything you want, with the exception of `className
 #### [`name`](./core.md#name-string) _string_
 > **Required**
 
-#### `valueProperty` _string_
+#### [`valueProperty`](./core.md#valueproperty-string) _string_
 
 > **Required**
 >
@@ -92,25 +92,25 @@ The items' properties can be anything you want, with the exception of `className
 
 > **Default**: `() => {}`
 
-#### `minColumnWidth` *number*
+#### [`minColumnWidth`](./core.md#mincolumnwidth-number) *number*
 
 > **Default**: `3`
 >
 > **Action**: [`setMinColumnWidth`](./core.md#setmincolumnwidth)
 
-#### `isMultiselect` *boolean*
+#### [`isMultiselect`](./core.md#ismultiselect-boolean) *boolean*
 
 > **Default**: `true`
 >
 > **Action**: [`setMultiselect`](./core.md#setmultiselect)
 
-#### `isListbox` *boolean*
+#### [`isListbox`](./core.md#islistbox-boolean) *boolean*
 
 > **Default**: `false`
 >
 > **Action**: [`setListboxMode`](./core.md#setlistboxmode)
 
-#### `filter` *any*
+#### [`filter`](./core.md#filter-any) *any*
 
 > **Default**: `null`
 >

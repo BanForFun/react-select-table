@@ -8,7 +8,7 @@
 
 The property name which the items are sorted by. If set to null, sorting is disabled.
 
-Note: The items are [parsed](./common.md#itemparser-function) before being sorted.
+Note: The items are [parsed](#itemparser-function) before being sorted.
 
 #### `sortOrder` *string*
 
@@ -21,40 +21,48 @@ Note: The items are [parsed](./common.md#itemparser-function) before being sorte
 
 The order which the items are sorted by. Has no effect when [`sortPath`](#sortpath-string) is null.
 
-#### `columnOrder` *array of number*
+[columnOrder]: #columnorder-array-of-number
 
+#### `columnOrder` *array of number*
 > **Default**: `null`
 
 Used to reorder and/or hide columns. It can be set to an array of indexes corresponding to items in the [`columns`](#columns-array-of-item) array.
 
-If null, all columns passed to the [`columns`](#columns-array-of-item) prop will be rendered in the default order.
+If null, all columns passed to the `columns` prop will be rendered in the default order.
 
 #### `columnWidth` *array of number*
 
 > **Default**: `[]`
 
-Array of columns widths as percentages of the table width. On initialization, all columns are set to be of equal width.
+Array of **[visible][columnOrder]** columns widths as percentages of the table width. On initialization, all columns are set to be of equal width.
+
+[value]: #valueproperty-string
 
 #### `valueProperty` *string*
-
 > **Default**: `null`
+>
+> [**Table prop**](./table.md#valueproperty-string)
 
 Property path that contains a unique value for each item (ex. `id`). 
 
 #### `selectedValues` *array of any*
 
+[selection]: #selectedvalues-array-of-any
+
 > **Default**: `[]`
 
-Array of selected [values](#valueproperty-string). By default, selected items have light green background color.
+Array of selected [values][value]. By default, selected items have light green background color.
 
 #### `activeValue` *any*
 
 > **Default**: `null`
 
-Active [value](#valueproperty-string). By default, the active item has dark green bottom border.
+Active [value][value]. By default, the active item has dark green bottom border.
 
 #### `filter` *any*
 > **Default**: `null`
+>
+> [**Table prop**](./table.md#filter-any)
 
 Passed as the second parameter to [`itemPredicate`](#itempredicate-function).
 
@@ -73,17 +81,17 @@ The above filter will only allow rows that have a `title` property set to `"reac
 #### `items` *object*
 > **Default**: `{}`
 
-Unparsed, unsorted and unfiltered items keyed by [value](#valueproperty-string).
+Unparsed, unsorted and unfiltered items keyed by [value][value].
 
 #### `pivotValue` *any*
 > **Default**: `null`
 
-The [value](#valueproperty-string) of the item that is used to pivot the selection on `Shift`+`Click`/`Up`/`Down`.
+The [value][value] of the item that is used to pivot the selection on `Shift`+`Click`/`Up`/`Down`.
 
 #### `tableItems` *array of object*
 > **Default**: `[]`
 
- [Parsed](./common.md#itemparser-function), [sorted](#sortpath-string) and [filtered](#filter-any) items.
+ [Parsed](#itemparser-function), [sorted](#sortpath-string) and [filtered](#filter-any) items.
 
 #### `isLoading` *boolean*
 > **Default**: `true`
@@ -96,6 +104,8 @@ Can be used to conditionally display a loading indicator. Initially set to `true
 
 #### `isMultiselect` *boolean*
 > **Default**: `true`
+>
+> [**Table prop**](./table.md#ismultiselect-boolean)
 
 If set to false, the following features are disabled:
 
@@ -106,16 +116,20 @@ If set to false, the following features are disabled:
 
 #### `isListbox` *boolean*
 > **Default**: `false`
+>
+> [**Table prop**](./table.md#islistbox-boolean)
 
 If set to true:
 
 * Clicking on empty space below the items won't clear the selection.
-* Right clicking won't select the row below the cursor, it will just be set to active.
-* The active value will be passed to [`onContextMenu`](./common.md#oncontextmenu-function) instead of the selected values.
+* Right clicking won't select the row below the cursor, it will just be set to [active](#activevalue-any).
+* The [active value](#activevalue-any) will be passed to [`onContextMenu`](./common.md#oncontextmenu-function) instead of the selected values.
 * Drag selection is disabled.
 
 #### `minColumnWidth` *number*
 > **Default**: `3`
+>
+> [**Table prop**](./table.md#mincolumnwidth-number)
 
 The minimum column width percentage relative to the table width.
 
@@ -138,87 +152,215 @@ store.dispatch(TableStore.setRows([
 
 > **Type**: `TABLE_SET_MIN_COLUMN_WIDTH`
 
+Parameters:
+
+* `percent` *number*
+
+Sets [`minColumnWidth`](#mincolumnwidth-number) state to `percent`. If a column is smaller than `percent`  it will **not** be resized to the minimum width.
+
 #### `setListboxMode`
 
 > **Type**: `TABLE_SET_LISTBOX_MODE`
+
+Parameters:
+
+* `isListbox` *boolean*
+
+Sets [`isListbox`](#islistbox-boolean) state to `isListbox`.
 
 #### `setMultiselect`
 
 > **Type**: `TABLE_SET_MULTISELECT`
 
+Parameters:
+
+* `isMultiselect` *boolean*
+
+Sets [`isMultiselect`](#ismultiselect-boolean) state to `isMultiselect`. If `isMultiselect` is false and more than one item is currently selected, only the item that was selected first will stay as such.
+
 #### `setValueProperty`
 
 > **Type**: `TABLE_SET_VALUE_PROPERTY`
+
+Parameters:
+
+* `name` *string*
+
+Sets [`valueProperty`][value] state to `name`. Clears the [selection][selection].
 
 #### `clearRows`
 
 > **Type**: `TABLE_CLEAR_ROWS`
 
+Parameters: none
+
+Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Clears the [selection][selection].
+
 #### `contextMenu`
 
 > **Type**: `TABLE_CONTEXT_MENU`
+
+Parameters:
+
+* `value` *any*
+* `ctrlKey` *boolean*
+
+Modifies the  [selection][selection] based on the item that was right-clicked, and whether the `Ctrl` key was pressed at the time.
 
 #### `setFilter`
 
 > **Type**: `TABLE_SET_FILTER`
 
+Parameters: 
+
+* `filter` *any*
+
+Sets [`filter`](#filter-any) state to `filter`. Updates the items based on the new filter.
+
 #### `patchRow`
 
 > **Type**: `TABLE_PATCH_ROW`
+
+Parameters:
+
+* `value` *any*
+* `patch` *object*
+
+Finds the item with [value][value]: `value` and copies the properties of `patch` to it.
+
+**Warning**: Don't use `patchRow` to change an item's value, as the [selection][selection] will not be updated. Use [`setRowValue`](#setrowvalue) instead.
 
 #### `setRowValue`
 
 > **Type**: `TABLE_SET_ROW_VALUE`
 
+Parameters:
+
+* `oldValue` *any*
+* `newValue` *any*
+
+Finds the item with [value][value]: `oldValue` and changes its value to `newValue`.
+
 #### `replaceRow`
 
 > **Type**: `TABLE_REPLACE_ROW`
+
+Parameters:
+
+* `value` *any*
+* `newItem` *object*
+
+Finds the item with [value][value]: `value` and replaces it with `newItem`.
 
 #### `deleteRows`
 
 > **Type**: `TABLE_DELETE_ROWS`
 
+Parameters:
+
+* `...values` *parameter array of any*
+
+Deletes all items who's [values][value] are included in `values`.
+
 #### `addRow`
 
 > **Type**: `TABLE_ADD_ROW`
+
+Parameters:
+
+* `newItem` *object*
+
+Adds `newItem` to the item list.
 
 #### `setRows`
 
 > **Type**: `TABLE_SET_ROWS`
 
+Parameters:
+
+* `items` *array of object*
+
+Sets item list to `items`. Sets [`isLoading`](#isloading-boolean) state to false.
+
 #### `setColumnWidth`
 
 > **Type**: `TABLE_SET_COLUMN_WIDTH`
+
+Parameters:
+
+* `index` *number*
+* `width` *number*
+
+Resizes the **[visible][columnOrder]** column at `index` to `width`.
 
 #### `setColumnOrder`
 
 > **Type**: `TABLE_SET_COLUMN_ORDER`
 
+Parameters:
+
+* `order` *array of number*
+
+Sets [`columnOrder`](#columnorder-array-of-number) state to `order`.
+
 #### `sortBy`
 
 > **Type**: `TABLE_SORT_BY`
+
+Parameters:
+
+* `path` *string*
+
+Sets [`sortPath`](#sortpath-string) state to `path`. If `sortPath` is already set to `path`, [`sortOrder`](#sortorder-string) is toggled between ascending and descending. Otherwise it is set to ascending.
 
 #### `selectRow`
 
 > **Type**: `TABLE_SELECT_ROW`
 
+Parameters:
+
+* `value` *any*
+* `ctrlKey` *boolean* (Optional, `false` by default)
+* `shiftKey` *boolean* (Optional, `false` by default)
+
+Modifies the [selection][selection] based on the item that was clicked, and whether the `Ctrl ` or `Shift` keys were held down at the time.
+
 #### `setActiveRow`
 
 > **Type**: `TABLE_SET_ACTIVE_ROW`
+
+Parameters:
+
+* `value` *any*
+
+Sets [`activeValue`](#activevalue-any) and [`pivotValue`](#pivotvalue-any) state to `value`.
 
 #### `clearSelection`
 
 > **Type**: `TABLE_CLEAR_SELECTION`
 
+Parameters: none
+
+Sets [`activeValue`](#activevalue-any) to null. Clears the [selection][selection] if [`isLisbox`](#islistbox-boolean) is false.
+
 #### `selectAll`
 
 > **Type**: `TABLE_SELECT_ALL`
+
+Parameters: none
+
+Selects all items. Has no effect when [`isMultiselect`](#ismultiselect-boolean) is false.
 
 #### `setRowSelected`
 
 > **Type**: `TABLE_SET_ROW_SELECTED`
 
+Parameters:
 
+* `value` *any*
+* `selected` *boolean*
+
+Finds the item with [value][value]: `value` and selects or deselects it, based on `selected`.
 
 
 
@@ -266,11 +408,11 @@ The event handlers are called from inside the reducer. If you try to dispatch an
 >
 > [**Table prop**](./table.md#oncontextmenu-function)
 
-Called when the user right-clicks on a row or the table container.
-
 | Parameter | Type           | Description                                                  |
 | --------- | -------------- | ------------------------------------------------------------ |
-| `values`  | *Array of any* | If [`isListbox`](#islistbox-boolean) is false (default), the [selected values](#selectedvalues-array-of-any)<br/>Otherwise, the [active value](#activevalue-any) in an array |
+| `values`  | *Array of any* | If [`isListbox`](#islistbox-boolean) is false (default), the [selected values](#selectedvalues-array-of-any) Otherwise, the [active value](#activevalue-any) in an array |
+
+Called when the user right-clicks on a row or the table container.
 
 #### `onItemsOpen` _function_
 
@@ -278,14 +420,14 @@ Called when the user right-clicks on a row or the table container.
 >
 > [**Table prop**](./table.md#onitemsopen-function)
 
-Called when the user double-clicks or presses the enter key. 
-
-This event will not be raised if no rows are selected, meaning that `values` can never be empty.
-
-| Parameter  | Type           | Description                                                 |
+| Name       | Type           | Description                                                 |
 | ---------- | -------------- | ----------------------------------------------------------- |
 | `values`   | *Array of any* | The [selected values](#selectedvalues-array-of-any)         |
 | `enterKey` | *Boolean*      | True if caused by enter key press, false if by double click |
+
+Called when the user double-clicks or presses the enter key. 
+
+This event will not be raised if no rows are selected, meaning that `values` can never be empty.
 
 #### `onSelectionChange` _function_
 
@@ -293,11 +435,11 @@ This event will not be raised if no rows are selected, meaning that `values` can
 >
 > [**Table prop**](./table.md#onselectionchange-function)
 
-Called when the selection changes.
-
 | Parameter | Type           | Description                                         |
 | --------- | -------------- | --------------------------------------------------- |
 | `values`  | *Array of any* | The [selected values](#selectedvalues-array-of-any) |
+
+Called when the [selection][selection] changes.
 
 
 
@@ -329,11 +471,6 @@ If set to true, a th element will be used instead of td for the cell rendering.
 
 
 ### Options *object*
-
-> **Used in:**
->
-> * [`useTableStore`/`configureTableStore`](./table.md#setup)
-> * `createTable`
 
 #### `itemParser` _Function_
 

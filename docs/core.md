@@ -26,7 +26,7 @@ The order which the items are sorted by. Has no effect when [`sortPath`](#sortpa
 #### `columnOrder` *array of number*
 > **Default**: `null`
 
-Used to reorder and/or hide columns. It can be set to an array of indexes corresponding to items in the [`columns`](#columns-array-of-item) array.
+Used to reorder and/or hide columns. It can be set to an array of indexes corresponding to items in the [`columns`](#columns-array-of-column) array.
 
 If null, all columns passed to the `columns` prop will be rendered in the default order.
 
@@ -57,7 +57,7 @@ Array of selected [values][value]. By default, selected items have light green b
 
 > **Default**: `null`
 
-Active [value][value]. By default, the active item has dark green bottom border.
+Active [value][value]. By default, the active item has green bottom border.
 
 #### `filter` *any*
 > **Default**: `null`
@@ -364,7 +364,7 @@ Finds the item with [value][value]: `value` and selects or deselects it, based o
 
 
 
-### TableCore Props
+### TableCore props
 
 #### `columns` _array of [Column](#column-object)_
 
@@ -398,6 +398,14 @@ Compatible with styles designed for html table elements (for example bootstrap's
 
 Rendered when the table contains no items.
 
+#### `statePath` *string*
+
+> **Default**: `null`
+
+If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using lodash's `_.get` method, meaning that dot notation can be used.
+
+
+
 ### Event props
 
 The event handlers are called from inside the reducer. If you try to dispatch an action as the result of an event, you will get an error. To do that, you must handle the actions using middleware.
@@ -410,7 +418,7 @@ The event handlers are called from inside the reducer. If you try to dispatch an
 
 | Parameter | Type           | Description                                                  |
 | --------- | -------------- | ------------------------------------------------------------ |
-| `values`  | *Array of any* | If [`isListbox`](#islistbox-boolean) is false (default), the [selected values](#selectedvalues-array-of-any) Otherwise, the [active value](#activevalue-any) in an array |
+| `values`  | *Array of any* | If [`isListbox`](#islistbox-boolean) is false (default), the [selected values](#selectedvalues-array-of-any).<br/>Otherwise, the [active value](#activevalue-any) in an array |
 
 Called when the user right-clicks on a row or the table container.
 
@@ -425,9 +433,7 @@ Called when the user right-clicks on a row or the table container.
 | `values`   | *Array of any* | The [selected values](#selectedvalues-array-of-any)         |
 | `enterKey` | *Boolean*      | True if caused by enter key press, false if by double click |
 
-Called when the user double-clicks or presses the enter key. 
-
-This event will not be raised if no rows are selected, meaning that `values` can never be empty.
+Called when the user double-clicks or presses the enter key. Will not be called if no rows are selected.
 
 #### `onSelectionChange` _function_
 
@@ -511,3 +517,32 @@ Called for each row before adding it to the table. Returns the modified row.
 Called for each row to decide whether it should be displayed.
 
 Note: The items will be [parsed](#itemparser-function) before being filtered.
+
+
+
+### Reducer
+
+To create a reducer, use the `createTable` exported by `TableStore`. 
+
+Parameters:
+
+* `initState` *object* (Optional)
+* `options` *[Options](#options-object)* (Optional)
+
+Properties that in most cases remain constant like `valueProperty`, `minColumnWidth`,`isListbox` and `isMultiselect`, are recommended to be set inside `initState` instead of being set later. See all available `initState` properties [here](#state).
+
+**Reducer**
+
+```javascript
+import {TableStore} from "react-select-table";
+import {combineReducers} from "redux";
+
+export default rootReducer = combineReducers({
+    //...Reducers
+    todos: TableStore.createReducer({
+        valueProperty: "id",
+        isListbox: true
+    })
+})
+```
+

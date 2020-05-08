@@ -5,17 +5,6 @@ import Body from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
 import { connect } from 'react-redux';
-import {
-    clearSelection,
-    setRowSelected,
-    selectAll,
-    setActiveRow,
-    selectRow,
-    contextMenu,
-    _setEventHandler,
-    _setColumnCount,
-    defaultEventHandlers
-} from '../store/table';
 import Rect from '../models/rect';
 import {
     ensurePosVisible,
@@ -23,6 +12,9 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
+import { getSubState, getNamedActions } from '../selectors/namespaceSelector';
+import { defaultEventHandlers } from '../store/table';
+import { bindActionCreators } from 'redux';
 
 function TableCore(props) {
     const {
@@ -34,6 +26,7 @@ function TableCore(props) {
         columns,
         emptyPlaceholder,
         isListbox,
+        statePath,
 
         //Events
         onItemsOpen,
@@ -45,16 +38,7 @@ function TableCore(props) {
         columnWidth,
         activeValue,
         columnOrder,
-
-        //Redux actions
-        selectAll,
-        setActiveRow,
-        selectRow,
-        contextMenu,
-        clearSelection,
-        setRowSelected,
-        _setEventHandler,
-        _setColumnCount
+        actions
     } = props;
 
     const values = useMemo(() =>
@@ -67,15 +51,15 @@ function TableCore(props) {
     for (let name in defaultEventHandlers) {
         const handler = props[name];
         useEffect(() => {
-            _setEventHandler(name, handler)
-        }, [handler]);
+            actions.setEventHandler(name, handler)
+        }, [handler, actions]);
     };
 
     //Set column count
     useEffect(() => {
         if (columnOrder) return;
-        _setColumnCount(columns.length)
-    }, [columns.length, columnOrder]);
+        actions.setColumnCount(columns.length)
+    }, [columns.length, columnOrder, actions]);
 
     //#endregion
 
@@ -124,9 +108,9 @@ function TableCore(props) {
             //Check for collision with selection rectangle
             const intersects = bottom > rect.top && top < rect.bottom;
             if (selectedValues.includes(value) !== intersects)
-                setRowSelected(value, intersects);
+                actions.setRowSelected(value, intersects);
         }
-    }, [selectedValues, rowRefs, values]);
+    }, [selectedValues, rowRefs, values, actions]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
@@ -223,11 +207,11 @@ function TableCore(props) {
         const value = values[index];
 
         const onlyCtrl = e.ctrlKey && !e.shiftKey;
-        if (onlyCtrl) setActiveRow(value);
-        else selectRow(value, e.ctrlKey, e.shiftKey);
+        if (onlyCtrl) actions.setActiveRow(value);
+        else actions.selectRow(value, e.ctrlKey, e.shiftKey);
 
         ensureRowVisible(rowRefs[index].current, bodyContainer.current);
-    }, [rowRefs, values]);
+    }, [rowRefs, values, actions]);
 
     //Handle up/down arrows
     const selectAtOffset = useCallback((e, offset) => {
@@ -245,8 +229,8 @@ function TableCore(props) {
         if (e.currentTarget !== e.target ||
             e.ctrlKey || e.button !== 0) return;
 
-        clearSelection();
-    }, []);
+        actions.clearSelection();
+    }, [actions]);
 
     //#region Event Handlers
     const handleMouseDown = useCallback(e => {
@@ -259,15 +243,15 @@ function TableCore(props) {
     }, [raiseItemOpen]);
 
     const handleContextMenu = useCallback(e => {
-        contextMenu(null, e.ctrlKey);
-    }, []);
+        actions.contextMenu(null, e.ctrlKey);
+    }, [actions]);
 
     const handleKeyDown = useCallback(e => {
         let preventDefault = true;
 
         switch (e.keyCode) {
             case 65: //A
-                if (e.ctrlKey) selectAll();
+                if (e.ctrlKey) actions.selectAll();
                 break;
             case 38: //Up
                 selectAtOffset(e, -1);
@@ -294,7 +278,8 @@ function TableCore(props) {
         selectFromKeyboard,
         selectAtOffset,
         raiseItemOpen,
-        items
+        actions,
+        items,
     ]);
     //#endregion
 
@@ -314,7 +299,7 @@ function TableCore(props) {
     }, [columnOrder, columnWidth, columns]);
 
     const commonParams = {
-        name, context,
+        name, context, statePath,
         columns: parsedColumns
     }
 
@@ -360,10 +345,10 @@ function TableCore(props) {
     )
 }
 
-function mapStateToProps(state, { statePath }) {
-    const subState = _.get(state, statePath, state);
+function mapState(root, props) {
+    const state = getSubState(root, props);
 
-    const directMap = _.pick(subState,
+    const directMap = _.pick(state,
         "columnWidth",
         "columnOrder",
         "selectedValues",
@@ -376,20 +361,16 @@ function mapStateToProps(state, { statePath }) {
 
     return {
         ...directMap,
-        items: subState.tableItems
+        items: state.tableItems
     }
 }
 
-export default connect(mapStateToProps, {
-    clearSelection,
-    setRowSelected,
-    selectAll,
-    selectRow,
-    contextMenu,
-    setActiveRow,
-    _setEventHandler,
-    _setColumnCount
-})(TableCore);
+function mapDispatch(dispatch, props) {
+    const actions = getNamedActions(props);
+    return { actions: bindActionCreators(actions, dispatch) };
+}
+
+export default connect(mapState, mapDispatch)(TableCore);
 
 const columnShape = PropTypes.shape({
     title: PropTypes.string,

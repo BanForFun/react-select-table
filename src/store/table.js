@@ -5,6 +5,7 @@ import { sortOrders } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
 import { pullFirst, inArray, areArraysEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
+import InternalActions from "../models/internalActions";
 
 const defaultState = {
     sortPath: null,
@@ -35,13 +36,14 @@ function validateInitialState(state) {
         state.columnWidth = getDefaultWidth(count);
 }
 
-export function createTable(initState = {}, options = {}) {
+export function createTable(tableName, initState = {}, options = {}) {
     _.defaults(initState, defaultState);
     validateInitialState(initState);
 
     _.defaults(options, defaultOptions);
     const eventHandlers = _.clone(defaultEventHandlers);
 
+    const actions = new InternalActions(tableName);
     return (state = initState, action) => produce(state, draft => {
         const values = _.map(state.tableItems, state.valueProperty);
         let updateSelection = false;
@@ -105,34 +107,34 @@ export function createTable(initState = {}, options = {}) {
         switch (action.type) {
             //Items
             case "FORM_GROUP_SET_DATA":
-            case TABLE_SET_ROWS: {
+            case actions.SET_ROWS: {
                 const { data: items } = action;
                 draft.items = _.keyBy(items, state.valueProperty);
                 draft.isLoading = false;
                 updateItems(true);
                 break;
             }
-            case TABLE_ADD_ROW: {
+            case actions.ADD_ROW: {
                 const { newItem } = action;
                 const value = newItem[state.valueProperty];
                 draft.items[value] = newItem;
                 updateItems();
                 break;
             }
-            case TABLE_DELETE_ROWS: {
+            case actions.DELETE_ROWS: {
                 const { values } = action;
                 deleteKeys(draft.items, values);
                 deselectRows(values);
                 updateItems();
                 break;
             }
-            case TABLE_REPLACE_ROW: {
+            case actions.REPLACE_ROW: {
                 //Value property should not be changed
                 draft.items[action.value] = action.newItem;
                 updateItems();
                 break;
             }
-            case TABLE_SET_ROW_VALUE: {
+            case actions.SET_ROW_VALUE: {
                 const { oldValue, newValue } = action;
 
                 //Update active value
@@ -156,14 +158,14 @@ export function createTable(initState = {}, options = {}) {
                 updateItems();
                 break;
             }
-            case TABLE_PATCH_ROW: {
+            case actions.PATCH_ROW: {
                 //Value property should not be changed
                 const { value, patch } = action;
                 Object.assign(draft.items[value], patch);
                 updateItems();
                 break;
             }
-            case TABLE_CLEAR_ROWS: {
+            case actions.CLEAR_ROWS: {
                 //Clear items
                 draft.items = {};
                 draft.tableItems = [];
@@ -173,7 +175,7 @@ export function createTable(initState = {}, options = {}) {
                 clearSelection();
                 break;
             }
-            case TABLE_SORT_BY: {
+            case actions.SORT_BY: {
                 const newPath = action.path;
 
                 if (state.sortPath === newPath && state.sortOrder === sortOrders.Ascending)
@@ -185,14 +187,14 @@ export function createTable(initState = {}, options = {}) {
                 updateItems();
                 break;
             }
-            case TABLE_SET_FILTER: {
+            case actions.SET_FILTER: {
                 draft.filter = action.filter;
                 updateItems(true);
                 break;
             }
 
             //Selection
-            case TABLE_SELECT_ROW: {
+            case actions.SELECT_ROW: {
                 updateSelection = true;
 
                 const { value, ctrlKey, shiftKey } = action;
@@ -228,11 +230,11 @@ export function createTable(initState = {}, options = {}) {
 
                 break;
             }
-            case TABLE_CLEAR_SELECTION: {
+            case actions.CLEAR_SELECTION: {
                 clearSelection(!state.isListbox);
                 break;
             }
-            case TABLE_SET_ROW_SELECTED: {
+            case actions.SET_ROW_SELECTED: {
                 const { value, selected } = action;
 
                 if (!selected)
@@ -243,17 +245,17 @@ export function createTable(initState = {}, options = {}) {
                 updateSelection = true;
                 break;
             }
-            case TABLE_SELECT_ALL: {
+            case actions.SELECT_ALL: {
                 if (!state.isMultiselect) break;
                 draft.selectedValues = values;
                 updateSelection = true;
                 break;
             }
-            case TABLE_SET_ACTIVE_ROW: {
+            case actions.SET_ACTIVE_ROW: {
                 setActivePivotValue(action.value);
                 break;
             }
-            case TABLE_CONTEXT_MENU: {
+            case actions.CONTEXT_MENU: {
                 const { value, ctrlKey } = action;
 
                 if (!ctrlKey) {
@@ -268,7 +270,7 @@ export function createTable(initState = {}, options = {}) {
                 raiseContextMenu();
                 break;
             }
-            case TABLE_SET_MULTISELECT: {
+            case actions.SET_MULTISELECT: {
                 const { isMultiselect } = action;
                 draft.isMultiselect = isMultiselect;
 
@@ -278,13 +280,13 @@ export function createTable(initState = {}, options = {}) {
                 }
                 break;
             }
-            case TABLE_SET_LISTBOX_MODE: {
+            case actions.SET_LISTBOX_MODE: {
                 draft.isListbox = action.isListbox;
                 break;
             }
 
             //Options
-            case TABLE_SET_VALUE_PROPERTY: {
+            case actions.SET_VALUE_PROPERTY: {
                 const { name } = action;
                 if (state.valueProperty === name) break;
 
@@ -303,7 +305,7 @@ export function createTable(initState = {}, options = {}) {
 
 
             //Columns
-            case TABLE_SET_COLUMN_WIDTH: {
+            case actions.SET_COLUMN_WIDTH: {
                 const { index, width } = action;
                 const { minColumnWidth } = state;
 
@@ -317,7 +319,7 @@ export function createTable(initState = {}, options = {}) {
                 draft.columnWidth[index + 1] = availableWidth - limitedWidth;
                 break;
             }
-            case TABLE_SET_COLUMN_ORDER: {
+            case actions.SET_COLUMN_ORDER: {
                 draft.columnOrder = action.order;
                 const count = action.order.length;
 
@@ -325,13 +327,13 @@ export function createTable(initState = {}, options = {}) {
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
-            case TABLE_SET_MIN_COLUMN_WIDTH: {
+            case actions.SET_MIN_COLUMN_WIDTH: {
                 draft.minColumnWidth = action.percent;
                 break;
             }
 
             //Internal
-            case TABLE_SET_COLUMN_COUNT: {
+            case actions.SET_COLUMN_COUNT: {
                 const { count } = action;
                 if (state.columnWidth.length === count) break;
 
@@ -339,7 +341,7 @@ export function createTable(initState = {}, options = {}) {
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
-            case TABLE_SET_EVENT_HANDLER: {
+            case actions.SET_EVENT_HANDLER: {
                 eventHandlers[action.name] = action.callback;
                 break;
             }
@@ -350,129 +352,6 @@ export function createTable(initState = {}, options = {}) {
         if (updateSelection && !areArraysEqual(state.selectedValues, draft.selectedValues))
             raiseSelectionChange();
     })
-}
-
-//Rows
-export const TABLE_SET_ROWS = "TABLE_SET_ROWS";
-export const TABLE_ADD_ROW = "TABLE_ADD_ROW";
-export const TABLE_DELETE_ROWS = "TABLE_DELETE_ROWS";
-export const TABLE_REPLACE_ROW = "TABLE_REPLACE_ROW";
-export const TABLE_SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
-export const TABLE_PATCH_ROW = "TABLE_PATCH_ROW";
-export const TABLE_CLEAR_ROWS = "TABLE_CLEAR_ROWS";
-export const TABLE_SORT_BY = "TABLE_SORT_BY";
-export const TABLE_SET_FILTER = "TABLE_SET_FILTER";
-export const TABLE_SET_VALUE_PROPERTY = "TABLE_SET_VALUE_PROPERTY";
-
-//Columns
-export const TABLE_SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH"
-export const TABLE_SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
-export const TABLE_SET_MIN_COLUMN_WIDTH = "TABLE_SET_MIN_COLUMN_WIDTH";
-
-//Selection
-export const TABLE_SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
-export const TABLE_SELECT_ROW = "TABLE_SELECT_ROW";
-export const TABLE_CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
-export const TABLE_SELECT_ALL = "TABLE_SELECT_ALL";
-export const TABLE_SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
-export const TABLE_CONTEXT_MENU = "TABLE_CONTEXT_MENU";
-export const TABLE_SET_MULTISELECT = "TABLE_SET_MULTISELECT";
-export const TABLE_SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
-
-//Internal
-const TABLE_SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
-const TABLE_SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
-
-export function setMinColumnWidth(percent) {
-    return { type: TABLE_SET_MIN_COLUMN_WIDTH, percent };
-}
-
-export function setListboxMode(isListbox) {
-    return { type: TABLE_SET_LISTBOX_MODE, isListbox };
-}
-
-export function setMultiselect(isMultiselect) {
-    return { type: TABLE_SET_MULTISELECT, isMultiselect }
-}
-
-export function setValueProperty(name) {
-    return { type: TABLE_SET_VALUE_PROPERTY, name };
-}
-
-export function clearRows() {
-    return { type: TABLE_CLEAR_ROWS };
-}
-
-export function contextMenu(value, ctrlKey) {
-    return { type: TABLE_CONTEXT_MENU, value, ctrlKey };
-}
-
-export function setFilter(filter) {
-    return { type: TABLE_SET_FILTER, filter };
-}
-
-export function patchRow(value, patch) {
-    return { type: TABLE_PATCH_ROW, value, patch };
-}
-
-export function setRowValue(oldValue, newValue) {
-    return { type: TABLE_SET_ROW_VALUE, oldValue, newValue };
-}
-
-export function replaceRow(value, newItem) {
-    return { type: TABLE_REPLACE_ROW, value, newItem };
-}
-
-export function deleteRows(...values) {
-    return { type: TABLE_DELETE_ROWS, values };
-}
-
-export function addRow(newItem) {
-    return { type: TABLE_ADD_ROW, newItem };
-}
-
-export function setRows(items) {
-    return { type: TABLE_SET_ROWS, data: items };
-}
-
-export function setColumnWidth(index, width) {
-    return { type: TABLE_SET_COLUMN_WIDTH, index, width };
-}
-
-export function setColumnOrder(order) {
-    return { type: TABLE_SET_COLUMN_ORDER, order };
-}
-
-export function sortBy(path) {
-    return { type: TABLE_SORT_BY, path };
-}
-
-export function selectRow(value, ctrlKey = false, shiftKey = false) {
-    return { type: TABLE_SELECT_ROW, value, ctrlKey, shiftKey };
-}
-
-export function setActiveRow(value) {
-    return { type: TABLE_SET_ACTIVE_ROW, value };
-}
-
-export function clearSelection() {
-    return { type: TABLE_CLEAR_SELECTION };
-}
-
-export function selectAll() {
-    return { type: TABLE_SELECT_ALL };
-}
-
-export function setRowSelected(value, selected) {
-    return { type: TABLE_SET_ROW_SELECTED, value, selected };
-}
-
-export function _setColumnCount(count) {
-    return { type: TABLE_SET_COLUMN_COUNT, count };
-}
-
-export function _setEventHandler(name, callback) {
-    return { type: TABLE_SET_EVENT_HANDLER, name, callback };
 }
 
 function defaultItemFilter(item, filter) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 
-import { Table, useTableStore } from 'react-select-table';
+import { Table, useTable } from 'react-select-table';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-select-table/dist/index.css';
 import PulseLabel from './components/PulseLabel';
@@ -30,7 +30,6 @@ function renderCheckOrX(bool) {
 }
 
 function App() {
-  const tableStore = useTableStore();
   const [todos, setTodos] = useState();
 
   const [isMultiselect, setMultiselect] = useState(true);
@@ -40,6 +39,8 @@ function App() {
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
+  useTable("test");
+
   const getTodos = useCallback(async () => {
     setTodos(null);
     const response = await fetch("https://jsonplaceholder.typicode.com/todos");
@@ -47,7 +48,7 @@ function App() {
     setTodos(data.slice(0, 100));
   }, []);
 
-  useEffect(getTodos, [getTodos]);
+  useEffect(() => { getTodos() }, [getTodos]);
 
   return (
     <div className="container">
@@ -69,7 +70,6 @@ function App() {
 
         {todos ? (
           <Table
-            store={tableStore}
             items={todos}
             minColumnWidth={3}
             isListbox={isListbox}

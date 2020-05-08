@@ -5,6 +5,8 @@
 #### `sortPath` *string*
 
 > **Default**: `null`
+>
+> **Modified by**: [`sortBy`](#sortby)
 
 The property name which the items are sorted by. If set to null, sorting is disabled.
 
@@ -13,6 +15,8 @@ Note: The items are [parsed](#itemparser-function) before being sorted.
 #### `sortOrder` *string*
 
 > **Default**: `'asc'`
+>
+> **Modified by**: [`sortBy`](#sortby)
 >
 > **Valid values**:
 >
@@ -25,10 +29,12 @@ The order which the items are sorted by. Has no effect when [`sortPath`](#sortpa
 
 #### `columnOrder` *array of number*
 > **Default**: `null`
+>
+> **Modified by**: [`setColumnOrder`](#setColumnOrder)
 
 Used to reorder and/or hide columns. It can be set to an array of indexes corresponding to items in the [`columns`](#columns-array-of-column) array.
 
-If null, all columns passed to the `columns` prop will be rendered in the default order.
+If null, all columns passed to the `columns` prop will be rendered.
 
 #### `columnWidth` *array of number*
 
@@ -98,9 +104,9 @@ The [value][value] of the item that is used to pivot the selection on `Shift`+`C
 
 Can be used to conditionally display a loading indicator. Initially set to `true`.
 
-`TABLE_SET_ROWS ` action sets it to `false`. 
+[setRows](#setrows) action sets it to `false`. 
 
-`TABLE_CLEAR_ROWS` action sets it to `true`.
+[clearRows](#clearrows) action sets it to `true`.
 
 #### `isMultiselect` *boolean*
 > **Default**: `true`
@@ -156,7 +162,7 @@ Parameters:
 
 * `percent` *number*
 
-Sets [`minColumnWidth`](#mincolumnwidth-number) state to `percent`. If a column is smaller than `percent`  it will **not** be resized to the minimum width.
+Sets [`minColumnWidth`](#mincolumnwidth-number) state to `percent`. If a column is smaller than `percent` it will **not** be resized to the minimum width. Takes effect on the next resize.
 
 #### `setListboxMode`
 
@@ -205,7 +211,7 @@ Parameters:
 * `value` *any*
 * `ctrlKey` *boolean*
 
-Modifies the  [selection][selection] based on the item that was right-clicked, and whether the `Ctrl` key was pressed at the time.
+Modifies the [selection][selection] based on the item that was right-clicked, and whether the `Ctrl` key was pressed at the time.
 
 #### `setFilter`
 
@@ -498,14 +504,14 @@ Called for each row before adding it to the table. Returns the modified row.
 >
 > ```javascript
 > (item, filter) => {
-> if (!filter) return true;
+>   if (!filter) return true;
 > 
-> for (let key in filter) {
->   if (item[key] !== filter[key])
->       return false;
-> }
+>   for (let key in filter) {
+>       if (item[key] !== filter[key])
+>          return false;
+>   }
 > 
-> return true;
+>   return true;
 > }
 > ```
 
@@ -534,15 +540,45 @@ Properties that in most cases remain constant like `valueProperty`, `minColumnWi
 **Reducer**
 
 ```javascript
-import {TableStore} from "react-select-table";
-import {combineReducers} from "redux";
+import { TableStore } from "react-select-table";
+import { combineReducers } from "redux";
 
 export default rootReducer = combineReducers({
-    //...Reducers
+    //...Other reducers
     todos: TableStore.createReducer({
         valueProperty: "id",
         isListbox: true
     })
 })
+```
+
+To use multiple table reducers in a single store you can use a library like `react-redux-subspace`
+
+**Component**
+
+```react
+import React, { useEffect } from "react";
+import { connect } from "react-redux";
+import { TableCore, TableStore } from "react-select-table";
+
+function App({ setItems }) {
+    useEffect(() => {
+        // getItems is an async method that makes a request to an api 
+        // and returns an array of items
+        getItems().then(setItems); 
+    }, [setItems]);
+    
+    return (
+    	<TableCore
+            statePath="todos"
+            // ...Other props like column, name etc.
+        />
+    )
+}
+
+
+export default connect(null, {
+    setItems: TableStore.setRows
+})(App);
 ```
 

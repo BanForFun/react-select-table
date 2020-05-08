@@ -2,22 +2,21 @@
 
 ### Setup
 
-The `configureTableStore` (for class components) or `useTableStore` (for functional components) method must be called once for every table component. These methods return an object which must be passed to the `Table` component using the `store` prop. 
+The `initTable`/`disposeTable` (for class components) or `useTable` (for functional components) methods must be called for every table component. You must pass the table name as the first parameter. The name passed to the method must match the component's `name` prop.
 
-You can optionally pass an [options](./core.md#options-object) object as a parameter to either method.
+You can optionally pass an [options](./core.md#options-object) object as a second parameter to either method.
 
 **Functional component**
 
 ```react
 import React from 'react'
-import { Table, useTableStore } from 'react-select-table'
+import { Table, useTable } from 'react-select-table'
 
 function App() {
-    const tableStore = useTableStore();
+    useTable("todos");
     
     return (
-        <Table 
-            store={tableStore}
+        <Table name="todos"
             // ...Other props
         />
     )
@@ -28,15 +27,20 @@ function App() {
 
 ```react
 import React, { Component } from 'react';
-import { Table, configureTableStore } from 'react-select-table'
+import { Table, initTable, disposeTable } from 'react-select-table'
 
 class App extends Component {
-    tableStore = configureTableStore();
+    componentDidMount() {
+        initTable("todos");
+    }
+    
+    componentWillUnmount() {
+        disposeTable("todos");
+    }
 
     render() {
         return (
-            <Table 
-                store={this.tableStore}
+            <Table name="todos"
                 // ...Other props
             />
         )
@@ -45,12 +49,6 @@ class App extends Component {
 ```
 
 ### Props
-
-#### `store` *object*
-
-> **Required**
-
-Refer to the [setup](#setup) section. If not provided, the table will not be rendered.
 
 #### `items` _array of object_
 

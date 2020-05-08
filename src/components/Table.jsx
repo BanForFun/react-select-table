@@ -1,21 +1,14 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import TableCore from "./TableCore.jsx";
-import {
-    setRows,
-    setFilter,
-    setValueProperty,
-    setMultiselect,
-    setListboxMode,
-    setMinColumnWidth
-} from "../store/table";
+import InternalActions from "../models/internalActions.js";
+import store from "../store/index.js";
 
 function Table({
     items,
     filter,
-    store,
     valueProperty,
     isMultiselect,
     isListbox,
@@ -24,24 +17,26 @@ function Table({
     minColumnWidth,
     ...params
 }) {
-    function useAutoDispatch(actionCreator, param) {
+    const { name } = params;
+
+    const actions = useMemo(() =>
+        new InternalActions(name), [name]);
+
+    function useAutoDispatch(actionCreator, ...params) {
         useEffect(() => {
-            if (!store || param === undefined) return;
-            store.dispatch(actionCreator(param));
-        }, [store, param]);
+            store.dispatch(actionCreator(...params));
+        }, [actions, ...params]);
     }
 
-    useAutoDispatch(setValueProperty, valueProperty);
-    useAutoDispatch(setFilter, filter);
-    useAutoDispatch(setRows, items);
-    useAutoDispatch(setMultiselect, isMultiselect);
-    useAutoDispatch(setListboxMode, isListbox);
-    useAutoDispatch(setMinColumnWidth, minColumnWidth);
-
-    if (!store) return null;
+    useAutoDispatch(actions.setValueProperty, valueProperty);
+    useAutoDispatch(actions.setFilter, filter);
+    useAutoDispatch(actions.setRows, items);
+    useAutoDispatch(actions.setMultiselect, isMultiselect);
+    useAutoDispatch(actions.setListboxMode, isListbox);
+    useAutoDispatch(actions.setMinColumnWidth, minColumnWidth);
 
     return <Provider store={store}>
-        <TableCore {...params} />
+        <TableCore {...params} statePath={name} />
     </Provider>
 }
 
@@ -51,7 +46,6 @@ Table.propTypes = {
     ...TableCore.propTypes,
     valueProperty: PropTypes.string.isRequired,
     items: PropTypes.array.isRequired,
-    store: PropTypes.any.isRequired,
     filter: PropTypes.any,
     minColumnWidth: PropTypes.number,
     isMultiselect: PropTypes.bool,

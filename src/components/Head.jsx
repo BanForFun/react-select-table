@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import _ from "lodash";
 import { connect } from 'react-redux';
-import { setColumnWidth, sortBy } from "../store/table";
 import { registerEventListeners } from '../utils/elementUtils';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
+import { getSubState, getNamedActions } from '../selectors/namespaceSelector';
+import { bindActionCreators } from 'redux';
 
 function Head({
     columns,
@@ -13,8 +14,7 @@ function Head({
     sortOrder,
     sortPath,
     scrollBarWidth,
-    setColumnWidth,
-    sortBy
+    actions
 }) {
 
     const [resizingIndex, setResizingIndex] = useState(null);
@@ -35,8 +35,8 @@ function Head({
         const offset = _.sum(_.take(columnWidth, compatibleIndex));
         const percent = absPercent - offset;
 
-        setColumnWidth(compatibleIndex, percent);
-    }, [resizingIndex, columnWidth, setColumnWidth, scrollBarWidth]);
+        actions.setColumnWidth(compatibleIndex, percent);
+    }, [resizingIndex, columnWidth, actions, scrollBarWidth]);
 
     useEffect(() => {
         const onMouseUp = () => {
@@ -52,14 +52,14 @@ function Head({
         return dispose;
     }, [onMouseMove]);
 
-    const raiseSort = path => {
+    const raiseSort = useCallback(path => {
         if (ignoreSort.current) {
             ignoreSort.current = false;
             return;
         }
 
-        sortBy(path)
-    }
+        actions.sortBy(path);
+    }, [actions]);
 
     function renderSortIcon(colPath) {
         if (colPath !== sortPath) return null;
@@ -89,10 +89,14 @@ function Head({
     </thead>;
 }
 
-function mapStateToProps(state) {
+function mapState(root, props) {
+    const state = getSubState(root, props);
     return _.pick(state, "columnWidth", "sortOrder", "sortPath");
 }
 
-export default connect(mapStateToProps, {
-    setColumnWidth, sortBy
-})(Head);
+function mapDispatch(dispatch, props) {
+    const actions = getNamedActions(props);
+    return { actions: bindActionCreators(actions, dispatch) };
+}
+
+export default connect(mapState, mapDispatch)(Head);

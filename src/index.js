@@ -1,13 +1,17 @@
 import Table from './components/Table';
 import TableCore from './components/TableCore';
-import * as TableStore from "./store/table";
-import configureTableStore from "./store/configureStore";
-import useTableStore from "./hooks/useTableStore";
+import TableActions from "./models/actions";
+import * as TableReducer from "./store/table";
+import { initTable, disposeTable } from './utils/tableUtils';
+import useTable from './hooks/useTable';
+
 
 export {
     Table,
-    TableStore,
+    TableReducer,
+    TableActions,
     TableCore,
-    useTableStore,
-    configureTableStore
+    initTable,
+    disposeTable,
+    useTable
 };

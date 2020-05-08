@@ -1,10 +1,11 @@
 import _ from "lodash";
-import React from 'react';
-import { connect } from "react-redux";
-import { selectRow, setActiveRow, contextMenu } from "../store/table";
+import React, { useCallback } from 'react';
 import styles from "../index.scss";
+import { getSubState, getNamedActions } from "../selectors/namespaceSelector";
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
 
-const Body = ({
+function Body({
     columns,
     name,
     valueProperty,
@@ -12,20 +13,31 @@ const Body = ({
     rowRefs,
     selectedValues,
     activeValue,
-    contextMenu,
-    selectRow
-}) => {
-    const handleRowSelect = (e, value) => {
+    actions
+}) {
+    const handleRowSelect = useCallback((e, value) => {
         if (e.button !== 0) return;
-        selectRow(value, e.ctrlKey, e.shiftKey);
-    }
+        actions.selectRow(value, e.ctrlKey, e.shiftKey);
+    }, [actions])
 
-    const handleRowContextMenu = (e, value) => {
+    const handleRowContextMenu = useCallback((e, value) => {
         e.stopPropagation();
-        contextMenu(value, e.ctrlKey);
-    }
+        actions.contextMenu(value, e.ctrlKey);
+    }, [actions]);
 
-    const renderRow = (row, index) => {
+    const renderColumn = useCallback((row, column) => {
+        const rowValue = row[valueProperty];
+        const { props, path, render, isHeader } = column;
+
+        const value = _.get(row, path);
+        const content = render ? render(value, row) : value;
+
+        const key = `cell_${name}_${rowValue}_${props.id}`;
+        if (isHeader) return <th key={key}>{content}</th>;
+        return <td key={key}>{content}</td>
+    }, [valueProperty, name]);
+
+    const renderRow = useCallback((row, index) => {
         const value = row[valueProperty];
 
         const classes = [];
@@ -43,26 +55,27 @@ const Body = ({
             onMouseDown={e => handleRowSelect(e, value)}>
             {columns.map(col => renderColumn(row, col))}
         </tr>
-    }
-
-    const renderColumn = (row, column) => {
-        const rowValue = row[valueProperty];
-        const { props, path, render, isHeader } = column;
-
-        const value = _.get(row, path);
-        const content = render ? render(value, row) : value;
-
-        const key = `cell_${name}_${rowValue}_${props.id}`;
-        if (isHeader) return <th key={key}>{content}</th>;
-        return <td key={key}>{content}</td>
-    }
+    }, [
+        valueProperty,
+        rowRefs,
+        name,
+        columns,
+        selectedValues,
+        activeValue,
+        actions,
+        handleRowContextMenu,
+        handleRowSelect,
+        renderColumn
+    ]);
 
     return <tbody>
         {items.map(renderRow)}
     </tbody>;
 }
 
-function mapStateToProps(state) {
+function mapState(root, props) {
+    const state = getSubState(root, props);
+
     return {
         items: state.tableItems,
         selectedValues: state.selectedValues,
@@ -71,7 +84,9 @@ function mapStateToProps(state) {
     };
 }
 
+function mapDispatch(dispatch, props) {
+    const actions = getNamedActions(props);
+    return { actions: bindActionCreators(actions, dispatch) };
+}
 
-export default connect(mapStateToProps, {
-    selectRow, setActiveRow, contextMenu
-})(Body);
+export default connect(mapState, mapDispatch)(Body);

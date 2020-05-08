@@ -1,15 +1,14 @@
 import _ from "lodash";
 import React, { useCallback } from 'react';
 import styles from "../index.scss";
-import { getSubState, getNamedActions } from "../selectors/namespaceSelector";
+import { makeGetStateSlice } from "../selectors/namespaceSelector";
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
 
 function Body({
     columns,
     name,
     valueProperty,
-    items,
+    tableItems: items,
     rowRefs,
     selectedValues,
     activeValue,
@@ -73,20 +72,16 @@ function Body({
     </tbody>;
 }
 
-function mapState(root, props) {
-    const state = getSubState(root, props);
+function makeMapState() {
+    const getSlice = makeGetStateSlice();
 
-    return {
-        items: state.tableItems,
-        selectedValues: state.selectedValues,
-        activeValue: state.activeValue,
-        valueProperty: state.valueProperty
-    };
+    return (root, props) => _.pick(
+        getSlice(root, props),
+        "tableItems",
+        "selectedValues",
+        "activeValue",
+        "valueProperty"
+    );
 }
 
-function mapDispatch(dispatch, props) {
-    const actions = getNamedActions(props);
-    return { actions: bindActionCreators(actions, dispatch) };
-}
-
-export default connect(mapState, mapDispatch)(Body);
+export default connect(makeMapState)(Body);

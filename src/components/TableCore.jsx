@@ -12,7 +12,7 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
-import { getSubState, getNamedActions } from '../selectors/namespaceSelector';
+import { makeGetNamedActions, makeGetStateSlice } from '../selectors/namespaceSelector';
 import { defaultEventHandlers } from '../store/table';
 import { bindActionCreators } from 'redux';
 
@@ -32,7 +32,7 @@ function TableCore(props) {
         onItemsOpen,
 
         //Redux state
-        items,
+        tableItems: items,
         isLoading,
         selectedValues,
         columnWidth,
@@ -299,7 +299,10 @@ function TableCore(props) {
     }, [columnOrder, columnWidth, columns]);
 
     const commonParams = {
-        name, context, statePath,
+        name,
+        context,
+        statePath,
+        actions,
         columns: parsedColumns
     }
 
@@ -345,10 +348,11 @@ function TableCore(props) {
     )
 }
 
-function mapState(root, props) {
-    const state = getSubState(root, props);
+function makeMapState() {
+    const getSlice = makeGetStateSlice();
 
-    const directMap = _.pick(state,
+    return (root, props) => _.pick(
+        getSlice(root, props),
         "columnWidth",
         "columnOrder",
         "selectedValues",
@@ -356,21 +360,21 @@ function mapState(root, props) {
         "isLoading",
         "valueProperty",
         "isMultiselect",
-        "isListbox"
+        "isListbox",
+        "tableItems"
     );
+}
 
-    return {
-        ...directMap,
-        items: state.tableItems
+function makeMapDispatch() {
+    const getActions = makeGetNamedActions();
+
+    return (dispatch, props) => {
+        const actions = getActions(props);
+        return { actions: bindActionCreators(actions, dispatch) };
     }
 }
 
-function mapDispatch(dispatch, props) {
-    const actions = getNamedActions(props);
-    return { actions: bindActionCreators(actions, dispatch) };
-}
-
-export default connect(mapState, mapDispatch)(TableCore);
+export default connect(makeMapState, makeMapDispatch)(TableCore);
 
 const columnShape = PropTypes.shape({
     title: PropTypes.string,

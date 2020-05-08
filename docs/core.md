@@ -540,45 +540,45 @@ Properties that in most cases remain constant like `valueProperty`, `minColumnWi
 **Reducer**
 
 ```javascript
-import { TableStore } from "react-select-table";
+import { TableReducer } from "react-select-table";
 import { combineReducers } from "redux";
 
 export default rootReducer = combineReducers({
     //...Other reducers
-    todos: TableStore.createReducer({
+    todoTable: TableReducer.createTable("todos", {
         valueProperty: "id",
         isListbox: true
     })
 })
 ```
 
-To use multiple table reducers in a single store you can use a library like `react-redux-subspace`
-
 **Component**
 
 ```react
 import React, { useEffect } from "react";
-import { connect } from "react-redux";
-import { TableCore, TableStore } from "react-select-table";
+import { useDispatch } from "react-redux";
+import { TableCore, TableActions } from "react-select-table";
 
-function App({ setItems }) {
+const { setItems } = new TableActions("todos");
+
+function App() {
+    const dispatch = useDispatch();
+    
     useEffect(() => {
-        // getItems is an async method that makes a request to an api 
-        // and returns an array of items
-        getItems().then(setItems); 
-    }, [setItems]);
+        // getTodos is an async method that makes a request to an api 
+        // and returns an array
+        getTodos().then(todos => dispatch(setItems(todos))); 
+    }, [dispatch]);
     
     return (
-    	<TableCore
-            statePath="todos"
-            // ...Other props like column, name etc.
+    	<TableCore name="todos"
+            statePath="todoTable"
+            // ...Other props like columns etc.
         />
     )
 }
 
 
-export default connect(null, {
-    setItems: TableStore.setRows
-})(App);
+export default App;
 ```
 

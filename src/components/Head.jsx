@@ -4,8 +4,7 @@ import { connect } from 'react-redux';
 import { registerEventListeners } from '../utils/elementUtils';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
-import { getSubState, getNamedActions } from '../selectors/namespaceSelector';
-import { bindActionCreators } from 'redux';
+import { makeGetStateSlice } from '../selectors/namespaceSelector';
 
 function Head({
     columns,
@@ -89,14 +88,15 @@ function Head({
     </thead>;
 }
 
-function mapState(root, props) {
-    const state = getSubState(root, props);
-    return _.pick(state, "columnWidth", "sortOrder", "sortPath");
+function makeMapState() {
+    const getSlice = makeGetStateSlice();
+
+    return (root, props) => _.pick(
+        getSlice(root, props),
+        "columnWidth",
+        "sortOrder",
+        "sortPath"
+    );
 }
 
-function mapDispatch(dispatch, props) {
-    const actions = getNamedActions(props);
-    return { actions: bindActionCreators(actions, dispatch) };
-}
-
-export default connect(mapState, mapDispatch)(Head);
+export default connect(makeMapState)(Head);

@@ -15,15 +15,12 @@ function Head({
     scrollBarWidth,
     actions
 }) {
-
     const [resizingIndex, setResizingIndex] = useState(null);
     const ignoreSort = useRef(false);
     const header = useRef();
 
-    const isResizing = resizingIndex !== null;
-
     const onMouseMove = useCallback(e => {
-        if (!isResizing) return;
+        if (resizingIndex === null) return;
         const compatibleIndex = resizingIndex - 1;
         const element = header.current;
         const bounds = element.getBoundingClientRect();
@@ -37,19 +34,19 @@ function Head({
         actions.setColumnWidth(compatibleIndex, percent);
     }, [resizingIndex, columnWidth, actions, scrollBarWidth]);
 
-    useEffect(() => {
-        const onMouseUp = () => {
-            if (!resizingIndex) return;
-            ignoreSort.current = true;
-            setResizingIndex(null);
-        }
+    const onMouseUp = useCallback(() => {
+        if (resizingIndex === null) return;
+        ignoreSort.current = true;
+        setResizingIndex(null);
+    }, [resizingIndex]);
 
+    useEffect(() => {
         const dispose = registerEventListeners(document, {
             mousemove: onMouseMove,
             mouseup: onMouseUp
         });
         return dispose;
-    }, [onMouseMove]);
+    }, [onMouseMove, onMouseUp]);
 
     const raiseSort = useCallback(path => {
         if (ignoreSort.current) {
@@ -60,32 +57,37 @@ function Head({
         actions.sortBy(path);
     }, [actions]);
 
-    function renderSortIcon(colPath) {
+    const renderSortIcon = useCallback(colPath => {
         if (colPath !== sortPath) return null;
         return <SortIcon order={sortOrder} />
-    }
+    }, [sortPath, sortOrder]);
 
-    return <thead ref={header} data-resizing={isResizing}>
-        <tr>
-            {columns.map((col, index) => {
-                const { width, id } = col.props;
-                const { path } = col;
-                const isSortable = !!path;
+    return (
+        <thead
+            ref={header}
+            data-resizing={resizingIndex !== null}
+        >
+            <tr>
+                {columns.map((col, index) => {
+                    const { width, id } = col.props;
+                    const { path } = col;
+                    const isSortable = !!path;
 
-                return <th key={`title_${name}_${id}`}
-                    data-sortable={isSortable} style={{ width }}
-                    onClick={() => isSortable && raiseSort(path)}>
-                    {col.title}
-                    {isSortable && renderSortIcon(path)}
-                    {index > 0 && <div className={styles.seperator}
-                        onMouseDown={() => setResizingIndex(index)} />}
-                </th>
-            })}
-            {!!scrollBarWidth && <th
-                className={styles.scrollMargin}
-                width={`${scrollBarWidth}px`} />}
-        </tr>
-    </thead>;
+                    return <th key={`title_${name}_${id}`}
+                        data-sortable={isSortable} style={{ width }}
+                        onClick={() => isSortable && raiseSort(path)}>
+                        {col.title}
+                        {isSortable && renderSortIcon(path)}
+                        {index > 0 && <div className={styles.seperator}
+                            onMouseDown={() => setResizingIndex(index)} />}
+                    </th>
+                })}
+                {!!scrollBarWidth && <th
+                    className={styles.scrollMargin}
+                    width={`${scrollBarWidth}px`} />}
+            </tr>
+        </thead>
+    );
 }
 
 function makeMapState() {

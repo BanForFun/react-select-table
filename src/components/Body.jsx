@@ -48,7 +48,7 @@ function Body({
             classes.push(...row.classNames);
 
         return <tr key={`tr_${name}_${value}`}
-            ref={rowRefs[index]}
+            ref={el => rowRefs.current[index] = el}
             className={classes.join(' ')}
             onContextMenu={e => handleRowContextMenu(e, value)}
             onMouseDown={e => handleRowSelect(e, value)}>
@@ -56,7 +56,6 @@ function Body({
         </tr>
     }, [
         valueProperty,
-        rowRefs,
         name,
         columns,
         selectedValues,

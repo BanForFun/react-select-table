@@ -66,10 +66,11 @@ function TableCore(props) {
     //#region Drag selection
 
     //Create row refs
-    const [rowRefs, setRowRefs] = useState([]);
+    const rowRefs = useRef([]);
     useEffect(() => {
-        const refs = Array.from({ length: items.length }, React.createRef);
-        setRowRefs(refs);
+        // const refs = Array.from({ length: items.length }, React.createRef);
+        // setRowRefs(refs);
+        rowRefs.current = rowRefs.current.slice(0, items.length);
     }, [items.length]);
 
     //Drag start
@@ -95,11 +96,11 @@ function TableCore(props) {
 
         for (let i = 0; i < values.length; i++) {
             const value = values[i];
-            const { current } = rowRefs[i];
+            const rowEl = rowRefs.current[i];
 
             //Calculate top and bottom position
-            const top = current.offsetTop;
-            const bottom = top + current.scrollHeight;
+            const top = rowEl.offsetTop;
+            const bottom = top + rowEl.scrollHeight;
 
             //Skip if rows not visible
             if (bottom < topVisible) continue;
@@ -110,7 +111,7 @@ function TableCore(props) {
             if (selectedValues.includes(value) !== intersects)
                 actions.setRowSelected(value, intersects);
         }
-    }, [selectedValues, rowRefs, values, actions]);
+    }, [selectedValues, values, actions]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
@@ -210,8 +211,8 @@ function TableCore(props) {
         if (onlyCtrl) actions.setActiveRow(value);
         else actions.selectRow(value, e.ctrlKey, e.shiftKey);
 
-        ensureRowVisible(rowRefs[index].current, bodyContainer.current);
-    }, [rowRefs, values, actions]);
+        ensureRowVisible(rowRefs.current[index], bodyContainer.current);
+    }, [values, actions]);
 
     //Handle up/down arrows
     const selectAtOffset = useCallback((e, offset) => {

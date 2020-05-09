@@ -143,20 +143,40 @@ The minimum column width percentage relative to the table width.
 
 ### Action creators
 
-The action creators and the type constants are exported from `TableStore`. 
+The action creators and the type constants are exported from a `TableActions` instance. The constructor  takes the table [name](#name-string) as a parameter.
 
 ```react
-import { TableStore } from "react-select-table"
+import { TableActions } from "react-select-table";
+const todoActions = new TableActions("todo");
 
 //For example to set the table rows you can use
-store.dispatch(TableStore.setRows([
+store.dispatch(todoActions.setRows([
     //...items
 ]))
+
+//You can also access the action types
+switch(action.type) {
+    case todoActions.SET_ROWS:
+        console.log("New rows", action.items);
+        break;
+}
 ```
+
+For the action types below, the exported property name is listed. The actual string is: *table name* (in uppercase) + *underscore* (`_`) + *property name*. For example the property `SET_ROWS` with table name `todos` would return `TODOS_SET_ROWS`.
+
+#### `setRows`
+
+> **Type**: `SET_ROWS`
+
+Parameters:
+
+* `items` *array of object*
+
+Sets item list to `items`. Sets [`isLoading`](#isloading-boolean) state to false.
 
 #### `setMinColumnWidth`
 
-> **Type**: `TABLE_SET_MIN_COLUMN_WIDTH`
+> **Type**: `SET_MIN_COLUMN_WIDTH`
 
 Parameters:
 
@@ -166,7 +186,7 @@ Sets [`minColumnWidth`](#mincolumnwidth-number) state to `percent`. If a column 
 
 #### `setListboxMode`
 
-> **Type**: `TABLE_SET_LISTBOX_MODE`
+> **Type**: `SET_LISTBOX_MODE`
 
 Parameters:
 
@@ -176,7 +196,7 @@ Sets [`isListbox`](#islistbox-boolean) state to `isListbox`.
 
 #### `setMultiselect`
 
-> **Type**: `TABLE_SET_MULTISELECT`
+> **Type**: `SET_MULTISELECT`
 
 Parameters:
 
@@ -186,7 +206,7 @@ Sets [`isMultiselect`](#ismultiselect-boolean) state to `isMultiselect`. If `isM
 
 #### `setValueProperty`
 
-> **Type**: `TABLE_SET_VALUE_PROPERTY`
+> **Type**: `SET_VALUE_PROPERTY`
 
 Parameters:
 
@@ -196,7 +216,7 @@ Sets [`valueProperty`][value] state to `name`. Clears the [selection][selection]
 
 #### `clearRows`
 
-> **Type**: `TABLE_CLEAR_ROWS`
+> **Type**: `CLEAR_ROWS`
 
 Parameters: none
 
@@ -204,7 +224,7 @@ Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Clears 
 
 #### `contextMenu`
 
-> **Type**: `TABLE_CONTEXT_MENU`
+> **Type**: `CONTEXT_MENU`
 
 Parameters:
 
@@ -215,7 +235,7 @@ Modifies the [selection][selection] based on the item that was right-clicked, an
 
 #### `setFilter`
 
-> **Type**: `TABLE_SET_FILTER`
+> **Type**: `SET_FILTER`
 
 Parameters: 
 
@@ -225,7 +245,7 @@ Sets [`filter`](#filter-any) state to `filter`. Updates the items based on the n
 
 #### `patchRow`
 
-> **Type**: `TABLE_PATCH_ROW`
+> **Type**: `PATCH_ROW`
 
 Parameters:
 
@@ -238,7 +258,7 @@ Finds the item with [value][value]: `value` and copies the properties of `patch`
 
 #### `setRowValue`
 
-> **Type**: `TABLE_SET_ROW_VALUE`
+> **Type**: `SET_ROW_VALUE`
 
 Parameters:
 
@@ -249,7 +269,7 @@ Finds the item with [value][value]: `oldValue` and changes its value to `newValu
 
 #### `replaceRow`
 
-> **Type**: `TABLE_REPLACE_ROW`
+> **Type**: `REPLACE_ROW`
 
 Parameters:
 
@@ -260,7 +280,7 @@ Finds the item with [value][value]: `value` and replaces it with `newItem`.
 
 #### `deleteRows`
 
-> **Type**: `TABLE_DELETE_ROWS`
+> **Type**: `DELETE_ROWS`
 
 Parameters:
 
@@ -270,7 +290,7 @@ Deletes all items who's [values][value] are included in `values`.
 
 #### `addRow`
 
-> **Type**: `TABLE_ADD_ROW`
+> **Type**: `ADD_ROW`
 
 Parameters:
 
@@ -278,19 +298,9 @@ Parameters:
 
 Adds `newItem` to the item list.
 
-#### `setRows`
-
-> **Type**: `TABLE_SET_ROWS`
-
-Parameters:
-
-* `items` *array of object*
-
-Sets item list to `items`. Sets [`isLoading`](#isloading-boolean) state to false.
-
 #### `setColumnWidth`
 
-> **Type**: `TABLE_SET_COLUMN_WIDTH`
+> **Type**: `SET_COLUMN_WIDTH`
 
 Parameters:
 
@@ -301,7 +311,7 @@ Resizes the **[visible][columnOrder]** column at `index` to `width`.
 
 #### `setColumnOrder`
 
-> **Type**: `TABLE_SET_COLUMN_ORDER`
+> **Type**: `SET_COLUMN_ORDER`
 
 Parameters:
 
@@ -311,7 +321,7 @@ Sets [`columnOrder`](#columnorder-array-of-number) state to `order`.
 
 #### `sortBy`
 
-> **Type**: `TABLE_SORT_BY`
+> **Type**: `SORT_BY`
 
 Parameters:
 
@@ -321,7 +331,7 @@ Sets [`sortPath`](#sortpath-string) state to `path`. If `sortPath` is already se
 
 #### `selectRow`
 
-> **Type**: `TABLE_SELECT_ROW`
+> **Type**: `SELECT_ROW`
 
 Parameters:
 
@@ -333,7 +343,7 @@ Modifies the [selection][selection] based on the item that was clicked, and whet
 
 #### `setActiveRow`
 
-> **Type**: `TABLE_SET_ACTIVE_ROW`
+> **Type**: `SET_ACTIVE_ROW`
 
 Parameters:
 
@@ -343,7 +353,7 @@ Sets [`activeValue`](#activevalue-any) and [`pivotValue`](#pivotvalue-any) state
 
 #### `clearSelection`
 
-> **Type**: `TABLE_CLEAR_SELECTION`
+> **Type**: `CLEAR_SELECTION`
 
 Parameters: none
 
@@ -351,7 +361,7 @@ Sets [`activeValue`](#activevalue-any) to null. Clears the [selection][selection
 
 #### `selectAll`
 
-> **Type**: `TABLE_SELECT_ALL`
+> **Type**: `SELECT_ALL`
 
 Parameters: none
 
@@ -359,7 +369,7 @@ Selects all items. Has no effect when [`isMultiselect`](#ismultiselect-boolean) 
 
 #### `setRowSelected`
 
-> **Type**: `TABLE_SET_ROW_SELECTED`
+> **Type**: `SET_ROW_SELECTED`
 
 Parameters:
 

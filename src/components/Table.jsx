@@ -22,10 +22,11 @@ function Table({
     const actions = useMemo(() =>
         new InternalActions(name), [name]);
 
-    function useAutoDispatch(actionCreator, ...params) {
+    function useAutoDispatch(actionCreator, param) {
         useEffect(() => {
-            store.dispatch(actionCreator(...params));
-        }, [actions, ...params]);
+            if (param === undefined) return;
+            store.dispatch(actionCreator(param));
+        }, [actionCreator, param]);
     }
 
     useAutoDispatch(actions.setValueProperty, valueProperty);

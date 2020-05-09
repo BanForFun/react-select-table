@@ -2,7 +2,7 @@
 
 ### Setup
 
-The `initTable`/`disposeTable` (for class components) or `useTable` (for functional components) methods must be called for every table component. You must pass the table name as the first parameter. The name passed to the method must match the component's `name` prop.
+The `initTable`/`disposeTable` (for class components) or `useTable` (for functional components) methods must be called for every table component. You must pass a name as the first parameter. The name passed to the method must match the component's `name` prop.
 
 You can optionally pass an [options](./core.md#options-object) object as a second parameter to either method.
 
@@ -48,13 +48,13 @@ class App extends Component {
 }
 ```
 
+
+
 ### Props
 
 #### `items` _array of object_
 
 > **Required**
->
-> **Action**: [`setRows`](./core.md#setrows)
 
 If an item has a `className` property set to an array of CSS class name strings, they will be applied to the `tr` element.
 
@@ -67,8 +67,6 @@ If an item has a `className` property set to an array of CSS class name strings,
 #### [`valueProperty`](./core.md#valueproperty-string) _string_
 
 > **Required**
->
-> **Action**: [`setValueProperty`](./core.md#setvalueproperty)
 
 #### [`className`](./core.md#classname-string) _string_
 
@@ -93,23 +91,23 @@ If an item has a `className` property set to an array of CSS class name strings,
 #### [`minColumnWidth`](./core.md#mincolumnwidth-number) *number*
 
 > **Default**: `3`
->
-> **Action**: [`setMinColumnWidth`](./core.md#setmincolumnwidth)
 
 #### [`isMultiselect`](./core.md#ismultiselect-boolean) *boolean*
 
 > **Default**: `true`
->
-> **Action**: [`setMultiselect`](./core.md#setmultiselect)
 
 #### [`isListbox`](./core.md#islistbox-boolean) *boolean*
 
 > **Default**: `false`
->
-> **Action**: [`setListboxMode`](./core.md#setlistboxmode)
 
 #### [`filter`](./core.md#filter-any) *any*
 
 > **Default**: `null`
->
-> **Action**: [`setFilter`](./core.md#setfilter)
+
+
+
+### Troubleshooting
+
+#### No reducer found at '\<path\>'
+
+Ensure that `useTable` or `initTable` was called as shown in the [setup](#setup) section and that the name passed as the first parameter matches the Table component's [`name`](#name-string) prop.

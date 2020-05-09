@@ -12,13 +12,15 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
-import { makeGetNamedActions, makeGetStateSlice } from '../selectors/namespaceSelector';
+import { makeGetStateSlice } from '../selectors/namespaceSelector';
 import { defaultEventHandlers } from '../store/table';
 import { bindActionCreators } from 'redux';
+import InternalActions from '../models/internalActions';
 
 function TableCore(props) {
     const {
         name,
+        reducerName,
         context,
         className,
         valueProperty,
@@ -38,12 +40,18 @@ function TableCore(props) {
         columnWidth,
         activeValue,
         columnOrder,
-        actions
+        dispatch
     } = props;
 
     const values = useMemo(() =>
         _.map(items, valueProperty),
         [items, valueProperty]);
+
+    const actions = useMemo(() => {
+        const tableName = reducerName || name;
+        const actions = new InternalActions(tableName);
+        return bindActionCreators(actions, dispatch);
+    }, [name, reducerName, dispatch]);
 
     //#region Reducer updater
 
@@ -366,16 +374,7 @@ function makeMapState() {
     );
 }
 
-function makeMapDispatch() {
-    const getActions = makeGetNamedActions();
-
-    return (dispatch, props) => {
-        const actions = getActions(props);
-        return { actions: bindActionCreators(actions, dispatch) };
-    }
-}
-
-export default connect(makeMapState, makeMapDispatch)(TableCore);
+export default connect(makeMapState)(TableCore);
 
 const columnShape = PropTypes.shape({
     title: PropTypes.string,
@@ -388,6 +387,7 @@ const columnShape = PropTypes.shape({
 TableCore.propTypes = {
     name: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
+    reducerName: PropTypes.string,
     statePath: PropTypes.string,
     context: PropTypes.any,
     className: PropTypes.string,
@@ -399,6 +399,5 @@ TableCore.propTypes = {
 
 TableCore.defaultProps = {
     ...defaultEventHandlers,
-    onItemsOpen: () => { },
-    statePath: null
+    onItemsOpen: () => { }
 };

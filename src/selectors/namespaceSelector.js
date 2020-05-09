@@ -1,18 +1,17 @@
 import { createSelector } from "reselect"
 import _ from "lodash";
-import InternalActions from "../models/internalActions";
 
-export const makeGetStateSlice = () =>
-    createSelector(
-        [
-            state => state,
-            (_, props) => props.statePath
-        ],
-        (state, path) => _.get(state, path, state)
-    );
+export const makeGetStateSlice = () => createSelector(
+    [
+        state => state,
+        (_, props) => props.statePath
+    ],
+    (state, path) => {
+        if (!path) return state;
 
-export const makeGetNamedActions = () =>
-    createSelector(
-        props => props.name,
-        name => new InternalActions(name)
-    )
+        const slice = _.get(state, path);
+        if (slice) return slice;
+
+        throw new Error(`No reducer found at '${path}'`);
+    }
+);

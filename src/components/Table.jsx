@@ -26,7 +26,7 @@ function Table({
         useEffect(() => {
             if (param === undefined) return;
             store.dispatch(actionCreator(param));
-        }, [actionCreator, param]);
+        }, [actions, param]);
     }
 
     useAutoDispatch(actions.setValueProperty, valueProperty);

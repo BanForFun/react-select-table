@@ -30,87 +30,66 @@ export default class TableActions {
     get SET_MULTISELECT() { return `${this.name}_SET_MULTISELECT`; }
     get SET_LISTBOX_MODE() { return `${this.name}_SET_LISTBOX_MODE`; }
 
-    setMinColumnWidth = (percent) => {
-        return { type: this.SET_MIN_COLUMN_WIDTH, percent };
-    }
+    setMinColumnWidth = (percent) =>
+        ({ type: this.SET_MIN_COLUMN_WIDTH, percent })
 
-    setListboxMode = (isListbox) => {
-        return { type: this.SET_LISTBOX_MODE, isListbox };
-    }
+    setListboxMode = (isListbox) =>
+        ({ type: this.SET_LISTBOX_MODE, isListbox });
 
-    setMultiselect = (isMultiselect) => {
-        return { type: this.SET_MULTISELECT, isMultiselect }
-    }
+    setMultiselect = (isMultiselect) =>
+        ({ type: this.SET_MULTISELECT, isMultiselect })
 
-    setValueProperty = (name) => {
-        return { type: this.SET_VALUE_PROPERTY, name };
-    }
+    setValueProperty = (name) =>
+        ({ type: this.SET_VALUE_PROPERTY, name });
 
-    clearRows = () => {
-        return { type: this.CLEAR_ROWS };
-    }
+    clearRows = () =>
+        ({ type: this.CLEAR_ROWS });
 
-    contextMenu = (value, ctrlKey) => {
-        return { type: this.CONTEXT_MENU, value, ctrlKey };
-    }
+    contextMenu = (value, ctrlKey) =>
+        ({ type: this.CONTEXT_MENU, value, ctrlKey });
 
-    setFilter = (filter) => {
-        return { type: this.SET_FILTER, filter };
-    }
+    setFilter = (filter) =>
+        ({ type: this.SET_FILTER, filter });
 
-    patchRow = (value, patch) => {
-        return { type: this.PATCH_ROW, value, patch };
-    }
+    patchRow = (value, patch) =>
+        ({ type: this.PATCH_ROW, value, patch });
 
-    setRowValue = (oldValue, newValue) => {
-        return { type: this.SET_ROW_VALUE, oldValue, newValue };
-    }
+    setRowValue = (oldValue, newValue) =>
+        ({ type: this.SET_ROW_VALUE, oldValue, newValue });
 
-    replaceRow = (value, newItem) => {
-        return { type: this.REPLACE_ROW, value, newItem };
-    }
+    replaceRow = (value, newItem) =>
+        ({ type: this.REPLACE_ROW, value, newItem });
 
-    deleteRows = (...values) => {
-        return { type: this.DELETE_ROWS, values };
-    }
+    deleteRows = (...values) =>
+        ({ type: this.DELETE_ROWS, values });
 
-    addRow = (newItem) => {
-        return { type: this.ADD_ROW, newItem };
-    }
+    addRow = (newItem) =>
+        ({ type: this.ADD_ROW, newItem });
 
-    setRows = (items) => {
-        return { type: this.SET_ROWS, data: items };
-    }
+    setRows = (items) =>
+        ({ type: this.SET_ROWS, data: items });
 
-    setColumnWidth = (index, width) => {
-        return { type: this.SET_COLUMN_WIDTH, index, width };
-    }
+    setColumnWidth = (index, width) =>
+        ({ type: this.SET_COLUMN_WIDTH, index, width });
 
-    setColumnOrder = (order) => {
-        return { type: this.SET_COLUMN_ORDER, order };
-    }
+    setColumnOrder = (order) =>
+        ({ type: this.SET_COLUMN_ORDER, order });
 
-    sortBy = (path) => {
-        return { type: this.SORT_BY, path };
-    }
+    sortBy = (path) =>
+        ({ type: this.SORT_BY, path });
 
-    selectRow = (value, ctrlKey = false, shiftKey = false) => {
-        return { type: this.SELECT_ROW, value, ctrlKey, shiftKey };
-    }
+    selectRow = (value, ctrlKey = false, shiftKey = false) =>
+        ({ type: this.SELECT_ROW, value, ctrlKey, shiftKey });
 
-    setActiveRow = (value) => {
-        return { type: this.SET_ACTIVE_ROW, value };
-    }
+    setActiveRow = (value) =>
+        ({ type: this.SET_ACTIVE_ROW, value });
 
-    clearSelection = () => {
-        return { type: this.CLEAR_SELECTION };
-    }
+    clearSelection = () =>
+        ({ type: this.CLEAR_SELECTION });
 
-    selectAll = () => {
-        return { type: this.SELECT_ALL };
-    }
+    selectAll = () =>
+        ({ type: this.SELECT_ALL });
 
-    setRowSelected = (value, selected) => {
-        return { type: this.SET_ROW_SELECTED, value, selected };
-    }
+    setRowSelected = (value, selected) =>
+        ({ type: this.SET_ROW_SELECTED, value, selected });
 }

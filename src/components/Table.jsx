@@ -4,7 +4,9 @@ import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import TableCore from "./TableCore.jsx";
 import InternalActions from "../models/internalActions.js";
-import store from "../store/index.js";
+import configureStore from "../store/configureStore.js";
+
+const store = configureStore();
 
 function Table({
     items,
@@ -36,6 +38,7 @@ function Table({
     useAutoDispatch(actions.setListboxMode, isListbox);
     useAutoDispatch(actions.setMinColumnWidth, minColumnWidth);
 
+    if (!store) return null;
     return <Provider store={store}>
         <TableCore {...params} statePath={name} />
     </Provider>

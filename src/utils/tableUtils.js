@@ -1,4 +1,4 @@
-import { injectReducer, removeReducer } from "../store";
+import { injectReducer, removeReducer } from "../store/configureStore";
 import { createTable } from "../store/table";
 
 export function initTable(tableName, options = undefined) {

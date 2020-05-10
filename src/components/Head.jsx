@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import _ from "lodash";
 import { connect } from 'react-redux';
-import { registerEventListeners } from '../utils/elementUtils';
+import { registerListeners } from '../utils/eventUtils';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
 import { makeGetStateSlice } from '../selectors/namespaceSelector';
@@ -38,7 +38,6 @@ function Head({
         if (resizingIndex === null) return;
         touchToMouseEvent(e);
         onMouseMove(e);
-
         e.preventDefault();
         e.stopPropagation();
     }, [onMouseMove, resizingIndex]);
@@ -55,7 +54,7 @@ function Head({
     }, [onMouseUp, resizingIndex]);
 
     useEffect(() => {
-        return registerEventListeners(window, {
+        return registerListeners(window, {
             "mousemove": onMouseMove,
             "mouseup": onMouseUp,
             "touchmove": onTouchMove,
@@ -79,15 +78,22 @@ function Head({
                     const { path } = col;
                     const isSortable = !!path;
 
-                    const startResize = () => setResizingIndex(index);
+                    const startResize = () =>
+                        setResizingIndex(index);
+
+                    const handleClick = () => {
+                        if (!isSortable) return;
+                        actions.sortBy(path);
+                    }
 
                     return <th key={`title_${name}_${id}`}
                         data-sortable={isSortable} style={{ width }}
-                        onClick={() => isSortable && actions.sortBy(path)}>
+                        onClick={handleClick}>
                         {col.title}
                         {isSortable && renderSortIcon(path)}
                         {index > 0 &&
                             <div className={styles.seperator}
+                                onClick={e => e.stopPropagation()}
                                 onTouchStart={startResize}
                                 onMouseDown={startResize} />}
                     </th>

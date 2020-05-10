@@ -1,18 +1,3 @@
-export function registerEventListeners(element, map, options = {}) {
-    function forEach(methodName) {
-        for (let type in map) {
-            const handler = map[type];
-            element[methodName](type, handler, options);
-        }
-    }
-
-    forEach("addEventListener")
-    //Return cleanup method
-    return function () {
-        forEach("removeEventListener")
-    }
-}
-
 export function ensureRowVisible(item, parent) {
     const lowestYVisible = parent.scrollTop + parent.clientHeight;
     const lowestYHighlighted = item.offsetTop + item.scrollHeight;

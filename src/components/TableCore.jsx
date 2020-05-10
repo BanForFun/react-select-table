@@ -8,7 +8,6 @@ import { connect } from 'react-redux';
 import Rect from '../models/rect';
 import {
     ensurePosVisible,
-    registerEventListeners,
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
@@ -16,7 +15,10 @@ import { makeGetStateSlice } from '../selectors/namespaceSelector';
 import { defaultEventHandlers } from '../store/table';
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
-import { touchToMouseEvent } from '../utils/eventUtils';
+import {
+    touchToMouseEvent,
+    registerListeners
+} from '../utils/eventUtils';
 
 function TableCore(props) {
     const {
@@ -193,7 +195,7 @@ function TableCore(props) {
 
     //Register mouse move and up events
     useEffect(() => {
-        return registerEventListeners(window, {
+        return registerListeners(window, {
             "mousemove": dragMove,
             "mouseup": dragEnd,
             "touchmove": touchMove,

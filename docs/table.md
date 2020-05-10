@@ -103,11 +103,3 @@ If an item has a `className` property set to an array of CSS class name strings,
 #### [`filter`](./core.md#filter-any) *any*
 
 > **Default**: `null`
-
-
-
-### Troubleshooting
-
-#### No reducer found at '\<path\>'
-
-Ensure that `useTable` or `initTable` was called as shown in the [setup](#setup) section and that the name passed as the first parameter matches the Table component's [`name`](#name-string) prop.

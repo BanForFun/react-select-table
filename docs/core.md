@@ -613,7 +613,7 @@ export default rootReducer = combineReducers({
 
 ```react
 import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, ReactReduxContext } from "react-redux";
 import { TableCore, TableActions } from "react-select-table";
 
 const { setItems } = new TableActions("todos");
@@ -629,6 +629,7 @@ function App() {
     
     return (
     	<TableCore name="todos"
+            context={ReactReduxContext}
             statePath="todoTable"
             // ...Other props like columns etc.
         />
@@ -638,11 +639,3 @@ function App() {
 
 export default App;
 ```
-
-
-
-### Troubleshooting
-
-#### No reducer found at '\<path\>'
-
-Ensure that `createTable` was called as shown in the [reducer](#reducer) section and that the key of the reducer inside `combineReducers` matches the TableCore component's [`statePath`](#statePath-string) prop.

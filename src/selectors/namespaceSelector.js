@@ -8,10 +8,6 @@ export const makeGetStateSlice = () => createSelector(
     ],
     (state, path) => {
         if (!path) return state;
-
-        const slice = _.get(state, path);
-        if (slice) return slice;
-
-        throw new Error(`No reducer found at '${path}'`);
+        return _.get(state, path);
     }
 );

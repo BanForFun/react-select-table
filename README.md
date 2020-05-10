@@ -12,13 +12,11 @@
 * Redux and parameter API
 * Row deselection when table container is clicked
 * Optional redux item management
+* Touch support
 
-## 0.1.0 - Breaking changes
+## 1.0.0 - Breaking changes
 
-* Table: New required prop. See [setup](/docs/table.md#setup) section for details.
-* Table: `itemParser` and `itemPredicate` now constant. See [options](/docs/core.md#options-object) section for new usage.
-
-I'm sorry but expect more breaking changes while the project is in beta. Feedback is welcome.
+* Table:  `useTable` parameters changed, `store` prop no longer required. See [setup](/docs/table.md#setup) section for details.
 
 ## Installation
 

@@ -38,7 +38,7 @@ function Table({
     useAutoDispatch(actions.setListboxMode, isListbox);
     useAutoDispatch(actions.setMinColumnWidth, minColumnWidth);
 
-    if (!store) return null;
+    if (!store.asyncReducers[name]) return null;
     return <Provider store={store}>
         <TableCore {...params} statePath={name} />
     </Provider>

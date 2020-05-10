@@ -43,19 +43,25 @@ function Head({
         e.stopPropagation();
     }, [onMouseMove, resizingIndex]);
 
-    const onTouchEnd = useCallback(e => {
+    const onMouseUp = useCallback(() => {
+        if (resizingIndex === null) return;
         setResizingIndex(null);
+    }, [resizingIndex]);
+
+    const onTouchEnd = useCallback(e => {
+        if (resizingIndex === null) return;
+        onMouseUp();
         e.stopPropagation();
-    }, [])
+    }, [onMouseUp, resizingIndex]);
 
     useEffect(() => {
-        return registerEventListeners(document, {
+        return registerEventListeners(window, {
             "mousemove": onMouseMove,
-            "mouseup": () => setResizingIndex(null),
-            "touchend": onTouchEnd,
-            "touchmove": onTouchMove
+            "mouseup": onMouseUp,
+            "touchmove": onTouchMove,
+            "touchend": onTouchEnd
         }, { passive: false });
-    }, [onMouseMove, onTouchMove, onTouchEnd]);
+    }, [onMouseMove, onTouchMove, onTouchEnd, onMouseUp]);
 
     const renderSortIcon = useCallback(colPath => {
         if (colPath !== sortPath) return null;

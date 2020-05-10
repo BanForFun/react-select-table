@@ -163,9 +163,10 @@ function TableCore(props) {
 
     //Drag end
     const dragEnd = useCallback(() => {
+        if (!selOrigin) return;
         setSelOrigin(null);
         setSelRect(null);
-    }, []);
+    }, [selOrigin]);
 
     //Scroll
     const handleScroll = useCallback(() => {
@@ -178,28 +179,26 @@ function TableCore(props) {
         if (!selOrigin) return;
         touchToMouseEvent(e);
         dragMove(e);
-
         e.stopPropagation();
         e.preventDefault();
     }, [dragMove, selOrigin]);
 
     const touchEnd = useCallback(e => {
         isTouching.current = false;
-        dragEnd();
 
+        if (!selOrigin) return;
+        dragEnd();
         e.stopPropagation();
-    }, [dragEnd])
+    }, [dragEnd, selOrigin])
 
     //Register mouse move and up events
     useEffect(() => {
-        const cleanup = registerEventListeners(window, {
+        return registerEventListeners(window, {
             "mousemove": dragMove,
             "mouseup": dragEnd,
             "touchmove": touchMove,
             "touchend": touchEnd
         }, { passive: false });
-
-        return cleanup;
     }, [dragMove, dragEnd, touchMove, touchEnd]);
 
     //#endregion

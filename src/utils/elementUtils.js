@@ -1,8 +1,8 @@
-export function registerEventListeners(element, map) {
+export function registerEventListeners(element, map, options = {}) {
     function forEach(methodName) {
         for (let type in map) {
             const handler = map[type];
-            element[methodName](type, handler);
+            element[methodName](type, handler, options);
         }
     }
 

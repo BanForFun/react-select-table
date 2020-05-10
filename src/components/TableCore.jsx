@@ -16,6 +16,7 @@ import { makeGetStateSlice } from '../selectors/namespaceSelector';
 import { defaultEventHandlers } from '../store/table';
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
+import { touchToMouseEvent } from '../utils/eventUtils';
 
 function TableCore(props) {
     const {
@@ -173,15 +174,33 @@ function TableCore(props) {
         updateSelectRect(x, y);
     }, [selOrigin, lastMousePos, updateSelectRect]);
 
+    const touchMove = useCallback(e => {
+        if (!selOrigin) return;
+        touchToMouseEvent(e);
+        dragMove(e);
+
+        e.stopPropagation();
+        e.preventDefault();
+    }, [dragMove, selOrigin]);
+
+    const touchEnd = useCallback(e => {
+        isTouching.current = false;
+        dragEnd();
+
+        e.stopPropagation();
+    }, [dragEnd])
+
     //Register mouse move and up events
     useEffect(() => {
         const cleanup = registerEventListeners(window, {
             "mousemove": dragMove,
-            "mouseup": dragEnd
-        });
+            "mouseup": dragEnd,
+            "touchmove": touchMove,
+            "touchend": touchEnd
+        }, { passive: false });
 
         return cleanup;
-    }, [dragMove, dragEnd]);
+    }, [dragMove, dragEnd, touchMove, touchEnd]);
 
     //#endregion
 
@@ -245,13 +264,22 @@ function TableCore(props) {
     const handleMouseDown = useCallback(e => {
         deselectRows(e);
         dragStart(e);
-    }, [dragStart, deselectRows])
+    }, [dragStart, deselectRows]);
+
+    const isTouching = useRef(false);
+    const handleTouchStart = useCallback(e => {
+        isTouching.current = true;
+        e.stopPropagation();
+    }, [])
 
     const handleDoubleClick = useCallback(() => {
         raiseItemOpen(false);
     }, [raiseItemOpen]);
 
     const handleContextMenu = useCallback(e => {
+        if (isTouching.current) dragStart(e);
+
+        if (e.currentTarget !== e.target) return;
         actions.contextMenu(null, e.ctrlKey);
     }, [actions]);
 
@@ -339,11 +367,13 @@ function TableCore(props) {
             </div>
             <div className={styles.bodyContainer}
                 ref={bodyContainer}
+                // style={{ touchAction: selOrigin ? "none" : "auto" }}
                 onScroll={handleScroll}>
                 <div className={styles.tableContainer} tabIndex="0"
                     onKeyDown={handleKeyDown}
                     onDoubleClick={handleDoubleClick}
                     onContextMenu={handleContextMenu}
+                    onTouchStart={handleTouchStart}
                     onMouseDown={handleMouseDown}>
                     {selectionRect}
                     <table className={className}>

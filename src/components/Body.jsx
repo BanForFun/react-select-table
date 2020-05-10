@@ -17,10 +17,9 @@ function Body({
     const handleRowSelect = useCallback((e, value) => {
         if (e.button !== 0) return;
         actions.selectRow(value, e.ctrlKey, e.shiftKey);
-    }, [actions])
+    }, [actions]);
 
     const handleRowContextMenu = useCallback((e, value) => {
-        e.stopPropagation();
         actions.contextMenu(value, e.ctrlKey);
     }, [actions]);
 

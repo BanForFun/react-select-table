@@ -52,39 +52,40 @@ function App() {
 
   return (
     <div className="container">
-      <div className="w-25">
-        <h1>Settings</h1>
-        <CheckBox label="Multiselect" id="isMultiselect"
-          value={isMultiselect} onChange={setMultiselect} />
-        <CheckBox label="Listbox mode" id="isListbox"
-          value={isListbox} onChange={setListBox} />
+      <div className="row">
+        <div className="col">
+          <h1>Table</h1>
 
-        <h1 className="mt-3">Events</h1>
-        <PulseLabel title="Selection" items={selection} />
-        <PulseLabel title="Context menu" items={contextMenu} />
-        <PulseLabel title="Open items" items={openItems} />
-        <button className="btn btn-primary" onClick={getTodos}>Refresh</button>
+          {todos ? (
+            <Table
+              items={todos}
+              minColumnWidth={3}
+              isListbox={isListbox}
+              isMultiselect={isMultiselect}
+              onContextMenu={setContextMenu}
+              onSelectionChange={setSelection}
+              onItemsOpen={setOpenItems}
+              valueProperty="id"
+              columns={columns}
+              className="table"
+              name="test" />) :
+            <p>Loading...</p>
+          }
+        </div>
+        <div className="d-none d-md-block col-3">
+          <h1>Settings</h1>
+          <CheckBox label="Multiselect" id="isMultiselect"
+            value={isMultiselect} onChange={setMultiselect} />
+          <CheckBox label="Listbox mode" id="isListbox"
+            value={isListbox} onChange={setListBox} />
+
+          <h1>Events</h1>
+          <PulseLabel title="Selection" items={selection} />
+          <PulseLabel title="Context menu" items={contextMenu} />
+          <PulseLabel title="Open items" items={openItems} />
+          <button className="btn btn-primary" onClick={getTodos}>Refresh</button>
+        </div>
       </div>
-      <div className="pl-3 w-75">
-        <h1>Table</h1>
-
-        {todos ? (
-          <Table
-            items={todos}
-            minColumnWidth={3}
-            isListbox={isListbox}
-            isMultiselect={isMultiselect}
-            onContextMenu={setContextMenu}
-            onSelectionChange={setSelection}
-            onItemsOpen={setOpenItems}
-            valueProperty="id"
-            columns={columns}
-            className="table"
-            name="test" />) :
-          <p>Loading...</p>
-        }
-      </div>
-
     </div>)
 }
 

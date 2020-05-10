@@ -8,32 +8,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
-#root {
-  height: 100vh;
-}
-
-.container {
-  display: flex;
-  padding: 3rem 0;
-  height: 100%;
-}
-
-.container > div {
-  display: flex;
-  flex-direction: column;
-}
-
 .rst-container {
-  flex: auto;
+  height: 500px;
 }
 
-span {
-  font-family: Arial, Helvetica, sans-serif;
+h1 {
+  padding-top: 1rem;
 }
 
 .change {

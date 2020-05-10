@@ -5,6 +5,7 @@ import { registerEventListeners } from '../utils/elementUtils';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
 import { makeGetStateSlice } from '../selectors/namespaceSelector';
+import { touchToMouseEvent } from '../utils/eventUtils';
 
 function Head({
     columns,
@@ -16,7 +17,6 @@ function Head({
     actions
 }) {
     const [resizingIndex, setResizingIndex] = useState(null);
-    const ignoreSort = useRef(false);
     const header = useRef();
 
     const onMouseMove = useCallback(e => {
@@ -34,28 +34,28 @@ function Head({
         actions.setColumnWidth(compatibleIndex, percent);
     }, [resizingIndex, columnWidth, actions, scrollBarWidth]);
 
-    const onMouseUp = useCallback(() => {
+    const onTouchMove = useCallback(e => {
         if (resizingIndex === null) return;
-        ignoreSort.current = true;
+        touchToMouseEvent(e);
+        onMouseMove(e);
+
+        e.preventDefault();
+        e.stopPropagation();
+    }, [onMouseMove, resizingIndex]);
+
+    const onTouchEnd = useCallback(e => {
         setResizingIndex(null);
-    }, [resizingIndex]);
+        e.stopPropagation();
+    }, [])
 
     useEffect(() => {
-        const dispose = registerEventListeners(document, {
-            mousemove: onMouseMove,
-            mouseup: onMouseUp
-        });
-        return dispose;
-    }, [onMouseMove, onMouseUp]);
-
-    const raiseSort = useCallback(path => {
-        if (ignoreSort.current) {
-            ignoreSort.current = false;
-            return;
-        }
-
-        actions.sortBy(path);
-    }, [actions]);
+        return registerEventListeners(document, {
+            "mousemove": onMouseMove,
+            "mouseup": () => setResizingIndex(null),
+            "touchend": onTouchEnd,
+            "touchmove": onTouchMove
+        }, { passive: false });
+    }, [onMouseMove, onTouchMove, onTouchEnd]);
 
     const renderSortIcon = useCallback(colPath => {
         if (colPath !== sortPath) return null;
@@ -73,13 +73,17 @@ function Head({
                     const { path } = col;
                     const isSortable = !!path;
 
+                    const startResize = () => setResizingIndex(index);
+
                     return <th key={`title_${name}_${id}`}
                         data-sortable={isSortable} style={{ width }}
-                        onClick={() => isSortable && raiseSort(path)}>
+                        onClick={() => isSortable && actions.sortBy(path)}>
                         {col.title}
                         {isSortable && renderSortIcon(path)}
-                        {index > 0 && <div className={styles.seperator}
-                            onMouseDown={() => setResizingIndex(index)} />}
+                        {index > 0 &&
+                            <div className={styles.seperator}
+                                onTouchStart={startResize}
+                                onMouseDown={startResize} />}
                     </th>
                 })}
                 {!!scrollBarWidth && <th

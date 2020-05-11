@@ -111,7 +111,7 @@ function TableCore(props) {
 
             //Calculate top and bottom position
             const top = rowEl.offsetTop;
-            const bottom = top + rowEl.scrollHeight;
+            const bottom = top + rowEl.clientHeight;
 
             //Skip if rows not visible
             if (bottom < topVisible) continue;

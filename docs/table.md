@@ -8,7 +8,7 @@ You can optionally pass an [options](./core.md#options-object) object as a secon
 
 **Functional component**
 
-```react
+```javascript
 import React from 'react'
 import { Table, useTable } from 'react-select-table'
 
@@ -25,7 +25,7 @@ function App() {
 
 **Class component**
 
-```react
+```javascript
 import React, { Component } from 'react';
 import { Table, initTable, disposeTable } from 'react-select-table'
 

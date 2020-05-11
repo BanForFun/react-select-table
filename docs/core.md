@@ -402,7 +402,11 @@ Parameters:
 * `value` *any*
 * `selected` *boolean*
 
-Finds the item with [value][value]: `value` and selects or deselects it, based on `selected`.
+Finds the item with [value][value]: `value` and selects or deselects it, based on the `selected` parameter.
+
+#### Internal actions
+
+In redux devtools, you may notice some other action types, namely `SET_EVENT_HANDLER` and `SET_COLUMN_COUNT`. These actions are dispatched internally and no action creators are provided, as to not create inconsistency between the props and the state.
 
 
 
@@ -424,7 +428,7 @@ The table columns. Don't worry about their order or whether some shouldn't be di
 
 Used for the generation of the react `key` properties for the rows and columns. 
 
-Used to generate the redux [action](#actions) types if [`reducerName`](#reducername-string) is not provided.
+Also used to generate the redux [action](#actions) types if [`reducerName`](#reducername-string) is not provided.
 
 #### `context` *context*
 
@@ -436,7 +440,7 @@ You can import the default redux context using:
 import { ReactReduxContext } from "react-redux";
 ```
 
-`ReactReduxContext` must be passed to the `context` prop.
+Then, you can pass it to the `context` prop. If you are using custom context, you will have to pass that instead.
 
 #### `className` *string*
 
@@ -517,13 +521,13 @@ This text will be displayed in the header.
 #### `path` *string*
 The property value of each row at `path` will be resolved and passed to the [`render`](#render-function) method as the first parameter, followed by the complete row object as the second one. If `path` is not set, the first parameter will be undefined. 
 
-Columns that specify a `path`, are sortable. If that is not desirable (for example on images), you should not specify a `path` and instead resolve the property inside the `render` method.
+Columns that specify a `path`, are sortable. If that is not desirable (for example on images), you should not specify a `path` and resolve the property inside the `render` method.
 
 If you don't set the `path` property, you must set the [`key`](#key-string) property instead.
 
 #### `render`  *function*
 
-Called for each cell to return the content of the td element. For parameters, see [`path`](#path-string).
+Called for each cell to return the content to be displayed. For parameters, see [`path`](#path-string).
 
 #### `key` *string*
 
@@ -537,6 +541,11 @@ If set to true, a th element will be used instead of td for the cell rendering.
 
 
 ### Options *object*
+
+> **Used by:**
+>
+> * [`initTable`/`useTable`](./table.md#setup)
+> * [`createTable`](#reducer)
 
 #### `itemParser` _Function_
 
@@ -587,10 +596,10 @@ To create a reducer, use the `createTable` exported by `TableReducer`.
 Parameters:
 
 * `tableName` *string*
-
 * `initState` *object* (Optional)
-
 * `options` *[Options](#options-object)* (Optional)
+
+The `tableName` parameter must match the component's [`name`](#name-string) prop.
 
 Properties that in most cases remain constant like `valueProperty`, `minColumnWidth`, `isListbox` and `isMultiselect`, are recommended to be set inside `initState` instead of being set later. See all available `initState` properties [here](#state).
 
@@ -611,7 +620,7 @@ export default rootReducer = combineReducers({
 
 **Component**
 
-```react
+```javascript
 import React, { useEffect } from "react";
 import { useDispatch, ReactReduxContext } from "react-redux";
 import { TableCore, TableActions } from "react-select-table";
@@ -628,7 +637,8 @@ function App() {
     }, [dispatch]);
     
     return (
-    	<TableCore name="todos"
+    	<TableCore 
+        	name="todos"
             context={ReactReduxContext}
             statePath="todoTable"
             // ...Other props like columns etc.

@@ -5,7 +5,7 @@ import { sortOrders } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
 import { pullFirst, inArray, areArraysEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
-import InternalActions from "../models/internalActions";
+import actions from "../models/internalActions";
 
 const defaultState = {
     sortPath: null,
@@ -43,8 +43,9 @@ export function createTable(tableName, initState = {}, options = {}) {
     _.defaults(options, defaultOptions);
     const eventHandlers = _.clone(defaultEventHandlers);
 
-    const actions = new InternalActions(tableName);
     return (state = initState, action) => produce(state, draft => {
+        if (action.table !== tableName) return;
+
         const values = _.map(state.tableItems, state.valueProperty);
         let updateSelection = false;
 
@@ -104,25 +105,26 @@ export function createTable(tableName, initState = {}, options = {}) {
             updateSelection = true;
         }
 
+        const { payload } = action;
         switch (action.type) {
             //Items
             case "FORM_GROUP_SET_DATA":
             case actions.SET_ROWS: {
-                const { data: items } = action;
+                const { data: items } = payload;
                 draft.items = _.keyBy(items, state.valueProperty);
                 draft.isLoading = false;
                 updateItems(true);
                 break;
             }
             case actions.ADD_ROW: {
-                const { newItem } = action;
+                const { newItem } = payload;
                 const value = newItem[state.valueProperty];
                 draft.items[value] = newItem;
                 updateItems();
                 break;
             }
             case actions.DELETE_ROWS: {
-                const { values } = action;
+                const { values } = payload;
                 deleteKeys(draft.items, values);
                 deselectRows(values);
                 updateItems();
@@ -130,12 +132,12 @@ export function createTable(tableName, initState = {}, options = {}) {
             }
             case actions.REPLACE_ROW: {
                 //Value property should not be changed
-                draft.items[action.value] = action.newItem;
+                draft.items[payload.value] = payload.newItem;
                 updateItems();
                 break;
             }
             case actions.SET_ROW_VALUE: {
-                const { oldValue, newValue } = action;
+                const { oldValue, newValue } = payload;
 
                 //Update active value
                 if (state.activeValue === oldValue)
@@ -160,7 +162,7 @@ export function createTable(tableName, initState = {}, options = {}) {
             }
             case actions.PATCH_ROW: {
                 //Value property should not be changed
-                const { value, patch } = action;
+                const { value, patch } = payload;
                 Object.assign(draft.items[value], patch);
                 updateItems();
                 break;
@@ -176,7 +178,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SORT_BY: {
-                const newPath = action.path;
+                const newPath = payload.path;
 
                 if (state.sortPath === newPath && state.sortOrder === sortOrders.Ascending)
                     draft.sortOrder = sortOrders.Descending;
@@ -188,7 +190,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SET_FILTER: {
-                draft.filter = action.filter;
+                draft.filter = payload.filter;
                 updateItems(true);
                 break;
             }
@@ -197,7 +199,7 @@ export function createTable(tableName, initState = {}, options = {}) {
             case actions.SELECT_ROW: {
                 updateSelection = true;
 
-                const { value, ctrlKey, shiftKey } = action;
+                const { value, ctrlKey, shiftKey } = payload;
                 let addToSelection = [value];
 
                 if (!state.isMultiselect) {
@@ -235,7 +237,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SET_ROW_SELECTED: {
-                const { value, selected } = action;
+                const { value, selected } = payload;
 
                 if (!selected)
                     pullFirst(draft.selectedValues, value);
@@ -252,11 +254,11 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SET_ACTIVE_ROW: {
-                setActivePivotValue(action.value);
+                setActivePivotValue(payload.value);
                 break;
             }
             case actions.CONTEXT_MENU: {
-                const { value, ctrlKey } = action;
+                const { value, ctrlKey } = payload;
 
                 if (!ctrlKey) {
                     setActivePivotValue(value);
@@ -271,7 +273,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SET_MULTISELECT: {
-                const { isMultiselect } = action;
+                const { isMultiselect } = payload;
                 draft.isMultiselect = isMultiselect;
 
                 if (!isMultiselect) {
@@ -281,13 +283,13 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SET_LISTBOX_MODE: {
-                draft.isListbox = action.isListbox;
+                draft.isListbox = payload.isListbox;
                 break;
             }
 
             //Options
             case actions.SET_VALUE_PROPERTY: {
-                const { name } = action;
+                const { name } = payload;
                 if (state.valueProperty === name) break;
 
                 //Update option
@@ -306,7 +308,7 @@ export function createTable(tableName, initState = {}, options = {}) {
 
             //Columns
             case actions.SET_COLUMN_WIDTH: {
-                const { index, width } = action;
+                const { index, width } = payload;
                 const { minColumnWidth } = state;
 
                 const thisWidth = draft.columnWidth[index];
@@ -320,21 +322,22 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SET_COLUMN_ORDER: {
-                draft.columnOrder = action.order;
-                const count = action.order.length;
+                const { order } = payload;
+                draft.columnOrder = order;
+                const count = order.length;
 
                 if (state.columnWidth.length === count) break;
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
             case actions.SET_MIN_COLUMN_WIDTH: {
-                draft.minColumnWidth = action.percent;
+                draft.minColumnWidth = payload.percent;
                 break;
             }
 
             //Internal
             case actions.SET_COLUMN_COUNT: {
-                const { count } = action;
+                const { count } = payload;
                 if (state.columnWidth.length === count) break;
 
                 draft.columnOrder = null;
@@ -342,7 +345,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SET_EVENT_HANDLER: {
-                eventHandlers[action.name] = action.callback;
+                eventHandlers[payload.name] = payload.callback;
                 break;
             }
             default:

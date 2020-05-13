@@ -169,26 +169,31 @@ The minimum column width percentage relative to the table width.
 
 ### Actions
 
-The action creators and the type constants are exported from a `TableActions` instance. The constructor takes the table [name](#name-string) as a parameter.
+The action creators are accessible from a `TableActions` instance. The constructor takes the table [name](#name-string) as a parameter. The action types are static and exported from `TableActions`.
 
-```react
+```javascript
 import { TableActions } from "react-select-table";
 const todoActions = new TableActions("todo");
 
 //For example to set the table rows you can use
-store.dispatch(todoActions.setRows([
-    //...items
-]))
+store.dispatch(todoActions.addRow({
+    //New row
+}))
 
 //You can also access the action types
 switch(action.type) {
-    case todoActions.SET_ROWS:
-        console.log("New rows", action.items);
+    case TableActions.ADD_ROW:
+        console.log(
+            `New row in ${action.table} table`, 
+            action.payload.newItem
+        );
         break;
 }
 ```
 
-For the action types below, the exported property name is listed. The actual string is: *table name* (in uppercase) + *underscore* (`_`) + *property name*. For example the property `SET_ROWS` with table name `todos` would return `TODOS_SET_ROWS`.
+For the action types below, the exported property name is listed. The actual string is: `TABLE_` + *property name*. For example the property `SET_ROWS` would return `TABLE_SET_ROWS`.
+
+The dispatched actions have a `table` property which contains the name of the table that should handle the action.
 
 #### `setRows`
 
@@ -196,7 +201,7 @@ For the action types below, the exported property name is listed. The actual str
 
 Parameters:
 
-* `items` *array of object*
+* `items` *array of object* (renamed to `data` in the payload)
 
 Sets item list to `items`. Sets [`isLoading`](#isloading-boolean) state to false.
 

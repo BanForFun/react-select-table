@@ -1,14 +1,15 @@
 import TableActions from "./actions";
 
 export default class InternalActions extends TableActions {
-    get SET_EVENT_HANDLER() { return `${this.name}_SET_EVENT_HANDLER`; }
-    get SET_COLUMN_COUNT() { return `${this.name}_SET_COLUMN_COUNT`; }
+    //Internal
+    static SET_EVENT_HANDLER = "TABLE_SET_EVENT_HANDLER";
+    static SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 
-    setColumnCount = (count) => {
-        return { type: this.SET_COLUMN_COUNT, count };
-    }
+    setColumnCount = (count) =>
+        this.getAction(self.SET_COLUMN_COUNT, { count });
 
-    setEventHandler = (name, callback) => {
-        return { type: this.SET_EVENT_HANDLER, name, callback };
-    }
+    setEventHandler = (name, callback) =>
+        this.getAction(self.SET_EVENT_HANDLER, { name, callback });
 }
+
+const self = InternalActions;

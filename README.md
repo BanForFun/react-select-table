@@ -56,5 +56,3 @@ This library contains two components:
 
 1. `TableCore` which uses redux for state management.<br/>[TableCore documentation](/docs/core.md)
 2. `Table` which is a wrapper for `TableCore` and uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility.<br/>[Table documentation](/docs/table.md)
-
-[https://codesandbox.io/s/rst-redux-mrii6]: 

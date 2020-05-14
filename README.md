@@ -26,9 +26,12 @@
 * `Home` to select the first item
 * `End` to select the last item
 
-## 1.0.0 - Breaking changes
+## 2.0.0 - Breaking changes
 
-* Table:  `useTable` parameters changed, `store` prop no longer required. See [setup](/docs/table.md#setup) section for details.
+### TableCore
+
+* Action types are now **static** and the table name is given in the action's `table` property. [More details](#/docs/core.md#actions)
+* Actions now have a `payload` property. The payload is no longer spread inside the action.
 
 ## Installation
 
@@ -54,5 +57,5 @@ More examples coming soon
 
 This library contains two components: 
 
-1. `TableCore` which uses redux for state management.<br/>[TableCore documentation](/docs/core.md)
-2. `Table` which is a wrapper for `TableCore` and uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility.<br/>[Table documentation](/docs/table.md)
+1. `TableCore` which uses redux for state management.<br/>[**TableCore documentation**](/docs/core.md)
+2. `Table` which is a wrapper for `TableCore` and uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility.<br/>[**Table documentation**](/docs/table.md)

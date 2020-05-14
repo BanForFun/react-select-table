@@ -30,72 +30,72 @@ export default class TableActions {
     static SET_MULTISELECT = "TABLE_SET_MULTISELECT";
     static SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
-    getAction(type, payload = null) {
+    _getAction(type, payload = null) {
         return { type, table: this.tableName, payload };
     }
 
     setMinColumnWidth = (percent) =>
-        this.getAction(self.SET_MIN_COLUMN_WIDTH, { percent })
+        this._getAction(self.SET_MIN_COLUMN_WIDTH, { percent })
 
     setListboxMode = (isListbox) =>
-        this.getAction(self.SET_LISTBOX_MODE, { isListbox });
+        this._getAction(self.SET_LISTBOX_MODE, { isListbox });
 
     setMultiselect = (isMultiselect) =>
-        this.getAction(self.SET_MULTISELECT, { isMultiselect });
+        this._getAction(self.SET_MULTISELECT, { isMultiselect });
 
     setValueProperty = (name) =>
-        this.getAction(self.SET_VALUE_PROPERTY, { name });
+        this._getAction(self.SET_VALUE_PROPERTY, { name });
 
     clearRows = () =>
-        this.getAction(self.CLEAR_ROWS);
+        this._getAction(self.CLEAR_ROWS);
 
     contextMenu = (value, ctrlKey) =>
-        this.getAction(self.CONTEXT_MENU, { value, ctrlKey });
+        this._getAction(self.CONTEXT_MENU, { value, ctrlKey });
 
     setFilter = (filter) =>
-        this.getAction(self.SET_FILTER, { filter });
+        this._getAction(self.SET_FILTER, { filter });
 
     patchRow = (value, patch) =>
-        this.getAction(self.PATCH_ROW, { value, patch });
+        this._getAction(self.PATCH_ROW, { value, patch });
 
     setRowValue = (oldValue, newValue) =>
-        this.getAction(self.SET_ROW_VALUE, { oldValue, newValue });
+        this._getAction(self.SET_ROW_VALUE, { oldValue, newValue });
 
     replaceRow = (value, newItem) =>
-        this.getAction(self.REPLACE_ROW, { value, newItem });
+        this._getAction(self.REPLACE_ROW, { value, newItem });
 
     deleteRows = (...values) =>
-        this.getAction(self.DELETE_ROWS, { values });
+        this._getAction(self.DELETE_ROWS, { values });
 
     addRow = (newItem) =>
-        this.getAction(self.ADD_ROW, { newItem });
+        this._getAction(self.ADD_ROW, { newItem });
 
     setRows = (items) =>
-        this.getAction(self.SET_ROWS, { data: items });
+        this._getAction(self.SET_ROWS, { data: items });
 
     setColumnWidth = (index, width) =>
-        this.getAction(self.SET_COLUMN_WIDTH, { index, width });
+        this._getAction(self.SET_COLUMN_WIDTH, { index, width });
 
     setColumnOrder = (order) =>
-        this.getAction(self.SET_COLUMN_ORDER, { order });
+        this._getAction(self.SET_COLUMN_ORDER, { order });
 
     sortBy = (path) =>
-        this.getAction(self.SORT_BY, { path });
+        this._getAction(self.SORT_BY, { path });
 
     selectRow = (value, ctrlKey = false, shiftKey = false) =>
-        this.getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
+        this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
 
     setActiveRow = (value) =>
-        this.getAction(self.SET_ACTIVE_ROW, { value });
+        this._getAction(self.SET_ACTIVE_ROW, { value });
 
     clearSelection = () =>
-        this.getAction(self.CLEAR_SELECTION);
+        this._getAction(self.CLEAR_SELECTION);
 
     selectAll = () =>
-        this.getAction(self.SELECT_ALL);
+        this._getAction(self.SELECT_ALL);
 
     setRowSelected = (value, selected) =>
-        this.getAction(self.SET_ROW_SELECTED, { value, selected });
+        this._getAction(self.SET_ROW_SELECTED, { value, selected });
 }
 
 const self = TableActions;

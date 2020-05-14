@@ -169,7 +169,9 @@ The minimum column width percentage relative to the table width.
 
 ### Actions
 
-The action creators are accessible from a `TableActions` instance. The constructor takes the table [name](#name-string) as a parameter. The action types are static and exported from `TableActions`.
+The action creators are accessible from a `TableActions` instance. The constructor takes the table [name](#name-string) as a parameter. The dispatched actions have a `table` property that contains the name that was passed to the constructor. 
+
+The action types are static variables of the `TableActions` class.
 
 ```javascript
 import { TableActions } from "react-select-table";
@@ -191,9 +193,11 @@ switch(action.type) {
 }
 ```
 
-For the action types below, the exported property name is listed. The actual string is: `TABLE_` + *property name*. For example the property `SET_ROWS` would return `TABLE_SET_ROWS`.
+For the action types below, the variable name is listed. The actual value is: `TABLE_` + *variable name*. For example the variable `SET_ROWS` would have the value `TABLE_SET_ROWS`.
 
-The dispatched actions have a `table` property which contains the name of the table that should handle the action.
+
+
+#### Row actions
 
 #### `setRows`
 
@@ -204,6 +208,186 @@ Parameters:
 * `items` *array of object* (renamed to `data` in the payload)
 
 Sets item list to `items`. Sets [`isLoading`](#isloading-boolean) state to false.
+
+#### `addRow`
+
+> **Type**: `ADD_ROW`
+
+Parameters:
+
+* `newItem` *object*
+
+Adds `newItem` to the item list.
+
+#### `deleteRows`
+
+> **Type**: `DELETE_ROWS`
+
+Parameters:
+
+* `...values` *parameter array of any*
+
+Deletes all items who's [values][value] are included in `values`.
+
+#### `replaceRow`
+
+> **Type**: `REPLACE_ROW`
+
+Parameters:
+
+* `value` *any*
+* `newItem` *object*
+
+Finds the item with [value][value]: `value` and replaces it with `newItem`.
+
+#### `patchRow`
+
+> **Type**: `PATCH_ROW`
+
+Parameters:
+
+* `value` *any*
+* `patch` *object*
+
+Finds the item with [value][value]: `value` and copies the properties of `patch` to it.
+
+**Warning**: Don't use `patchRow` to change an item's value, as the selection will not be updated. Use [`setRowValue`](#setrowvalue) instead.
+
+#### `setRowValue`
+
+> **Type**: `SET_ROW_VALUE`
+
+Parameters:
+
+* `oldValue` *any*
+* `newValue` *any*
+
+Finds the item with [value][value]: `oldValue` and changes its value to `newValue`.
+
+#### `clearRows`
+
+> **Type**: `CLEAR_ROWS`
+
+Parameters: none
+
+Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Clears the selection.
+
+
+
+#### Selection actions
+
+#### `selectRow`
+
+> **Type**: `SELECT_ROW`
+
+Parameters:
+
+* `value` *any*
+* `ctrlKey` *boolean* (Optional, `false` by default)
+* `shiftKey` *boolean* (Optional, `false` by default)
+
+Modifies the selection based on the item that was clicked, and whether the `Ctrl ` or `Shift` keys were held down at the time.
+
+#### `contextMenu`
+
+> **Type**: `CONTEXT_MENU`
+
+Parameters:
+
+* `value` *any*
+* `ctrlKey` *boolean*
+
+Modifies the selection based on the item that was right-clicked, and whether the `Ctrl` key was pressed at the time.
+
+#### `setActiveRow`
+
+> **Type**: `SET_ACTIVE_ROW`
+
+Parameters:
+
+* `value` *any*
+
+Sets [`activeValue`](#activevalue-any) and [`pivotValue`](#pivotvalue-any) state to `value`.
+
+#### `clearSelection`
+
+> **Type**: `CLEAR_SELECTION`
+
+Parameters: none
+
+Sets [`activeValue`](#activevalue-any) to null. Clears the selection if [`isLisbox`](#islistbox-boolean) is false.
+
+#### `selectAll`
+
+> **Type**: `SELECT_ALL`
+
+Parameters: none
+
+Selects all items. Has no effect when [`isMultiselect`](#ismultiselect-boolean) is false.
+
+#### `setRowSelected`
+
+> **Type**: `SET_ROW_SELECTED`
+
+Parameters:
+
+* `value` *any*
+* `selected` *boolean*
+
+Finds the item with [value][value]: `value` and selects or deselects it, based on the `selected` parameter.
+
+
+
+#### Column actions
+
+#### `setColumnWidth`
+
+> **Type**: `SET_COLUMN_WIDTH`
+
+Parameters:
+
+* `index` *number*
+* `width` *number*
+
+Resizes the **[visible][columnOrder]** column at `index` to `width`.
+
+#### `setColumnOrder`
+
+> **Type**: `SET_COLUMN_ORDER`
+
+Parameters:
+
+* `order` *array of number*
+
+Sets [`columnOrder`](#columnorder-array-of-number) state to `order`.
+
+
+
+#### Row display actions
+
+#### `setFilter`
+
+> **Type**: `SET_FILTER`
+
+Parameters: 
+
+* `filter` *any*
+
+Sets [`filter`](#filter-any) state to `filter`. Updates the items based on the new filter.
+
+#### `sortBy`
+
+> **Type**: `SORT_BY`
+
+Parameters:
+
+* `path` *string*
+
+Sets [`sortPath`](#sortpath-string) state to `path`. If `sortPath` is already set to `path`, [`sortOrder`](#sortorder-string) is toggled between ascending and descending. Otherwise it is set to ascending.
+
+
+
+#### Option actions
 
 #### `setMinColumnWidth`
 
@@ -245,169 +429,7 @@ Parameters:
 
 Sets [`valueProperty`][value] state to `name`. Clears the selection.
 
-#### `clearRows`
 
-> **Type**: `CLEAR_ROWS`
-
-Parameters: none
-
-Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Clears the selection.
-
-#### `contextMenu`
-
-> **Type**: `CONTEXT_MENU`
-
-Parameters:
-
-* `value` *any*
-* `ctrlKey` *boolean*
-
-Modifies the selection based on the item that was right-clicked, and whether the `Ctrl` key was pressed at the time.
-
-#### `setFilter`
-
-> **Type**: `SET_FILTER`
-
-Parameters: 
-
-* `filter` *any*
-
-Sets [`filter`](#filter-any) state to `filter`. Updates the items based on the new filter.
-
-#### `patchRow`
-
-> **Type**: `PATCH_ROW`
-
-Parameters:
-
-* `value` *any*
-* `patch` *object*
-
-Finds the item with [value][value]: `value` and copies the properties of `patch` to it.
-
-**Warning**: Don't use `patchRow` to change an item's value, as the selection will not be updated. Use [`setRowValue`](#setrowvalue) instead.
-
-#### `setRowValue`
-
-> **Type**: `SET_ROW_VALUE`
-
-Parameters:
-
-* `oldValue` *any*
-* `newValue` *any*
-
-Finds the item with [value][value]: `oldValue` and changes its value to `newValue`.
-
-#### `replaceRow`
-
-> **Type**: `REPLACE_ROW`
-
-Parameters:
-
-* `value` *any*
-* `newItem` *object*
-
-Finds the item with [value][value]: `value` and replaces it with `newItem`.
-
-#### `deleteRows`
-
-> **Type**: `DELETE_ROWS`
-
-Parameters:
-
-* `...values` *parameter array of any*
-
-Deletes all items who's [values][value] are included in `values`.
-
-#### `addRow`
-
-> **Type**: `ADD_ROW`
-
-Parameters:
-
-* `newItem` *object*
-
-Adds `newItem` to the item list.
-
-#### `setColumnWidth`
-
-> **Type**: `SET_COLUMN_WIDTH`
-
-Parameters:
-
-* `index` *number*
-* `width` *number*
-
-Resizes the **[visible][columnOrder]** column at `index` to `width`.
-
-#### `setColumnOrder`
-
-> **Type**: `SET_COLUMN_ORDER`
-
-Parameters:
-
-* `order` *array of number*
-
-Sets [`columnOrder`](#columnorder-array-of-number) state to `order`.
-
-#### `sortBy`
-
-> **Type**: `SORT_BY`
-
-Parameters:
-
-* `path` *string*
-
-Sets [`sortPath`](#sortpath-string) state to `path`. If `sortPath` is already set to `path`, [`sortOrder`](#sortorder-string) is toggled between ascending and descending. Otherwise it is set to ascending.
-
-#### `selectRow`
-
-> **Type**: `SELECT_ROW`
-
-Parameters:
-
-* `value` *any*
-* `ctrlKey` *boolean* (Optional, `false` by default)
-* `shiftKey` *boolean* (Optional, `false` by default)
-
-Modifies the selection based on the item that was clicked, and whether the `Ctrl ` or `Shift` keys were held down at the time.
-
-#### `setActiveRow`
-
-> **Type**: `SET_ACTIVE_ROW`
-
-Parameters:
-
-* `value` *any*
-
-Sets [`activeValue`](#activevalue-any) and [`pivotValue`](#pivotvalue-any) state to `value`.
-
-#### `clearSelection`
-
-> **Type**: `CLEAR_SELECTION`
-
-Parameters: none
-
-Sets [`activeValue`](#activevalue-any) to null. Clears the selection if [`isLisbox`](#islistbox-boolean) is false.
-
-#### `selectAll`
-
-> **Type**: `SELECT_ALL`
-
-Parameters: none
-
-Selects all items. Has no effect when [`isMultiselect`](#ismultiselect-boolean) is false.
-
-#### `setRowSelected`
-
-> **Type**: `SET_ROW_SELECTED`
-
-Parameters:
-
-* `value` *any*
-* `selected` *boolean*
-
-Finds the item with [value][value]: `value` and selects or deselects it, based on the `selected` parameter.
 
 #### Internal actions
 
@@ -606,7 +628,7 @@ Parameters:
 
 The `tableName` parameter must match the component's [`name`](#name-string) prop.
 
-Properties that in most cases remain constant like `valueProperty`, `minColumnWidth`, `isListbox` and `isMultiselect`, are recommended to be set inside `initState` instead of being set later. See all available `initState` properties [here](#state).
+Properties that in most cases remain constant like `valueProperty`, `minColumnWidth`, `isListbox` and `isMultiselect`, are recommended to be set inside `initState` instead of being set later through actions. See all available `initState` properties [here](#state).
 
 **Reducer**
 
@@ -636,8 +658,8 @@ function App() {
     const dispatch = useDispatch();
     
     useEffect(() => {
-        // getTodos is an async method that makes a request to an api 
-        // and returns an array
+        // getTodos is an imaginary async method that
+        // makes a request to an api and returns an array of todos
         getTodos().then(todos => dispatch(setItems(todos))); 
     }, [dispatch]);
     

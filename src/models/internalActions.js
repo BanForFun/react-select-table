@@ -6,10 +6,10 @@ export default class InternalActions extends TableActions {
     static SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 
     setColumnCount = (count) =>
-        this.getAction(self.SET_COLUMN_COUNT, { count });
+        this._getAction(self.SET_COLUMN_COUNT, { count });
 
     setEventHandler = (name, callback) =>
-        this.getAction(self.SET_EVENT_HANDLER, { name, callback });
+        this._getAction(self.SET_EVENT_HANDLER, { name, callback });
 }
 
 const self = InternalActions;

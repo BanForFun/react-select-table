@@ -35,10 +35,7 @@ function App() {
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
-  useTable("test", {
-    valueProperty: "id",
-    isMultiselect: false
-  });
+  useTable("test", { valueProperty: "id" });
 
   const getTodos = useCallback(async function () {
     setTodos(null);

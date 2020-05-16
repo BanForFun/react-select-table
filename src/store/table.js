@@ -40,7 +40,7 @@ export function createTable(tableName, options = {}, initState = {}) {
     _.defaults(options, defaultOptions);
     tableOptions[tableName] = options;
 
-    const eventHandlers = _.clone(defaultEventHandlers);
+    const eventHandlers = {};
 
     return (state = initState, action) => produce(state, draft => {
         if (action.table !== tableName) return;
@@ -89,13 +89,17 @@ export function createTable(tableName, options = {}, initState = {}) {
         }
 
         const raiseContextMenu = () => {
+            if (!eventHandlers.onContextMenu) return;
+
             const selected = [...draft.selectedValues];
             const active = inArray(draft.activeValue);
             eventHandlers.onContextMenu(isListbox ? active : selected);
         }
 
-        const raiseSelectionChange = () =>
+        const raiseSelectionChange = () => {
+            if (!eventHandlers.onSelectionChange) return;
             eventHandlers.onSelectionChange([...draft.selectedValues]);
+        }
 
         const clearSelection = (clearSelectedValues = true) => {
             setActivePivotValue(null);
@@ -317,9 +321,4 @@ export function createTable(tableName, options = {}, initState = {}) {
         if (updateSelection && !areArraysEqual(state.selectedValues, draft.selectedValues))
             raiseSelectionChange();
     })
-}
-
-export const defaultEventHandlers = {
-    onContextMenu: () => { },
-    onSelectionChange: () => { }
 }

@@ -375,7 +375,7 @@ Then, you can pass it to the `context` prop. If you are using custom context, yo
 
 > **Default:** `""`
 
-Compatible with styles designed for html table elements (for example bootstrap's `table` class).
+Will be applied to the table element.
 
 #### `emptyPlaceholder` _component_
 
@@ -418,7 +418,7 @@ Called when the user right-clicks on a row or the table container.
 | `values`   | *Array of any* | The [selected values](#selectedvalues-array-of-any)         |
 | `enterKey` | *Boolean*      | True if caused by enter key press, false if by double click |
 
-Called when the user double-clicks or presses the enter key. Will not be called if no rows are selected.
+Called when the user double-clicks on a row or presses the enter key. Will not be called if no rows are selected.
 
 #### `onSelectionChange` _function_
 

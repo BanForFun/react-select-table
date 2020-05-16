@@ -2,7 +2,7 @@
 
 ### Setup
 
-The `initTable`/`disposeTable` (for class components) or `useTable` (for functional components) methods must be called for every table component. You must pass a name as the first parameter. The name passed to the method must match the component's `name` prop.
+The `initTable`/`disposeTable` (for class components) or `useTable` (for functional components) methods must be called for every table component. You must pass a name as the first parameter. When you render a Table, you must pass the same name to the [`name`](#name-string) component prop.
 
 You can optionally pass an [options](./types.md#options-object) object as a second parameter to either method.
 
@@ -13,7 +13,7 @@ import React from 'react'
 import { Table, useTable } from 'react-select-table'
 
 function App() {
-    useTable("todos");
+    useTable("todos", { valueProperty: "id" });
     
     return (
         <Table name="todos"
@@ -31,7 +31,7 @@ import { Table, initTable, disposeTable } from 'react-select-table'
 
 class App extends Component {
     componentDidMount() {
-        initTable("todos");
+        initTable("todos", { valueProperty: "id" });
     }
     
     componentWillUnmount() {
@@ -60,32 +60,52 @@ The complete set of items, before parsing, sorting or filtering.
 
 If an item has a `className` property set to an array of CSS class name strings, they will be applied to the `tr` element.
 
-#### [`columns`](./core.md#columns-array-of-column) _array of [Column](./types.md#column-object)_
+#### `columns` _array of [Column](./types.md#column-object)_
 > **Required**
 
-#### [`name`](./core.md#name-string) _string_
+The table columns.
+
+#### `name` _string_
 > **Required**
 
-#### [`className`](./core.md#classname-string) _string_
+The table name. Used for the generation of the react keys. The `initTable` or `useTable` method must be called first with the same name, as shown in the [setup](#setup) section.
+
+#### `className` _string_
 
 > **Default:** `""`
 
-#### [`emptyPlaceholder`](./core.md#emptyplaceholder-component) _component_
+Will be applied to the table element.
+
+#### `emptyPlaceholder` _component_
 
 > **Default**: `null`
 
-#### [`onContextMenu`](./core.md#oncontextmenu-function) _function_
+Rendered when the table contains no items.
+
+#### `filter` *any*
+
+> **Default**: `null`
+
+Passed as the second parameter to [`itemPredicate`](./types.md#itempredicate-function). [Example usage](./core.md#filter-any)
+
+
+
+### Event props
+
+#### `onContextMenu` _function_
 
 >  **Default**: `() => {}`
 
-#### [`onItemsOpen`](./core.md#onitemsopen-function) _function_
+Called when the user right-clicks on a row or the table container. [See parameters](./core.md#oncontextmenu-function)
+
+#### `onItemsOpen` _function_
 
 > **Default**: `() => {}`
 
-#### [`onSelectionChange`](./core.md#onselectionchange-function) _function_
+Called when the user double-clicks on a row or presses the enter key. Will not be called if no rows are selected. [See parameters](./core.md#onitemsopen-function)
+
+#### `onSelectionChange` _function_
 
 > **Default**: `() => {}`
 
-#### [`filter`](./core.md#filter-any) *any*
-
-> **Default**: `null`
+Called when the selection changes. [See parameters](./core.md#onselectionchange-function)

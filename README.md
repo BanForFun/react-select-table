@@ -32,6 +32,13 @@
 
 * Action types are now **static** and the table name is given in the action's `table` property. [More details](/docs/core.md#actions)
 * Actions now have a `payload` property. The payload is no longer spread inside the action.
+* [`createTable`](./docs/core.md#reducer) parameters: Swapped position of `initState` and `options`.
+* State properties `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` are now constant and must be specified in the `options` (second) parameter of [`createTable`](./docs/core.md#reducer).
+* Removed `setMultiselect`, `setListboxMode`, `setMinColumnWidth` and `setValueProperty` actions.
+
+### Table
+
+* Component props `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` removed. These properties are now constant and must be specified in the `options` (second) parameter of [`initTable` or `useTable`](./docs/table.md#setup).
 
 ## Installation
 

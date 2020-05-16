@@ -12,7 +12,6 @@ import {
 } from '../utils/elementUtils';
 import styles from "../index.scss";
 import { makeGetStateSlice } from '../selectors/namespaceSelector';
-import { defaultEventHandlers } from '../store/table';
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
 import {
@@ -44,23 +43,25 @@ function TableCore(props) {
         dispatch
     } = props;
 
+    const tableName = useMemo(() =>
+        reducerName || name, [reducerName, name]);
+
     const options = useMemo(() =>
-        tableOptions[name], [name]);
+        tableOptions[tableName], [tableName]);
 
     const values = useMemo(() =>
         _.map(items, options.valueProperty),
         [items, options]);
 
     const actions = useMemo(() => {
-        const tableName = reducerName || name;
         const actions = new InternalActions(tableName);
         return bindActionCreators(actions, dispatch);
-    }, [name, reducerName, dispatch]);
+    }, [tableName, dispatch]);
 
     //#region Reducer updater
 
     //Register event handlers
-    for (let name in defaultEventHandlers) {
+    for (let name in defaultReducerEventHandlers) {
         const handler = props[name];
         useEffect(() => {
             actions.setEventHandler(name, handler)
@@ -429,7 +430,12 @@ TableCore.propTypes = {
     onSelectionChange: PropTypes.func
 };
 
+const defaultReducerEventHandlers = {
+    onContextMenu: () => { },
+    onSelectionChange: () => { },
+}
+
 TableCore.defaultProps = {
-    ...defaultEventHandlers,
+    ...defaultReducerEventHandlers,
     onItemsOpen: () => { }
 };

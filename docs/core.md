@@ -25,14 +25,12 @@ Note: The items are [parsed](#itemparser-function) before being sorted.
 
 The order which the items are sorted by. Has no effect when [`sortPath`](#sortpath-string) is null.
 
-[columnOrder]: #columnorder-array-of-number
-
 #### `columnOrder` *array of number*
 > **Default**: `null`
 >
 > **Modified by**: [`setColumnOrder`](#setColumnOrder)
 
-Used to reorder and/or hide columns. It can be set to an array of indexes corresponding to items in the [`columns`](#columns-array-of-column) array.
+Used to reorder and/or hide columns. It can be set to an array containing indexes of items in the [`columns`](#columns-array-of-column) array.
 
 If null, all columns passed to the `columns` prop will be rendered.
 
@@ -44,20 +42,7 @@ If null, all columns passed to the `columns` prop will be rendered.
 
 Array of **[visible][columnOrder]** columns widths as percentages of the table width. On initialization, all columns are set to be of equal width.
 
-[value]: #valueproperty-string
-
-#### `valueProperty` *string*
-> **Default**: `null`
->
-> **Modified by**: [`setValueProperty`](#setValueProperty)
->
-> [**Table prop**](./table.md#valueproperty-string)
-
-Property path that contains a unique value for each item (ex. `id`). 
-
 #### `selectedValues` *array of any*
-
-[selection]: #selectedvalues-array-of-any
 
 > **Default**: `[]`
 >
@@ -77,10 +62,8 @@ Active [value][value]. By default, the active item has green bottom border.
 > **Default**: `null`
 >
 > **Modified by**: [`setFilter`](#setFilter)
->
-> [**Table prop**](./table.md#filter-any)
 
-Passed as the second parameter to [`itemPredicate`](#itempredicate-function).
+Passed as the second parameter to [`itemPredicate`](./types.md#itempredicate-function).
 
 __With the default implementation of `itemPredicate`__, this object can contain key-value pairs of property paths and matching values. For example:
 
@@ -128,42 +111,7 @@ Can be used to conditionally display a loading indicator. Initially set to `true
 
 [`clearRows`](#clearrows) action sets it to `true`.
 
-#### `isMultiselect` *boolean*
-> **Default**: `true`
->
-> **Modified by**: [`setMultiselect`](#setMultiselect)
->
-> [**Table prop**](./table.md#ismultiselect-boolean)
 
-If set to false, the following features are disabled:
-
-* `Shift`+ `Home`/`End`/`Up`/`Down`
-* `Ctrl`/`Shift`  + `Click`
-* `Ctrl` + `A`
-* Drag selection.
-
-#### `isListbox` *boolean*
-> **Default**: `false`
->
-> **Modified by**: [`setListboxMode`](#setListboxMode)
->
-> [**Table prop**](./table.md#islistbox-boolean)
-
-If set to true:
-
-* Clicking on empty space below the items won't clear the selection.
-* Right clicking won't select the row below the cursor, it will just be set to [active](#activevalue-any).
-* The [active value](#activevalue-any) will be passed to [`onContextMenu`](./common.md#oncontextmenu-function) instead of the selected values.
-* Drag selection is disabled.
-
-#### `minColumnWidth` *number*
-> **Default**: `3`
->
-> **Modified by**: [`setMinColumnWidth`](#setMinColumnWidth)
->
-> [**Table prop**](./table.md#mincolumnwidth-number)
-
-The minimum column width percentage relative to the table width.
 
 
 
@@ -387,50 +335,6 @@ Sets [`sortPath`](#sortpath-string) state to `path`. If `sortPath` is already se
 
 
 
-#### Option actions
-
-#### `setMinColumnWidth`
-
-> **Type**: `SET_MIN_COLUMN_WIDTH`
-
-Parameters:
-
-* `percent` *number*
-
-Sets [`minColumnWidth`](#mincolumnwidth-number) state to `percent`. If a column is smaller than `percent` it will **not** be resized to the minimum width. Takes effect on the next resize.
-
-#### `setListboxMode`
-
-> **Type**: `SET_LISTBOX_MODE`
-
-Parameters:
-
-* `isListbox` *boolean*
-
-Sets [`isListbox`](#islistbox-boolean) state to `isListbox`.
-
-#### `setMultiselect`
-
-> **Type**: `SET_MULTISELECT`
-
-Parameters:
-
-* `isMultiselect` *boolean*
-
-Sets [`isMultiselect`](#ismultiselect-boolean) state to `isMultiselect`. If `isMultiselect` is false and more than one item is currently selected, only the item that was selected first will stay as such.
-
-#### `setValueProperty`
-
-> **Type**: `SET_VALUE_PROPERTY`
-
-Parameters:
-
-* `name` *string*
-
-Sets [`valueProperty`][value] state to `name`. Clears the selection.
-
-
-
 #### Internal actions
 
 In redux devtools, you may notice some other action types, namely `SET_EVENT_HANDLER` and `SET_COLUMN_COUNT`. These actions are dispatched internally and no action creators are provided, as to not create inconsistency between the props and the state.
@@ -439,11 +343,10 @@ In redux devtools, you may notice some other action types, namely `SET_EVENT_HAN
 
 ### TableCore props
 
-#### `columns` _array of [Column](#column-object)_
+#### `columns` _array of [Column](./types.md#column-object)_
 
 > __Required__
 >
-> [**Table prop**](./table.md#columns-array-of-column)
 
 The table columns. Don't worry about their order or whether some shouldn't be displayed, those functions can be accomplished by setting [`columnOrder`](#columnorder-array-of-number). 
 
@@ -451,7 +354,6 @@ The table columns. Don't worry about their order or whether some shouldn't be di
 
 > __Required__
 >
-> [**Table prop**](./table.md#name-string)
 
 Used for the generation of the react `key` properties for the rows and columns. 
 
@@ -472,16 +374,12 @@ Then, you can pass it to the `context` prop. If you are using custom context, yo
 #### `className` *string*
 
 > **Default:** `""`
->
-> [**Table prop**](./table.md#classname-string)
 
 Compatible with styles designed for html table elements (for example bootstrap's `table` class).
 
 #### `emptyPlaceholder` _component_
 
 > **Default**: `null`
->
-> [**Table prop**](./table.md#emptyplaceholder-component)
 
 Rendered when the table contains no items.
 
@@ -504,8 +402,6 @@ The event handlers (except `onItemsOpen`) are called from inside the reducer. If
 #### `onContextMenu` _function_
 
 > **Default**: `() => {}`
->
-> [**Table prop**](./table.md#oncontextmenu-function)
 
 | Parameter | Type           | Description                                                  |
 | --------- | -------------- | ------------------------------------------------------------ |
@@ -516,8 +412,6 @@ Called when the user right-clicks on a row or the table container.
 #### `onItemsOpen` _function_
 
 > **Default**: `() => {}`
->
-> [**Table prop**](./table.md#onitemsopen-function)
 
 | Name       | Type           | Description                                                 |
 | ---------- | -------------- | ----------------------------------------------------------- |
@@ -529,90 +423,12 @@ Called when the user double-clicks or presses the enter key. Will not be called 
 #### `onSelectionChange` _function_
 
 > **Default**: `() => {}`
->
-> [**Table prop**](./table.md#onselectionchange-function)
 
 | Parameter | Type           | Description                                         |
 | --------- | -------------- | --------------------------------------------------- |
 | `values`  | *Array of any* | The [selected values](#selectedvalues-array-of-any) |
 
 Called when the [selection][selection] changes.
-
-
-
-### Column *object*
-
-#### `title` *string*
-This text will be displayed in the header.
-
-#### `path` *string*
-The property value of each row at `path` will be resolved and passed to the [`render`](#render-function) method as the first parameter, followed by the complete row object as the second one. If `path` is not set, the first parameter will be undefined. 
-
-Columns that specify a `path`, are sortable. If that is not desirable (for example on images), you should not specify a `path` and resolve the property inside the `render` method.
-
-If you don't set the `path` property, you must set the [`key`](#key-string) property instead.
-
-#### `render`  *function*
-
-Called for each cell to return the content to be displayed. For parameters, see [`path`](#path-string).
-
-#### `key` *string*
-
-Used for the generation of the react `key` properties for the cells. Must be unique for each column.
-
-If [`path`](#path-string) is set, you needn't set the `key` property, as `path` will be used for the same purpose.
-
-#### `isHeader` *boolean*
-If set to true, a th element will be used instead of td for the cell rendering.
-
-
-
-### Options *object*
-
-> **Used by:**
->
-> * [`initTable`/`useTable`](./table.md#setup)
-> * [`createTable`](#reducer)
-
-#### `itemParser` _Function_
-
-> **Returns:** *object*
->
-> **Default**: `item => item`
-
-| Parameter | Type     | Description         |
-| --------- | -------- | ------------------- |
-| `item`    | *Object* | Table item to parse |
-
-Called for each row before adding it to the table. Returns the modified row.
-
-#### `itemPredicate` _Function_
-
-> **Returns**: *boolean*
->
-> **Default**: 
->
-> ```javascript
-> (item, filter) => {
->   if (!filter) return true;
-> 
->   for (let key in filter) {
->       if (item[key] !== filter[key])
->          return false;
->   }
-> 
->   return true;
-> }
-> ```
-
-| Parameter | Type     | Description                                |
-| --------- | -------- | ------------------------------------------ |
-| `item`    | *Object* | Table item to filter                       |
-| `filter`  | *Any*    | The [`filter`](#filter-any) state property |
-
-Called for each row to decide whether it should be displayed.
-
-Note: The items will be [parsed](#itemparser-function) before being filtered.
 
 
 
@@ -623,12 +439,12 @@ To create a reducer, use the `createTable` exported by `TableReducer`.
 Parameters:
 
 * `tableName` *string*
+* `options` *[Options](./types.md#options-object)* (Optional)
 * `initState` *object* (Optional)
-* `options` *[Options](#options-object)* (Optional)
 
 The `tableName` parameter must match the component's [`name`](#name-string) prop.
 
-Properties that in most cases remain constant like `valueProperty`, `minColumnWidth`, `isListbox` and `isMultiselect`, are recommended to be set inside `initState` instead of being set later through actions. See all available `initState` properties [here](#state).
+See all available `initState` properties [here](#state).
 
 **Reducer**
 
@@ -665,7 +481,7 @@ function App() {
     
     return (
     	<TableCore 
-        	name="todos"
+            name="todos"
             context={ReactReduxContext}
             statePath="todoTable"
             // ...Other props like columns etc.
@@ -676,3 +492,8 @@ function App() {
 
 export default App;
 ```
+
+[value]: ./types.md#valueproperty-string
+
+[columnOrder]: #columnorder-array-of-number
+[selection]: #selectedvalues-array-of-any

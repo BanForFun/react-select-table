@@ -4,7 +4,6 @@ import { Table, useTable } from 'react-select-table';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-select-table/dist/index.css';
 import PulseLabel from './components/PulseLabel';
-import CheckBox from './components/CheckBox';
 
 const columns = [
   {
@@ -32,14 +31,14 @@ function renderCheckOrX(bool) {
 function App() {
   const [todos, setTodos] = useState();
 
-  const [isMultiselect, setMultiselect] = useState(true);
-  const [isListbox, setListBox] = useState(false);
-
   const [selection, setSelection] = useState([]);
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
-  useTable("test");
+  useTable("test", {
+    valueProperty: "id",
+    isMultiselect: false
+  });
 
   const getTodos = useCallback(async function () {
     setTodos(null);
@@ -58,25 +57,15 @@ function App() {
           {todos ?
             <Table
               items={todos}
-              minColumnWidth={3}
-              isListbox={isListbox}
-              isMultiselect={isMultiselect}
               onContextMenu={setContextMenu}
               onSelectionChange={setSelection}
               onItemsOpen={setOpenItems}
-              valueProperty="id"
               columns={columns}
               className="table"
               name="test" />
             : "Loading..."}
         </div>
         <div className="d-none d-md-block col-3">
-          <h1>Settings</h1>
-          <CheckBox label="Multiselect" id="isMultiselect"
-            value={isMultiselect} onChange={setMultiselect} />
-          <CheckBox label="Listbox mode" id="isListbox"
-            value={isListbox} onChange={setListBox} />
-
           <h1>Events</h1>
           <PulseLabel title="Selection" items={selection} />
           <PulseLabel title="Context menu" items={contextMenu} />

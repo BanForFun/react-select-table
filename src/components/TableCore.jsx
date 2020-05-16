@@ -19,6 +19,7 @@ import {
     touchToMouseEvent,
     registerListeners
 } from '../utils/eventUtils';
+import { tableOptions } from '../utils/optionUtils';
 
 function TableCore(props) {
     const {
@@ -26,11 +27,8 @@ function TableCore(props) {
         reducerName,
         context,
         className,
-        valueProperty,
-        isMultiselect,
         columns,
         emptyPlaceholder,
-        isListbox,
         statePath,
 
         //Events
@@ -46,9 +44,12 @@ function TableCore(props) {
         dispatch
     } = props;
 
+    const options = useMemo(() =>
+        tableOptions[name], [name]);
+
     const values = useMemo(() =>
-        _.map(items, valueProperty),
-        [items, valueProperty]);
+        _.map(items, options.valueProperty),
+        [items, options]);
 
     const actions = useMemo(() => {
         const tableName = reducerName || name;
@@ -87,7 +88,7 @@ function TableCore(props) {
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback(e => {
-        const dragEnabled = !isListbox && isMultiselect;
+        const dragEnabled = !options.isListbox && options.isMultiselect;
         if (!dragEnabled || e.button !== 0) return;
 
         const { clientX: x, clientY: y } = e;
@@ -95,7 +96,7 @@ function TableCore(props) {
 
         setLastMousePos([x, y]);
         setSelOrigin([x + scrollLeft, y + scrollTop]);
-    }, [isListbox, isMultiselect]);
+    }, [options]);
 
     //Update row collision
     const updateRowCollision = useCallback(rect => {
@@ -289,7 +290,8 @@ function TableCore(props) {
 
         switch (e.keyCode) {
             case 65: //A
-                if (e.ctrlKey) actions.selectAll();
+                if (e.ctrlKey && options.isMultiselect)
+                    actions.selectAll();
                 break;
             case 38: //Up
                 selectAtOffset(e, -1);
@@ -317,7 +319,8 @@ function TableCore(props) {
         selectAtOffset,
         raiseItemOpen,
         actions,
-        items,
+        options,
+        items
     ]);
     //#endregion
 
@@ -341,6 +344,7 @@ function TableCore(props) {
         context,
         statePath,
         actions,
+        options,
         columns: parsedColumns
     }
 
@@ -398,9 +402,6 @@ function makeMapState() {
         "selectedValues",
         "activeValue",
         "isLoading",
-        "valueProperty",
-        "isMultiselect",
-        "isListbox",
         "tableItems"
     );
 }

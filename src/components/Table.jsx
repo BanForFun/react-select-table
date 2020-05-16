@@ -11,12 +11,8 @@ const store = configureStore();
 function Table({
     items,
     filter,
-    valueProperty,
-    isMultiselect,
-    isListbox,
     itemParser,
     itemPredicate,
-    minColumnWidth,
     ...params
 }) {
     const { name } = params;
@@ -31,12 +27,8 @@ function Table({
         }, [actions, param]);
     }
 
-    useAutoDispatch(actions.setValueProperty, valueProperty);
     useAutoDispatch(actions.setFilter, filter);
     useAutoDispatch(actions.setRows, items);
-    useAutoDispatch(actions.setMultiselect, isMultiselect);
-    useAutoDispatch(actions.setListboxMode, isListbox);
-    useAutoDispatch(actions.setMinColumnWidth, minColumnWidth);
 
     if (!store.asyncReducers[name]) return null;
     return <Provider store={store}>
@@ -48,10 +40,6 @@ export default Table;
 
 Table.propTypes = {
     ...TableCore.propTypes,
-    valueProperty: PropTypes.string.isRequired,
     items: PropTypes.array.isRequired,
-    filter: PropTypes.any,
-    minColumnWidth: PropTypes.number,
-    isMultiselect: PropTypes.bool,
-    isListbox: PropTypes.bool
+    filter: PropTypes.any
 }

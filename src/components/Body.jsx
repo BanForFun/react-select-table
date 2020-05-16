@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 function Body({
     columns,
     name,
-    valueProperty,
+    options,
     tableItems: items,
     rowRefs,
     selectedValues,
@@ -24,7 +24,7 @@ function Body({
     }, [actions]);
 
     const renderColumn = useCallback((row, column) => {
-        const rowValue = row[valueProperty];
+        const rowValue = row[options.valueProperty];
         const { props, path, render, isHeader } = column;
 
         const value = _.get(row, path);
@@ -33,10 +33,10 @@ function Body({
         const key = `cell_${name}_${rowValue}_${props.id}`;
         if (isHeader) return <th key={key}>{content}</th>;
         return <td key={key}>{content}</td>
-    }, [valueProperty, name]);
+    }, [options, name]);
 
     const renderRow = useCallback((row, index) => {
-        const value = row[valueProperty];
+        const value = row[options.valueProperty];
 
         const classes = [];
         if (selectedValues.includes(value))
@@ -54,7 +54,7 @@ function Body({
             {columns.map(col => renderColumn(row, col))}
         </tr>
     }, [
-        valueProperty,
+        options,
         name,
         columns,
         selectedValues,
@@ -77,8 +77,7 @@ function makeMapState() {
         getSlice(root, props),
         "tableItems",
         "selectedValues",
-        "activeValue",
-        "valueProperty"
+        "activeValue"
     );
 }
 

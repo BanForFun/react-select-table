@@ -13,12 +13,10 @@ export default class TableActions {
     static CLEAR_ROWS = "TABLE_CLEAR_ROWS";
     static SORT_BY = "TABLE_SORT_BY";
     static SET_FILTER = "TABLE_SET_FILTER";
-    static SET_VALUE_PROPERTY = "TABLE_SET_VALUE_PROPERTY";
 
     //Columns
     static SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH";
     static SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
-    static SET_MIN_COLUMN_WIDTH = "TABLE_SET_MIN_COLUMN_WIDTH";
 
     //Selection
     static SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
@@ -27,24 +25,10 @@ export default class TableActions {
     static SELECT_ALL = "TABLE_SELECT_ALL";
     static SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
     static CONTEXT_MENU = "TABLE_CONTEXT_MENU";
-    static SET_MULTISELECT = "TABLE_SET_MULTISELECT";
-    static SET_LISTBOX_MODE = "TABLE_SET_LISTBOX_MODE";
 
     _getAction(type, payload = null) {
         return { type, table: this.tableName, payload };
     }
-
-    setMinColumnWidth = (percent) =>
-        this._getAction(self.SET_MIN_COLUMN_WIDTH, { percent })
-
-    setListboxMode = (isListbox) =>
-        this._getAction(self.SET_LISTBOX_MODE, { isListbox });
-
-    setMultiselect = (isMultiselect) =>
-        this._getAction(self.SET_MULTISELECT, { isMultiselect });
-
-    setValueProperty = (name) =>
-        this._getAction(self.SET_VALUE_PROPERTY, { name });
 
     clearRows = () =>
         this._getAction(self.CLEAR_ROWS);

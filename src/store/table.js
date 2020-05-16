@@ -6,6 +6,7 @@ import { sortTuple } from "../utils/mathUtils";
 import { pullFirst, inArray, areArraysEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 import actions from "../models/internalActions";
+import { defaultOptions, tableOptions } from "../utils/optionUtils";
 
 const defaultState = {
     sortPath: null,
@@ -18,11 +19,7 @@ const defaultState = {
     items: {},
     pivotValue: null,
     tableItems: [],
-    isLoading: true,
-    isMultiselect: true,
-    isListbox: false,
-    valueProperty: null,
-    minColumnWidth: 3
+    isLoading: true
 };
 
 function getDefaultWidth(count) {
@@ -36,17 +33,20 @@ function validateInitialState(state) {
         state.columnWidth = getDefaultWidth(count);
 }
 
-export function createTable(tableName, initState = {}, options = {}) {
+export function createTable(tableName, options = {}, initState = {}) {
     _.defaults(initState, defaultState);
     validateInitialState(initState);
 
     _.defaults(options, defaultOptions);
+    tableOptions[tableName] = options;
+
     const eventHandlers = _.clone(defaultEventHandlers);
 
     return (state = initState, action) => produce(state, draft => {
         if (action.table !== tableName) return;
+        const { valueProperty, isListbox, isMultiselect } = options;
 
-        const values = _.map(state.tableItems, state.valueProperty);
+        const values = _.map(state.tableItems, valueProperty);
         let updateSelection = false;
 
         //Prefix methods that don't mutate draft state with an underscore
@@ -68,7 +68,7 @@ export function createTable(tableName, initState = {}, options = {}) {
 
             //Deselect values that no longer exist
             if (!updateSelection) return;
-            const newValues = _.map(newItems, draft.valueProperty);
+            const newValues = _.map(newItems, valueProperty);
             const deselect = _.difference(draft.selectedValues, newValues);
             deselectRows(deselect);
         }
@@ -91,7 +91,7 @@ export function createTable(tableName, initState = {}, options = {}) {
         const raiseContextMenu = () => {
             const selected = [...draft.selectedValues];
             const active = inArray(draft.activeValue);
-            eventHandlers.onContextMenu(state.isListbox ? active : selected);
+            eventHandlers.onContextMenu(isListbox ? active : selected);
         }
 
         const raiseSelectionChange = () =>
@@ -111,14 +111,14 @@ export function createTable(tableName, initState = {}, options = {}) {
             case "FORM_GROUP_SET_DATA":
             case actions.SET_ROWS: {
                 const { data: items } = payload;
-                draft.items = _.keyBy(items, state.valueProperty);
+                draft.items = _.keyBy(items, valueProperty);
                 draft.isLoading = false;
                 updateItems(true);
                 break;
             }
             case actions.ADD_ROW: {
                 const { newItem } = payload;
-                const value = newItem[state.valueProperty];
+                const value = newItem[valueProperty];
                 draft.items[value] = newItem;
                 updateItems();
                 break;
@@ -152,7 +152,7 @@ export function createTable(tableName, initState = {}, options = {}) {
 
                 const withValue = {
                     ...state.items[oldValue],
-                    [state.valueProperty]: newValue
+                    [valueProperty]: newValue
                 };
 
                 draft.items[newValue] = withValue;
@@ -202,7 +202,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 const { value, ctrlKey, shiftKey } = payload;
                 let addToSelection = [value];
 
-                if (!state.isMultiselect) {
+                if (!isMultiselect) {
                     draft.selectedValues = addToSelection;
                     draft.activeValue = value;
                     break;
@@ -233,7 +233,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.CLEAR_SELECTION: {
-                clearSelection(!state.isListbox);
+                clearSelection(!isListbox);
                 break;
             }
             case actions.SET_ROW_SELECTED: {
@@ -248,7 +248,6 @@ export function createTable(tableName, initState = {}, options = {}) {
                 break;
             }
             case actions.SELECT_ALL: {
-                if (!state.isMultiselect) break;
                 draft.selectedValues = values;
                 updateSelection = true;
                 break;
@@ -263,7 +262,7 @@ export function createTable(tableName, initState = {}, options = {}) {
                 if (!ctrlKey) {
                     setActivePivotValue(value);
                     const isSelected = state.selectedValues.includes(value);
-                    if (!state.isListbox && !isSelected) {
+                    if (!isListbox && !isSelected) {
                         draft.selectedValues = value ? [value] : [];
                         updateSelection = true;
                     }
@@ -272,39 +271,6 @@ export function createTable(tableName, initState = {}, options = {}) {
                 raiseContextMenu();
                 break;
             }
-            case actions.SET_MULTISELECT: {
-                const { isMultiselect } = payload;
-                draft.isMultiselect = isMultiselect;
-
-                if (!isMultiselect) {
-                    draft.selectedValues = inArray(state.selectedValues[0]);
-                    updateSelection = true;
-                }
-                break;
-            }
-            case actions.SET_LISTBOX_MODE: {
-                draft.isListbox = payload.isListbox;
-                break;
-            }
-
-            //Options
-            case actions.SET_VALUE_PROPERTY: {
-                const { name } = payload;
-                if (state.valueProperty === name) break;
-
-                //Update option
-                draft.valueProperty = name;
-
-                //Update items
-                const items = Object.values(state.items);
-                draft.items = _.keyBy(items, name);
-                updateItems();
-
-                //Update selection
-                clearSelection();
-                break;
-            }
-
 
             //Columns
             case actions.SET_COLUMN_WIDTH: {
@@ -330,10 +296,6 @@ export function createTable(tableName, initState = {}, options = {}) {
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
-            case actions.SET_MIN_COLUMN_WIDTH: {
-                draft.minColumnWidth = payload.percent;
-                break;
-            }
 
             //Internal
             case actions.SET_COLUMN_COUNT: {
@@ -356,22 +318,6 @@ export function createTable(tableName, initState = {}, options = {}) {
             raiseSelectionChange();
     })
 }
-
-function defaultItemFilter(item, filter) {
-    if (!filter) return true;
-
-    for (let key in filter) {
-        if (item[key] !== filter[key])
-            return false;
-    }
-
-    return true;
-}
-
-const defaultOptions = {
-    itemParser: item => item,
-    itemPredicate: defaultItemFilter
-};
 
 export const defaultEventHandlers = {
     onContextMenu: () => { },

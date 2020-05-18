@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useCallback } from 'react'
-
+import React, { useState } from 'react'
 import { Table, useTable } from 'react-select-table';
+import PulseLabel from './components/PulseLabel';
+
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-select-table/dist/index.css';
-import PulseLabel from './components/PulseLabel';
+
+import todos from "./todos";
 
 const columns = [
   {
@@ -29,22 +31,23 @@ function renderCheckOrX(bool) {
 }
 
 function App() {
-  const [todos, setTodos] = useState();
+  // const [todos, setTodos] = useState();
 
   const [selection, setSelection] = useState([]);
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
   useTable("test", { valueProperty: "id" });
+  useTable("test1");
 
-  const getTodos = useCallback(async function () {
-    setTodos(null);
-    const response = await fetch("https://jsonplaceholder.typicode.com/todos");
-    const data = await response.json();
-    setTodos(data.slice(0, 100));
-  }, []);
+  // const getTodos = useCallback(async function () {
+  //   setTodos(null);
+  //   const response = await fetch("https://jsonplaceholder.typicode.com/todos");
+  //   const data = await response.json();
+  //   setTodos(data.slice(0, 100));
+  // }, []);
 
-  useEffect(() => { getTodos() }, [getTodos]);
+  // useEffect(() => { getTodos() }, [getTodos]);
 
   return (
     <div className="container">
@@ -67,7 +70,7 @@ function App() {
           <PulseLabel title="Selection" items={selection} />
           <PulseLabel title="Context menu" items={contextMenu} />
           <PulseLabel title="Open items" items={openItems} />
-          <button className="btn btn-primary" onClick={getTodos}>Refresh</button>
+          {/* <button className="btn btn-primary" onClick={getTodos}>Refresh</button> */}
         </div>
       </div>
     </div>)

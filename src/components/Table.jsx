@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import TableCore from "./TableCore.jsx";
@@ -7,6 +7,13 @@ import InternalActions from "../models/internalActions.js";
 import configureStore from "../store/configureStore.js";
 
 const store = configureStore();
+
+function useAutoDispatch(creator, param) {
+    useEffect(() => {
+        if (param === undefined) return;
+        store.dispatch(creator(param));
+    }, [creator, param]);
+}
 
 function Table({
     items,
@@ -17,20 +24,19 @@ function Table({
 }) {
     const { name } = params;
 
+    const [isReady, setReady] = useState(false);
+    useEffect(() => {
+        store.subscribe(() =>
+            setReady(!!store.asyncReducers[name]));
+    }, [name]);
+
     const actions = useMemo(() =>
         new InternalActions(name), [name]);
-
-    function useAutoDispatch(actionCreator, param) {
-        useEffect(() => {
-            if (param === undefined) return;
-            store.dispatch(actionCreator(param));
-        }, [actions, param]);
-    }
 
     useAutoDispatch(actions.setFilter, filter);
     useAutoDispatch(actions.setRows, items);
 
-    if (!store.asyncReducers[name]) return null;
+    if (!isReady) return null;
     return <Provider store={store}>
         <TableCore {...params} statePath={name} />
     </Provider>

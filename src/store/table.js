@@ -279,14 +279,14 @@ export function createTable(tableName, options = {}, initState = {}) {
             //Columns
             case actions.SET_COLUMN_WIDTH: {
                 const { index, width } = payload;
-                const { minColumnWidth } = state;
+                const minWidth = options.minColumnWidth;
 
                 const thisWidth = draft.columnWidth[index];
                 const nextWidth = draft.columnWidth[index + 1];
                 const availableWidth = thisWidth + nextWidth;
-                const maxWidth = availableWidth - minColumnWidth;
+                const maxWidth = availableWidth - minWidth;
 
-                const limitedWidth = _.clamp(width, minColumnWidth, maxWidth);
+                const limitedWidth = _.clamp(width, minWidth, maxWidth);
                 draft.columnWidth[index] = limitedWidth;
                 draft.columnWidth[index + 1] = availableWidth - limitedWidth;
                 break;

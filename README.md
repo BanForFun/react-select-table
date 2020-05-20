@@ -64,5 +64,10 @@ More examples coming soon
 
 This library contains two components: 
 
-1. **TableCore** which uses redux for state management.<br/>[**TableCore documentation**](/docs/core.md)
-2. **Table** which is a wrapper for **TableCore** and uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility.<br/>[**Table documentation**](/docs/table.md)
+### TableCore
+
+Uses redux for state management. [Go to documentation](/docs/core.md)
+
+### Table
+
+A wrapper for **TableCore** which uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility. [Go to documentation](/docs/table.md)

@@ -10,7 +10,9 @@ const store = configureStore();
 
 function useAutoDispatch(creator, param) {
     useEffect(() => {
+        if (!creator) return;
         if (param === undefined) return;
+
         store.dispatch(creator(param));
     }, [creator, param]);
 }
@@ -30,8 +32,10 @@ function Table({
             setReady(!!store.asyncReducers[name]));
     }, [name]);
 
-    const actions = useMemo(() =>
-        new InternalActions(name), [name]);
+    const actions = useMemo(() => {
+        if (!isReady) return {};
+        return new InternalActions(name);
+    }, [name, isReady]);
 
     useAutoDispatch(actions.setFilter, filter);
     useAutoDispatch(actions.setRows, items);

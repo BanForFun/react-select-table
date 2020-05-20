@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import ResizeObserver from 'resize-observer-polyfill';
 import _ from "lodash";
 import Head from "./Head";
 import Body from "./Body";

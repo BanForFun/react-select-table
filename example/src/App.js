@@ -31,46 +31,31 @@ function renderCheckOrX(bool) {
 }
 
 function App() {
-  // const [todos, setTodos] = useState();
-
   const [selection, setSelection] = useState([]);
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
   useTable("test", { valueProperty: "id" });
-  useTable("test1");
-
-  // const getTodos = useCallback(async function () {
-  //   setTodos(null);
-  //   const response = await fetch("https://jsonplaceholder.typicode.com/todos");
-  //   const data = await response.json();
-  //   setTodos(data.slice(0, 100));
-  // }, []);
-
-  // useEffect(() => { getTodos() }, [getTodos]);
 
   return (
     <div className="container">
       <div className="row">
         <div className="col">
           <h1>Table</h1>
-          {todos ?
-            <Table
-              items={todos}
-              onContextMenu={setContextMenu}
-              onSelectionChange={setSelection}
-              onItemsOpen={setOpenItems}
-              columns={columns}
-              className="table"
-              name="test" />
-            : "Loading..."}
+          <Table
+            items={todos}
+            onContextMenu={setContextMenu}
+            onSelectionChange={setSelection}
+            onItemsOpen={setOpenItems}
+            columns={columns}
+            className="table"
+            name="test" />
         </div>
         <div className="d-none d-md-block col-3">
           <h1>Events</h1>
           <PulseLabel title="Selection" items={selection} />
           <PulseLabel title="Context menu" items={contextMenu} />
           <PulseLabel title="Open items" items={openItems} />
-          {/* <button className="btn btn-primary" onClick={getTodos}>Refresh</button> */}
         </div>
       </div>
     </div>)

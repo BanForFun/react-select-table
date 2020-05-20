@@ -1,12 +1,12 @@
 import { createStore, combineReducers } from "redux"
-import { composeWithDevTools } from "redux-devtools-extension";
+import { devToolsEnhancer } from "redux-devtools-extension";
 
 const emptyReducer = state => state;
 
 let store;
 
 export default function configureStore() {
-    store = createStore(emptyReducer, composeWithDevTools());
+    store = createStore(emptyReducer, devToolsEnhancer());
     store.asyncReducers = {};
     return store;
 }

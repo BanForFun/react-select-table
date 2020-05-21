@@ -379,7 +379,7 @@ function TableCore(props) {
 
     return (
         <div className={styles.container}>
-            <div className={styles.scrollPadding} style={getStyle(true)}>
+            <div className={styles.headWithScrollBar} style={getStyle(true)}>
                 <div className={styles.headContainer} ref={headContainer}>
                     <div className={styles.tableContainer} style={getStyle(false)}>
                         <table className={className}>

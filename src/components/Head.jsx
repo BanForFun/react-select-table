@@ -13,7 +13,8 @@ function Head({
     columnWidth,
     sortOrder,
     sortPath,
-    actions
+    actions,
+    options
 }) {
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
@@ -84,15 +85,18 @@ function Head({
                         actions.sortBy(path);
                     }
 
+                    const addSeperator = options.scrollX ||
+                        index < columns.length - 1;
+
                     return <th key={`title_${name}_${id}`}
                         data-sortable={isSortable} style={{ width }}
                         onClick={handleClick}>
                         {col.title}
                         {isSortable && renderSortIcon(path)}
-                        <div className={styles.seperator}
+                        {addSeperator && <div className={styles.seperator}
                             onClick={e => e.stopPropagation()}
                             onTouchStart={startResize}
-                            onMouseDown={startResize} />
+                            onMouseDown={startResize} />}
                     </th>
                 })}
             </tr>

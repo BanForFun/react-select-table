@@ -44,6 +44,14 @@ If set to true, a th element will be used instead of td for the cell rendering.
 
 Property path that contains a unique value for each item (ex. `_id`). 
 
+#### `scrollX` *boolean*
+
+> **Default**: `false`
+
+If set to true, columns are allowed to overflow their container horizontally. A scrollbar will appear if they do.
+
+Also, a column resizer will be added to the last column.
+
 #### `isMultiselect` *boolean*
 
 > **Default**: `true`

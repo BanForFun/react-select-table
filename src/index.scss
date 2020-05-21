@@ -14,15 +14,18 @@
     }
 }
 
-.headContainer {
-    position: relative;
-    flex: auto;
-    overflow-x: auto;
+.hideScrollbar {
     scrollbar-width: none;
-
     &::-webkit-scrollbar {
         display: none;
     }
+}
+
+.headContainer {
+    @extend .hideScrollbar;
+    position: relative;
+    flex: auto;
+    overflow-x: auto; 
 
     thead[data-resizing=true] th {
         cursor: col-resize;
@@ -76,7 +79,7 @@
     }
 }
 
-.scrollPadding {
+.headWithScrollBar {
     flex: none;
     display: flex;
 }

@@ -284,12 +284,7 @@ export function createTable(tableName, options = {}, initState = {}) {
                 const minWidth = options.minColumnWidth;
 
                 if (scrollX) {
-                    const limitedWidth = Math.max(width, minWidth);
-                    draft.columnWidth[index] = limitedWidth;
-
-                    // const offset = _.sum(draft.columnWidth) - 100;
-                    // if (offset < 0)
-                    //     draft.columnWidth[columnCount - 1] -= offset;
+                    draft.columnWidth[index] = Math.max(width, minWidth);
                     break;
                 }
 

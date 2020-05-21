@@ -40,6 +40,10 @@
 
 * Component props `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` removed. These properties are now constant and must be specified in the `options` (second) parameter of [`initTable` or `useTable`](./docs/table.md#setup).
 
+## 2.1.0 - Change log
+
+* Added horizontal scrolling (disabled by default). Can be enabled by setting the `scrollX` property to `true` in the [options](./docs/types.md#options-object).
+
 ## Installation
 
 ```shell

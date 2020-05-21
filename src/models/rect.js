@@ -13,6 +13,13 @@ export default class Rect {
         return new Rect(left, top, right, bottom);
     }
 
+    static fromPosSize(x, y, width, height) {
+        const right = x + width;
+        const bottom = y + height;
+
+        return new Rect(x, y, right, bottom);
+    }
+
     constructor(left, top, right, bottom) {
         this.left = left;
         this.top = top;

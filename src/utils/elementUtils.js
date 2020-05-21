@@ -1,3 +1,5 @@
+import Rect from "../models/rect";
+
 export function ensureRowVisible(item, parent) {
     const lowestYVisible = parent.scrollTop + parent.clientHeight;
     const lowestYHighlighted = item.offsetTop + item.scrollHeight;
@@ -12,7 +14,9 @@ export function ensureRowVisible(item, parent) {
 }
 
 export function ensurePosVisible(element, clientX, clientY) {
-    const bounds = element.getBoundingClientRect();
+    const { x, y } = element.getBoundingClientRect();
+    const { clientWidth, clientHeight } = element;
+    const bounds = Rect.fromPosSize(x, y, clientWidth, clientHeight);
 
     //X
     const offsetRight = clientX - bounds.right;

@@ -44,7 +44,7 @@ export function createTable(tableName, options = {}, initState = {}) {
 
     return (state = initState, action) => produce(state, draft => {
         if (action.table !== tableName) return;
-        const { valueProperty, isListbox, isMultiselect } = options;
+        const { valueProperty, isListbox, isMultiselect, scrollX } = options;
 
         const values = _.map(state.tableItems, valueProperty);
         let updateSelection = false;
@@ -108,6 +108,8 @@ export function createTable(tableName, options = {}, initState = {}) {
             draft.selectedValues = [];
             updateSelection = true;
         }
+
+        const columnCount = state.columnWidth.length;
 
         const { payload } = action;
         switch (action.type) {
@@ -281,8 +283,19 @@ export function createTable(tableName, options = {}, initState = {}) {
                 const { index, width } = payload;
                 const minWidth = options.minColumnWidth;
 
+                if (scrollX) {
+                    const limitedWidth = Math.max(width, minWidth);
+                    draft.columnWidth[index] = limitedWidth;
+
+                    // const offset = _.sum(draft.columnWidth) - 100;
+                    // if (offset < 0)
+                    //     draft.columnWidth[columnCount - 1] -= offset;
+                    break;
+                }
+
                 const thisWidth = draft.columnWidth[index];
                 const nextWidth = draft.columnWidth[index + 1];
+
                 const availableWidth = thisWidth + nextWidth;
                 const maxWidth = availableWidth - minWidth;
 
@@ -296,7 +309,7 @@ export function createTable(tableName, options = {}, initState = {}) {
                 draft.columnOrder = order;
                 const count = order.length;
 
-                if (state.columnWidth.length === count) break;
+                if (columnCount === count) break;
                 draft.columnWidth = getDefaultWidth(count);
                 break;
             }
@@ -304,7 +317,7 @@ export function createTable(tableName, options = {}, initState = {}) {
             //Internal
             case actions.SET_COLUMN_COUNT: {
                 const { count } = payload;
-                if (state.columnWidth.length === count) break;
+                if (columnCount === count) break;
 
                 draft.columnOrder = null;
                 draft.columnWidth = getDefaultWidth(count);

@@ -35,7 +35,7 @@ function App() {
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
-  useTable("test", { valueProperty: "id" });
+  useTable("test", { valueProperty: "id", scrollX: true });
 
   return (
     <div className="container">

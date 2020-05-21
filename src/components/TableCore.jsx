@@ -44,6 +44,9 @@ function TableCore(props) {
         dispatch
     } = props;
 
+    const bodyContainer = useRef();
+    const headContainer = useRef();
+
     const tableName = useMemo(() =>
         reducerName || name, [reducerName, name]);
 
@@ -175,6 +178,10 @@ function TableCore(props) {
 
     //Scroll
     const handleScroll = useCallback(() => {
+        //Sync horizontal scrolling
+        const { scrollLeft } = bodyContainer.current;
+        headContainer.current.scrollLeft = scrollLeft;
+
         if (!selOrigin) return;
         const [x, y] = lastMousePos;
         updateSelectRect(x, y);
@@ -210,7 +217,6 @@ function TableCore(props) {
 
     //#region Body container overflow detection
     const [scrollBarWidth, setScrollBarWidth] = useState(0);
-    const bodyContainer = useRef();
 
     const getTableContainer = useCallback(() =>
         bodyContainer.current.firstElementChild, []);
@@ -364,33 +370,46 @@ function TableCore(props) {
         return <div className={styles.selection} style={style} />
     }, [selRect]);
 
+
+    const getStyle = useCallback(ifSmall => {
+        const tableWidth = _.sum(columnWidth);
+        const condition = ifSmall ? tableWidth < 100 : tableWidth > 100;
+        return condition ? { width: `${tableWidth}%` } : {}
+    }, [columnWidth]);
+
     return (
         <div className={styles.container}>
-            <div className={styles.headContainer}>
-                <table className={className}>
-                    <Head {...commonParams}
-                        scrollBarWidth={scrollBarWidth} />
-                </table>
+            <div className={styles.scrollPadding} style={getStyle(true)}>
+                <div className={styles.headContainer} ref={headContainer}>
+                    <div className={styles.tableContainer} style={getStyle(false)}>
+                        <table className={className}>
+                            <Head {...commonParams} />
+                        </table>
+                    </div>
+                </div>
+                <div className={styles.scrollBarReplacement}
+                    style={{ width: scrollBarWidth }} />
             </div>
             <div className={styles.bodyContainer}
+                style={getStyle(true)}
                 ref={bodyContainer}
-                // style={{ touchAction: selOrigin ? "none" : "auto" }}
                 onScroll={handleScroll}>
                 <div className={styles.tableContainer} tabIndex="0"
+                    style={getStyle(false)}
                     onKeyDown={handleKeyDown}
                     onDoubleClick={handleDoubleClick}
                     onContextMenu={handleContextMenu}
                     onTouchStart={handleTouchStart}
                     onMouseDown={handleMouseDown}>
                     {selectionRect}
-                    <table className={className}>
+                    <table className={className} >
                         <ColumnResizer {...commonParams} />
                         <Body {...commonParams} rowRefs={rowRefs} />
                     </table>
                     {showPlaceholder && emptyPlaceholder}
                 </div>
             </div>
-        </div>
+        </div >
     )
 }
 

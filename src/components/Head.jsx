@@ -13,7 +13,6 @@ function Head({
     columnWidth,
     sortOrder,
     sortPath,
-    scrollBarWidth,
     actions
 }) {
     const [resizingIndex, setResizingIndex] = useState(null);
@@ -21,18 +20,17 @@ function Head({
 
     const onMouseMove = useCallback(e => {
         if (resizingIndex === null) return;
-        const compatibleIndex = resizingIndex - 1;
-        const element = header.current;
-        const bounds = element.getBoundingClientRect();
-        const absX = e.clientX - bounds.x;
+        const head = header.current;
+        const headXPos = head.getBoundingClientRect().x;
+        const absX = e.clientX - headXPos;
 
-        const offsetWidth = element.clientWidth - scrollBarWidth;
-        const absPercent = absX * 100 / offsetWidth;
-        const offset = _.sum(_.take(columnWidth, compatibleIndex));
+        const fullWidth = _.sum(columnWidth);
+        const absPercent = absX * fullWidth / head.clientWidth;
+        const offset = _.sum(_.take(columnWidth, resizingIndex));
         const percent = absPercent - offset;
 
-        actions.setColumnWidth(compatibleIndex, percent);
-    }, [resizingIndex, columnWidth, actions, scrollBarWidth]);
+        actions.setColumnWidth(resizingIndex, percent);
+    }, [resizingIndex, columnWidth, actions]);
 
     const onTouchMove = useCallback(e => {
         if (resizingIndex === null) return;
@@ -91,16 +89,12 @@ function Head({
                         onClick={handleClick}>
                         {col.title}
                         {isSortable && renderSortIcon(path)}
-                        {index > 0 &&
-                            <div className={styles.seperator}
-                                onClick={e => e.stopPropagation()}
-                                onTouchStart={startResize}
-                                onMouseDown={startResize} />}
+                        <div className={styles.seperator}
+                            onClick={e => e.stopPropagation()}
+                            onTouchStart={startResize}
+                            onMouseDown={startResize} />
                     </th>
                 })}
-                {!!scrollBarWidth && <th
-                    className={styles.scrollMargin}
-                    width={`${scrollBarWidth}px`} />}
             </tr>
         </thead>
     );

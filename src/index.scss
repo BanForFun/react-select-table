@@ -5,7 +5,6 @@
     user-select: none;
 
     table {
-        width: 100%;
         table-layout: fixed;   
         margin-bottom: 0;    
     }
@@ -15,7 +14,16 @@
     }
 }
 
-.headContainer {  
+.headContainer {
+    position: relative;
+    flex: auto;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
     thead[data-resizing=true] th {
         cursor: col-resize;
     }
@@ -27,17 +35,13 @@
         &[data-sortable=true] {
             cursor: pointer;
         }
-
-        &:empty {
-            padding: 0;
-        }
     }
 }
 
 .bodyContainer  {
     position: relative;
     flex: auto;
-    overflow-y: auto;
+    overflow: auto;
 
     thead th {
         padding: 0;
@@ -66,22 +70,32 @@
 .tableContainer {
     outline: none;
     min-height: 100%;
+
+    table {
+        width: 100%;
+    }
 }
 
-.scrollMargin {
-    padding: 0 !important;
+.scrollPadding {
+    flex: none;
+    display: flex;
+}
+
+.scrollBarReplacement {
+    flex: none;
+    background-color: #f1f1f1;
 }
 
 .seperator {
     position: absolute;
-    left: 0;
     top: 0;        
+    right: 0;
     width: 6px;
     height: 100%;
     cursor: col-resize;
 
     &:active {
-        border-left: 1px dotted black;
+        border-right: 1px dotted black;
     }
 }
 

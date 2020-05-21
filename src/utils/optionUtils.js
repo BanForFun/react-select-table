@@ -19,5 +19,6 @@ export const defaultOptions = {
     isMultiselect: true,
     isListbox: false,
     minColumnWidth: 3,
-    valueProperty: "_id"
+    valueProperty: "_id",
+    scrollX: false
 };

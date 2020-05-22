@@ -13,10 +13,9 @@ export function ensureRowVisible(item, parent) {
         parent.scrollTop = item.offsetTop;
 }
 
-export function ensurePosVisible(element, clientX, clientY) {
-    const { x, y } = element.getBoundingClientRect();
-    const { clientWidth, clientHeight } = element;
-    const bounds = Rect.fromPosSize(x, y, clientWidth, clientHeight);
+export function ensurePosVisible(element, clientX, clientY, bounds = null) {
+    if (!bounds)
+        bounds = element.getBoundingClientRect();
 
     //X
     const offsetRight = clientX - bounds.right;

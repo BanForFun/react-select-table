@@ -35,7 +35,7 @@ function App() {
   const [contextMenu, setContextMenu] = useState([]);
   const [openItems, setOpenItems] = useState([]);
 
-  useTable("test", { valueProperty: "id", scrollX: true });
+  useTable("test", { valueProperty: "id", scrollX: false });
 
   return (
     <div className="container">
@@ -43,7 +43,7 @@ function App() {
         <div className="col">
           <h1>Table</h1>
           <Table
-            items={todos}
+            items={todos.slice(0, 7)}
             onContextMenu={setContextMenu}
             onSelectionChange={setSelection}
             onItemsOpen={setOpenItems}

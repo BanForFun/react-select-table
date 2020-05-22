@@ -1,12 +1,16 @@
 .container {
     display: flex;
+    position: relative;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     user-select: none;
 
     table {
+        width: 100%;
         table-layout: fixed;   
-        margin-bottom: 0;    
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
     }
 
     td, th {
@@ -14,18 +18,12 @@
     }
 }
 
-.hideScrollbar {
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-        display: none;
-    }
-}
-
 .headContainer {
-    @extend .hideScrollbar;
-    position: relative;
-    flex: auto;
-    overflow-x: auto; 
+    position: sticky;
+    top: 0;
+    flex: none;
+    z-index: 1;
+    outline: none;
 
     thead[data-resizing=true] th {
         cursor: col-resize;
@@ -34,6 +32,7 @@
     th {
         white-space: nowrap;
         position: relative;
+        background-color: whitesmoke;
 
         &[data-sortable=true] {
             cursor: pointer;
@@ -42,9 +41,9 @@
 }
 
 .bodyContainer  {
-    position: relative;
     flex: auto;
-    overflow: auto;
+    z-index: 0;
+    outline: none;
 
     thead th {
         padding: 0;
@@ -68,25 +67,6 @@
             border-top: none;
         }
     } 
-}
-
-.tableContainer {
-    outline: none;
-    min-height: 100%;
-
-    table {
-        width: 100%;
-    }
-}
-
-.headWithScrollBar {
-    flex: none;
-    display: flex;
-}
-
-.scrollBarReplacement {
-    flex: none;
-    background-color: #f1f1f1;
 }
 
 .seperator {

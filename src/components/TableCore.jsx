@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import ResizeObserver from 'resize-observer-polyfill';
 import _ from "lodash";
 import Head from "./Head";
 import Body from "./Body";
@@ -97,76 +96,88 @@ function TableCore(props) {
         if (!dragEnabled || e.button !== 0) return;
 
         const { clientX: x, clientY: y } = e;
-        const { scrollTop, scrollLeft } = bodyContainer.current;
+        const root = bodyContainer.current.offsetParent;
 
         setLastMousePos([x, y]);
-        setSelOrigin([x + scrollLeft, y + scrollTop]);
+        setSelOrigin([
+            x + root.scrollLeft,
+            y + root.scrollTop
+        ]);
     }, [options]);
 
-    //Update row collision
-    const updateRowCollision = useCallback(rect => {
-        const { scrollTop, clientHeight } = bodyContainer.current;
+    //Update selection rectangle
+    const [selRect, setSelRect] = useState(null);
+    const [lastMousePos, setLastMousePos] = useState(null);
+    const updateSelectRect = useCallback(mousePos => {
+        if (!mousePos) mousePos = lastMousePos;
 
-        //Calculate top and bottom most visible points
-        const topVisible = scrollTop;
-        const bottomVisible = scrollTop + clientHeight;
+        const [mouseX, mouseY] = mousePos;
+        const [originX, originY] = selOrigin;
+        const body = bodyContainer.current;
+        const root = body.offsetParent;
 
+        //Calculate client rectangle
+        const rect = Rect.fromPoints(
+            mouseX + root.scrollLeft,
+            mouseY + root.scrollTop,
+            originX, originY
+        );
+
+        //Calculate visible client bounds
+        const rootBounds = root.getBoundingClientRect();
+        const clientBounds = Rect.fromPosSize(
+            rootBounds.x, rootBounds.y,
+            root.clientWidth, root.clientHeight
+        );
+        clientBounds.top += body.offsetTop;
+        clientBounds.left += body.offsetLeft;
+
+        //Calculate table bounds
+        const scrollBounds = Rect.fromPosSize(
+            clientBounds.x, clientBounds.y,
+            body.scrollWidth, body.scrollHeight
+        );
+
+        //Make client rectangle be relative to container
+        rect.limit(scrollBounds);
+        rect.offsetBy(-rootBounds.x, -rootBounds.y);
+
+        //Scroll if neccessary
+        ensurePosVisible(root, mouseX, mouseY, clientBounds);
+
+        //Calculate top and bottom most visible positions
+        const topVisible = root.scrollTop + body.offsetTop;
+        const bottomVisible = topVisible + clientBounds.height;
+
+        //Calculate selection collision
         for (let i = 0; i < values.length; i++) {
             const value = values[i];
-            const rowEl = rowRefs.current[i];
+            const row = rowRefs.current[i];
 
             //Calculate top and bottom position
-            const top = rowEl.offsetTop;
-            const bottom = top + rowEl.clientHeight;
+            const top = row.offsetTop + body.offsetTop;
+            const bottom = top + row.clientHeight;
 
             //Skip if rows not visible
             if (bottom < topVisible) continue;
-            if (top > bottomVisible) return;
+            if (top > bottomVisible) break;
 
             //Check for collision with selection rectangle
             const intersects = bottom > rect.top && top < rect.bottom;
             if (selectedValues.includes(value) !== intersects)
                 actions.setRowSelected(value, intersects);
         }
-    }, [selectedValues, values, actions]);
 
-    //Update selection rectangle
-    const [selRect, setSelRect] = useState(null);
-    const updateSelectRect = useCallback(
-        (mouseX, mouseY) => {
-            const [originX, originY] = selOrigin;
-            const container = bodyContainer.current;
-
-            //Calculate rectangle relative to viewport
-            const { scrollLeft, scrollTop } = container;
-            const relMouseX = mouseX + scrollLeft;
-            const relMouseY = mouseY + scrollTop;
-            const rect = Rect.fromPoints(relMouseX, relMouseY, originX, originY);
-
-            //Calculate rectangle relative to table body
-            const bounds = container.getBoundingClientRect();
-            rect.offsetBy(-bounds.x, -bounds.y);
-
-            //Restrict rectangle to table body bounds
-            const tableBounds = getTableContainer().getBoundingClientRect();
-            const relativeBounds = new Rect(0, 0,
-                tableBounds.width, tableBounds.height);
-            rect.limit(relativeBounds);
-
-            //Scroll if neccessary
-            ensurePosVisible(container, mouseX, mouseY);
-            //Update collisions
-            updateRowCollision(rect);
-            //Set rectangle in state
-            setSelRect(rect);
-        }, [selOrigin, updateRowCollision]);
+        //Set rectangle in state
+        setSelRect(rect);
+    }, [selOrigin, values, selectedValues, lastMousePos, actions]);
 
     //Drag move
-    const [lastMousePos, setLastMousePos] = useState(null);
     const dragMove = useCallback(e => {
         if (!selOrigin) return;
-        updateSelectRect(e.clientX, e.clientY);
-        setLastMousePos([e.clientX, e.clientY]);
+        const newPos = [e.clientX, e.clientY];
+        updateSelectRect(newPos);
+        setLastMousePos(newPos);
     }, [selOrigin, updateSelectRect]);
 
     //Drag end
@@ -178,14 +189,9 @@ function TableCore(props) {
 
     //Scroll
     const handleScroll = useCallback(() => {
-        //Sync horizontal scrolling
-        const { scrollLeft } = bodyContainer.current;
-        headContainer.current.scrollLeft = scrollLeft;
-
         if (!selOrigin) return;
-        const [x, y] = lastMousePos;
-        updateSelectRect(x, y);
-    }, [selOrigin, lastMousePos, updateSelectRect]);
+        updateSelectRect();
+    }, [selOrigin, updateSelectRect]);
 
     const touchMove = useCallback(e => {
         if (!selOrigin) return;
@@ -213,26 +219,6 @@ function TableCore(props) {
         }, { passive: false });
     }, [dragMove, dragEnd, touchMove, touchEnd]);
 
-    //#endregion
-
-    //#region Body container overflow detection
-    const [scrollBarWidth, setScrollBarWidth] = useState(0);
-
-    const getTableContainer = useCallback(() =>
-        bodyContainer.current.firstElementChild, []);
-
-    useEffect(() => {
-        const handleResize = () => {
-            const ctr = bodyContainer.current;
-            const vertical = ctr.offsetWidth - ctr.clientWidth;
-            setScrollBarWidth(vertical);
-        }
-
-        const observer = new ResizeObserver(handleResize);
-        observer.observe(getTableContainer());
-
-        return () => observer.disconnect();
-    }, []);
     //#endregion
 
     //onItemOpen event
@@ -370,44 +356,36 @@ function TableCore(props) {
         return <div className={styles.selection} style={style} />
     }, [selRect]);
 
-
-    const getStyle = useCallback(ifSmall => {
+    const widthStyle = useMemo(() => {
         const tableWidth = _.sum(columnWidth);
-        const condition = ifSmall ? tableWidth < 100 : tableWidth > 100;
-        return condition ? { width: `${tableWidth}%` } : {}
+        return { width: `${tableWidth}%` };
     }, [columnWidth]);
 
     return (
-        <div className={styles.container}>
-            <div className={styles.headWithScrollBar} style={getStyle(true)}>
-                <div className={styles.headContainer} ref={headContainer}>
-                    <div className={styles.tableContainer} style={getStyle(false)}>
-                        <table className={className}>
-                            <Head {...commonParams} />
-                        </table>
-                    </div>
-                </div>
-                <div className={styles.scrollBarReplacement}
-                    style={{ width: scrollBarWidth }} />
+        <div className={styles.container} onScroll={handleScroll}>
+            <div className={styles.headContainer}
+                tabIndex="0"
+                ref={headContainer}
+                style={widthStyle}>
+                <table className={className}>
+                    <Head {...commonParams} />
+                </table>
             </div>
             <div className={styles.bodyContainer}
-                style={getStyle(true)}
+                tabIndex="0"
                 ref={bodyContainer}
-                onScroll={handleScroll}>
-                <div className={styles.tableContainer} tabIndex="0"
-                    style={getStyle(false)}
-                    onKeyDown={handleKeyDown}
-                    onDoubleClick={handleDoubleClick}
-                    onContextMenu={handleContextMenu}
-                    onTouchStart={handleTouchStart}
-                    onMouseDown={handleMouseDown}>
-                    {selectionRect}
-                    <table className={className} >
-                        <ColumnResizer {...commonParams} />
-                        <Body {...commonParams} rowRefs={rowRefs} />
-                    </table>
-                    {showPlaceholder && emptyPlaceholder}
-                </div>
+                style={widthStyle}
+                onKeyDown={handleKeyDown}
+                onDoubleClick={handleDoubleClick}
+                onContextMenu={handleContextMenu}
+                onTouchStart={handleTouchStart}
+                onMouseDown={handleMouseDown}>
+                {selectionRect}
+                <table className={className} >
+                    <ColumnResizer {...commonParams} />
+                    <Body {...commonParams} rowRefs={rowRefs} />
+                </table>
+                {showPlaceholder && emptyPlaceholder}
             </div>
         </div >
     )

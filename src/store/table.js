@@ -3,7 +3,7 @@ import _ from "lodash";
 import { pipe } from "lodash/fp";
 import { sortOrders } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
-import { pullFirst, inArray, areArraysEqual } from "../utils/arrayUtils";
+import { pullFirst, inArray, areItemsEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 import actions from "../models/internalActions";
 import { defaultOptions, tableOptions } from "../utils/optionUtils";
@@ -27,15 +27,17 @@ function getDefaultWidth(count) {
     return _.times(count, _.constant(width));
 }
 
-function validateInitialState(state) {
-    const count = state.columnWidth.length;
-    if (state.columnOrder && count === 0)
+function validateColumnState(state) {
+    if (!state.columnOrder) return;
+
+    const count = state.columnOrder.length;
+    if (state.columnWidth.length !== count)
         state.columnWidth = getDefaultWidth(count);
 }
 
 export function createTable(tableName, options = {}, initState = {}) {
     _.defaults(initState, defaultState);
-    validateInitialState(initState);
+    validateColumnState(initState);
 
     _.defaults(options, defaultOptions);
     tableOptions[tableName] = options;
@@ -108,8 +110,6 @@ export function createTable(tableName, options = {}, initState = {}) {
             draft.selectedValues = [];
             updateSelection = true;
         }
-
-        const columnCount = state.columnWidth.length;
 
         const { payload } = action;
         switch (action.type) {
@@ -269,7 +269,7 @@ export function createTable(tableName, options = {}, initState = {}) {
                     setActivePivotValue(value);
                     const isSelected = state.selectedValues.includes(value);
                     if (!isListbox && !isSelected) {
-                        draft.selectedValues = value ? [value] : [];
+                        draft.selectedValues = inArray(value);
                         updateSelection = true;
                     }
                 }
@@ -300,19 +300,15 @@ export function createTable(tableName, options = {}, initState = {}) {
                 break;
             }
             case actions.SET_COLUMN_ORDER: {
-                const { order } = payload;
-                draft.columnOrder = order;
-                const count = order.length;
-
-                if (columnCount === count) break;
-                draft.columnWidth = getDefaultWidth(count);
+                draft.columnOrder = payload.order;
+                validateColumnState(draft);
                 break;
             }
 
             //Internal
             case actions.SET_COLUMN_COUNT: {
                 const { count } = payload;
-                if (columnCount === count) break;
+                if (state.columnWidth.length === count) break;
 
                 draft.columnOrder = null;
                 draft.columnWidth = getDefaultWidth(count);
@@ -326,7 +322,7 @@ export function createTable(tableName, options = {}, initState = {}) {
                 break;
         }
 
-        if (updateSelection && !areArraysEqual(state.selectedValues, draft.selectedValues))
+        if (updateSelection && !areItemsEqual(state.selectedValues, draft.selectedValues))
             raiseSelectionChange();
     })
 }

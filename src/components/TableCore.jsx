@@ -355,6 +355,10 @@ function TableCore(props) {
         return { width: `${tableWidth}%` };
     }, [columnWidth]);
 
+    const colGroup = useMemo(() =>
+        <ColumnResizer name={name} columns={parsedColumns} />,
+        [name, parsedColumns]);
+
     return (
         <div className={styles.container} onScroll={handleScroll}>
             <div className={styles.headContainer}
@@ -362,7 +366,7 @@ function TableCore(props) {
                 ref={headContainer}
                 style={widthStyle}>
                 <table className={className}>
-                    <ColumnResizer {...commonParams} />
+                    {colGroup}
                     <Head {...commonParams} />
                 </table>
             </div>
@@ -377,7 +381,7 @@ function TableCore(props) {
                 onMouseDown={handleMouseDown}>
                 {selectionRect}
                 <table className={className} >
-                    <ColumnResizer {...commonParams} />
+                    {colGroup}
                     <Body {...commonParams} rowRefs={rowRefs} />
                 </table>
                 {showPlaceholder && emptyPlaceholder}

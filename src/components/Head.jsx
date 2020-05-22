@@ -71,7 +71,7 @@ function Head({
         >
             <tr>
                 {columns.map((col, index) => {
-                    const { path, meta } = col;
+                    const { path, meta, title } = col;
                     const isSortable = !!path;
 
                     const startResize = () =>
@@ -88,7 +88,7 @@ function Head({
                     return <th key={`head_${name}_${meta.id}`}
                         data-sortable={isSortable}
                         onClick={handleClick}>
-                        {col.title}
+                        {title}
                         {isSortable && renderSortIcon(path)}
                         {addSeperator && <div className={styles.seperator}
                             onClick={e => e.stopPropagation()}

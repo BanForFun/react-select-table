@@ -25,12 +25,12 @@ function Body({
 
     const renderColumn = useCallback((row, column) => {
         const rowValue = row[options.valueProperty];
-        const { props, path, render, isHeader } = column;
+        const { meta, path, render, isHeader } = column;
 
         const value = _.get(row, path);
         const content = render ? render(value, row) : value;
 
-        const key = `cell_${name}_${rowValue}_${props.id}`;
+        const key = `body_${name}_${rowValue}_${meta.id}`;
         if (isHeader) return <th key={key}>{content}</th>;
         return <td key={key}>{content}</td>
     }, [options, name]);
@@ -46,7 +46,7 @@ function Body({
         if (row.classNames)
             classes.push(...row.classNames);
 
-        return <tr key={`tr_${name}_${value}`}
+        return <tr key={`row_${name}_${value}`}
             ref={el => rowRefs.current[index] = el}
             className={classes.join(' ')}
             onContextMenu={e => handleRowContextMenu(e, value)}

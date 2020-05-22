@@ -2,16 +2,14 @@ import React from 'react';
 import _ from "lodash";
 
 const ColumnResizer = ({ columns, name }) => {
-    return <thead>
-        <tr>
-            {columns.map(col => {
-                const { width, id } = col.props;
+    return <colgroup>
+        {columns.map(col => {
+            const { width, id } = col.meta;
 
-                return <th key={`th_${name}_${id}`}
-                    style={{ width }} />
-            })}
-        </tr>
-    </thead>;
+            return <col key={`col_${name}_${id}`}
+                style={{ width }} />
+        })}
+    </colgroup>;
 }
 
 export default ColumnResizer

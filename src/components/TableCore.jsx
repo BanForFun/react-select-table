@@ -84,15 +84,15 @@ function TableCore(props) {
     //Create row refs
     const rowRefs = useRef([]);
     useEffect(() => {
-        // const refs = Array.from({ length: items.length }, React.createRef);
-        // setRowRefs(refs);
         rowRefs.current = rowRefs.current.slice(0, items.length);
     }, [items.length]);
 
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback(e => {
+        //Return if listbox is enabled or multiselect is disabled
         const dragEnabled = !options.isListbox && options.isMultiselect;
+        //Return if the mouse button pressed wasn't the primary one
         if (!dragEnabled || e.button !== 0) return;
 
         const { clientX: x, clientY: y } = e;
@@ -149,7 +149,7 @@ function TableCore(props) {
         const topVisible = root.scrollTop + body.offsetTop;
         const bottomVisible = topVisible + clientBounds.height;
 
-        //Calculate selection collision
+        //Modify selection based on collision
         for (let i = 0; i < values.length; i++) {
             const value = values[i];
             const row = rowRefs.current[i];
@@ -162,7 +162,7 @@ function TableCore(props) {
             if (bottom < topVisible) continue;
             if (top > bottomVisible) break;
 
-            //Check for collision with selection rectangle
+            //Check for collision with the selection rectangle
             const intersects = bottom > rect.top && top < rect.bottom;
             if (selectedValues.includes(value) !== intersects)
                 actions.setRowSelected(value, intersects);
@@ -172,45 +172,47 @@ function TableCore(props) {
         setSelRect(rect);
     }, [selOrigin, values, selectedValues, lastMousePos, actions]);
 
-    //Drag move
     const dragMove = useCallback(e => {
         if (!selOrigin) return;
+
+        //Recalculate selection rectangle
         const newPos = [e.clientX, e.clientY];
         updateSelectRect(newPos);
         setLastMousePos(newPos);
     }, [selOrigin, updateSelectRect]);
 
-    //Drag end
     const dragEnd = useCallback(() => {
         if (!selOrigin) return;
+
         setSelOrigin(null);
         setSelRect(null);
     }, [selOrigin]);
 
-    //Scroll
     const handleScroll = useCallback(() => {
         if (!selOrigin) return;
+
+        //Recalculate selection rectangle
         updateSelectRect();
     }, [selOrigin, updateSelectRect]);
 
     const touchMove = useCallback(e => {
         if (!selOrigin) return;
-        touchToMouseEvent(e);
+
+        touchToMouseEvent(e, true);
         dragMove(e);
-        e.stopPropagation();
-        e.preventDefault();
     }, [dragMove, selOrigin]);
 
     const touchEnd = useCallback(e => {
         isTouching.current = false;
-
         if (!selOrigin) return;
+
         dragEnd();
         e.stopPropagation();
     }, [dragEnd, selOrigin])
 
-    //Register mouse move and up events
+
     useEffect(() => {
+        //Register mouse and touch events: move and up
         return registerListeners(window, {
             "mousemove": dragMove,
             "mouseup": dragEnd,
@@ -221,7 +223,6 @@ function TableCore(props) {
 
     //#endregion
 
-    //onItemOpen event
     const raiseItemOpen = useCallback(enterKey => {
         if (selectedValues.length === 0) return;
         onItemsOpen(selectedValues, enterKey);
@@ -237,7 +238,6 @@ function TableCore(props) {
         ensureRowVisible(rowRefs.current[index], bodyContainer.current);
     }, [values, actions]);
 
-    //Handle up/down arrows
     const selectAtOffset = useCallback((e, offset) => {
         const activeIndex = values.indexOf(activeValue);
         if (activeIndex < 0) return;
@@ -248,7 +248,6 @@ function TableCore(props) {
         selectFromKeyboard(e, offsetIndex);
     }, [selectFromKeyboard, activeValue, values]);
 
-    //Deselect rows
     const deselectRows = useCallback(e => {
         if (e.currentTarget !== e.target ||
             e.ctrlKey || e.button !== 0) return;
@@ -266,7 +265,7 @@ function TableCore(props) {
     const handleTouchStart = useCallback(e => {
         isTouching.current = true;
         e.stopPropagation();
-    }, [])
+    }, []);
 
     const handleDoubleClick = useCallback(() => {
         raiseItemOpen(false);
@@ -319,14 +318,14 @@ function TableCore(props) {
     //#endregion
 
     const parsedColumns = useMemo(() => {
-        //Column ordering and fitlering
+        //Order and filter columns
         const orderedColumns = columnOrder
             ? columnOrder.map(i => columns[i])
             : columns;
 
-        //Column parsing
+        //Add column metadata
         return orderedColumns.map((col, index) => ({
-            ...col, props: {
+            ...col, meta: {
                 width: `${columnWidth[index]}%`,
                 id: col.key || col.path
             }
@@ -344,15 +343,10 @@ function TableCore(props) {
 
     const showPlaceholder = items.length === 0 && !isLoading;
 
-    //Selection rectangle
     const selectionRect = useMemo(() => {
         if (!selRect) return null;
-        const { left, top, width, height } = selRect;
-        const style = {
-            position: "absolute",
-            left, top, width, height
-        };
 
+        const style = _.pick(selRect, "left", "top", "width", "height");
         return <div className={styles.selection} style={style} />
     }, [selRect]);
 
@@ -368,6 +362,7 @@ function TableCore(props) {
                 ref={headContainer}
                 style={widthStyle}>
                 <table className={className}>
+                    <ColumnResizer {...commonParams} />
                     <Head {...commonParams} />
                 </table>
             </div>

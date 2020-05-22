@@ -45,11 +45,6 @@
     z-index: 0;
     outline: none;
 
-    thead th {
-        padding: 0;
-        border: none !important;
-    }
-
     tbody tr {
         &:hover {
             background-color: #e0e0e0;
@@ -83,6 +78,7 @@
 }
 
 .selection {
+    position: absolute;
     border: 1px solid blue;
     background-color: lightskyblue;
     opacity: 0.5;

@@ -35,10 +35,8 @@ function Head({
 
     const onTouchMove = useCallback(e => {
         if (resizingIndex === null) return;
-        touchToMouseEvent(e);
+        touchToMouseEvent(e, true);
         onMouseMove(e);
-        e.preventDefault();
-        e.stopPropagation();
     }, [onMouseMove, resizingIndex]);
 
     const onMouseUp = useCallback(() => {
@@ -73,8 +71,7 @@ function Head({
         >
             <tr>
                 {columns.map((col, index) => {
-                    const { width, id } = col.props;
-                    const { path } = col;
+                    const { path, meta } = col;
                     const isSortable = !!path;
 
                     const startResize = () =>
@@ -88,8 +85,8 @@ function Head({
                     const addSeperator = options.scrollX ||
                         index < columns.length - 1;
 
-                    return <th key={`title_${name}_${id}`}
-                        data-sortable={isSortable} style={{ width }}
+                    return <th key={`head_${name}_${meta.id}`}
+                        data-sortable={isSortable}
                         onClick={handleClick}>
                         {col.title}
                         {isSortable && renderSortIcon(path)}

@@ -12,6 +12,7 @@ import {
 } from '../utils/elementUtils';
 import styles from "../index.scss";
 import { makeGetStateSlice } from '../selectors/namespaceSelectors';
+import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
 import {
@@ -34,7 +35,7 @@ function TableCore(props) {
         onItemsOpen,
 
         //Redux state
-        tableItems: items,
+        items,
         isLoading,
         selectedValues,
         columnWidth,
@@ -390,16 +391,24 @@ function TableCore(props) {
 
 function makeMapState() {
     const getSlice = makeGetStateSlice();
+    const getItems = makeGetPaginatedItems();
 
-    return (root, props) => _.pick(
-        getSlice(root, props),
-        "columnWidth",
-        "columnOrder",
-        "selectedValues",
-        "activeValue",
-        "isLoading",
-        "tableItems"
-    );
+    return (root, props) => {
+        const slice = getSlice(root, props);
+        const pick = _.pick(slice,
+            "columnWidth",
+            "columnOrder",
+            "selectedValues",
+            "activeValue",
+            "isLoading",
+            "tableItems"
+        );
+
+        return {
+            ...pick,
+            items: getItems(slice)
+        }
+    }
 }
 
 export default connect(makeMapState)(TableCore);

@@ -3,12 +3,13 @@ import React, { useCallback } from 'react';
 import styles from "../index.scss";
 import { makeGetStateSlice } from "../selectors/namespaceSelectors";
 import { connect } from "react-redux";
+import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 
 function Body({
     columns,
     name,
     options,
-    tableItems: items,
+    items,
     rowRefs,
     selectedValues,
     activeValue,
@@ -72,13 +73,21 @@ function Body({
 
 function makeMapState() {
     const getSlice = makeGetStateSlice();
+    const getItems = makeGetPaginatedItems();
 
-    return (root, props) => _.pick(
-        getSlice(root, props),
-        "tableItems",
-        "selectedValues",
-        "activeValue"
-    );
+    return (root, props) => {
+        const slice = getSlice(root, props);
+        const picked = _.pick(slice,
+            "tableItems",
+            "selectedValues",
+            "activeValue"
+        );
+
+        return {
+            ...picked,
+            items: getItems(slice)
+        }
+    }
 }
 
 export default connect(makeMapState)(Body);

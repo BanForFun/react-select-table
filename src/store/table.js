@@ -22,7 +22,7 @@ const defaultState = {
     tableItems: [],
     isLoading: true,
     pageSize: 0,
-    currentPage: 2
+    currentPage: 1
 };
 
 function getDefaultWidth(count) {
@@ -48,7 +48,7 @@ export function createTable(tableName, options = {}, initState = {}) {
 
         const count = getPageCount(state);
         const index = state.currentPage;
-        state.currentPage = _.clamp(index, 0, count);
+        state.currentPage = _.clamp(index, 1, count);
     }
 
     _.defaults(initState, defaultState);
@@ -106,7 +106,15 @@ export function createTable(tableName, options = {}, initState = {}) {
             draft.activeValue = value;
         }
 
-        const raiseContextMenu = () => {
+        const clearSelection = (clearSelectedValues = true) => {
+            setActivePivotValue(null);
+
+            if (!clearSelectedValues) return;
+            draft.selectedValues = [];
+            updateSelection = true;
+        }
+
+        const _raiseContextMenu = () => {
             if (!eventHandlers.onContextMenu) return;
 
             const selected = [...draft.selectedValues];
@@ -114,17 +122,9 @@ export function createTable(tableName, options = {}, initState = {}) {
             eventHandlers.onContextMenu(isListbox ? active : selected);
         }
 
-        const raiseSelectionChange = () => {
+        const _raiseSelectionChange = () => {
             if (!eventHandlers.onSelectionChange) return;
             eventHandlers.onSelectionChange([...draft.selectedValues]);
-        }
-
-        const clearSelection = (clearSelectedValues = true) => {
-            setActivePivotValue(null);
-
-            if (!clearSelectedValues) return;
-            draft.selectedValues = [];
-            updateSelection = true;
         }
 
         const { payload } = action;
@@ -290,7 +290,7 @@ export function createTable(tableName, options = {}, initState = {}) {
                     }
                 }
 
-                raiseContextMenu();
+                _raiseContextMenu();
                 break;
             }
 
@@ -324,6 +324,7 @@ export function createTable(tableName, options = {}, initState = {}) {
             //Pagination
             case actions.SET_PAGE_SIZE: {
                 draft.pageSize = payload.size;
+                draft.currentPage = 0;
                 validatePaginationState(draft);
                 break;
             }
@@ -373,6 +374,6 @@ export function createTable(tableName, options = {}, initState = {}) {
         }
 
         if (updateSelection && !areItemsEqual(state.selectedValues, draft.selectedValues))
-            raiseSelectionChange();
+            _raiseSelectionChange();
     })
 }

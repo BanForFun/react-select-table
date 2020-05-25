@@ -341,8 +341,6 @@ function TableCore(props) {
         columns: parsedColumns
     }
 
-    const showPlaceholder = items.length === 0 && !isLoading;
-
     const selectionRect = useMemo(() => {
         if (!selRect) return null;
 
@@ -384,7 +382,7 @@ function TableCore(props) {
                     {colGroup}
                     <Body {...commonParams} rowRefs={rowRefs} />
                 </table>
-                {showPlaceholder && emptyPlaceholder}
+                {(items.length === 0 && !isLoading) && emptyPlaceholder}
             </div>
         </div >
     )

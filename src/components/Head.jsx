@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { registerListeners } from '../utils/eventUtils';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
-import { makeGetStateSlice } from '../selectors/namespaceSelector';
+import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import { touchToMouseEvent } from '../utils/eventUtils';
 
 function Head({

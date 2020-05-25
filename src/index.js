@@ -3,8 +3,8 @@ import TableCore from './components/TableCore';
 import TableActions from "./models/actions";
 import * as TableReducer from "./store/table";
 import { initTable, disposeTable } from './utils/tableUtils';
+import { makeGetPageCount } from "./selectors/paginationSelectors";
 import useTable from './hooks/useTable';
-
 
 export {
     Table,
@@ -13,5 +13,6 @@ export {
     TableCore,
     initTable,
     disposeTable,
-    useTable
+    useTable,
+    makeGetPageCount
 };

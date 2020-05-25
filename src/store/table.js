@@ -1,12 +1,13 @@
 import produce from "immer";
 import _ from "lodash";
 import { pipe } from "lodash/fp";
-import { sortOrders } from "../constants/enums";
+import { sortOrders, pagePositions } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
 import { pullFirst, inArray, areItemsEqual } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 import actions from "../models/internalActions";
 import { defaultOptions, tableOptions } from "../utils/optionUtils";
+import { makeGetPageCount } from "../selectors/paginationSelectors";
 
 const defaultState = {
     sortPath: null,
@@ -19,7 +20,9 @@ const defaultState = {
     items: {},
     pivotValue: null,
     tableItems: [],
-    isLoading: true
+    isLoading: true,
+    pageSize: 0,
+    currentPage: 2
 };
 
 function getDefaultWidth(count) {
@@ -27,17 +30,30 @@ function getDefaultWidth(count) {
     return _.times(count, _.constant(width));
 }
 
-function validateColumnState(state) {
-    if (!state.columnOrder) return;
-
-    const count = state.columnOrder.length;
-    if (state.columnWidth.length !== count)
-        state.columnWidth = getDefaultWidth(count);
-}
-
 export function createTable(tableName, options = {}, initState = {}) {
+    //Selectors
+    const getPageCount = makeGetPageCount();
+
+    //Validators
+    const validateColumnState = state => {
+        if (!state.columnOrder) return;
+
+        const count = state.columnOrder.length;
+        if (state.columnWidth.length !== count)
+            state.columnWidth = getDefaultWidth(count);
+    }
+
+    const validatePaginationState = state => {
+        if (!state.currentPage) return;
+
+        const count = getPageCount(state);
+        const index = state.currentPage;
+        state.currentPage = _.clamp(index, 0, count);
+    }
+
     _.defaults(initState, defaultState);
     validateColumnState(initState);
+    validatePaginationState(initState);
 
     _.defaults(options, defaultOptions);
     tableOptions[tableName] = options;
@@ -46,8 +62,8 @@ export function createTable(tableName, options = {}, initState = {}) {
 
     return (state = initState, action) => produce(state, draft => {
         if (action.table !== tableName) return;
-        const { valueProperty, isListbox, isMultiselect, scrollX } = options;
 
+        const { valueProperty, isListbox, isMultiselect, scrollX } = options;
         const values = _.map(state.tableItems, valueProperty);
         let updateSelection = false;
 
@@ -302,6 +318,40 @@ export function createTable(tableName, options = {}, initState = {}) {
             case actions.SET_COLUMN_ORDER: {
                 draft.columnOrder = payload.order;
                 validateColumnState(draft);
+                break;
+            }
+
+            //Pagination
+            case actions.SET_PAGE_SIZE: {
+                draft.pageSize = payload.size;
+                validatePaginationState(draft);
+                break;
+            }
+            case actions.GO_TO_PAGE: {
+                const { index } = payload;
+                let newIndex = state.currentPage;
+
+                switch (index) {
+                    case pagePositions.First:
+                        newIndex = 0;
+                        break;
+                    case pagePositions.Last:
+                        newIndex = getPageCount(draft);
+                        break;
+                    case pagePositions.Next:
+                        newIndex++;
+                        break;
+                    case pagePositions.Previous:
+                        newIndex--;
+                        break;
+                    default:
+                        if (typeof index === "number")
+                            newIndex = index;
+                        break;
+                }
+
+                draft.currentPage = newIndex;
+                validatePaginationState(draft);
                 break;
             }
 

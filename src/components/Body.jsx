@@ -1,7 +1,7 @@
 import _ from "lodash";
 import React, { useCallback } from 'react';
 import styles from "../index.scss";
-import { makeGetStateSlice } from "../selectors/namespaceSelector";
+import { makeGetStateSlice } from "../selectors/namespaceSelectors";
 import { connect } from "react-redux";
 
 function Body({

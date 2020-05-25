@@ -1,3 +1,5 @@
+import { pagePositions } from "../constants/enums";
+
 export default class TableActions {
     constructor(tableName) {
         this.tableName = tableName;
@@ -26,9 +28,19 @@ export default class TableActions {
     static SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
     static CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 
+    //Pagination
+    static GO_TO_PAGE = "TABLE_GO_TO_PAGE";
+    static SET_PAGE_SIZE = "TABLE_SET_PAGE_SIZE";
+
     _getAction(type, payload = null) {
         return { type, table: this.tableName, payload };
     }
+
+    goToPage = index =>
+        this._getAction(self.GO_TO_PAGE, { index });
+
+    setPageSize = size =>
+        this._getAction(self.SET_PAGE_SIZE, { size });
 
     clearRows = () =>
         this._getAction(self.CLEAR_ROWS);
@@ -36,7 +48,7 @@ export default class TableActions {
     contextMenu = (value, ctrlKey) =>
         this._getAction(self.CONTEXT_MENU, { value, ctrlKey });
 
-    setFilter = (filter) =>
+    setFilter = filter =>
         this._getAction(self.SET_FILTER, { filter });
 
     patchRow = (value, patch) =>
@@ -51,10 +63,10 @@ export default class TableActions {
     deleteRows = (...values) =>
         this._getAction(self.DELETE_ROWS, { values });
 
-    addRow = (newItem) =>
+    addRow = newItem =>
         this._getAction(self.ADD_ROW, { newItem });
 
-    setRows = (items) =>
+    setRows = items =>
         this._getAction(self.SET_ROWS, { data: items });
 
     setColumnWidth = (index, width) =>
@@ -63,13 +75,13 @@ export default class TableActions {
     setColumnOrder = (order) =>
         this._getAction(self.SET_COLUMN_ORDER, { order });
 
-    sortBy = (path) =>
+    sortBy = path =>
         this._getAction(self.SORT_BY, { path });
 
     selectRow = (value, ctrlKey = false, shiftKey = false) =>
         this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
 
-    setActiveRow = (value) =>
+    setActiveRow = value =>
         this._getAction(self.SET_ACTIVE_ROW, { value });
 
     clearSelection = () =>
@@ -80,6 +92,15 @@ export default class TableActions {
 
     setRowSelected = (value, selected) =>
         this._getAction(self.SET_ROW_SELECTED, { value, selected });
+
+    //#region Aliases
+
+    nextPage = () => this.goToPage(pagePositions.Next);
+    previousPage = () => this.goToPage(pagePositions.Previous);
+    firstPage = () => this.goToPage(pagePositions.First);
+    lastPage = () => this.goToPage(pagePositions.Last);
+
+    //#endregion
 }
 
 const self = TableActions;

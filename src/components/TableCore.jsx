@@ -11,7 +11,7 @@ import {
     ensureRowVisible
 } from '../utils/elementUtils';
 import styles from "../index.scss";
-import { makeGetStateSlice } from '../selectors/namespaceSelector';
+import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
 import {

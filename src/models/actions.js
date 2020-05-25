@@ -95,10 +95,10 @@ export default class TableActions {
 
     //#region Aliases
 
-    nextPage = () => this.goToPage(pagePositions.Next);
-    previousPage = () => this.goToPage(pagePositions.Previous);
-    firstPage = () => this.goToPage(pagePositions.First);
+    firstPage = () => this.goToPage(1);
     lastPage = () => this.goToPage(pagePositions.Last);
+    previousPage = () => this.goToPage(pagePositions.Previous);
+    nextPage = () => this.goToPage(pagePositions.Next);
 
     //#endregion
 }

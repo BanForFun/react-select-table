@@ -46,7 +46,7 @@ Array of **[visible][columnOrder]** columns widths as percentages of the table w
 
 > **Default**: `[]`
 >
-> **Modified by**: [`setRows`](#setRows), [`deleteRows`](#deleteRows), [`setRowValue`](#setRowValue), [`clearRows`](#clearRows), [`setFilter`](#setFilter), [`selectRow`](#selectRow), [`clearSelection`](#clearSelection), [`setRowSelected`](#setRowSelected), [`selectAll`](#selectAll), [`contextMenu`](#contextMenu), [`setMultiselect`](#setMultiselect), [`setValueProperty`](#setValueProperty)
+> **Modified by**: [`setRows`](#setRows), [`deleteRows`](#deleteRows), [`setRowValue`](#setRowValue), [`clearRows`](#clearRows), [`setFilter`](#setFilter), [`selectRow`](#selectRow), [`clearSelection`](#clearSelection), [`setRowSelected`](#setRowSelected), [`selectAll`](#selectAll), [`contextMenu`](#contextMenu)
 
 Array of selected [values][value]. By default, selected items have light green background color.
 
@@ -54,7 +54,7 @@ Array of selected [values][value]. By default, selected items have light green b
 
 > **Default**: `null`
 >
-> **Modified by**: [`setRows`](#setRows), [`deleteRows`](#deleteRows), [`setRowValue`](#setRowValue), [`clearRows`](#clearRows), [`setFilter`](#setFilter), [`selectRow`](#selectRow), [`clearSelection`](#clearSelection), [`setActiveRow`](#setactiverow), [`contextMenu`](#contextMenu), [`setValueProperty`](#setValueProperty)
+> **Modified by**: [`setRows`](#setRows), [`deleteRows`](#deleteRows), [`setRowValue`](#setRowValue), [`clearRows`](#clearRows), [`setFilter`](#setFilter), [`selectRow`](#selectRow), [`clearSelection`](#clearSelection), [`setActiveRow`](#setactiverow), [`contextMenu`](#contextMenu)
 
 Active [value][value]. By default, the active item has green bottom border.
 
@@ -80,23 +80,23 @@ The above filter will only allow rows that have a `title` property set to `"reac
 #### `items` *object*
 > **Default**: `{}`
 >
-> **Modified by**: [`setRows`](#setRows), [`addRow`](#addRow), [`deleteRows`](#deleteRows), [`replaceRow`](#replaceRow), [`setRowValue`](#setRowValue), [`patchRow`](#patchRow), [`clearRows`](#clearRows),  [`setValueProperty`](#setValueProperty)
+> **Modified by**: [`setRows`](#setRows), [`addRow`](#addRow), [`deleteRows`](#deleteRows), [`replaceRow`](#replaceRow), [`setRowValue`](#setRowValue), [`patchRow`](#patchRow), [`clearRows`](#clearRows)
 
 Unparsed, unsorted and unfiltered items keyed by [value][value].
 
 #### `pivotValue` *any*
 > **Default**: `null`
 >
-> **Modified by**: [`clearRows`](#clearRows), [`clearSelection`](#clearSelection), [`setValueProperty`](#setValueProperty), [`selectRow`](#selectRow), [`setActiveRow`](#setactiverow), [`contextMenu`](#contextMenu)
+> **Modified by**: [`clearRows`](#clearRows), [`clearSelection`](#clearSelection), [`selectRow`](#selectRow), [`setActiveRow`](#setactiverow), [`contextMenu`](#contextMenu)
 
 The [value][value] of the item that is used to pivot the selection on `Shift`+`Click`/`Up`/`Down`.
 
 #### `tableItems` *array of object*
 > **Default**: `[]`
 >
-> **Modified by**: [`setRows`](#setRows), [`addRow`](#addRow), [`deleteRows`](#deleteRows), [`replaceRow`](#replaceRow), [`setRowValue`](#setRowValue), [`patchRow`](#patchRow), [`clearRows`](#clearRows), [`sortBy`](#sortBy), [`setFilter`](#setFilter), [`setValueProperty`](#setValueProperty)
+> **Modified by**: [`setRows`](#setRows), [`addRow`](#addRow), [`deleteRows`](#deleteRows), [`replaceRow`](#replaceRow), [`setRowValue`](#setRowValue), [`patchRow`](#patchRow), [`clearRows`](#clearRows), [`sortBy`](#sortBy), [`setFilter`](#setFilter) 
 
- [Parsed](#itemparser-function), [sorted](#sortpath-string) and [filtered](#filter-any) items.
+[Parsed](#itemparser-function), [sorted](#sortpath-string) and [filtered](#filter-any) items.
 
 If an item has a `className` property set to an array of CSS class name strings, they will be applied to the `tr` element.
 
@@ -111,7 +111,23 @@ Can be used to conditionally display a loading indicator. Initially set to `true
 
 [`clearRows`](#clearrows) action sets it to `true`.
 
+#### `pageSize` *number*
 
+> **Default**: `0`
+>
+> **Modified by**: [`setPageSize`](#setpagesize)
+
+The maximum number of items displayed on a page. If set to 0, pagination is disabled.
+
+#### `currentPage` *number*
+
+>  **Default**: `1`
+>
+> **Modified by**: [`goToPage`](#gotopage) (including aliases)
+
+The current page index. Has no effect when [`pageSize`](#pagesize-number) is 0.
+
+**Warning**: This number is one-based (the first page has an index of 1 instead of 0).
 
 
 
@@ -335,6 +351,64 @@ Sets [`sortPath`](#sortpath-string) state to `path`. If `sortPath` is already se
 
 
 
+#### Pagination actions
+
+#### `setPageSize`
+
+> **Type**: `SET_PAGE_SIZE`
+
+Parameters:
+
+* `size` *number*
+
+Sets [`pageSize`](#pagesize-number) state to `size`.  Resets [`currentPage`](#currentpage-number) to 1. Updates the items based on the new page.
+
+#### `goToPage`
+
+> **Type**: `GO_TO_PAGE`
+>
+> **Aliases:** [`nextPage`](#nextpage), [`previousPage`](#previouspage), [`firstPage`](#firstpage), [`lastPage`](#lastpage)
+
+Parameters:
+
+* `index` *number*
+
+Sets [`currentPage`](#currentpage-number) state to the closest valid page index to `index`. Updates the items based on the new page.
+
+#### `nextPage`
+
+> **Alias of** [`goToPage`](#gotopage)
+
+Parameters: none
+
+Increments `currentPage` by one (when possible).
+
+#### `previousPage`
+
+> **Alias of** [`goToPage`](#gotopage)
+
+Parameters: none
+
+Decrements `currentPage` by one (when possible).
+
+#### `firstPage`
+
+> **Alias of** [`goToPage`](#gotopage)
+
+Parameters: none
+
+Sets `currentPage` to 1.
+
+#### `lastPage`
+
+> **Alias of** [`goToPage`](#gotopage)
+
+Parameters: none
+
+Sets `currentPage` to the largest valid index.
+
+
+
 #### Internal actions
 
 In redux devtools, you may notice some other action types, namely `SET_EVENT_HANDLER` and `SET_COLUMN_COUNT`. These actions are dispatched internally and no action creators are provided, as to not create inconsistency between the props and the state.
@@ -395,7 +469,7 @@ If the table reducer isn't the root, you can set the path where the table reduce
 
 If you have two (or more) tables that you want controlling a common reducer, you can set this property to the [reducer name](#reducer). Then you can set the table components' [`name`](#name-string) properties to unique values, but the actions dispatched will be of the same type for all tables.
 
-### Event props
+#### Event props
 
 The event handlers (except `onItemsOpen`) are called from inside the reducer. If you try to dispatch an action as the result of an event, you will get an error. To do that, you must handle the actions using middleware.
 
@@ -457,6 +531,8 @@ export default rootReducer = combineReducers({
     todoTable: TableReducer.createTable("todos", {
         valueProperty: "id",
         isListbox: true
+    }, {
+        pageSize: 10
     })
 })
 ```
@@ -493,7 +569,63 @@ function App() {
 export default App;
 ```
 
-[value]: ./types.md#valueproperty-string
 
+
+### Selectors
+
+The library exports selector factories. Here is an example of how to use them to get the page count (continuing from the reducer example above):
+
+**Using `connect`**
+
+```javascript
+import React, { connect } from "react-redux";
+import { makeGetPageCount } from "react-select-table";
+
+function App() {
+    //... Component body
+}
+
+function makeMapState() {
+    const getPageCount = makeGetPageCount();
+    
+    return state => {
+        const todoState = state.todoTable;
+        
+        return {
+            pageCount: getPageCount(todoState)
+        }
+    }
+}
+
+export default connect(makeMapState)(App);
+```
+
+If you are confused with why the `mapStateToProps` method is returning another method, visit the redux documentation section for [factory functions](https://react-redux.js.org/next/api/connect#factory-functions).
+
+**Using hooks**
+
+```javascript
+import React, { useMemo } from "react";
+import { useSelector } from "react-redux";
+import { makeGetPageCount } from "react-select-table";
+
+function App() {
+    const getPageCount = useMemo(makeGetPageCount, []);
+    const pageCount = useSelector(s => getPageCount(s.todoTable));
+    
+    //... Component body
+}
+
+export default App;
+```
+
+#### `makeGetPageCount`
+
+Creates a selector that takes the state and returns the page count based on the [items][tableItems] and the [page size](#pagesize-number).
+
+
+
+[value]: ./types.md#valueproperty-string
 [columnOrder]: #columnorder-array-of-number
 [selection]: #selectedvalues-array-of-any
+[tableItems]: #tableitems-array-of-object

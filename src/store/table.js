@@ -333,9 +333,6 @@ export function createTable(tableName, options = {}, initState = {}) {
                 let newIndex = state.currentPage;
 
                 switch (index) {
-                    case pagePositions.First:
-                        newIndex = 0;
-                        break;
                     case pagePositions.Last:
                         newIndex = getPageCount(draft);
                         break;

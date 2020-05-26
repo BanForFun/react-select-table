@@ -229,7 +229,7 @@ export function createTable(tableName, options = {}, initState = {}) {
                 case actions.SET_FILTER: {
                     draft.filter = payload.filter;
                     updateItems();
-                    _updateSelection();
+                    updateSelection();
                     break;
                 }
 

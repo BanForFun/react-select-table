@@ -44,6 +44,14 @@ If set to true, a th element will be used instead of td for the cell rendering.
 
 Property path that contains a unique value for each item (ex. `_id`). 
 
+#### `initItems` *array of object*
+
+> **Default**: `[]`
+
+The initial table items (before parsing, sorting or filtering).
+
+Warning: Overrides `items` and `tableItems` initial state passed to `createTable`.
+
 #### `scrollX` *boolean*
 
 > **Default**: `false`

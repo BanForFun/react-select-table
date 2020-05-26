@@ -31,13 +31,21 @@ function getDefaultWidth(count) {
 }
 
 export function createTable(tableName, options = {}, initState = {}) {
-    //Options
-    _.defaults(options, defaultOptions);
-    tableOptions[tableName] = options;
-    const { valueProperty, isListbox, isMultiselect, scrollX } = options;
-
     //State
     let draft = _.defaults(initState, defaultState);
+
+    //Options
+    _.defaults(options, defaultOptions);
+    tableOptions[tableName] = _.pick(options, Object.keys(defaultOptions));
+    const {
+        valueProperty,
+        isListbox,
+        isMultiselect,
+        scrollX,
+        initItems
+    } = options;
+
+    if (initItems) setItems(initItems);
 
     //Selectors
     const getPageCount = makeGetPageCount();
@@ -66,33 +74,33 @@ export function createTable(tableName, options = {}, initState = {}) {
         items => _.map(items, valueProperty)
     );
 
-    //Updaters
-    const updateColumns = () => {
+    //Updaters (validators)
+    function updateColumns() {
         if (!draft.columnOrder) return;
         const count = draft.columnOrder.length;
         if (draft.columnWidth.length !== count)
             draft.columnWidth = getDefaultWidth(count);
     }
 
-    const updatePagination = (allowZero = false) => {
+    function updatePagination(allowZero = false) {
         const index = draft.currentPage;
         const min = allowZero ? 0 : 1;
         const count = getPageCount(draft);
         draft.currentPage = _.clamp(index, min, count);
     }
 
-    const updateItems = () => {
+    function updateItems() {
         draft.tableItems = getSortedItems(draft);
     }
 
-    const updateSelection = () => {
+    function updateSelection() {
         const newValues = _.map(draft.tableItems, valueProperty);
         const toDeselect = _.difference(draft.selectedValues, newValues);
         deselectRows(toDeselect);
     }
 
     //Helpers
-    const deselectRows = toDeselect => {
+    function deselectRows(toDeselect) {
         //Active value
         if (toDeselect.includes(draft.activeValue))
             draft.activeValue = null;
@@ -101,45 +109,48 @@ export function createTable(tableName, options = {}, initState = {}) {
         _.pullAll(draft.selectedValues, toDeselect);
     }
 
-    const setActivePivotValue = value => {
-        draft.pivotValue = value;
-        draft.activeValue = value;
+    function setActivePivotValue(value) {
+        draft.pivotValue = draft.activeValue = value;
+    }
+
+    function setItems(items) {
+        draft.items = _.keyBy(items, valueProperty);
+        draft.isLoading = false;
     }
 
     //Events
     const eventHandlers = {};
 
-    const _raiseContextMenu = () => {
+    function _raiseContextMenu() {
         if (!eventHandlers.onContextMenu) return;
-
         const selected = [...draft.selectedValues];
         const active = inArray(draft.activeValue);
         eventHandlers.onContextMenu(isListbox ? active : selected);
     }
 
-    const _raiseSelectionChange = () => {
+    function _raiseSelectionChange() {
         if (!eventHandlers.onSelectionChange) return;
         eventHandlers.onSelectionChange([...draft.selectedValues]);
     }
 
+    //Validate initial state
     updateItems();
     updateSelection();
     updateColumns();
     updatePagination();
 
     return (state = initState, action) => {
-        const nextState = produce(state, newDraft => {
-            if (action.table !== tableName) return;
+        if (action.table !== tableName) return state;
 
+        draft = produce(state, newDraft => {
             draft = newDraft;
+
             const { payload } = action;
             switch (action.type) {
                 //Items
                 case "FORM_GROUP_SET_DATA":
                 case actions.SET_ROWS: {
-                    const { data: items } = payload;
-                    draft.items = _.keyBy(items, valueProperty);
-                    draft.isLoading = false;
+                    setItems(payload.data);
                     updateItems();
                     updateSelection();
                     break;
@@ -373,12 +384,11 @@ export function createTable(tableName, options = {}, initState = {}) {
                     break;
             }
         })
+        //DO NOT MODIFY DRAFT OBJECT HERE
 
-        draft = nextState;
-
-        if (!areItemsEqual(state.selectedValues, nextState.selectedValues))
+        if (!areItemsEqual(state.selectedValues, draft.selectedValues))
             _raiseSelectionChange();
 
-        return nextState;
+        return draft;
     }
 }

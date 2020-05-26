@@ -12,12 +12,3 @@ export function disposeTable(tableName) {
     delete tableOptions[tableName];
     removeReducer(tableName);
 }
-
-export function initialItemsState(valueProperty, items) {
-    const keyedItems = _.keyBy(items, valueProperty);
-    return {
-        isLoading: false,
-        valueProperty,
-        items: keyedItems
-    }
-}

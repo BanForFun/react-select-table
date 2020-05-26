@@ -1,16 +1,12 @@
-import React, { useEffect, useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback } from 'react'
 import { TableCore, TableActions, makeGetPageCount } from 'react-select-table';
 import columns from '../columns';
 import { ReactReduxContext, useDispatch, useSelector } from 'react-redux';
-import todos from '../todos';
 
 const actions = new TableActions("todos");
 
 function ReduxTable() {
     const dispatch = useDispatch();
-    useEffect(() => {
-        dispatch(actions.setRows(todos))
-    }, [dispatch]);
 
     const handlePageChange = useCallback(e => {
         const index = parseInt(e.target.value);
@@ -30,11 +26,8 @@ function ReduxTable() {
             context={ReactReduxContext}
         />
         <div>Page:&nbsp;
-            <input
-                min={0}
-                max={pageCount}
-                type="number"
-                id="pageIndex"
+            <input type="number" id="pageIndex"
+                min={1} max={pageCount}
                 value={currentPage}
                 onChange={handlePageChange}
             />&nbsp;

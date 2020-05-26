@@ -1,12 +1,16 @@
 import { createStore } from "redux";
 import { TableReducer } from "react-select-table";
 import { devToolsEnhancer } from "redux-devtools-extension";
+import todos from "./todos";
 
 const store = createStore(
     TableReducer.createTable(
         "todos",
-        { valueProperty: "id" },
-        { pageSize: 6 }
+        {
+            valueProperty: "id",
+            initItems: todos
+        },
+        { pageSize: 5 }
     ),
     devToolsEnhancer()
 );

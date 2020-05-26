@@ -31,6 +31,7 @@ function ReduxTable() {
         />
         <div>Page:&nbsp;
             <input
+                type="number"
                 id="pageIndex"
                 value={currentPage}
                 onChange={handlePageChange}

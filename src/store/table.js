@@ -43,12 +43,11 @@ export function createTable(tableName, options = {}, initState = {}) {
             state.columnWidth = getDefaultWidth(count);
     }
 
-    const validatePaginationState = state => {
-        if (!state.currentPage) return;
-
-        const count = getPageCount(state);
+    const validatePaginationState = (state, allowZero = false) => {
         const index = state.currentPage;
-        state.currentPage = _.clamp(index, 1, count);
+        const min = allowZero ? 0 : 1;
+        const count = getPageCount(state);
+        state.currentPage = _.clamp(index, min, count);
     }
 
     _.defaults(initState, defaultState);
@@ -331,6 +330,7 @@ export function createTable(tableName, options = {}, initState = {}) {
             case actions.GO_TO_PAGE: {
                 const { index } = payload;
                 let newIndex = state.currentPage;
+                let allowZero = false;
 
                 switch (index) {
                     case pagePositions.Last:
@@ -344,11 +344,12 @@ export function createTable(tableName, options = {}, initState = {}) {
                         break;
                     default:
                         newIndex = isNaN(index) ? 0 : index;
+                        allowZero = true;
                         break;
                 }
 
                 draft.currentPage = newIndex;
-                validatePaginationState(draft);
+                validatePaginationState(draft, allowZero);
                 break;
             }
 

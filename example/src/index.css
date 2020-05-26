@@ -13,7 +13,7 @@ body {
 }
 
 #pageIndex {
-  width: 3ch;
+  width: calc(3ch + 20px);
 }
 
 .rst-container {

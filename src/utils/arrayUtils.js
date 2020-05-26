@@ -5,11 +5,15 @@ export function pullFirst(array, item) {
     if (index >= 0) array.splice(index, 1);
 }
 
-export function areItemsEqual(array1, array2) {
+export function areItemsEqual(first, second) {
+    //Compare references
+    if (first === second) return true;
+
     //Compare lengths
-    if (array1.length !== array2.length) return false;
+    if (first.length !== second.length) return false;
+
     //Compare items
-    return _.isEqual(_.sortBy(array1), _.sortBy(array2))
+    return _.isEqual(_.sortBy(first), _.sortBy(second))
 }
 
 export function inArray(item) {

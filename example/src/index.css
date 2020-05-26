@@ -8,23 +8,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+#app {
+  height: 100vh;
+}
+
+#pageIndex {
+  width: 3ch;
+}
+
 .rst-container {
-  height: 500px;
+  flex: auto;
 }
 
-h1 {
-  padding-top: 1rem;
-}
-
-.change {
-  animation: pulse 1s;
-}
-
-@keyframes pulse {
-  from {
-    color: darkorange
-  }
-  to {
-    color: black;
-  }
+.container {
+  padding: 1rem 0 5rem 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }

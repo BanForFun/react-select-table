@@ -1,64 +1,21 @@
-import React, { useState } from 'react'
-import { Table, useTable } from 'react-select-table';
-import PulseLabel from './components/PulseLabel';
+import React from 'react';
+import { Switch, Route, Redirect } from "react-router-dom";
+
+import SimpleTable from './components/SimpleTable';
+import ReduxTable from './components/ReduxTable';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'react-select-table/dist/index.css';
 
-import todos from "./todos";
-
-const columns = [
-  {
-    title: "#",
-    path: "id",
-    isHeader: true
-  },
-  {
-    title: "Title",
-    path: "title"
-  },
-  {
-    title: "Completed",
-    path: "completed",
-    render: renderCheckOrX
-  }
-];
-
-function renderCheckOrX(bool) {
-  return bool ?
-    <i className="fa fa-check text-success" /> :
-    <i className="fa fa-times text-danger" />;
-}
 
 function App() {
-  const [selection, setSelection] = useState([]);
-  const [contextMenu, setContextMenu] = useState([]);
-  const [openItems, setOpenItems] = useState([]);
-
-  useTable("test", { valueProperty: "id", scrollX: true });
-
-  return (
-    <div className="container">
-      <div className="row">
-        <div className="col">
-          <h1>Table</h1>
-          <Table
-            items={todos}
-            onContextMenu={setContextMenu}
-            onSelectionChange={setSelection}
-            onItemsOpen={setOpenItems}
-            columns={columns}
-            className="table"
-            name="test" />
-        </div>
-        <div className="d-none d-md-block col-3">
-          <h1>Events</h1>
-          <PulseLabel title="Selection" items={selection} />
-          <PulseLabel title="Context menu" items={contextMenu} />
-          <PulseLabel title="Open items" items={openItems} />
-        </div>
-      </div>
-    </div>)
+  return <div id="app">
+    <Switch>
+      <Route path="/simple" component={SimpleTable} />
+      <Route path="/redux" component={ReduxTable} />
+      <Redirect from="/" exact to="/simple" />
+    </Switch>
+  </div>
 }
 
 export default App;

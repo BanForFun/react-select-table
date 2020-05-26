@@ -324,7 +324,7 @@ export function createTable(tableName, options = {}, initState = {}) {
             //Pagination
             case actions.SET_PAGE_SIZE: {
                 draft.pageSize = payload.size;
-                draft.currentPage = 0;
+                draft.currentPage = 1;
                 validatePaginationState(draft);
                 break;
             }
@@ -343,8 +343,7 @@ export function createTable(tableName, options = {}, initState = {}) {
                         newIndex--;
                         break;
                     default:
-                        if (typeof index === "number")
-                            newIndex = index;
+                        newIndex = isNaN(index) ? 0 : index;
                         break;
                 }
 

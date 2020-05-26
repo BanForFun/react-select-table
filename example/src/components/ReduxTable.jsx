@@ -31,6 +31,8 @@ function ReduxTable() {
         />
         <div>Page:&nbsp;
             <input
+                min={0}
+                max={pageCount}
                 type="number"
                 id="pageIndex"
                 value={currentPage}

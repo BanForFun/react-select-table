@@ -127,9 +127,7 @@ The maximum number of items displayed on a page. If set to 0, pagination is disa
 
 The current page index. Has no effect when [`pageSize`](#pagesize-number) is 0.
 
-**Warning**: This number is one-based (the first page has an index of 1 instead of 0).
-
-
+**Warning**: This number is one-based (the first page has an index of 1 instead of 0). If set to 0, all items are hidden.
 
 ### Actions
 

@@ -13,6 +13,7 @@
 * Row deselection when table container is clicked
 * Optional redux item management
 * Listbox mode
+* Pagination
 * Touch support
 
 ### Shortcuts
@@ -40,9 +41,9 @@
 
 * Component props `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` removed. These properties are now constant and must be specified in the `options` (second) parameter of [`initTable` or `useTable`](./docs/table.md#setup).
 
-## 2.1.0 - Change log
+## 2.3.0 - Change log
 
-* Added horizontal scrolling (disabled by default). Can be enabled by setting the `scrollX` property to `true` in the [options](./docs/types.md#options-object).
+* Added pagination. Page size can be set with [`setPageSize`](./docs/core.md#setpagesize). Current page can be set with [`goToPage`](./docs/core.md#gotopage). The number of pages can be retrieved using the [`makeGetPageCount`](./docs/core.md#makeGetPageCount) selector.
 
 ## Installation
 
@@ -61,6 +62,8 @@ import 'react-select-table/dist/index.css';
 [Simple todo example](https://codesandbox.io/s/rst-simple-wk07o)
 
 [Redux todo example](https://codesandbox.io/s/rst-redux-mrii6)
+
+[Redux todo with pagination](https://codesandbox.io/s/rst-pagination-v5ehy)
 
 More examples coming soon
 

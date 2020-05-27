@@ -4,16 +4,14 @@ import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import TableCore from "./TableCore.jsx";
 import InternalActions from "../models/internalActions.js";
-import configureStore from "../store/configureStore.js";
-
-const store = configureStore();
+import getStore from "../store/configureStore.js";
 
 function useAutoDispatch(creator, param) {
     useEffect(() => {
         if (!creator) return;
         if (param === undefined) return;
 
-        store.dispatch(creator(param));
+        getStore().dispatch(creator(param));
     }, [creator, param]);
 }
 
@@ -25,11 +23,15 @@ function Table({
     ...params
 }) {
     const { name } = params;
+    const store = getStore();
 
     const [isReady, setReady] = useState(false);
     useEffect(() => {
-        store.subscribe(() =>
-            setReady(!!store.asyncReducers[name]));
+        const updateReady = () =>
+            setReady(!!store.asyncReducers[name]);
+
+        store.subscribe(updateReady);
+        updateReady();
     }, [name]);
 
     const actions = useMemo(() => {

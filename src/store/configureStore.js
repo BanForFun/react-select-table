@@ -1,13 +1,16 @@
 import { createStore, combineReducers } from "redux"
 import { devToolsEnhancer } from "redux-devtools-extension";
 
-const emptyReducer = state => state;
-
 let store;
 
-export default function configureStore() {
-    store = createStore(emptyReducer, devToolsEnhancer());
-    store.asyncReducers = {};
+const emptyReducer = state => state;
+
+export default function getStore() {
+    if (!store) {
+        store = createStore(emptyReducer, devToolsEnhancer());
+        store.asyncReducers = {};
+    }
+
     return store;
 }
 
@@ -22,7 +25,7 @@ function rebuildReducers() {
 }
 
 export function injectReducer(name, reducer) {
-    store.asyncReducers[name] = reducer;
+    getStore().asyncReducers[name] = reducer;
     rebuildReducers();
 }
 

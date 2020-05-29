@@ -1,52 +1,35 @@
 ## Table usage
 
-### Setup
+### Setup HOC
 
-The `initTable`/`disposeTable` (for class components) or `useTable` (for functional components) methods must be called for every table component. You must pass a name as the first parameter. When you render a Table, you must pass the same name to the [`name`](#name-string) component prop.
+The easier of the two methods. Recommended if you only render one table in your component. 
 
-You can optionally pass an [options](./types.md#options-object) object as a second parameter to either method.
+The `withTable` function, takes two parameters:
 
-**Functional component**
+1. The table name (think of it as an id, which must be unique for each table)
+2.  An [options](./types.md#options-object) object **(Optional)**
+
+... and returns a function to which you must pass your component (as shown below).
 
 ```javascript
 import React from 'react'
-import { Table, useTable } from 'react-select-table'
+import { Table, withTable } from 'react-select-table'
 
 function App() {
-    useTable("todos", { valueProperty: "id" });
     
-    return (
-        <Table name="todos"
-            // ...Other props
-        />
-    )
+    return <Table 
+    	// ...props
+    />
 }
+    
+export default withTable("todos", { valueProperty: "id" })(App);
 ```
 
-**Class component**
+The hoc will pass these props to your component:
 
-```javascript
-import React, { Component } from 'react';
-import { Table, initTable, disposeTable } from 'react-select-table'
+* `pageCount` *Number*: The number of pages after item filtering. See [`pageSize` prop](#pagesize-number) for details.
 
-class App extends Component {
-    componentDidMount() {
-        initTable("todos", { valueProperty: "id" });
-    }
-    
-    componentWillUnmount() {
-        disposeTable("todos");
-    }
-
-    render() {
-        return (
-            <Table name="todos"
-                // ...Other props
-            />
-        )
-    }
-}
-```
+**Warning**: The props passed by the hoc, will override props with the same name.
 
 
 
@@ -88,7 +71,17 @@ Rendered when the table contains no items.
 
 Passed as the second parameter to [`itemPredicate`](./types.md#itempredicate-function). [Example usage](./core.md#filter-any)
 
+#### `pageSize` *number*
 
+> **Default**: `0`
+
+If set to an integer larger than 0, the table items will be divided into pages with a maximum of `pageSize` items.
+
+#### `page` *number*
+
+> **Default**: `1`
+
+Sets the current page. Has no effect if [`pageSize`](#pagesize-number) is set to 0.
 
 ### Event props
 

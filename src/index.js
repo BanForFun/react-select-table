@@ -6,6 +6,7 @@ import { initTable, disposeTable } from './utils/tableUtils';
 import { makeGetPageCount } from "./selectors/paginationSelectors";
 import useTable from './hooks/useTable';
 import withTable from "./hoc/withTable";
+import withTables from "./hoc/withTables";
 
 export {
     Table,
@@ -16,5 +17,6 @@ export {
     disposeTable,
     useTable,
     makeGetPageCount,
-    withTable
+    withTable,
+    withTables
 };

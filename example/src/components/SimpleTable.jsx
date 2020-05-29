@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, withTable } from 'react-select-table';
+import { Table, withTables } from 'react-select-table';
 
 import todos from "../todos";
 import columns from "../columns";
@@ -18,6 +18,7 @@ function SimpleTable({ pageCount }) {
                 onSelectionChange={logEvent("Selection")}
                 onItemsOpen={logEvent("Open")}
                 pageSize={3}
+                name="test"
                 columns={columns}
                 className="table" />
             {pageCount}
@@ -25,6 +26,6 @@ function SimpleTable({ pageCount }) {
     )
 }
 
-export default withTable("test",
-    { valueProperty: "id", scrollX: true },
-)(SimpleTable);
+export default withTables({
+    test: { valueProperty: "id", scrollX: true },
+})(SimpleTable);

@@ -27,6 +27,14 @@
 * `Home` to select the first item
 * `End` to select the last item
 
+
+
+## 2.4.0 - Change log
+
+* `initTable`/`disposeTable` and `useTable` are deprecated and replaced by the `useTable` and `useTables` HOCs.
+
+
+
 ## 2.0.0 - Breaking changes
 
 ### TableCore
@@ -41,9 +49,7 @@
 
 * Component props `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` removed. These properties are now constant and must be specified in the `options` (second) parameter of [`initTable` or `useTable`](./docs/table.md#setup).
 
-## 2.3.0 - Change log
 
-* Added pagination. Page size can be set with [`setPageSize`](./docs/core.md#setpagesize). Current page can be set with [`goToPage`](./docs/core.md#gotopage). The number of pages can be retrieved using the [`makeGetPageCount`](./docs/core.md#makeGetPageCount) selector.
 
 ## Installation
 
@@ -57,15 +63,23 @@ In your `App.js` import the stylesheet.
 import 'react-select-table/dist/index.css';
 ````
 
+
+
 ## Examples
 
-[Simple todo example](https://codesandbox.io/s/rst-simple-wk07o)
+### Without redux
 
-[Redux todo example](https://codesandbox.io/s/rst-redux-mrii6)
+[Todo list](https://codesandbox.io/s/rst-simple-wk07o)
 
-[Redux todo with pagination](https://codesandbox.io/s/rst-pagination-v5ehy)
+[Todo list with pagination](https://codesandbox.io/s/rst-simple-pagination-2trg2)
 
-More examples coming soon
+### With redux
+
+[Todo list with adding and filtering](https://codesandbox.io/s/rst-redux-mrii6)
+
+[Todo list with pagination](https://codesandbox.io/s/rst-redux-pagination-v5ehy)
+
+
 
 ## Usage
 

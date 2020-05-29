@@ -1,13 +1,13 @@
 ## Table usage
 
-### Setup HOC
+### Setup
 
-The easier of the two methods. Recommended if you only render one table in your component. 
+#### One table
 
 The `withTable` function, takes two parameters:
 
 1. The table name (think of it as an id, which must be unique for each table)
-2.  An [options](./types.md#options-object) object **(Optional)**
+2.  An [options object][options] **(Optional)**
 
 ... and returns a function to which you must pass your component (as shown below).
 
@@ -15,21 +15,54 @@ The `withTable` function, takes two parameters:
 import React from 'react'
 import { Table, withTable } from 'react-select-table'
 
-function App() {
-    
-    return <Table 
-    	// ...props
-    />
+function App() {  
+    return <Table columns={...} items={...} />
 }
     
 export default withTable("todos", { valueProperty: "id" })(App);
 ```
 
-The hoc will pass these props to your component:
+The HOC will pass these props to your component:
 
 * `pageCount` *Number*: The number of pages after item filtering. See [`pageSize` prop](#pagesize-number) for details.
 
-**Warning**: The props passed by the hoc, will override props with the same name.
+**Warning**: The props passed by the HOC, will override props with the same name.
+
+#### Multiple tables
+
+The `withTables` (note the plural) function takes one parameter: an object whose keys are table names and values are [options objects][options].
+
+It returns a function to which you must pass your component (as shown below).
+
+Note that you must pass the [`name`](#name-string) prop to the `Table` components, matching to object keys in the `withTables` parameter (as shown below).
+
+```javascript
+import React from 'react'
+import { Table, withTables } from 'react-select-table'
+
+function App() {
+    return <div>
+        <Table name="users" 
+    		columns={...} 
+            items={...} />
+                
+        <Table name="todos" 
+    		columns={...} 
+            items={...} />
+    <div/>
+}
+
+export default withTables({
+    users: { valueProperty: "userId" },
+    todos: { valueProperty: "todoId", isMultiselect: false }
+})(App)
+```
+
+The HOC will pass a prop for every table (named after the table) to your component, which will be an object containing these properties:
+
+* `pageCount` *Number*: The number of pages after item filtering. See [`pageSize` prop](#pagesize-number) for details.
+
+**Warning**: The props passed by the HOC, will override props with the same name.
 
 
 
@@ -51,7 +84,9 @@ The table columns.
 #### `name` _string_
 > **Required**
 
-The table name. Used for the generation of the react keys. The `initTable` or `useTable` method must be called first with the same name, as shown in the [setup](#setup) section.
+The table name. Used for the generation of the react keys.
+
+If the `withTable` HOC was used, you needn't pass this prop as it will be automatically passed through context.
 
 #### `className` _string_
 
@@ -102,3 +137,7 @@ Called when the user double-clicks on a row or presses the enter key. Will not b
 > **Default**: `() => {}`
 
 Called when the selection changes. [See parameters](./core.md#onselectionchange-function)
+
+
+
+[options]: ./types.md#options-object

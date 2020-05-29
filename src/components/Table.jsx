@@ -1,10 +1,12 @@
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useContext } from "react";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import TableCore from "./TableCore.jsx";
 import InternalActions from "../models/internalActions.js";
 import getStore, { reducerExists } from "../store/configureStore.js";
+import { TableNameContext } from "../hoc/withTable.js";
+import useEither from "../hooks/useEither.js";
 
 function useAutoDispatch(creator, param) {
     useEffect(() => {
@@ -22,10 +24,12 @@ function Table({
     pageSize,
     itemParser,
     itemPredicate,
-    ...params
+    ...props
 }) {
-    const { name } = params;
     const store = getStore();
+
+    const contextName = useContext(TableNameContext);
+    const name = useEither(props.name, contextName);
 
     const [isReady, setReady] = useState(false);
     useEffect(() => {
@@ -50,7 +54,10 @@ function Table({
 
     if (!isReady) return null;
     return <Provider store={store}>
-        <TableCore {...params} statePath={name} />
+        <TableCore {...props}
+            statePath={name}
+            name={name}
+        />
     </Provider>
 }
 

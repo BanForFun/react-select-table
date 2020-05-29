@@ -20,6 +20,7 @@ import {
     registerListeners
 } from '../utils/eventUtils';
 import { tableOptions } from '../utils/optionUtils';
+import useEither from '../hooks/useEither';
 
 function TableCore(props) {
     const {
@@ -47,8 +48,7 @@ function TableCore(props) {
     const bodyContainer = useRef();
     const headContainer = useRef();
 
-    const tableName = useMemo(() =>
-        reducerName || name, [reducerName, name]);
+    const tableName = useEither(reducerName, name);
 
     const options = useMemo(() =>
         tableOptions[tableName], [tableName]);

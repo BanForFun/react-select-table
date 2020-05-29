@@ -19,8 +19,7 @@ function SimpleTable({ pageCount }) {
                 onItemsOpen={logEvent("Open")}
                 pageSize={3}
                 columns={columns}
-                className="table"
-                name="test" />
+                className="table" />
             {pageCount}
         </div>
     )

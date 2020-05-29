@@ -2,34 +2,42 @@ import { createStore, combineReducers } from "redux"
 import { devToolsEnhancer } from "redux-devtools-extension";
 
 let store;
+const asyncReducers = {};
 
-const emptyReducer = state => state;
-
-export default function getStore() {
-    if (!store) {
-        store = createStore(emptyReducer, devToolsEnhancer());
-        store.asyncReducers = {};
-    }
-
+export default function getStore(doCreate = false) {
+    //Store exists
+    if (store) return store;
+    //Store doesn't exist, don't create
+    if (!doCreate) throw new Error("Store was not initialized.");
+    //Store doesn't exist, create one
+    configureStore();
     return store;
 }
 
-function rebuildReducers() {
-    const reducers = store.asyncReducers;
-    const isEmpty = Object.keys(reducers).length === 0;
+function configureStore() {
+    store = createStore(getReducer(), devToolsEnhancer());
+}
 
-    store.replaceReducer(isEmpty
-        ? emptyReducer
-        : combineReducers(reducers)
-    );
+function getReducer() {
+    const isEmpty = !Object.keys(asyncReducers).length;
+    return isEmpty ? s => s : combineReducers(asyncReducers);
+}
+
+function rebuildReducers() {
+    store.replaceReducer(getReducer());
 }
 
 export function injectReducer(name, reducer) {
-    getStore().asyncReducers[name] = reducer;
-    rebuildReducers();
+    asyncReducers[name] = reducer;
+    if (store) rebuildReducers();
+    else configureStore();
 }
 
 export function removeReducer(name) {
-    delete store.asyncReducers[name];
+    delete asyncReducers[name];
     rebuildReducers();
+}
+
+export function reducerExists(name) {
+    return !!asyncReducers[name];
 }

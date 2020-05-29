@@ -5,6 +5,7 @@ import * as TableReducer from "./store/table";
 import { initTable, disposeTable } from './utils/tableUtils';
 import { makeGetPageCount } from "./selectors/paginationSelectors";
 import useTable from './hooks/useTable';
+import withTable from "./hoc/withTable";
 
 export {
     Table,
@@ -14,5 +15,6 @@ export {
     initTable,
     disposeTable,
     useTable,
-    makeGetPageCount
+    makeGetPageCount,
+    withTable
 };

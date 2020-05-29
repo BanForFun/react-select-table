@@ -1,5 +1,5 @@
-import React from 'react'
-import { Table, useTable } from 'react-select-table';
+import React from 'react';
+import { Table, withTable } from 'react-select-table';
 
 import todos from "../todos";
 import columns from "../columns";
@@ -8,9 +8,7 @@ function logEvent(type) {
     return args => console.log(type, args);
 }
 
-function SimpleTable() {
-    useTable("test", { valueProperty: "id", scrollX: true });
-
+function SimpleTable({ pageCount }) {
     return (
         <div className="container">
             <h1>Simple table</h1>
@@ -19,11 +17,15 @@ function SimpleTable() {
                 onContextMenu={logEvent("Context menu")}
                 onSelectionChange={logEvent("Selection")}
                 onItemsOpen={logEvent("Open")}
+                pageSize={3}
                 columns={columns}
                 className="table"
                 name="test" />
+            {pageCount}
         </div>
     )
 }
 
-export default SimpleTable;
+export default withTable("test",
+    { valueProperty: "id", scrollX: true },
+)(SimpleTable);

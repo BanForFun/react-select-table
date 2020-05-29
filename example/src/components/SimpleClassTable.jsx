@@ -5,7 +5,8 @@ import todos from "../todos";
 import columns from "../columns";
 
 class SimpleClassTable extends Component {
-    componentDidMount() {
+    constructor(props) {
+        super(props);
         initTable("test1", { valueProperty: "id", scrollX: true });
     }
 

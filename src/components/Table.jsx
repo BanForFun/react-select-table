@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import { Provider } from "react-redux";
 import TableCore from "./TableCore.jsx";
 import InternalActions from "../models/internalActions.js";
-import getStore from "../store/configureStore.js";
+import getStore, { reducerExists } from "../store/configureStore.js";
 
 function useAutoDispatch(creator, param) {
     useEffect(() => {
@@ -18,6 +18,8 @@ function useAutoDispatch(creator, param) {
 function Table({
     items,
     filter,
+    page,
+    pageSize,
     itemParser,
     itemPredicate,
     ...params
@@ -28,10 +30,12 @@ function Table({
     const [isReady, setReady] = useState(false);
     useEffect(() => {
         const updateReady = () =>
-            setReady(!!store.asyncReducers[name]);
+            setReady(reducerExists(name));
 
-        store.subscribe(updateReady);
+        //For the first table
         updateReady();
+        //For subsequent tables
+        store.subscribe(updateReady);
     }, [name]);
 
     const actions = useMemo(() => {
@@ -41,6 +45,8 @@ function Table({
 
     useAutoDispatch(actions.setFilter, filter);
     useAutoDispatch(actions.setRows, items);
+    useAutoDispatch(actions.goToPage, page);
+    useAutoDispatch(actions.setPageSize, pageSize);
 
     if (!isReady) return null;
     return <Provider store={store}>
@@ -53,5 +59,7 @@ export default Table;
 Table.propTypes = {
     ...TableCore.propTypes,
     items: PropTypes.array.isRequired,
-    filter: PropTypes.any
+    filter: PropTypes.any,
+    page: PropTypes.number,
+    pageSize: PropTypes.number
 }

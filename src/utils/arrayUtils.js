@@ -17,5 +17,5 @@ export function areItemsEqual(first, second) {
 }
 
 export function inArray(item) {
-    return item ? [item] : [];
+    return item === null ? [] : [item];
 }

@@ -90,31 +90,31 @@ If the `withTable` HOC was used, you needn't pass this prop as it will be automa
 
 #### `className` _string_
 
-> **Default:** `""`
+> **Optional**
 
 Will be applied to the table element.
 
 #### `emptyPlaceholder` _component_
 
-> **Default**: `null`
+> **Optional**
 
 Rendered when the table contains no items.
 
 #### `filter` *any*
 
-> **Default**: `null`
+> **Optional**
 
 Passed as the second parameter to [`itemPredicate`](./types.md#itempredicate-function). [Example usage](./core.md#filter-any)
 
 #### `pageSize` *number*
 
-> **Default**: `0`
+> **Optional**
 
 If set to an integer larger than 0, the table items will be divided into pages with a maximum of `pageSize` items.
 
 #### `page` *number*
 
-> **Default**: `1`
+> **Optional**
 
 Sets the current page. Has no effect if [`pageSize`](#pagesize-number) is set to 0.
 
@@ -122,19 +122,19 @@ Sets the current page. Has no effect if [`pageSize`](#pagesize-number) is set to
 
 #### `onContextMenu` _function_
 
->  **Default**: `() => {}`
+>  **Optional**
 
 Called when the user right-clicks on a row or the table container. [See parameters](./core.md#oncontextmenu-function)
 
 #### `onItemsOpen` _function_
 
-> **Default**: `() => {}`
+> **Optional**
 
 Called when the user double-clicks on a row or presses the enter key. Will not be called if no rows are selected. [See parameters](./core.md#onitemsopen-function)
 
 #### `onSelectionChange` _function_
 
-> **Default**: `() => {}`
+> **Optional**
 
 Called when the selection changes. [See parameters](./core.md#onselectionchange-function)
 

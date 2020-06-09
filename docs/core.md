@@ -2,28 +2,19 @@
 
 ### State
 
-#### `sortPath` *string*
+#### `sortBy` *object*
 
-> **Default**: `null`
+> **Default**: `{}`
 >
 > **Modified by**: [`sortBy`](#sortby)
 
-The property name which the items are sorted by. If set to null, sorting is disabled.
+*Keys*: The property path to sort the items by
+
+*Values*: The order in which to sort them (`asc` for ascending, `desc` for descending).
+
+If [`multiSort`](./types.md#multisort-boolean) is set to false (default), this object will only contain at most one key-value pair.
 
 Note: The items are [parsed](#itemparser-function) before being sorted.
-
-#### `sortOrder` *string*
-
-> **Default**: `'asc'`
->
-> **Modified by**: [`sortBy`](#sortby)
->
-> **Valid values**:
->
-> * `'asc'` for ascending order
-> *  `'desc'` for descending order
-
-The order which the items are sorted by. Has no effect when [`sortPath`](#sortpath-string) is null.
 
 #### `columnOrder` *array of number*
 > **Default**: `null`
@@ -32,7 +23,7 @@ The order which the items are sorted by. Has no effect when [`sortPath`](#sortpa
 
 Used to reorder and/or hide columns. It can be set to an array containing indexes of items in the [`columns`](#columns-array-of-column) array.
 
-If null, all columns passed to the `columns` prop will be rendered.
+If null, all columns passed to the [`columns`][columns] prop will be rendered.
 
 #### `columnWidth` *array of number*
 
@@ -65,7 +56,9 @@ Active [value][value]. By default, the active item has green bottom border.
 
 Passed as the second parameter to [`itemPredicate`](./types.md#itempredicate-function).
 
-__With the default implementation of `itemPredicate`__, this object can contain key-value pairs of property paths and matching values. For example:
+__With the default implementation of `itemPredicate`__, this object can contain key-value pairs of property paths and matching values. 
+
+For example:
 
 ```javascript
 {
@@ -131,7 +124,7 @@ The current page index. Has no effect when [`pageSize`](#pagesize-number) is 0.
 
 ### Actions
 
-The action creators are accessible from a `TableActions` instance. The constructor takes the table [name](#name-string) as a parameter. The dispatched actions have a `table` property that contains the name that was passed to the constructor. 
+The action creators are accessible from a `TableActions` instance. The constructor takes the table [namespace](#namespace-string) as a parameter. The dispatched actions have a `namespace` property that contains the namespace that was passed to the constructor. 
 
 The action types are static variables of the `TableActions` class.
 
@@ -156,8 +149,6 @@ switch(action.type) {
 ```
 
 For the action types below, the variable name is listed. The actual value is: `TABLE_` + *variable name*. For example the variable `SET_ROWS` would have the value `TABLE_SET_ROWS`.
-
-
 
 #### Row actions
 
@@ -234,8 +225,6 @@ Parameters: none
 
 Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Clears the selection.
 
-
-
 #### Selection actions
 
 #### `selectRow`
@@ -245,8 +234,8 @@ Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Clears 
 Parameters:
 
 * `value` *any*
-* `ctrlKey` *boolean* (Optional, `false` by default)
-* `shiftKey` *boolean* (Optional, `false` by default)
+* `ctrlKey` *boolean* (false by default)
+* `shiftKey` *boolean* (false by default)
 
 Modifies the selection based on the item that was clicked, and whether the `Ctrl ` or `Shift` keys were held down at the time.
 
@@ -298,8 +287,6 @@ Parameters:
 
 Finds the item with [value][value]: `value` and selects or deselects it, based on the `selected` parameter.
 
-
-
 #### Column actions
 
 #### `setColumnWidth`
@@ -323,8 +310,6 @@ Parameters:
 
 Sets [`columnOrder`](#columnorder-array-of-number) state to `order`.
 
-
-
 #### Row display actions
 
 #### `setFilter`
@@ -344,10 +329,11 @@ Sets [`filter`](#filter-any) state to `filter`. Updates the items based on the n
 Parameters:
 
 * `path` *string*
+* `shiftKey` *boolean* (false by default)
 
-Sets [`sortPath`](#sortpath-string) state to `path`. If `sortPath` is already set to `path`, [`sortOrder`](#sortorder-string) is toggled between ascending and descending. Otherwise it is set to ascending.
+Adds a key to the [`sortBy`](#sortby-object) object with name `path`. If the object does not already contain the key, its value is set to `asc`. Otherwise it is toggled between `asc` and `desc`.
 
-
+If [`multiSort`](./types.md#multisort-boolean) is set to false or if `shiftKey` is false, all previous sorting columns will be reset.
 
 #### Pagination actions
 
@@ -405,8 +391,6 @@ Parameters: none
 
 Sets `currentPage` to the largest valid index.
 
-
-
 #### Internal actions
 
 In redux devtools, you may notice some other action types, namely `SET_EVENT_HANDLER` and `SET_COLUMN_COUNT`. These actions are dispatched internally and no action creators are provided, as to not create inconsistency between the props and the state.
@@ -422,15 +406,6 @@ In redux devtools, you may notice some other action types, namely `SET_EVENT_HAN
 
 The table columns. Don't worry about their order or whether some shouldn't be displayed, those functions can be accomplished by setting [`columnOrder`](#columnorder-array-of-number). 
 
-#### `name` _string_
-
-> __Required__
->
-
-Used for the generation of the react `key` properties for the rows and columns. 
-
-Also used to generate the redux [action](#actions) types if [`reducerName`](#reducername-string) is not provided.
-
 #### `context` *context*
 
 > **Required**
@@ -443,29 +418,42 @@ import { ReactReduxContext } from "react-redux";
 
 Then, you can pass it to the `context` prop. If you are using custom context, you will have to pass that instead.
 
+#### `name` _string_
+
+> __Required__
+>
+
+Used for the generation of the react `key` properties for the rows and columns. 
+
+Also used for the actions' [`namespace`](#namespace-string) if not explicitly set.
+
+#### `namespace` *string*
+
+> **Optional**
+
+Used to differentiate the [actions](#actions) dispatched by each table.
+
+**Attention**: In most cases, passing the [`name`](#name-string) prop is enough.
+
+If you have two (or more) tables that you want controlling a common reducer, you can set this property to the namespace you passed to [`createTable`](#reducer). Then you can set the table components' `name` props to unique values (making react shut up about duplicate keys), but the actions dispatched will be of the same type for all tables sharing the namespace.
+
 #### `className` *string*
 
-> **Default:** `""`
+> **Optional**
 
 Will be applied to the table element.
 
 #### `emptyPlaceholder` _component_
 
-> **Default**: `null`
+> **Optional**
 
 Rendered when the table contains no items.
 
 #### `statePath` *string*
 
-> **Default**: `null`
+> **Optional**
 
 If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using lodash's `_.get` method, meaning that dot notation can be used. If the table reducer is the root, you don't have to provide this prop.
-
-#### `reducerName` *string*
-
-> **Default**: `null`
-
-If you have two (or more) tables that you want controlling a common reducer, you can set this property to the [reducer name](#reducer). Then you can set the table components' [`name`](#name-string) properties to unique values, but the actions dispatched will be of the same type for all tables.
 
 #### Event props
 
@@ -473,7 +461,7 @@ The event handlers (except `onItemsOpen`) are called from inside the reducer. If
 
 #### `onContextMenu` _function_
 
-> **Default**: `() => {}`
+> **Optional**
 
 | Parameter | Type           | Description                                                  |
 | --------- | -------------- | ------------------------------------------------------------ |
@@ -483,7 +471,7 @@ Called when the user right-clicks on a row or the table container.
 
 #### `onItemsOpen` _function_
 
-> **Default**: `() => {}`
+> **Optional**
 
 | Name       | Type           | Description                                                 |
 | ---------- | -------------- | ----------------------------------------------------------- |
@@ -494,7 +482,7 @@ Called when the user double-clicks on a row or presses the enter key. Will not b
 
 #### `onSelectionChange` _function_
 
-> **Default**: `() => {}`
+> **Optional**
 
 | Parameter | Type           | Description                                         |
 | --------- | -------------- | --------------------------------------------------- |
@@ -510,11 +498,11 @@ To create a reducer, use the `createTable` exported by `TableReducer`.
 
 Parameters:
 
-* `tableName` *string*
+* `namespace` *string*
 * `options` *[Options](./types.md#options-object)* (Optional)
 * `initState` *object* (Optional)
 
-The `tableName` parameter must match the component's [`name`](#name-string) prop.
+The `namespace` parameter must match the component's [`name`](#name-string) or [`namespace`](#namespace-string) prop.
 
 See all available `initState` properties [here](#state).
 
@@ -627,3 +615,4 @@ Creates a selector that takes the state and returns the page count based on the 
 [columnOrder]: #columnorder-array-of-number
 [selection]: #selectedvalues-array-of-any
 [tableItems]: #tableitems-array-of-object
+[columns]: #columns-array-of-column

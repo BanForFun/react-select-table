@@ -29,32 +29,28 @@
 
 
 
-## 2.4.0 - Change log
+## 3.0.0 - Breaking changes
 
-* `initTable`/`disposeTable` and `useTable` are deprecated and replaced by the `useTable` and `useTables` HOCs.
+### Common
 
-
-
-## 2.0.0 - Breaking changes
+* Added [`multiSort`](/docs/types.md#multisort-boolean) option
 
 ### TableCore
 
-* Action types are now **static** and the table name is given in the action's `table` property. [More details](/docs/core.md#actions)
-* Actions now have a `payload` property. The payload is no longer spread inside the action.
-* [`createTable`](./docs/core.md#reducer) parameters: Swapped position of `initState` and `options`.
-* State properties `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` are now constant and must be specified in the `options` (second) parameter of [`createTable`](./docs/core.md#reducer).
-* Removed `setMultiselect`, `setListboxMode`, `setMinColumnWidth` and `setValueProperty` actions.
-
-### Table
-
-* Component props `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` removed. These properties are now constant and must be specified in the `options` (second) parameter of [`initTable` or `useTable`](./docs/table.md#setup).
+* Renamed `table` to `namespace` in the action payload
+* Renamed `reducerName` to [`namespace`](/docs/core.md#namespace-string) in the component props
+* `sortPath` and `sortOrder` state properties removed and replaced by [`sortBy`](/docs/core.md#sortby-object)
 
 
 
 ## Installation
 
 ```shell
+#Npm
 $ npm install react-select-table
+
+#Yarn
+$ yarn add react-select-table
 ```
 
 In your `App.js` import the stylesheet.

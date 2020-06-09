@@ -82,6 +82,12 @@ If set to true:
 * The [active value](./core.md#activevalue-any) will be passed to [`onContextMenu`](#oncontextmenu) instead of the [selected values](./core.md#selectedvalues-array-of-any).
 * Drag selection is disabled.
 
+#### `multiSort` *boolean*
+
+>  **Default**: `false`
+
+If set to true, the user can shift-click on column headers to sort the items based on multiple columns.
+
 #### `minColumnWidth` *number*
 
 > **Default**: `3`

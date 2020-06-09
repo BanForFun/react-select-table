@@ -8,11 +8,11 @@ import { tableOptions } from "./optionUtils";
  *
  * @deprecated since 2.4.0; use withTable HOC instead
  */
-export function initTable(tableName, options = undefined) {
-    if (reducerExists(tableName)) return;
+export function initTable(namespace, options = undefined) {
+    if (reducerExists(namespace)) return;
 
-    const reducer = createTable(tableName, options);
-    injectReducer(tableName, reducer);
+    const reducer = createTable(namespace, options);
+    injectReducer(namespace, reducer);
 }
 
 /**
@@ -20,7 +20,7 @@ export function initTable(tableName, options = undefined) {
  *
  * @deprecated since 2.4.0; use withTable HOC instead
  */
-export function disposeTable(tableName) {
-    delete tableOptions[tableName];
-    removeReducer(tableName);
+export function disposeTable(namespace) {
+    delete tableOptions[namespace];
+    removeReducer(namespace);
 }

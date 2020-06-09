@@ -30,19 +30,20 @@ function getDefaultWidth(count) {
     return _.times(count, _.constant(width));
 }
 
-export function createTable(tableName, options = {}, initState = {}) {
+export function createTable(namespace, options = {}, initState = {}) {
     //State
     let draft = _.defaults(initState, defaultState);
 
     //Options
     _.defaults(options, defaultOptions);
-    tableOptions[tableName] = _.pick(options, Object.keys(defaultOptions));
+    tableOptions[namespace] = _.pick(options, Object.keys(defaultOptions));
     const {
         valueProperty,
         isListbox,
         isMultiselect,
         scrollX,
-        initItems
+        initItems,
+        multiSort
     } = options;
 
     if (initItems) setItems(initItems);
@@ -66,7 +67,10 @@ export function createTable(tableName, options = {}, initState = {}) {
         getFilteredItems,
         s => s.sortPath,
         s => s.sortOrder,
-        (items, path, order) => _.orderBy(items, [path], [order])
+        (items, path, order) => {
+            if (multiSort) return _.orderBy(items, path, order);
+            return _.orderBy(items, [path], [order])
+        }
     );
 
     const getValues = createSelector(
@@ -140,7 +144,7 @@ export function createTable(tableName, options = {}, initState = {}) {
     updatePagination();
 
     return (state = initState, action) => {
-        if (action.table !== tableName) return state;
+        if (action.namespace !== namespace) return state;
 
         draft = produce(state, newDraft => {
             draft = newDraft;
@@ -148,7 +152,6 @@ export function createTable(tableName, options = {}, initState = {}) {
             const { payload } = action;
             switch (action.type) {
                 //Items
-                case "FORM_GROUP_SET_DATA":
                 case actions.SET_ROWS: {
                     setItems(payload.data);
                     updateItems();

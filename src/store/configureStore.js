@@ -27,17 +27,17 @@ function rebuildReducers() {
     store.replaceReducer(getReducer());
 }
 
-export function injectReducer(name, reducer) {
-    asyncReducers[name] = reducer;
+export function injectReducer(namespace, reducer) {
+    asyncReducers[namespace] = reducer;
     if (store) rebuildReducers();
     else configureStore();
 }
 
-export function removeReducer(name) {
-    delete asyncReducers[name];
+export function removeReducer(namespace) {
+    delete asyncReducers[namespace];
     rebuildReducers();
 }
 
-export function reducerExists(name) {
-    return !!asyncReducers[name];
+export function reducerExists(namespace) {
+    return !!asyncReducers[namespace];
 }

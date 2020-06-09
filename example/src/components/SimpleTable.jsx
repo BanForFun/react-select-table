@@ -17,7 +17,6 @@ function SimpleTable({ pageCount }) {
                 onContextMenu={logEvent("Context menu")}
                 onSelectionChange={logEvent("Selection")}
                 onItemsOpen={logEvent("Open")}
-                pageSize={3}
                 name="test"
                 columns={columns}
                 className="table" />

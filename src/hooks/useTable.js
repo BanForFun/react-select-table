@@ -6,9 +6,9 @@ import useEffectInit from "./useEffectInit";
  *
  * @deprecated since 2.4.0; use withTable HOC instead
  */
-export default function useTable(tableName, options = undefined) {
+export default function useTable(namespace, options = undefined) {
     useEffectInit(() => {
-        initTable(tableName, options);
-        return () => disposeTable(tableName);
-    }, [tableName, options]);
+        initTable(namespace, options);
+        return () => disposeTable(namespace);
+    }, [namespace, options]);
 }

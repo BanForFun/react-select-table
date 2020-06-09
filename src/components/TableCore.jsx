@@ -15,17 +15,14 @@ import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
-import {
-    touchToMouseEvent,
-    registerListeners
-} from '../utils/eventUtils';
+import { touchToMouseEvent } from '../utils/eventUtils';
 import { tableOptions } from '../utils/optionUtils';
 import useEither from '../hooks/useEither';
+import useEvent from '../hooks/useEvent';
 
 function TableCore(props) {
     const {
         name,
-        reducerName,
         context,
         className,
         columns,
@@ -48,27 +45,27 @@ function TableCore(props) {
     const bodyContainer = useRef();
     const headContainer = useRef();
 
-    const tableName = useEither(reducerName, name);
+    const namespace = useEither(props.namespace, name);
 
     const options = useMemo(() =>
-        tableOptions[tableName], [tableName]);
+        tableOptions[namespace], [namespace]);
 
     const values = useMemo(() =>
         _.map(items, options.valueProperty),
         [items, options]);
 
     const actions = useMemo(() => {
-        const actions = new InternalActions(tableName);
+        const actions = new InternalActions(namespace);
         return bindActionCreators(actions, dispatch);
-    }, [tableName, dispatch]);
+    }, [namespace, dispatch]);
 
     //#region Reducer updater
 
     //Register event handlers
-    for (let name in defaultReducerEventHandlers) {
-        const handler = props[name];
+    for (let event in defaultReducerEventHandlers) {
+        const handler = props[event];
         useEffect(() => {
-            actions.setEventHandler(name, handler)
+            actions.setEventHandler(event, handler)
         }, [handler, actions]);
     };
 
@@ -173,22 +170,6 @@ function TableCore(props) {
         setSelRect(rect);
     }, [selOrigin, values, selectedValues, lastMousePos, actions]);
 
-    const dragMove = useCallback(e => {
-        if (!selOrigin) return;
-
-        //Recalculate selection rectangle
-        const newPos = [e.clientX, e.clientY];
-        updateSelectRect(newPos);
-        setLastMousePos(newPos);
-    }, [selOrigin, updateSelectRect]);
-
-    const dragEnd = useCallback(() => {
-        if (!selOrigin) return;
-
-        setSelOrigin(null);
-        setSelRect(null);
-    }, [selOrigin]);
-
     const handleScroll = useCallback(() => {
         if (!selOrigin) return;
 
@@ -196,32 +177,40 @@ function TableCore(props) {
         updateSelectRect();
     }, [selOrigin, updateSelectRect]);
 
-    const touchMove = useCallback(e => {
+    const handleMouseMove = useCallback(e => {
+        if (!selOrigin) return;
+
+        //Recalculate selection rectangle
+        const newPos = [e.clientX, e.clientY];
+        updateSelectRect(newPos);
+        setLastMousePos(newPos);
+    }, [selOrigin, updateSelectRect]);
+    useEvent(window, "mousemove", handleMouseMove);
+
+    const handleMouseUp = useCallback(() => {
+        if (!selOrigin) return;
+
+        setSelOrigin(null);
+        setSelRect(null);
+    }, [selOrigin]);
+    useEvent(window, "mouseup", handleMouseUp);
+
+    const handleTouchMove = useCallback(e => {
         if (!selOrigin) return;
 
         touchToMouseEvent(e, true);
-        dragMove(e);
-    }, [dragMove, selOrigin]);
+        handleMouseMove(e);
+    }, [handleMouseMove, selOrigin]);
+    useEvent(window, "touchmove", handleTouchMove, { passive: false });
 
-    const touchEnd = useCallback(e => {
+    const handleTouchEnd = useCallback(e => {
         isTouching.current = false;
         if (!selOrigin) return;
 
-        dragEnd();
+        handleMouseUp();
         e.stopPropagation();
-    }, [dragEnd, selOrigin])
-
-
-    useEffect(() => {
-        //Register mouse and touch events: move and up
-        return registerListeners(window, {
-            "mousemove": dragMove,
-            "mouseup": dragEnd,
-            "touchmove": touchMove,
-            "touchend": touchEnd
-        }, { passive: false });
-    }, [dragMove, dragEnd, touchMove, touchEnd]);
-
+    }, [handleMouseUp, selOrigin])
+    useEvent(window, "touchend", handleTouchEnd);
     //#endregion
 
     const raiseItemOpen = useCallback(enterKey => {
@@ -424,7 +413,7 @@ const columnShape = PropTypes.shape({
 TableCore.propTypes = {
     name: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
-    reducerName: PropTypes.string,
+    namespace: PropTypes.string,
     statePath: PropTypes.string,
     context: PropTypes.any,
     className: PropTypes.string,

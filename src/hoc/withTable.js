@@ -7,23 +7,23 @@ import useTable from "../hooks/useTable";
 export const TableNameContext = React.createContext();
 TableNameContext.displayName = "TableName";
 
-export function useTableProps(tableName, options) {
-    useTable(tableName, options);
+export function useTableProps(name, options) {
+    useTable(name, options);
     const props = {};
 
     //Pagination
     const getPageCount = useMemo(makeGetPageCount, []);
-    props.pageCount = useSelector(s => getPageCount(s[tableName]));
+    props.pageCount = useSelector(s => getPageCount(s[name]));
 
     return props;
 }
 
-export default function withTable(tableName, options = undefined) {
+export default function withTable(name, options = undefined) {
     return Wrapped => {
         function WithTable(ownProps) {
-            const props = useTableProps(tableName, options);
+            const props = useTableProps(name, options);
 
-            return <TableNameContext.Provider value={tableName}>
+            return <TableNameContext.Provider value={name}>
                 <Wrapped {...ownProps} {...props} />
             </TableNameContext.Provider>
         }

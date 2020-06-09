@@ -1,8 +1,8 @@
 import { pagePositions } from "../constants/enums";
 
 export default class TableActions {
-    constructor(tableName) {
-        this.tableName = tableName;
+    constructor(namespace) {
+        this.namespace = namespace;
     }
 
     //Rows
@@ -33,7 +33,7 @@ export default class TableActions {
     static SET_PAGE_SIZE = "TABLE_SET_PAGE_SIZE";
 
     _getAction(type, payload = null) {
-        return { type, table: this.tableName, payload };
+        return { type, namespace: this.namespace, payload };
     }
 
     goToPage = index =>

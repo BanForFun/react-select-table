@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import _ from "lodash";
 import { connect } from 'react-redux';
-import { registerListeners } from '../utils/eventUtils';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
 import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import { touchToMouseEvent } from '../utils/eventUtils';
+import useEvent from '../hooks/useEvent';
 
 function Head({
     columns,
@@ -19,7 +19,7 @@ function Head({
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
 
-    const onMouseMove = useCallback(e => {
+    const handleMouseMove = useCallback(e => {
         if (resizingIndex === null) return;
         const head = header.current;
         const headXPos = head.getBoundingClientRect().x;
@@ -32,32 +32,27 @@ function Head({
 
         actions.setColumnWidth(resizingIndex, percent);
     }, [resizingIndex, columnWidth, actions]);
+    useEvent(window, "mousemove", handleMouseMove);
 
-    const onTouchMove = useCallback(e => {
+    const handleTouchMove = useCallback(e => {
         if (resizingIndex === null) return;
         touchToMouseEvent(e, true);
-        onMouseMove(e);
-    }, [onMouseMove, resizingIndex]);
+        handleMouseMove(e);
+    }, [handleMouseMove, resizingIndex]);
+    useEvent(window, "touchmove", handleTouchMove, { passive: false })
 
-    const onMouseUp = useCallback(() => {
+    const handleMouseUp = useCallback(() => {
         if (resizingIndex === null) return;
         setResizingIndex(null);
     }, [resizingIndex]);
+    useEvent(window, "mouseup", handleMouseUp);
 
-    const onTouchEnd = useCallback(e => {
+    const handleTouchEnd = useCallback(e => {
         if (resizingIndex === null) return;
-        onMouseUp();
+        handleMouseUp();
         e.stopPropagation();
-    }, [onMouseUp, resizingIndex]);
-
-    useEffect(() => {
-        return registerListeners(window, {
-            "mousemove": onMouseMove,
-            "mouseup": onMouseUp,
-            "touchmove": onTouchMove,
-            "touchend": onTouchEnd
-        }, { passive: false });
-    }, [onMouseMove, onTouchMove, onTouchEnd, onMouseUp]);
+    }, [handleMouseUp, resizingIndex]);
+    useEvent(window, "touchend", handleTouchEnd)
 
     const renderSortIcon = useCallback(colPath => {
         if (colPath !== sortPath) return null;
@@ -77,9 +72,9 @@ function Head({
                     const startResize = () =>
                         setResizingIndex(index);
 
-                    const handleClick = () => {
+                    const handleClick = e => {
                         if (!isSortable) return;
-                        actions.sortBy(path);
+                        actions.sortBy(path, e.shiftKey);
                     }
 
                     const addSeperator = options.scrollX ||

@@ -6,16 +6,3 @@ export function touchToMouseEvent(e, prevent = false) {
 
     if (prevent) e.preventDefault();
 }
-
-export function registerListeners(element, map, options = {}) {
-    function forEach(method) {
-        for (let type in map) {
-            const handler = map[type];
-            method(type, handler, options);
-        }
-    }
-
-    forEach(element.addEventListener);
-    //Return cleanup method
-    return () => forEach(element.removeEventListener);
-}

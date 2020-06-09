@@ -20,5 +20,6 @@ export const defaultOptions = {
     isListbox: false,
     minColumnWidth: 3,
     valueProperty: "_id",
-    scrollX: false
+    scrollX: false,
+    multiSort: false
 };

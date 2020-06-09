@@ -10,8 +10,7 @@ import { makeGetPageCount } from "../selectors/paginationSelectors";
 import { createSelector } from "reselect";
 
 const defaultState = {
-    sortPath: null,
-    sortOrder: sortOrders.Ascending,
+    sortBy: {},
     columnOrder: null,
     columnWidth: [],
     selectedValues: [],
@@ -65,12 +64,9 @@ export function createTable(namespace, options = {}, initState = {}) {
 
     const getSortedItems = createSelector(
         getFilteredItems,
-        s => s.sortPath,
-        s => s.sortOrder,
-        (items, path, order) => {
-            if (multiSort) return _.orderBy(items, path, order);
-            return _.orderBy(items, [path], [order])
-        }
+        s => s.sortBy,
+        (items, sortBy) =>
+            _.orderBy(items, Object.keys(sortBy), Object.values(sortBy))
     );
 
     const getValues = createSelector(
@@ -218,14 +214,16 @@ export function createTable(namespace, options = {}, initState = {}) {
                     break;
                 }
                 case actions.SORT_BY: {
-                    const newPath = payload.path;
+                    const { path } = payload;
+                    if (!multiSort || !payload.shiftKey)
+                        draft.sortBy = {};
 
-                    if (state.sortPath === newPath && state.sortOrder === sortOrders.Ascending)
-                        draft.sortOrder = sortOrders.Descending;
+                    const { sortBy } = draft;
+                    if (state.sortBy[path] === sortOrders.Ascending)
+                        sortBy[path] = sortOrders.Descending;
                     else
-                        draft.sortOrder = sortOrders.Ascending;
+                        sortBy[path] = sortOrders.Ascending;
 
-                    draft.sortPath = newPath;
                     updateItems();
                     break;
                 }

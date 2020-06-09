@@ -26,7 +26,7 @@
     outline: none;
     background-color: whitesmoke;
 
-    thead[data-resizing=true] th {
+    thead[data-resizing] th {
         cursor: col-resize;
     }
 
@@ -34,8 +34,16 @@
         white-space: nowrap;
         position: relative;
 
-        &[data-sortable=true] {
+        &[data-sortable] {
             cursor: pointer;
+        }
+
+        &[data-order] .sortIcon {
+            display: inline-block;
+        }
+
+        &[data-order=desc] .sortIcon {
+            transform: rotate(180deg);
         }
     }
 }
@@ -97,11 +105,7 @@
 
 .sortIcon {
     height: 1.25em;
-    margin-left: 0.25rem;
     vertical-align: text-top;
     fill: currentColor;
-
-    &[data-order=desc] {
-        transform: rotate(180deg);
-    }
+    display: none;
 }

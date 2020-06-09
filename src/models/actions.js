@@ -75,8 +75,8 @@ export default class TableActions {
     setColumnOrder = (order) =>
         this._getAction(self.SET_COLUMN_ORDER, { order });
 
-    sortBy = path =>
-        this._getAction(self.SORT_BY, { path });
+    sortBy = (path, shiftKey = false) =>
+        this._getAction(self.SORT_BY, { path, shiftKey });
 
     selectRow = (value, ctrlKey = false, shiftKey = false) =>
         this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });

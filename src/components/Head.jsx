@@ -6,13 +6,13 @@ import SortIcon from './SortIcon';
 import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import { touchToMouseEvent } from '../utils/eventUtils';
 import useEvent from '../hooks/useEvent';
+import { boolAttrib } from '../utils/attributeUtils';
 
 function Head({
     columns,
     name,
     columnWidth,
-    sortOrder,
-    sortPath,
+    sortBy,
     actions,
     options
 }) {
@@ -54,26 +54,20 @@ function Head({
     }, [handleMouseUp, resizingIndex]);
     useEvent(window, "touchend", handleTouchEnd)
 
-    const renderSortIcon = useCallback(colPath => {
-        if (colPath !== sortPath) return null;
-        return <SortIcon order={sortOrder} />
-    }, [sortPath, sortOrder]);
-
     return (
         <thead
             ref={header}
-            data-resizing={resizingIndex !== null}
+            data-resizing={boolAttrib(resizingIndex)}
         >
             <tr>
                 {columns.map((col, index) => {
                     const { path, meta, title } = col;
-                    const isSortable = !!path;
 
                     const startResize = () =>
                         setResizingIndex(index);
 
                     const handleClick = e => {
-                        if (!isSortable) return;
+                        if (!path) return;
                         actions.sortBy(path, e.shiftKey);
                     }
 
@@ -81,11 +75,12 @@ function Head({
                         index < columns.length - 1;
 
                     return <th key={`head_${name}_${meta.id}`}
-                        data-sortable={isSortable}
+                        data-sortable={boolAttrib(path)}
+                        data-order={sortBy[path]}
                         onClick={handleClick}>
-                        {title}
-                        {isSortable && renderSortIcon(path)}
-                        {addSeperator && <div className={styles.seperator}
+                        {title} <SortIcon />
+                        {addSeperator && <div
+                            className={styles.seperator}
                             onClick={e => e.stopPropagation()}
                             onTouchStart={startResize}
                             onMouseDown={startResize} />}
@@ -102,8 +97,7 @@ function makeMapState() {
     return (root, props) => _.pick(
         getSlice(root, props),
         "columnWidth",
-        "sortOrder",
-        "sortPath"
+        "sortBy"
     );
 }
 

@@ -1,5 +1,3 @@
-import Rect from "../models/rect";
-
 export function ensureRowVisible(item, parent) {
     const lowestYVisible = parent.scrollTop + parent.clientHeight;
     const lowestYHighlighted = item.offsetTop + item.scrollHeight;

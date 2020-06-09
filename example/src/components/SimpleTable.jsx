@@ -26,5 +26,5 @@ function SimpleTable({ pageCount }) {
 }
 
 export default withTables({
-    test: { valueProperty: "id", scrollX: true },
+    test: { valueProperty: "id", scrollX: true, multiSort: true },
 })(SimpleTable);

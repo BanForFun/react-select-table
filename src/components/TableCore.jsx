@@ -16,18 +16,17 @@ import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
 import { touchToMouseEvent } from '../utils/eventUtils';
-import { tableOptions } from '../utils/optionUtils';
-import useEither from '../hooks/useEither';
+import { tableOptions, defaultEvents } from '../utils/optionUtils';
 import useEvent from '../hooks/useEvent';
 
 function TableCore(props) {
     const {
         name,
+        namespace,
         context,
         className,
         columns,
         emptyPlaceholder,
-        statePath,
 
         //Events
         onItemsOpen,
@@ -45,8 +44,6 @@ function TableCore(props) {
     const bodyContainer = useRef();
     const headContainer = useRef();
 
-    const namespace = useEither(props.namespace, name);
-
     const options = useMemo(() =>
         tableOptions[namespace], [namespace]);
 
@@ -62,11 +59,11 @@ function TableCore(props) {
     //#region Reducer updater
 
     //Register event handlers
-    for (let event in defaultReducerEventHandlers) {
+    for (let event in defaultEvents) {
         const handler = props[event];
         useEffect(() => {
-            actions.setEventHandler(event, handler)
-        }, [handler, actions]);
+            options[event] = handler;
+        }, [handler, options]);
     };
 
     //Set column count
@@ -324,8 +321,8 @@ function TableCore(props) {
 
     const commonParams = {
         name,
+        namespace,
         context,
-        statePath,
         actions,
         options,
         columns: parsedColumns
@@ -383,7 +380,8 @@ function makeMapState() {
     const getItems = makeGetPaginatedItems();
 
     return (root, props) => {
-        const slice = getSlice(root, props);
+        const namespace = props.namespace || props.name;
+        const slice = getSlice(root, namespace);
         const pick = _.pick(slice,
             "columnWidth",
             "columnOrder",
@@ -395,6 +393,7 @@ function makeMapState() {
 
         return {
             ...pick,
+            namespace,
             items: getItems(slice)
         }
     }
@@ -414,7 +413,6 @@ TableCore.propTypes = {
     name: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
     namespace: PropTypes.string,
-    statePath: PropTypes.string,
     context: PropTypes.any,
     className: PropTypes.string,
     emptyPlaceholder: PropTypes.element,
@@ -423,12 +421,6 @@ TableCore.propTypes = {
     onSelectionChange: PropTypes.func
 };
 
-const defaultReducerEventHandlers = {
-    onContextMenu: () => { },
-    onSelectionChange: () => { },
-}
-
 TableCore.defaultProps = {
-    ...defaultReducerEventHandlers,
     onItemsOpen: () => { }
 };

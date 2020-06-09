@@ -2,7 +2,7 @@ import produce from "immer";
 import _ from "lodash";
 import { sortOrders, pagePositions } from "../constants/enums";
 import { sortTuple } from "../utils/mathUtils";
-import { pullFirst, inArray, areItemsEqual } from "../utils/arrayUtils";
+import { pullFirst, inArray } from "../utils/arrayUtils";
 import { deleteKeys } from "../utils/objectUtils";
 import actions from "../models/internalActions";
 import { defaultOptions, tableOptions } from "../utils/optionUtils";
@@ -35,7 +35,7 @@ export function createTable(namespace, options = {}, initState = {}) {
 
     //Options
     _.defaults(options, defaultOptions);
-    tableOptions[namespace] = _.pick(options, Object.keys(defaultOptions));
+    tableOptions[namespace] = options;
     const {
         valueProperty,
         isListbox,
@@ -118,21 +118,6 @@ export function createTable(namespace, options = {}, initState = {}) {
         draft.isLoading = false;
     }
 
-    //Events
-    const eventHandlers = {};
-
-    function _raiseContextMenu() {
-        if (!eventHandlers.onContextMenu) return;
-        const selected = [...draft.selectedValues];
-        const active = inArray(draft.activeValue);
-        eventHandlers.onContextMenu(isListbox ? active : selected);
-    }
-
-    function _raiseSelectionChange() {
-        if (!eventHandlers.onSelectionChange) return;
-        eventHandlers.onSelectionChange([...draft.selectedValues]);
-    }
-
     //Validate initial state
     updateItems();
     updateSelection();
@@ -142,7 +127,7 @@ export function createTable(namespace, options = {}, initState = {}) {
     return (state = initState, action) => {
         if (action.namespace !== namespace) return state;
 
-        draft = produce(state, newDraft => {
+        return produce(state, newDraft => {
             draft = newDraft;
 
             const { payload } = action;
@@ -295,16 +280,13 @@ export function createTable(namespace, options = {}, initState = {}) {
                 }
                 case actions.CONTEXT_MENU: {
                     const { value, ctrlKey } = payload;
+                    //This action should still be dispatched in order to be handeled by eventMiddleware
+                    if (ctrlKey) break;
 
-                    if (!ctrlKey) {
-                        setActivePivotValue(value);
-
-                        const isSelected = state.selectedValues.includes(value);
-                        if (!isListbox && !isSelected)
-                            draft.selectedValues = inArray(value);
-                    }
-
-                    _raiseContextMenu();
+                    setActivePivotValue(value);
+                    const isSelected = state.selectedValues.includes(value);
+                    if (!isListbox && !isSelected)
+                        draft.selectedValues = inArray(value);
                     break;
                 }
 
@@ -377,19 +359,9 @@ export function createTable(namespace, options = {}, initState = {}) {
                     draft.columnWidth = getDefaultWidth(count);
                     break;
                 }
-                case actions.SET_EVENT_HANDLER: {
-                    eventHandlers[payload.name] = payload.callback;
-                    break;
-                }
                 default:
                     break;
             }
-        })
-        //DO NOT MODIFY DRAFT OBJECT HERE
-
-        if (!areItemsEqual(state.selectedValues, draft.selectedValues))
-            _raiseSelectionChange();
-
-        return draft;
+        });
     }
 }

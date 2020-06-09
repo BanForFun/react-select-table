@@ -76,7 +76,7 @@ function makeMapState() {
     const getItems = makeGetPaginatedItems();
 
     return (root, props) => {
-        const slice = getSlice(root, props);
+        const slice = getSlice(root, props.namespace);
         const picked = _.pick(slice,
             "tableItems",
             "selectedValues",

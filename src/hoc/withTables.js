@@ -7,9 +7,9 @@ export default function withTables(optionMap) {
         function WithTables(ownProps) {
             const props = {};
 
-            for (let namespace in optionMap) {
-                const options = optionMap[namespace];
-                props[namespace] = useTableProps(namespace, options);
+            for (let name in optionMap) {
+                const options = optionMap[name];
+                props[name] = useTableProps(name, options);
             }
 
             return <Wrapped {...ownProps} {...props} />

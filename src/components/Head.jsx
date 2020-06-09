@@ -95,7 +95,7 @@ function makeMapState() {
     const getSlice = makeGetStateSlice();
 
     return (root, props) => _.pick(
-        getSlice(root, props),
+        getSlice(root, props.namespace),
         "columnWidth",
         "sortBy"
     );

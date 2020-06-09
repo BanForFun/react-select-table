@@ -1,12 +1,10 @@
-import { createSelector } from "reselect"
+import { defaultMemoize } from "reselect"
 import _ from "lodash";
+import { tableOptions } from "../utils/optionUtils";
 
-export const makeGetStateSlice = () => createSelector(
-    [
-        state => state,
-        (_, props) => props.statePath
-    ],
-    (state, path) => {
+export const makeGetStateSlice = () => defaultMemoize(
+    (state, namespace) => {
+        const { path } = tableOptions[namespace];
         if (!path) return state;
         return _.get(state, path);
     }

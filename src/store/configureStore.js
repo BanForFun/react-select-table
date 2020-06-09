@@ -1,5 +1,6 @@
-import { createStore, combineReducers } from "redux"
-import { devToolsEnhancer } from "redux-devtools-extension";
+import { createStore, combineReducers, applyMiddleware } from "redux"
+import { composeWithDevTools } from "redux-devtools-extension";
+import eventMiddleware from "./eventMiddleware";
 
 let store;
 const asyncReducers = {};
@@ -15,7 +16,8 @@ export default function getStore(doCreate = false) {
 }
 
 function configureStore() {
-    store = createStore(getReducer(), devToolsEnhancer());
+    store = createStore(getReducer(), composeWithDevTools(
+        applyMiddleware(eventMiddleware)));
 }
 
 function getReducer() {

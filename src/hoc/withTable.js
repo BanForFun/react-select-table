@@ -2,13 +2,27 @@ import React, { useMemo } from 'react';
 import { makeGetPageCount } from "../selectors/paginationSelectors";
 import { useSelector } from 'react-redux';
 import withStore from "./withStore"
-import useTable from "../hooks/useTable";
+import useEffectInit from '../hooks/useEffectInit';
+import { reducerExists, injectReducer, removeReducer } from '../store/configureStore';
+import { createTable } from '../store/table';
+import { tableOptions } from '../utils/optionUtils';
 
 export const TableNameContext = React.createContext();
 TableNameContext.displayName = "TableName";
 
 export function useTableProps(name, options) {
-    useTable(name, options);
+    useEffectInit(() => {
+        if (reducerExists(name)) return;
+        const customOptions = { ...options, path: name };
+        const reducer = createTable(name, customOptions);
+        injectReducer(name, reducer);
+
+        return () => {
+            delete tableOptions[name];
+            removeReducer(name);
+        }
+    }, [name, options]);
+
     const props = {};
 
     //Pagination
@@ -18,7 +32,7 @@ export function useTableProps(name, options) {
     return props;
 }
 
-export default function withTable(name, options = undefined) {
+export default function withTable(name, options = null) {
     return Wrapped => {
         function WithTable(ownProps) {
             const props = useTableProps(name, options);

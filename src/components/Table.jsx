@@ -54,8 +54,7 @@ function Table({
 
     if (!isReady) return null;
     return <Provider store={store}>
-        <TableCore {...props}
-            statePath={name} />
+        <TableCore {...props} />
     </Provider>
 }
 

@@ -13,6 +13,11 @@ function defaultItemFilter(item, filter) {
     return true;
 }
 
+export const defaultEvents = {
+    onContextMenu: () => { },
+    onSelectionChange: () => { }
+}
+
 export const defaultOptions = {
     itemParser: item => item,
     itemPredicate: defaultItemFilter,
@@ -21,5 +26,6 @@ export const defaultOptions = {
     minColumnWidth: 3,
     valueProperty: "_id",
     scrollX: false,
-    multiSort: false
+    multiSort: false,
+    ...defaultEvents
 };

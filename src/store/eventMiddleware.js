@@ -2,6 +2,7 @@ import { default as actions } from "../models/actions";
 import { tableOptions } from "../utils/optionUtils";
 import { areItemsEqual, inArray } from "../utils/arrayUtils";
 import { makeGetStateSlice } from "../selectors/namespaceSelectors";
+import { tryCall } from "../utils/functionUtils";
 
 const eventMiddleware = store => next => action => {
     const { type, namespace } = action;
@@ -21,20 +22,19 @@ const eventMiddleware = store => next => action => {
         case actions.SELECT_ALL:
         case actions.CONTEXT_MENU:
             const options = tableOptions[namespace];
-            const prevSelected = getTable().selectedValues;
+            const prevSel = getTable().selectedValues;
 
             const result = next(action);
             const table = getTable();
 
             //Raise onSelectionChange
-            if (!areItemsEqual(prevSelected, table.selectedValues))
-                options.onSelectionChange(table.selectedValues);
+            if (!areItemsEqual(prevSel, table.selectedValues))
+                tryCall(options.onSelectionChange, table.selectedValues);
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                options.onContextMenu(options.isListbox
-                    ? inArray(table.activeValue)
-                    : table.selectedValues);
+                tryCall(options.onContextMenu, options.isListbox
+                    ? inArray(table.activeValue) : table.selectedValues);
 
             return result;
         default:

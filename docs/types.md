@@ -35,7 +35,7 @@ If set to true, a th element will be used instead of td for the cell rendering.
 
 > **Used in**:
 >
-> * **Table**: [`initTable`/`useTable`](./table.md#setup) methods
+> * **Table**: [`withTable`/`withTables`](./table.md#setup) HOCs
 > * **TableCore**: [`createTable`](#reducer) method
 
 #### `valueProperty` *string*
@@ -91,9 +91,14 @@ If set to true, the user can shift-click on column headers to sort the items bas
 #### `minColumnWidth` *number*
 
 > **Default**: `3`
->
 
 The minimum column width percentage relative to the table width.
+
+#### `path` *string*
+
+> **Default**: `null`
+
+If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using lodash's `_.get` method, meaning that dot notation can be used. If the table reducer is the root, you can leave it set to `null`.
 
 #### `itemParser` _Function_
 

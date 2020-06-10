@@ -449,15 +449,7 @@ Will be applied to the table element.
 
 Rendered when the table contains no items.
 
-#### `statePath` *string*
-
-> **Optional**
-
-If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using lodash's `_.get` method, meaning that dot notation can be used. If the table reducer is the root, you don't have to provide this prop.
-
 #### Event props
-
-The event handlers (except `onItemsOpen`) are called from inside the reducer. If you try to dispatch an action as the result of an event, you will get an error. To do that, you must handle the actions using middleware.
 
 #### `onContextMenu` _function_
 
@@ -506,24 +498,39 @@ The `namespace` parameter must match the component's [`name`](#name-string) or [
 
 See all available `initState` properties [here](#state).
 
-**Reducer**
+**Reducer** (ex. `reducer.js`)
 
 ```javascript
-import { TableReducer } from "react-select-table";
 import { combineReducers } from "redux";
+import { TableReducer } from "react-select-table";
 
-export default rootReducer = combineReducers({
+const rootReducer = combineReducers({
     //...Other reducers
     todoTable: TableReducer.createTable("todos", {
         valueProperty: "id",
         isListbox: true
+        path: "todoTable"
     }, {
         pageSize: 10
     })
 })
+
+export default rootReducer;
 ```
 
-**Component**
+**Store** (ex. `store.js`)
+
+In order for events to function, you must apply the `eventMiddleware` to your store.
+
+```javascript
+import { createStore, applyMiddleware } from "redux";
+import { eventMiddleware } from "react-select-table";
+import rootReducer from "./reducer";
+
+export default createStore(rootReducer, applyMiddleware(eventMiddleware));
+```
+
+**Component** (ex. `TodoTable.jsx`)
 
 ```javascript
 import React, { useEffect } from "react";
@@ -532,7 +539,7 @@ import { TableCore, TableActions } from "react-select-table";
 
 const { setItems } = new TableActions("todos");
 
-function App() {
+function TodoTable() {
     const dispatch = useDispatch();
     
     useEffect(() => {
@@ -545,12 +552,28 @@ function App() {
     	<TableCore 
             name="todos"
             context={ReactReduxContext}
-            statePath="todoTable"
-            // ...Other props like columns etc.
+            columns={[...]}
         />
     )
 }
 
+
+export default TodoTable;
+```
+
+**Root component** (ex. `App.js`)
+
+```javascript
+import React from "react";
+import { Provider } from "react-redux";
+import store from "./store";
+import TodoTable from "./TodoTable";
+
+function App() {
+    return <Provider store={store}>
+        <TodoTable />
+    </Provider>
+}
 
 export default App;
 ```

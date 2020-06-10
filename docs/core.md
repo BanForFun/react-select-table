@@ -393,7 +393,7 @@ Sets `currentPage` to the largest valid index.
 
 #### Internal actions
 
-In redux devtools, you may notice some other action types, namely `SET_EVENT_HANDLER` and `SET_COLUMN_COUNT`. These actions are dispatched internally and no action creators are provided, as to not create inconsistency between the props and the state.
+In redux devtools, you may notice some other action types, namely `TABLE_SET_COLUMN_COUNT`. These actions are dispatched internally.
 
 
 
@@ -435,7 +435,7 @@ Used to differentiate the [actions](#actions) dispatched by each table.
 
 **Attention**: In most cases, passing the [`name`](#name-string) prop is enough.
 
-If you have two (or more) tables that you want controlling a common reducer, you can set this property to the namespace you passed to [`createTable`](#reducer). Then you can set the table components' `name` props to unique values (making react shut up about duplicate keys), but the actions dispatched will be of the same type for all tables sharing the namespace.
+If you have two (or more) tables that you want controlling a common reducer, you can set this property to the namespace you passed to [`createTable`](#reducer). Then you can set the table components' `name` props to unique values, but the actions dispatched will be of the same type for all tables sharing the namespace.
 
 #### `className` *string*
 
@@ -630,7 +630,7 @@ export default App;
 
 #### `makeGetPageCount`
 
-Creates a selector that takes the state and returns the page count based on the [items][tableItems] and the [page size](#pagesize-number).
+Creates a selector that takes the state and returns the page count.
 
 
 

@@ -2,7 +2,6 @@ import { default as actions } from "../models/actions";
 import { tableOptions } from "../utils/optionUtils";
 import { areItemsEqual, inArray } from "../utils/arrayUtils";
 import { makeGetStateSlice } from "../selectors/namespaceSelectors";
-import { tryCall } from "../utils/functionUtils";
 
 const eventMiddleware = store => next => action => {
     const { type, namespace } = action;
@@ -29,11 +28,11 @@ const eventMiddleware = store => next => action => {
 
             //Raise onSelectionChange
             if (!areItemsEqual(prevSel, table.selectedValues))
-                tryCall(options.onSelectionChange, table.selectedValues);
+                options.onSelectionChange(table.selectedValues);
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                tryCall(options.onContextMenu, options.isListbox
+                options.onContextMenu(options.isListbox
                     ? inArray(table.activeValue) : table.selectedValues);
 
             return result;

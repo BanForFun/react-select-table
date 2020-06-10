@@ -422,5 +422,6 @@ TableCore.propTypes = {
 };
 
 TableCore.defaultProps = {
-    onItemsOpen: () => { }
+    onItemsOpen: () => { },
+    ...defaultEvents
 };

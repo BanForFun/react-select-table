@@ -27,5 +27,6 @@ export const defaultOptions = {
     valueProperty: "_id",
     scrollX: false,
     multiSort: false,
-    path: null
+    path: null,
+    ...defaultEvents
 };

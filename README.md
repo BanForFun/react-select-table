@@ -12,6 +12,7 @@
 * Controlled from parameters or optionally redux
 * Row deselection when table container is clicked
 * Optional redux item management
+* Multi-column sorting
 * Listbox mode
 * Pagination
 * Touch support
@@ -40,6 +41,13 @@
 * Renamed `table` to `namespace` in the action payload
 * Renamed `reducerName` to [`namespace`](/docs/core.md#namespace-string) in the component props
 * `sortPath` and `sortOrder` state properties removed and replaced by [`sortBy`](/docs/core.md#sortby-object)
+* When creating a store, you must now apply the [`eventMiddleware`](/docs/core.md#reducer) middleware in order for [events](/docs/core.md#event-props) to function
+* You can now dispatch actions in all [event handlers](/docs/core.md#event-props)
+* Removed `statePath` component prop. The state path must now be passed in the options as the [`path`](/docs/types.md#path-string) property
+
+### Table
+
+* Removed deprecated `useTable` hook and `initTable`/`disposeTable` functions. Use [`withTable`/`withTables`](/docs/table.md#setup) HOCs instead
 
 
 

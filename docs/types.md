@@ -38,6 +38,29 @@ If set to true, a th element will be used instead of td for the cell rendering.
 > * **Table**: [`withTable`/`withTables`](./table.md#setup) HOCs
 > * **TableCore**: [`createTable`](#reducer) method
 
+The default options object is exported as `defaultOptions`. You can modify the default options globally by setting its properties.
+
+**Note**: You must set the properties before the reducers are created.
+
+**`tableConfig.js`**
+
+```javascript
+import { defaultOptions } from "react-select-table";
+defaultOptions.valueProperty = "id";
+```
+
+**`index.js`**
+
+```javascript
+//Import tableConfig before App or store
+import "./tableConfig";
+import App from "./App";
+
+//... rest of file
+```
+
+
+
 #### `valueProperty` *string*
 
 > **Default**: `'_id'`

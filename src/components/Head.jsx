@@ -10,11 +10,13 @@ import { boolAttrib } from '../utils/attributeUtils';
 
 function Head({
     columns,
+    sortBy,
+
     name,
     columnWidth,
-    sortBy,
     actions,
-    options
+    options,
+    onResizeEnd
 }) {
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
@@ -44,7 +46,8 @@ function Head({
     const handleMouseUp = useCallback(() => {
         if (resizingIndex === null) return;
         setResizingIndex(null);
-    }, [resizingIndex]);
+        onResizeEnd(columnWidth);
+    }, [onResizeEnd, resizingIndex, columnWidth]);
     useEvent(window, "mouseup", handleMouseUp);
 
     const handleTouchEnd = useCallback(e => {
@@ -63,8 +66,7 @@ function Head({
                 {columns.map((col, index) => {
                     const { path, meta, title } = col;
 
-                    const startResize = () =>
-                        setResizingIndex(index);
+                    const startResize = () => setResizingIndex(index);
 
                     const handleClick = e => {
                         if (!path) return;

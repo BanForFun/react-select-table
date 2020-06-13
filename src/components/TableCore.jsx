@@ -27,9 +27,8 @@ function TableCore(props) {
         className,
         columns,
         emptyPlaceholder,
-
-        //Events
         onItemsOpen,
+        onColumnResizeEnd,
 
         //Redux state
         items,
@@ -352,7 +351,7 @@ function TableCore(props) {
                 style={widthStyle}>
                 <table className={className}>
                     {colGroup}
-                    <Head {...commonParams} />
+                    <Head {...commonParams} onResizeEnd={onColumnResizeEnd} />
                 </table>
             </div>
             <div className={styles.bodyContainer}
@@ -369,7 +368,8 @@ function TableCore(props) {
                     {colGroup}
                     <Body {...commonParams} rowRefs={rowRefs} />
                 </table>
-                {(items.length === 0 && !isLoading) && emptyPlaceholder}
+                {(items.length === 0 && !isLoading) &&
+                    <div className={styles.placeholder}>{emptyPlaceholder}</div>}
             </div>
         </div >
     )
@@ -418,10 +418,12 @@ TableCore.propTypes = {
     emptyPlaceholder: PropTypes.element,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
-    onSelectionChange: PropTypes.func
+    onSelectionChange: PropTypes.func,
+    onColumnResizeEnd: PropTypes.func
 };
 
 TableCore.defaultProps = {
     onItemsOpen: () => { },
+    onColumnResizeEnd: () => { },
     ...defaultEvents
 };

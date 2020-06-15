@@ -29,7 +29,7 @@ function getDefaultWidth(count) {
     return _.times(count, _.constant(width));
 }
 
-export function createTable(namespace, options = {}, initState = {}) {
+export default function createTable(namespace, options = {}, initState = {}) {
     //State
     let draft = _.defaults(initState, defaultState);
 
@@ -45,7 +45,7 @@ export function createTable(namespace, options = {}, initState = {}) {
         multiSort
     } = options;
 
-    if (initItems) setItems(initItems);
+    if (initItems) setItems(initItems, false);
 
     //Selectors
     const getPageCount = makeGetPageCount();
@@ -113,8 +113,8 @@ export function createTable(namespace, options = {}, initState = {}) {
         draft.pivotValue = draft.activeValue = value;
     }
 
-    function setItems(items) {
-        draft.items = _.keyBy(items, valueProperty);
+    function setItems(items, areKeyed) {
+        draft.items = areKeyed ? items : _.keyBy(items, valueProperty);
         draft.isLoading = false;
     }
 
@@ -134,7 +134,7 @@ export function createTable(namespace, options = {}, initState = {}) {
             switch (action.type) {
                 //Items
                 case actions.SET_ROWS: {
-                    setItems(payload.data);
+                    setItems(payload.items, payload.keyed);
                     updateItems();
                     updateSelection();
                     break;

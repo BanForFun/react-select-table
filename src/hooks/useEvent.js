@@ -1,12 +1,11 @@
-import { useRef, useEffect } from "react";
+import { useEffect } from "react";
+import useConst from "./useConst";
 
 export default function useEvent(target, event, listener, options) {
-    const optionsRef = useRef(options);
+    const _options = useConst(options);
 
     useEffect(() => {
-        const options = optionsRef.current;
-        target.addEventListener(event, listener, options);
-
-        return () => removeEventListener(event, listener, options);
-    }, [target, event, listener, options])
+        target.addEventListener(event, listener, _options);
+        return () => removeEventListener(event, listener, _options);
+    }, [target, event, listener, _options])
 }

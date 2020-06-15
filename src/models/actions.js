@@ -66,8 +66,8 @@ export default class TableActions {
     addRow = newItem =>
         this._getAction(self.ADD_ROW, { newItem });
 
-    setRows = items =>
-        this._getAction(self.SET_ROWS, { data: items });
+    setRows = (items, keyed = false) =>
+        this._getAction(self.SET_ROWS, { items, keyed });
 
     setColumnWidth = (index, width) =>
         this._getAction(self.SET_COLUMN_WIDTH, { index, width });

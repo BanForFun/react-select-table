@@ -56,7 +56,7 @@ Active [value][value]. By default, the active item has green bottom border.
 
 Passed as the second parameter to [`itemPredicate`](./types.md#itempredicate-function).
 
-__With the default implementation of `itemPredicate`__, this object can contain key-value pairs of property paths and matching values. 
+__With the default implementation of `itemPredicate`__, this object can contain key-value pairs of property paths and matching values.
 
 For example:
 
@@ -87,7 +87,7 @@ The [value][value] of the item that is used to pivot the selection on `Shift`+`C
 #### `tableItems` *array of object*
 > **Default**: `[]`
 >
-> **Modified by**: [`setRows`](#setRows), [`addRow`](#addRow), [`deleteRows`](#deleteRows), [`replaceRow`](#replaceRow), [`setRowValue`](#setRowValue), [`patchRow`](#patchRow), [`clearRows`](#clearRows), [`sortBy`](#sortBy), [`setFilter`](#setFilter) 
+> **Modified by**: [`setRows`](#setRows), [`addRow`](#addRow), [`deleteRows`](#deleteRows), [`replaceRow`](#replaceRow), [`setRowValue`](#setRowValue), [`patchRow`](#patchRow), [`clearRows`](#clearRows), [`sortBy`](#sortBy), [`setFilter`](#setFilter)
 
 [Parsed](#itemparser-function), [sorted](#sortpath-string) and [filtered](#filter-any) items.
 
@@ -100,7 +100,7 @@ If an item has a `className` property set to an array of CSS class name strings,
 
 Can be used to conditionally display a loading indicator. Initially set to `true`.
 
-[`setRows`](#setrows) action sets it to `false`. 
+[`setRows`](#setrows) action sets it to `false`.
 
 [`clearRows`](#clearrows) action sets it to `true`.
 
@@ -124,7 +124,7 @@ The current page index. Has no effect when [`pageSize`](#pagesize-number) is 0.
 
 ### Actions
 
-The action creators are accessible from a `TableActions` instance. The constructor takes the table [namespace](#namespace-string) as a parameter. The dispatched actions have a `namespace` property that contains the namespace that was passed to the constructor. 
+The action creators are accessible from a `TableActions` instance. The constructor takes the table [namespace](#namespace-string) as a parameter. The dispatched actions have a `namespace` property that contains the namespace that was passed to the constructor.
 
 The action types are static variables of the `TableActions` class.
 
@@ -141,7 +141,7 @@ store.dispatch(todoActions.addRow({
 switch(action.type) {
     case TableActions.ADD_ROW:
         console.log(
-            `New row in ${action.table} table`, 
+            `New row in ${action.table} table`,
             action.payload.newItem
         );
         break;
@@ -158,7 +158,10 @@ For the action types below, the variable name is listed. The actual value is: `T
 
 Parameters:
 
-* `items` *array of object* (renamed to `data` in the payload)
+* `items` *array of object* OR *object*
+* `keyed` *boolean* (false be default)
+
+Set `keyed` to true if the items parameter is of type object and the items are already keyed by value.
 
 Sets item list to `items`. Sets [`isLoading`](#isloading-boolean) state to false.
 
@@ -316,7 +319,7 @@ Sets [`columnOrder`](#columnorder-array-of-number) state to `order`.
 
 > **Type**: `SET_FILTER`
 
-Parameters: 
+Parameters:
 
 * `filter` *any*
 
@@ -404,7 +407,7 @@ In redux devtools, you may notice some other action types, namely `TABLE_SET_COL
 > __Required__
 >
 
-The table columns. Don't worry about their order or whether some shouldn't be displayed, those functions can be accomplished by setting [`columnOrder`](#columnorder-array-of-number). 
+The table columns. Don't worry about their order or whether some shouldn't be displayed, those functions can be accomplished by setting [`columnOrder`](#columnorder-array-of-number).
 
 #### `context` *context*
 
@@ -423,7 +426,7 @@ Then, you can pass it to the `context` prop. If you are using custom context, yo
 > __Required__
 >
 
-Used for the generation of the react `key` properties for the rows and columns. 
+Used for the generation of the react `key` properties for the rows and columns.
 
 Also used for the actions' [`namespace`](#namespace-string) if not explicitly set.
 
@@ -486,7 +489,7 @@ Called when the [selection][selection] changes.
 
 ### Reducer
 
-To create a reducer, use the `createTable` exported by `TableReducer`. 
+To create a reducer, use the `createTable` exported by `TableReducer`.
 
 Parameters:
 
@@ -508,7 +511,7 @@ const rootReducer = combineReducers({
     //...Other reducers
     todoTable: TableReducer.createTable("todos", {
         valueProperty: "id",
-        isListbox: true
+        isListbox: true,
         path: "todoTable"
     }, {
         pageSize: 10
@@ -541,15 +544,15 @@ const { setItems } = new TableActions("todos");
 
 function TodoTable() {
     const dispatch = useDispatch();
-    
+
     useEffect(() => {
         // getTodos is an imaginary async method that
         // makes a request to an api and returns an array of todos
-        getTodos().then(todos => dispatch(setItems(todos))); 
+        getTodos().then(todos => dispatch(setItems(todos)));
     }, [dispatch]);
-    
+
     return (
-    	<TableCore 
+    	<TableCore
             name="todos"
             context={ReactReduxContext}
             columns={[...]}
@@ -596,10 +599,10 @@ function App() {
 
 function makeMapState() {
     const getPageCount = makeGetPageCount();
-    
+
     return state => {
         const todoState = state.todoTable;
-        
+
         return {
             pageCount: getPageCount(todoState)
         }
@@ -621,7 +624,7 @@ import { makeGetPageCount } from "react-select-table";
 function App() {
     const getPageCount = useMemo(makeGetPageCount, []);
     const pageCount = useSelector(s => getPageCount(s.todoTable));
-    
+
     //... Component body
 }
 

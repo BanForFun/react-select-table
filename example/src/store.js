@@ -1,10 +1,10 @@
 import { createStore } from "redux";
-import { TableReducer } from "react-select-table";
+import { createTable } from "react-select-table";
 import { devToolsEnhancer } from "redux-devtools-extension";
 import todos from "./todos";
 
 const store = createStore(
-    TableReducer.createTable(
+    createTable(
         "todos",
         {
             valueProperty: "id",

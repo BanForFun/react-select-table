@@ -44,20 +44,22 @@
 * When creating a store, you must now apply the [`eventMiddleware`](/docs/core.md#reducer) middleware in order for [events](/docs/core.md#event-props) to function
 * You can now dispatch actions in all [event handlers](/docs/core.md#event-props)
 * Removed `statePath` component prop. The state path must now be passed in the options as the [`path`](/docs/types.md#path-string) property
+* The `createTable` method is now exported at top level (it used to be under `TableReducer`)
 
 ### Table
 
-* Removed deprecated `useTable` hook and `initTable`/`disposeTable` functions. Use [`withTable`/`withTables`](/docs/table.md#setup) HOCs instead
+* Removed deprecated `useTable` hook and `initTable`/`disposeTable` functions. Use [`withTable`](/docs/table.md#setup) HOC instead
+* Removed `withTables` HOC, each table component must now live in a separate component 
 
 
 
 ## Installation
 
 ```shell
-#Npm
+# Npm
 $ npm install react-select-table
 
-#Yarn
+# Yarn
 $ yarn add react-select-table
 ```
 

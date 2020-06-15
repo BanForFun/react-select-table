@@ -35,7 +35,7 @@ If set to true, a th element will be used instead of td for the cell rendering.
 
 > **Used in**:
 >
-> * **Table**: [`withTable`/`withTables`](./table.md#setup) HOCs
+> * **Table**: [`withTable`](./table.md#setup) HOC
 > * **TableCore**: [`createTable`](#reducer) method
 
 The default options object is exported as `defaultOptions`. You can modify the default options globally by setting its properties.

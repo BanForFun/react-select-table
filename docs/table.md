@@ -2,9 +2,7 @@
 
 ### Setup
 
-#### One table
-
-The `withTable` function, takes two parameters:
+The `withTable` HOC factory method, takes two parameters:
 
 1. The table name (think of it as an id, which must be unique for each table)
 2.  An [options object][options] **(Optional)**
@@ -23,42 +21,6 @@ export default withTable("todos", { valueProperty: "id" })(App);
 ```
 
 The HOC will pass these props to your component:
-
-* `pageCount` *Number*: The number of pages after item filtering. See [`pageSize` prop](#pagesize-number) for details.
-
-**Warning**: The props passed by the HOC, will override props with the same name.
-
-#### Multiple tables
-
-The `withTables` (note the plural) function takes one parameter: an object whose keys are table names and values are [options objects][options].
-
-It returns a function to which you must pass your component (as shown below).
-
-Note that you must pass the [`name`](#name-string) prop to the `Table` components, matching to object keys in the `withTables` parameter (as shown below).
-
-```javascript
-import React from 'react'
-import { Table, withTables } from 'react-select-table'
-
-function App() {
-    return <div>
-        <Table name="users" 
-    		columns={...} 
-            items={...} />
-                
-        <Table name="todos" 
-    		columns={...} 
-            items={...} />
-    <div/>
-}
-
-export default withTables({
-    users: { valueProperty: "userId" },
-    todos: { valueProperty: "todoId", isMultiselect: false }
-})(App)
-```
-
-The HOC will pass a prop for every table (named after the table) to your component, which will be an object containing these properties:
 
 * `pageCount` *Number*: The number of pages after item filtering. See [`pageSize` prop](#pagesize-number) for details.
 

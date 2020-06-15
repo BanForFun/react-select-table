@@ -489,7 +489,7 @@ Called when the [selection][selection] changes.
 
 ### Reducer
 
-To create a reducer, use the `createTable` exported by `TableReducer`.
+To create a reducer, use the `createTable` method.
 
 Parameters:
 
@@ -505,11 +505,11 @@ See all available `initState` properties [here](#state).
 
 ```javascript
 import { combineReducers } from "redux";
-import { TableReducer } from "react-select-table";
+import { createTable } from "react-select-table";
 
 const rootReducer = combineReducers({
     //...Other reducers
-    todoTable: TableReducer.createTable("todos", {
+    todoTable: createTable("todos", {
         valueProperty: "id",
         isListbox: true,
         path: "todoTable"

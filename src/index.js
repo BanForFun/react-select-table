@@ -4,7 +4,6 @@ import TableActions from "./models/actions";
 import createTable from "./store/table";
 import { makeGetPageCount } from "./selectors/paginationSelectors";
 import withTable from "./hoc/withTable";
-import useTable from "./hooks/useTable";
 import eventMiddleware from './store/eventMiddleware';
 import { defaultOptions } from './utils/optionUtils';
 
@@ -16,6 +15,5 @@ export {
     eventMiddleware,
     defaultOptions,
     makeGetPageCount,
-    withTable,
-    useTable
+    withTable
 };

@@ -24,12 +24,13 @@ function Table({
     pageSize,
     itemParser,
     itemPredicate,
+    name: propName,
     ...props
 }) {
     const store = getStore();
 
     const contextName = useContext(TableNameContext);
-    const name = useEither(props.name, contextName);
+    const name = useEither(propName, contextName);
 
     const [isReady, setReady] = useState(false);
     useEffect(() => {
@@ -54,7 +55,7 @@ function Table({
 
     if (!isReady) return null;
     return <Provider store={store}>
-        <TableCore {...props} />
+        <TableCore {...props} name={name} />
     </Provider>
 }
 

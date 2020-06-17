@@ -2,8 +2,9 @@ import React, { useMemo, useCallback } from 'react'
 import { TableCore, TableActions, makeGetPageCount } from 'react-select-table';
 import columns from '../columns';
 import { ReactReduxContext, useDispatch, useSelector } from 'react-redux';
+import {tableNamespace} from "../store";
 
-const actions = new TableActions("todos");
+const actions = new TableActions(tableNamespace);
 
 function ReduxTable() {
     const dispatch = useDispatch();
@@ -21,7 +22,7 @@ function ReduxTable() {
         <h1>Redux table</h1>
         <TableCore
             className="table"
-            name="todos"
+            name={tableNamespace}
             columns={columns}
             context={ReactReduxContext}
         />
@@ -30,8 +31,8 @@ function ReduxTable() {
                 min={1} max={pageCount}
                 value={currentPage}
                 onChange={handlePageChange}
-            />&nbsp;
-            / {pageCount}
+            />
+            &nbsp;/ {pageCount}
         </div>
     </div>
 }

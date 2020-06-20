@@ -369,7 +369,9 @@ function TableCore(props) {
                     <Body {...commonParams} rowRefs={rowRefs} />
                 </table>
                 {(items.length === 0 && !isLoading) &&
-                    <div className={styles.placeholder}>{emptyPlaceholder}</div>}
+                    <div className={styles.placeholder}
+                         onContextMenu={() => actions.contextMenu(null)}
+                    >{emptyPlaceholder}</div>}
             </div>
         </div >
     )
@@ -415,7 +417,7 @@ TableCore.propTypes = {
     namespace: PropTypes.string,
     context: PropTypes.any,
     className: PropTypes.string,
-    emptyPlaceholder: PropTypes.element,
+    emptyPlaceholder: PropTypes.node,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,

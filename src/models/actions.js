@@ -9,7 +9,6 @@ export default class TableActions {
     static SET_ROWS = "TABLE_SET_ROWS";
     static ADD_ROW = "TABLE_ADD_ROW";
     static DELETE_ROWS = "TABLE_DELETE_ROWS";
-    static REPLACE_ROW = "TABLE_REPLACE_ROW";
     static SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
     static PATCH_ROW = "TABLE_PATCH_ROW";
     static CLEAR_ROWS = "TABLE_CLEAR_ROWS";
@@ -56,9 +55,6 @@ export default class TableActions {
 
     setRowValue = (oldValue, newValue) =>
         this._getAction(self.SET_ROW_VALUE, { oldValue, newValue });
-
-    replaceRow = (value, newItem) =>
-        this._getAction(self.REPLACE_ROW, { value, newItem });
 
     deleteRows = (...values) =>
         this._getAction(self.DELETE_ROWS, { values });

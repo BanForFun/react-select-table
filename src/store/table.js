@@ -153,12 +153,6 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     updateItems();
                     break;
                 }
-                case actions.REPLACE_ROW: {
-                    //Value property should not be changed
-                    draft.items[payload.value] = payload.newItem;
-                    updateItems();
-                    break;
-                }
                 case actions.SET_ROW_VALUE: {
                     const { oldValue, newValue } = payload;
 

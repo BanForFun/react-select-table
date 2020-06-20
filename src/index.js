@@ -1,20 +1,8 @@
-import Table from './components/Table';
-import TableCore from './components/TableCore';
-import TableActions from "./models/actions";
-import createTable from "./store/table";
-import { makeGetPageCount } from "./selectors/paginationSelectors";
-import withTable from "./hoc/withTable";
-import eventMiddleware from './store/eventMiddleware';
-import { defaultOptions, getStatePath } from './utils/optionUtils';
-
-export {
-    Table,
-    TableCore,
-    TableActions,
-    createTable,
-    eventMiddleware,
-    defaultOptions,
-    getStatePath,
-    makeGetPageCount,
-    withTable
-};
+export { default as Table } from './components/Table';
+export { default as TableCore } from './components/TableCore';
+export { default as TableActions } from "./models/actions";
+export { default as createTable } from "./store/table";
+export { default as withTable } from "./hoc/withTable";
+export { default as eventMiddleware } from './store/eventMiddleware';
+export { makeGetPageCount } from "./selectors/paginationSelectors";
+export { defaultOptions, getStatePath } from './utils/optionUtils';

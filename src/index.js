@@ -5,7 +5,7 @@ import createTable from "./store/table";
 import { makeGetPageCount } from "./selectors/paginationSelectors";
 import withTable from "./hoc/withTable";
 import eventMiddleware from './store/eventMiddleware';
-import { defaultOptions } from './utils/optionUtils';
+import { defaultOptions, getStatePath } from './utils/optionUtils';
 
 export {
     Table,
@@ -14,6 +14,7 @@ export {
     createTable,
     eventMiddleware,
     defaultOptions,
+    getStatePath,
     makeGetPageCount,
     withTable
 };

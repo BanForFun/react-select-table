@@ -1,5 +1,3 @@
-import _ from "lodash";
-
 export const tableOptions = {};
 
 function defaultItemFilter(item, filter) {
@@ -30,3 +28,7 @@ export const defaultOptions = {
     path: null,
     ...defaultEvents
 };
+
+export function getStatePath(namespace) {
+  return tableOptions[namespace].path;
+}

@@ -590,7 +590,8 @@ The library exports selector factories. Here is an example of how to use them to
 **Using `connect`**
 
 ```javascript
-import React, { connect } from "react-redux";
+import React from "react";
+import { connect } from "react-redux";
 import { makeGetPageCount } from "react-select-table";
 
 function App() {

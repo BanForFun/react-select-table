@@ -1,13 +1,13 @@
 import produce from "immer";
 import _ from "lodash";
-import { sortOrders, pagePositions } from "../constants/enums";
-import { sortTuple } from "../utils/mathUtils";
-import { pullFirst, inArray } from "../utils/arrayUtils";
-import { deleteKeys } from "../utils/objectUtils";
+import {pagePositions, sortOrders} from "../constants/enums";
+import {sortTuple} from "../utils/mathUtils";
+import {inArray, pullFirst} from "../utils/arrayUtils";
+import {deleteKeys} from "../utils/objectUtils";
 import actions from "../models/internalActions";
-import { defaultOptions, tableOptions } from "../utils/optionUtils";
-import { makeGetPageCount } from "../selectors/paginationSelectors";
-import { createSelector } from "reselect";
+import {setOptions} from "../utils/optionUtils";
+import {makeGetPageCount} from "../selectors/paginationSelectors";
+import {createSelector} from "reselect";
 
 const defaultState = {
     sortBy: {},
@@ -34,8 +34,6 @@ export default function createTable(namespace, options = {}, initState = {}) {
     let draft = _.defaults(initState, defaultState);
 
     //Options
-    _.defaults(options, defaultOptions);
-    tableOptions[namespace] = options;
     const {
         valueProperty,
         isListbox,
@@ -43,7 +41,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
         scrollX,
         initItems,
         multiSort
-    } = options;
+    } = setOptions(namespace, options);
 
     if (initItems) setItems(initItems, false);
 
@@ -165,12 +163,11 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     if (selectedIndex >= 0)
                         draft.selectedValues[selectedIndex] = newValue;
 
-                    const withValue = {
-                        ...state.items[oldValue],
-                        [valueProperty]: newValue
+                    draft.items[newValue] = {
+                      ...state.items[oldValue],
+                      [valueProperty]: newValue
                     };
 
-                    draft.items[newValue] = withValue;
                     delete draft.items[oldValue];
                     updateItems();
                     break;

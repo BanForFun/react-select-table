@@ -638,6 +638,18 @@ Creates a selector that takes the state and returns the page count.
 
 
 
+### Utilities
+
+#### `getTablePath`
+
+Parameters:
+
+* `namespace` *string*
+
+Returns the `path` property of the options object passed to the reducer with the provided namespace. 
+
+
+
 [value]: ./types.md#valueproperty-string
 [columnOrder]: #columnorder-array-of-number
 [selection]: #selectedvalues-array-of-any

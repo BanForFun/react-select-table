@@ -30,26 +30,18 @@
 
 
 
-## 3.0.0 - Breaking changes
+## 4.0.0 - Breaking changes
 
 ### Common
 
-* Added [`multiSort`](/docs/types.md#multisort-boolean) option
-
-### TableCore
-
-* Renamed `table` to `namespace` in the action payload
-* Renamed `reducerName` to [`namespace`](/docs/core.md#namespace-string) in the component props
-* `sortPath` and `sortOrder` state properties removed and replaced by [`sortBy`](/docs/core.md#sortby-object)
-* When creating a store, you must now apply the [`eventMiddleware`](/docs/core.md#reducer) middleware in order for [events](/docs/core.md#event-props) to function
-* You can now dispatch actions in all [event handlers](/docs/core.md#event-props)
-* Removed `statePath` component prop. The state path must now be passed in the options as the [`path`](/docs/types.md#path-string) property
-* The `createTable` method is now exported at top level (it used to be under `TableReducer`)
+* Renamed `isListbox` option to `listBox`
+* Renamed `isMultiselect` option to `multiSelect`
 
 ### Table
 
-* Removed deprecated `useTable` hook and `initTable`/`disposeTable` functions. Use [`withTable`](/docs/table.md#setup) HOC instead
-* Removed `withTables` HOC, each table component must now live in a separate component 
+* Added `setError` action and `error` state property
+* Added `isKeyed` argument to `setRows` action creator
+* Removed `replaceRow` action creator as `addRow` does basically the same thing.
 
 
 

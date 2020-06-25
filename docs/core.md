@@ -269,7 +269,7 @@ Sets [`activeValue`](#activevalue-any) and [`pivotValue`](#pivotvalue-any) state
 
 Parameters: none
 
-Sets [`activeValue`](#activevalue-any) to null. Clears the selection if [`isLisbox`](#islistbox-boolean) is false.
+Sets [`activeValue`](#activevalue-any) to null. Clears the selection if [`listBox`](#islistbox-boolean) is false.
 
 #### `selectAll`
 
@@ -277,7 +277,7 @@ Sets [`activeValue`](#activevalue-any) to null. Clears the selection if [`isLisb
 
 Parameters: none
 
-Selects all items. Has no effect when [`isMultiselect`](#ismultiselect-boolean) is false.
+Selects all items. Has no effect when [`multiSelect`](#ismultiselect-boolean) is false.
 
 #### `setRowSelected`
 
@@ -460,7 +460,7 @@ Rendered when the table contains no items.
 
 | Parameter | Type           | Description                                                  |
 | --------- | -------------- | ------------------------------------------------------------ |
-| `values`  | *Array of any* | If [`isListbox`](#islistbox-boolean) is false (default), the [selected values](#selectedvalues-array-of-any).<br/>Otherwise, the [active value](#activevalue-any) in an array |
+| `values`  | *Array of any* | If [`listBox`](#islistbox-boolean) is false (default), the [selected values](#selectedvalues-array-of-any).<br/>Otherwise, the [active value](#activevalue-any) in an array |
 
 Called when the user right-clicks on a row or the table container.
 
@@ -511,7 +511,7 @@ const rootReducer = combineReducers({
     //...Other reducers
     todoTable: createTable("todos", {
         valueProperty: "id",
-        isListbox: true,
+        listBox: true,
         path: "todoTable"
     }, {
         pageSize: 10
@@ -646,7 +646,7 @@ Parameters:
 
 * `namespace` *string*
 
-Returns the `path` property of the options object passed to the reducer with the provided namespace. 
+Returns the `path` property of the options object passed to the reducer with the provided namespace.
 
 
 

@@ -32,7 +32,7 @@ const eventMiddleware = store => next => action => {
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                options.onContextMenu(options.isListbox
+                options.onContextMenu(options.listBox
                     ? inArray(table.activeValue) : table.selectedValues);
 
             return result;

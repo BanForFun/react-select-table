@@ -21,8 +21,8 @@ export const defaultEvents = {
 export const defaultOptions = {
     itemParser: item => item,
     itemPredicate: defaultItemFilter,
-    isMultiselect: true,
-    isListbox: false,
+    multiSelect: true,
+    listBox: false,
     minColumnWidth: 3,
     valueProperty: "_id",
     scrollX: false,

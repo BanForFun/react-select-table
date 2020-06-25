@@ -8,10 +8,13 @@ import { touchToMouseEvent } from '../utils/eventUtils';
 import useEvent from '../hooks/useEvent';
 import { boolAttrib } from '../utils/attributeUtils';
 
+const aggressive = {
+  passive: false
+}
+
 function Head({
     columns,
     sortBy,
-
     name,
     columnWidth,
     actions,
@@ -41,7 +44,7 @@ function Head({
         touchToMouseEvent(e, true);
         handleMouseMove(e);
     }, [handleMouseMove, resizingIndex]);
-    useEvent(window, "touchmove", handleTouchMove, { passive: false })
+    useEvent(window, "touchmove", handleTouchMove, aggressive);
 
     const handleMouseUp = useCallback(() => {
         if (resizingIndex === null) return;

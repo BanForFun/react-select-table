@@ -21,7 +21,8 @@ const defaultState = {
     tableItems: [],
     isLoading: true,
     pageSize: 0,
-    currentPage: 1
+    currentPage: 1,
+    error: null
 };
 
 function getDefaultWidth(count) {
@@ -36,8 +37,8 @@ export default function createTable(namespace, options = {}, initState = {}) {
     //Options
     const {
         valueProperty,
-        isListbox,
-        isMultiselect,
+        listBox,
+        multiSelect,
         scrollX,
         initItems,
         multiSort
@@ -114,6 +115,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
     function setItems(items, areKeyed) {
         draft.items = areKeyed ? items : _.keyBy(items, valueProperty);
         draft.isLoading = false;
+        draft.error = null;
     }
 
     //Validate initial state
@@ -184,6 +186,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     draft.items = {};
                     draft.tableItems = [];
                     draft.isLoading = true;
+                    draft.error = null;
 
                     //Clear selection
                     draft.selectedValues = [];
@@ -209,13 +212,18 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     updateSelection();
                     break;
                 }
+                case actions.SET_ERROR: {
+                    draft.isLoading = false;
+                    draft.error = payload.message;
+                    break;
+                }
 
                 //Selection
                 case actions.SELECT_ROW: {
                     const { value, ctrlKey, shiftKey } = payload;
                     let addToSelection = [value];
 
-                    if (!isMultiselect) {
+                    if (!multiSelect) {
                         draft.selectedValues = addToSelection;
                         draft.activeValue = value;
                         break;
@@ -248,7 +256,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
                 }
                 case actions.CLEAR_SELECTION: {
                     setActivePivotValue(null);
-                    if (!options.isListbox)
+                    if (!options.listBox)
                         draft.selectedValues = [];
                     break;
                 }
@@ -276,7 +284,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
 
                     setActivePivotValue(value);
                     const isSelected = state.selectedValues.includes(value);
-                    if (!isListbox && !isSelected)
+                    if (!listBox && !isSelected)
                         draft.selectedValues = inArray(value);
                     break;
                 }

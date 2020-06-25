@@ -21,23 +21,26 @@ import useEvent from '../hooks/useEvent';
 
 function TableCore(props) {
     const {
-        name,
-        namespace,
-        context,
-        className,
-        columns,
-        emptyPlaceholder,
-        onItemsOpen,
-        onColumnResizeEnd,
+      name,
+      namespace,
+      context,
+      className,
+      columns,
+      emptyPlaceholder,
+      loadingPlaceholder,
+      errorPlaceholder,
+      onItemsOpen,
+      onColumnResizeEnd,
 
-        //Redux state
-        items,
-        isLoading,
-        selectedValues,
-        columnWidth,
-        activeValue,
-        columnOrder,
-        dispatch
+      //Redux state
+      items,
+      error,
+      isLoading,
+      selectedValues,
+      columnWidth,
+      activeValue,
+      columnOrder,
+      dispatch
     } = props;
 
     const bodyContainer = useRef();
@@ -84,8 +87,8 @@ function TableCore(props) {
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback(e => {
-        //Return if listbox is enabled or multiselect is disabled
-        const dragEnabled = !options.isListbox && options.isMultiselect;
+        //Return if listBox is enabled or multiSelect is disabled
+        const dragEnabled = !options.listBox && options.multiSelect;
         //Return if the mouse button pressed wasn't the primary one
         if (!dragEnabled || e.button !== 0) return;
 
@@ -269,7 +272,7 @@ function TableCore(props) {
 
         switch (e.keyCode) {
             case 65: //A
-                if (e.ctrlKey && options.isMultiselect)
+                if (e.ctrlKey && options.multiSelect)
                     actions.selectAll();
                 break;
             case 38: //Up
@@ -299,7 +302,7 @@ function TableCore(props) {
         raiseItemOpen,
         actions,
         options,
-        items
+        items.length
     ]);
     //#endregion
 
@@ -343,6 +346,16 @@ function TableCore(props) {
         <ColumnResizer name={name} columns={parsedColumns} />,
         [name, parsedColumns]);
 
+    const placeholder = useMemo(() => {
+        if (error) return errorPlaceholder;
+        if (isLoading) return loadingPlaceholder;
+        if (items.length === 0) return emptyPlaceholder;
+        return null;
+    }, [
+      items.length, error, isLoading,
+      emptyPlaceholder, errorPlaceholder, loadingPlaceholder
+    ]);
+
     return (
         <div className={styles.container} onScroll={handleScroll}>
             <div className={styles.headContainer}
@@ -368,10 +381,9 @@ function TableCore(props) {
                     {colGroup}
                     <Body {...commonParams} rowRefs={rowRefs} />
                 </table>
-                {(items.length === 0 && !isLoading) &&
-                    <div className={styles.placeholder}
-                         onContextMenu={() => actions.contextMenu(null)}
-                    >{emptyPlaceholder}</div>}
+                {placeholder && <div className={styles.placeholder}
+                     onContextMenu={() => actions.contextMenu(null)}
+                >{placeholder}</div>}
             </div>
         </div >
     )
@@ -390,6 +402,7 @@ function makeMapState() {
             "selectedValues",
             "activeValue",
             "isLoading",
+            "error",
             "tableItems"
         );
 
@@ -417,11 +430,13 @@ TableCore.propTypes = {
     namespace: PropTypes.string,
     context: PropTypes.any,
     className: PropTypes.string,
-    emptyPlaceholder: PropTypes.node,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,
-    onColumnResizeEnd: PropTypes.func
+    onColumnResizeEnd: PropTypes.func,
+    emptyPlaceholder: PropTypes.node,
+    loadingPlaceholder: PropTypes.node,
+    errorPlaceholder: PropTypes.node
 };
 
 TableCore.defaultProps = {

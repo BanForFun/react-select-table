@@ -9,7 +9,7 @@ This text will be displayed in the header.
 
 #### `path` *string*
 
-The property value of each row at `path` will be resolved and passed to the [`render`](#render-function) method as the first parameter, followed by the complete row object as the second one. If `path` is not set, the first parameter will be undefined. 
+The property value of each row at `path` will be resolved and passed to the [`render`](#render-function) method as the first parameter, followed by the complete row object as the second one. If `path` is not set, the first parameter will be undefined.
 
 Columns that specify a `path`, are sortable. If that is not desirable (for example on images), you should not specify a `path` and resolve the property inside the `render` method.
 
@@ -65,7 +65,7 @@ import App from "./App";
 
 > **Default**: `'_id'`
 
-Property path that contains a unique value for each item (ex. `_id`). 
+Property path that contains a unique value for each item (ex. `_id`).
 
 #### `initItems` *array of object*
 
@@ -83,7 +83,7 @@ If set to true, columns are allowed to overflow their container horizontally. A 
 
 Also, a column resizer will be added to the last column.
 
-#### `isMultiselect` *boolean*
+#### `multiSelect` *boolean*
 
 > **Default**: `true`
 
@@ -94,7 +94,7 @@ If set to false, the following features are disabled:
 * `Ctrl` + `A`
 * Drag selection.
 
-#### `isListbox` *boolean*
+#### `listBox` *boolean*
 
 > **Default**: `false`
 
@@ -139,17 +139,17 @@ Called for each row before adding it to the table. Returns the modified row.
 
 > **Returns**: *boolean*
 >
-> **Default**: 
+> **Default**:
 >
 > ```javascript
 > (item, filter) => {
 >     if (!filter) return true;
-> 
+>
 >     for (let key in filter) {
 >        if (item[key] !== filter[key])
 >           return false;
 >     }
-> 
+>
 >     return true;
 > }
 > ```

@@ -14,6 +14,7 @@ export default class TableActions {
     static CLEAR_ROWS = "TABLE_CLEAR_ROWS";
     static SORT_BY = "TABLE_SORT_BY";
     static SET_FILTER = "TABLE_SET_FILTER";
+    static SET_ERROR = "TABLE_SET_ERROR";
 
     //Columns
     static SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH";
@@ -88,6 +89,9 @@ export default class TableActions {
 
     setRowSelected = (value, selected) =>
         this._getAction(self.SET_ROW_SELECTED, { value, selected });
+
+    setError = message =>
+        this._getAction(self.SET_ERROR, { message });
 
     //#region Aliases
 

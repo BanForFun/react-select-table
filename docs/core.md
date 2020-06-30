@@ -94,15 +94,11 @@ The [value][value] of the item that is used to pivot the selection on `Shift`+`C
 If an item has a `className` property set to an array of CSS class name strings, they will be applied to the `tr` element.
 
 #### `isLoading` *boolean*
-> **Default**: `true`
+> **Default**: `false`
 >
-> **Modified by**: [`setRows`](#setRows), [`clearRows`](#clearRows)
+> **Modified by**: [`setRows`](#setRows), [`clearRows`](#clearRows), [`setError`](#seterror)
 
-Can be used to conditionally display a loading indicator. Initially set to `true`.
-
-[`setRows`](#setrows) action sets it to `false`.
-
-[`clearRows`](#clearrows) action sets it to `true`.
+Used to conditionally display a loading indicator.
 
 #### `pageSize` *number*
 
@@ -121,6 +117,14 @@ The maximum number of items displayed on a page. If set to 0, pagination is disa
 The current page index. Has no effect when [`pageSize`](#pagesize-number) is 0.
 
 **Warning**: This number is one-based (the first page has an index of 1 instead of 0). If set to 0, all items are hidden.
+
+#### `error` *string*
+
+> **Default**: `null`
+>
+> **Modified by**: [`clearRows`](#clearRows), [`setError`](#seterror)
+
+Used to conditionally display an error message.
 
 ### Actions
 
@@ -173,7 +177,7 @@ Parameters:
 
 * `newItem` *object*
 
-Adds `newItem` to the item list.
+Adds `newItem` to the item list. If an item with the same value exists, it will be replced.
 
 #### `deleteRows`
 
@@ -184,17 +188,6 @@ Parameters:
 * `...values` *parameter array of any*
 
 Deletes all items who's [values][value] are included in `values`.
-
-#### `replaceRow`
-
-> **Type**: `REPLACE_ROW`
-
-Parameters:
-
-* `value` *any*
-* `newItem` *object*
-
-Finds the item with [value][value]: `value` and replaces it with `newItem`.
 
 #### `patchRow`
 
@@ -226,7 +219,7 @@ Finds the item with [value][value]: `oldValue` and changes its value to `newValu
 
 Parameters: none
 
-Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Clears the selection.
+Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Sets [`error`](#error-string) state to `null`. Clears the selection. 
 
 #### Selection actions
 
@@ -289,6 +282,16 @@ Parameters:
 * `selected` *boolean*
 
 Finds the item with [value][value]: `value` and selects or deselects it, based on the `selected` parameter.
+
+#### `setError`
+
+> **Type**: `SET_ROW_SELECTED`
+
+Parameters:
+
+* `message` *string*
+
+Sets [`error`](#error-string) state to `message`. Sets [`isLoading`](#isloading-boolean) state to `false`.
 
 #### Column actions
 

@@ -5,7 +5,7 @@ export default class InternalActions extends TableActions {
     static SET_COLUMN_COUNT = "TABLE_SET_COLUMN_COUNT";
 
     setColumnCount = (count) =>
-        this._getAction(self.SET_COLUMN_COUNT, { count });
+        this._getAction(self.SET_COLUMN_COUNT, count);
 }
 
 const self = InternalActions;

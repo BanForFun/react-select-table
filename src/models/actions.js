@@ -7,7 +7,7 @@ export default class TableActions {
 
     //Rows
     static SET_ROWS = "TABLE_SET_ROWS";
-    static ADD_ROW = "TABLE_ADD_ROW";
+    static ADD_ROWS = "TABLE_ADD_ROWS";
     static DELETE_ROWS = "TABLE_DELETE_ROWS";
     static SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
     static PATCH_ROW = "TABLE_PATCH_ROW";
@@ -37,10 +37,10 @@ export default class TableActions {
     }
 
     goToPage = index =>
-        this._getAction(self.GO_TO_PAGE, { index });
+        this._getAction(self.GO_TO_PAGE, index);
 
     setPageSize = size =>
-        this._getAction(self.SET_PAGE_SIZE, { size });
+        this._getAction(self.SET_PAGE_SIZE, size);
 
     clearRows = () =>
         this._getAction(self.CLEAR_ROWS);
@@ -49,19 +49,19 @@ export default class TableActions {
         this._getAction(self.CONTEXT_MENU, { value, ctrlKey });
 
     setFilter = filter =>
-        this._getAction(self.SET_FILTER, { filter });
+        this._getAction(self.SET_FILTER, filter);
 
-    patchRow = (value, patch) =>
-        this._getAction(self.PATCH_ROW, { value, patch });
+    patchRow = patch =>
+        this._getAction(self.PATCH_ROW, patch);
 
     setRowValue = (oldValue, newValue) =>
         this._getAction(self.SET_ROW_VALUE, { oldValue, newValue });
 
     deleteRows = (...values) =>
-        this._getAction(self.DELETE_ROWS, { values });
+        this._getAction(self.DELETE_ROWS, values);
 
-    addRow = newItem =>
-        this._getAction(self.ADD_ROW, { newItem });
+    addRows = (...items) =>
+        this._getAction(self.ADD_ROWS,  items);
 
     setRows = (items, keyed = false) =>
         this._getAction(self.SET_ROWS, { items, keyed });
@@ -70,7 +70,7 @@ export default class TableActions {
         this._getAction(self.SET_COLUMN_WIDTH, { index, width });
 
     setColumnOrder = (order) =>
-        this._getAction(self.SET_COLUMN_ORDER, { order });
+        this._getAction(self.SET_COLUMN_ORDER, order);
 
     sortBy = (path, shiftKey = false) =>
         this._getAction(self.SORT_BY, { path, shiftKey });
@@ -79,7 +79,7 @@ export default class TableActions {
         this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
 
     setActiveRow = value =>
-        this._getAction(self.SET_ACTIVE_ROW, { value });
+        this._getAction(self.SET_ACTIVE_ROW, value);
 
     clearSelection = () =>
         this._getAction(self.CLEAR_SELECTION);
@@ -91,7 +91,7 @@ export default class TableActions {
         this._getAction(self.SET_ROW_SELECTED, { value, selected });
 
     setError = message =>
-        this._getAction(self.SET_ERROR, { message });
+        this._getAction(self.SET_ERROR, message);
 
     //#region Aliases
 

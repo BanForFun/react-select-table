@@ -5,4 +5,4 @@ export { default as createTable } from "./store/table";
 export { default as withTable } from "./hoc/withTable";
 export { default as eventMiddleware } from './store/eventMiddleware';
 export { makeGetPageCount } from "./selectors/paginationSelectors";
-export { defaultOptions, getTablePath } from './utils/optionUtils';
+export { setDefaultOptions, getTablePath } from './utils/optionUtils';

@@ -18,7 +18,7 @@ export const defaultEvents = {
     onSelectionChange: () => { }
 }
 
-export const defaultOptions = {
+const defaultOptions = {
     itemParser: item => item,
     itemPredicate: defaultItemFilter,
     multiSelect: true,
@@ -31,12 +31,16 @@ export const defaultOptions = {
     ...defaultEvents
 };
 
+export function setDefaultOptions(options) {
+    Object.assign(defaultOptions, options);
+}
+
 export function setOptions(namespace, options) {
-  _.defaults(options, defaultOptions);
-  tableOptions[namespace] = options;
-  return options;
+    _.defaults(options, defaultOptions);
+    tableOptions[namespace] = options;
+    return options;
 }
 
 export function getTablePath(namespace) {
-  return tableOptions[namespace].path;
+    return tableOptions[namespace].path;
 }

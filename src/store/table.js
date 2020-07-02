@@ -25,7 +25,7 @@ const defaultState = {
     error: null
 };
 
-function getDefaultWidth(count) {
+function getColumnWidth(count) {
     const width = 100 / count;
     return _.times(count, _.constant(width));
 }
@@ -40,11 +40,14 @@ export default function createTable(namespace, options = {}, initState = {}) {
         listBox,
         multiSelect,
         scrollX,
-        initItems,
         multiSort
     } = setOptions(namespace, options);
 
-    if (initItems) setItems(initItems, false);
+    if (options.initItems)
+        setItems(options.initItems, false);
+
+    if (options.initColCount)
+        draft.columnWidth = getColumnWidth(options.initColCount);
 
     //Selectors
     const getPageCount = makeGetPageCount();
@@ -78,7 +81,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
         if (!draft.columnOrder) return;
         const count = draft.columnOrder.length;
         if (draft.columnWidth.length !== count)
-            draft.columnWidth = getDefaultWidth(count);
+            draft.columnWidth = getColumnWidth(count);
     }
 
     function updatePagination(allowZero = false) {
@@ -352,7 +355,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     //Check necessary for initial columnWidth state
                     if (state.columnWidth.length === payload) break;
                     draft.columnOrder = null;
-                    draft.columnWidth = getDefaultWidth(payload);
+                    draft.columnWidth = getColumnWidth(payload);
                     break;
                 }
                 default:

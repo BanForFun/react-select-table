@@ -21,26 +21,27 @@ import useEvent from '../hooks/useEvent';
 
 function TableCore(props) {
     const {
-      name,
-      namespace,
-      context,
-      className,
-      columns,
-      emptyPlaceholder,
-      loadingPlaceholder,
-      errorPlaceholder,
-      onItemsOpen,
-      onColumnResizeEnd,
+        name,
+        namespace,
+        context,
+        className,
+        columns,
+        emptyPlaceholder,
+        loadingPlaceholder,
+        errorPlaceholder,
+        onItemsDelete,
+        onItemsOpen,
+        onColumnResizeEnd,
 
-      //Redux state
-      items,
-      error,
-      isLoading,
-      selectedValues,
-      columnWidth,
-      activeValue,
-      columnOrder,
-      dispatch
+        //Redux state
+        items,
+        error,
+        isLoading,
+        selectedValues,
+        columnWidth,
+        activeValue,
+        columnOrder,
+        dispatch
     } = props;
 
     const bodyContainer = useRef();
@@ -139,7 +140,7 @@ function TableCore(props) {
         rect.limit(scrollBounds);
         rect.offsetBy(-rootBounds.x, -rootBounds.y);
 
-        //Scroll if neccessary
+        //Scroll if necessary
         ensurePosVisible(root, mouseX, mouseY, clientBounds);
 
         //Calculate top and bottom most visible positions
@@ -189,6 +190,7 @@ function TableCore(props) {
     const handleMouseUp = useCallback(() => {
         if (!selOrigin) return;
 
+        //Hide selection rectangle
         setSelOrigin(null);
         setSelRect(null);
     }, [selOrigin]);
@@ -212,10 +214,15 @@ function TableCore(props) {
     useEvent(window, "touchend", handleTouchEnd);
     //#endregion
 
-    const raiseItemOpen = useCallback(enterKey => {
+    const raiseItemsOpen = useCallback(enterKey => {
         if (selectedValues.length === 0) return;
         onItemsOpen(selectedValues, enterKey);
-    }, [selectedValues])
+    }, [selectedValues, onItemsOpen]);
+
+    const raiseItemsDelete = useCallback(() => {
+        if (selectedValues.length === 0) return;
+        onItemsDelete(selectedValues);
+    }, [selectedValues, onItemsDelete]);
 
     const selectFromKeyboard = useCallback((e, index) => {
         const value = values[index];
@@ -257,8 +264,8 @@ function TableCore(props) {
     }, []);
 
     const handleDoubleClick = useCallback(() => {
-        raiseItemOpen(false);
-    }, [raiseItemOpen]);
+        raiseItemsOpen(false);
+    }, [raiseItemsOpen]);
 
     const handleContextMenu = useCallback(e => {
         if (isTouching.current) dragStart(e);
@@ -282,13 +289,16 @@ function TableCore(props) {
                 selectAtOffset(e, 1);
                 break;
             case 13: //Enter
-                raiseItemOpen(true);
+                raiseItemsOpen(true);
                 break;
             case 36: //Home
                 selectFromKeyboard(e, 0);
                 break;
             case 35: //End
                 selectFromKeyboard(e, items.length - 1);
+                break;
+            case 46: //Delete:
+                raiseItemsDelete();
                 break;
             default:
                 preventDefault = false;
@@ -299,7 +309,8 @@ function TableCore(props) {
     }, [
         selectFromKeyboard,
         selectAtOffset,
-        raiseItemOpen,
+        raiseItemsOpen,
+        raiseItemsDelete,
         actions,
         options,
         items.length
@@ -442,5 +453,6 @@ TableCore.propTypes = {
 TableCore.defaultProps = {
     onItemsOpen: () => { },
     onColumnResizeEnd: () => { },
+    onItemsDelete: () => { },
     ...defaultEvents
 };

@@ -155,30 +155,44 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     updateItems();
                     break;
                 }
-                case actions.SET_ROW_VALUE: {
-                    const { oldValue, newValue } = payload;
-
+                case actions.SET_ROW_VALUES: {
                     //Update active value
-                    if (state.activeValue === oldValue)
-                        draft.activeValue = newValue;
+                    const newActive = payload[draft.activeValue];
+                    if (newActive)
+                        draft.activeValue = newActive;
 
-                    //Update selection
-                    const selectedIndex = state.selectedValues.indexOf(oldValue);
-                    if (selectedIndex >= 0)
-                        draft.selectedValues[selectedIndex] = newValue;
+                    for (let oldValue in payload) {
+                        const newValue = payload[oldValue];
 
-                    draft.items[newValue] = {
-                      ...state.items[oldValue],
-                      [valueProperty]: newValue
-                    };
+                        //Update selected value
+                        const selectedIndex = state.selectedValues.indexOf(oldValue);
+                        if (selectedIndex >= 0)
+                            draft.selectedValues[selectedIndex] = newValue;
 
-                    delete draft.items[oldValue];
+                        //Create new item
+                        draft.items[newValue] = {
+                            ...state.items[oldValue],
+                            [valueProperty]: newValue
+                        };
+
+                        //Delete old item
+                        delete draft.items[oldValue];
+                    }
+
                     updateItems();
                     break;
                 }
-                case actions.PATCH_ROW: {
-                    const value = payload[valueProperty];
-                    Object.assign(draft.items[value], payload);
+                case actions.PATCH_ROWS: {
+                    const {items} = draft;
+                    for (let patch of payload) {
+                        const value = payload[valueProperty];
+
+                        if (items[value])
+                            Object.assign(items[value], payload);
+                        else
+                            items[value] = payload;
+                    }
+
                     updateItems();
                     break;
                 }

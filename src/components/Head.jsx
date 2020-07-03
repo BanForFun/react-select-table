@@ -4,13 +4,8 @@ import { connect } from 'react-redux';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
 import { makeGetStateSlice } from '../selectors/namespaceSelectors';
-import { touchToMouseEvent } from '../utils/eventUtils';
-import useEvent from '../hooks/useEvent';
+import useEvent from '../hooks/useEventListener';
 import { boolAttrib } from '../utils/attributeUtils';
-
-const aggressive = {
-  passive: false
-}
 
 function Head({
     columns,
@@ -24,11 +19,12 @@ function Head({
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
 
-    const handleMouseMove = useCallback(e => {
-        if (resizingIndex === null) return;
+    const updateWidth = useCallback(xPos => {
+        if (resizingIndex === null) return false;
+
         const head = header.current;
         const headXPos = head.getBoundingClientRect().x;
-        const absX = e.clientX - headXPos;
+        const absX = xPos - headXPos;
 
         const fullWidth = _.sum(columnWidth);
         const absPercent = absX * fullWidth / head.clientWidth;
@@ -36,29 +32,33 @@ function Head({
         const percent = absPercent - offset;
 
         actions.setColumnWidth(resizingIndex, percent);
+        return true;
     }, [resizingIndex, columnWidth, actions]);
-    useEvent(window, "mousemove", handleMouseMove);
 
-    const handleTouchMove = useCallback(e => {
-        if (resizingIndex === null) return;
-        touchToMouseEvent(e, true);
-        handleMouseMove(e);
-    }, [handleMouseMove, resizingIndex]);
-    useEvent(window, "touchmove", handleTouchMove, aggressive);
+    const endResize = useCallback(() => {
+        if (resizingIndex === null) return false;
 
-    const handleMouseUp = useCallback(() => {
-        if (resizingIndex === null) return;
         setResizingIndex(null);
         onResizeEnd(columnWidth);
-    }, [onResizeEnd, resizingIndex, columnWidth]);
-    useEvent(window, "mouseup", handleMouseUp);
+        return true;
+    }, [onResizeEnd, columnWidth, resizingIndex])
 
-    const handleTouchEnd = useCallback(e => {
-        if (resizingIndex === null) return;
-        handleMouseUp();
-        e.stopPropagation();
-    }, [handleMouseUp, resizingIndex]);
-    useEvent(window, "touchend", handleTouchEnd)
+    useEvent(window, "mousemove", useCallback(e =>
+        updateWidth(e.clientX), [updateWidth]));
+
+    useEvent(window, "mouseup", useCallback(() =>
+        endResize(), [endResize]));
+
+    useEvent(window, "touchmove", useCallback(e => {
+        if (updateWidth(e.touches[0].clientX)){
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, [updateWidth]));
+
+    useEvent(window, "touchend", useCallback(e => {
+        if (endResize()) e.stopPropagation();
+    }, [endResize]));
 
     return (
         <thead

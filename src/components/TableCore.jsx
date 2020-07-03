@@ -15,9 +15,8 @@ import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
-import { touchToMouseEvent } from '../utils/eventUtils';
 import { tableOptions, defaultEvents } from '../utils/optionUtils';
-import useEvent from '../hooks/useEvent';
+import useEvent from '../hooks/useEventListener';
 
 function TableCore(props) {
     const {
@@ -103,11 +102,22 @@ function TableCore(props) {
         ]);
     }, [options]);
 
+    const dragEnd = useCallback(() => {
+        if (!selOrigin) return false;
+
+        setSelOrigin(null);
+        setSelRect(null);
+        return true;
+    }, [selOrigin]);
+
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
     const [lastMousePos, setLastMousePos] = useState(null);
     const updateSelectRect = useCallback(mousePos => {
+        if (!selOrigin) return false;
+
         if (!mousePos) mousePos = lastMousePos;
+        else setLastMousePos(mousePos);
 
         const [mouseX, mouseY] = mousePos;
         const [originX, originY] = selOrigin;
@@ -168,50 +178,28 @@ function TableCore(props) {
 
         //Set rectangle in state
         setSelRect(rect);
+        return true;
     }, [selOrigin, values, selectedValues, lastMousePos, actions]);
 
-    const handleScroll = useCallback(() => {
-        if (!selOrigin) return;
+    useEvent(window, "mousemove", useCallback(e =>
+        updateSelectRect([e.clientX, e.clientY]), [updateSelectRect]));
 
-        //Recalculate selection rectangle
-        updateSelectRect();
-    }, [selOrigin, updateSelectRect]);
+    useEvent(window, "mouseup", useCallback(() =>
+        dragEnd(), [dragEnd]));
 
-    const handleMouseMove = useCallback(e => {
-        if (!selOrigin) return;
+    useEvent(window, "touchmove", useCallback(e => {
+        const [touch] = e.touches;
+        const pos = [touch.clientX, touch.clientY];
+        if (updateSelectRect(pos)){
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    }, [updateSelectRect]));
 
-        //Recalculate selection rectangle
-        const newPos = [e.clientX, e.clientY];
-        updateSelectRect(newPos);
-        setLastMousePos(newPos);
-    }, [selOrigin, updateSelectRect]);
-    useEvent(window, "mousemove", handleMouseMove);
-
-    const handleMouseUp = useCallback(() => {
-        if (!selOrigin) return;
-
-        //Hide selection rectangle
-        setSelOrigin(null);
-        setSelRect(null);
-    }, [selOrigin]);
-    useEvent(window, "mouseup", handleMouseUp);
-
-    const handleTouchMove = useCallback(e => {
-        if (!selOrigin) return;
-
-        touchToMouseEvent(e, true);
-        handleMouseMove(e);
-    }, [handleMouseMove, selOrigin]);
-    useEvent(window, "touchmove", handleTouchMove, { passive: false });
-
-    const handleTouchEnd = useCallback(e => {
+    useEvent(window, "touchend", useCallback(e => {
         isTouching.current = false;
-        if (!selOrigin) return;
-
-        handleMouseUp();
-        e.stopPropagation();
-    }, [handleMouseUp, selOrigin])
-    useEvent(window, "touchend", handleTouchEnd);
+        if (dragEnd()) e.stopPropagation();
+    }, [dragEnd]));
     //#endregion
 
     const raiseItemsOpen = useCallback(enterKey => {
@@ -256,6 +244,11 @@ function TableCore(props) {
         deselectRows(e);
         dragStart(e);
     }, [dragStart, deselectRows]);
+
+    const handleScroll = useCallback(() => {
+        if (!selOrigin) return;
+        updateSelectRect();
+    }, [selOrigin, updateSelectRect]);
 
     const isTouching = useRef(false);
     const handleTouchStart = useCallback(e => {

@@ -9,8 +9,8 @@ export default class TableActions {
     static SET_ROWS = "TABLE_SET_ROWS";
     static ADD_ROWS = "TABLE_ADD_ROWS";
     static DELETE_ROWS = "TABLE_DELETE_ROWS";
-    static SET_ROW_VALUE = "TABLE_SET_ROW_VALUE";
-    static PATCH_ROW = "TABLE_PATCH_ROW";
+    static SET_ROW_VALUES = "TABLE_SET_ROW_VALUES";
+    static PATCH_ROWS = "TABLE_PATCH_ROWS";
     static CLEAR_ROWS = "TABLE_CLEAR_ROWS";
     static SORT_BY = "TABLE_SORT_BY";
     static SET_FILTER = "TABLE_SET_FILTER";
@@ -51,11 +51,11 @@ export default class TableActions {
     setFilter = filter =>
         this._getAction(self.SET_FILTER, filter);
 
-    patchRow = patch =>
-        this._getAction(self.PATCH_ROW, patch);
+    patchRows = (...patches) =>
+        this._getAction(self.PATCH_ROWS, patches);
 
-    setRowValue = (oldValue, newValue) =>
-        this._getAction(self.SET_ROW_VALUE, { oldValue, newValue });
+    setRowValues = map =>
+        this._getAction(self.SET_ROW_VALUES, map);
 
     deleteRows = (...values) =>
         this._getAction(self.DELETE_ROWS, values);
@@ -99,6 +99,12 @@ export default class TableActions {
     lastPage = () => this.goToPage(pagePositions.Last);
     previousPage = () => this.goToPage(pagePositions.Previous);
     nextPage = () => this.goToPage(pagePositions.Next);
+
+    setRowValue = (oldValue, newValue) => this.setRowValues({ oldValue: newValue });
+
+    addRow = item => this.addRows(item);
+
+    patchRow = patch => this.patchRows(patch);
 
     //#endregion
 }

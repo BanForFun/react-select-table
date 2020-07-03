@@ -185,12 +185,14 @@ export default function createTable(namespace, options = {}, initState = {}) {
                 case actions.PATCH_ROWS: {
                     const {items} = draft;
                     for (let patch of payload) {
-                        const value = payload[valueProperty];
+                        const value = patch[valueProperty];
 
                         if (items[value])
-                            Object.assign(items[value], payload);
+                            //If item already exists, patch
+                            Object.assign(items[value], patch);
                         else
-                            items[value] = payload;
+                            //Otherwise, create
+                            items[value] = patch;
                     }
 
                     updateItems();

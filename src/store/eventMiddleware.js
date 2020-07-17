@@ -12,7 +12,7 @@ const eventMiddleware = store => next => action => {
     switch (type) {
         case actions.SET_ROWS:
         case actions.DELETE_ROWS:
-        case actions.SET_ROW_VALUE:
+        case actions.SET_ROW_VALUES:
         case actions.CLEAR_ROWS:
         case actions.SET_FILTER:
         case actions.SELECT_ROW:

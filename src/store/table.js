@@ -156,13 +156,10 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     break;
                 }
                 case actions.SET_ROW_VALUES: {
-                    //Update active value
-                    const newActive = payload[draft.activeValue];
-                    if (newActive)
-                        draft.activeValue = newActive;
-
-                    for (let oldValue in payload) {
-                        const newValue = payload[oldValue];
+                    for (let [oldValue, newValue] of payload) {
+                        //Update active value
+                        if (oldValue === state.activeValue)
+                            draft.activeValue = newValue;
 
                         //Update selected value
                         const selectedIndex = state.selectedValues.indexOf(oldValue);

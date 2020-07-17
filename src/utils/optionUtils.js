@@ -28,6 +28,7 @@ const defaultOptions = {
     scrollX: false,
     multiSort: false,
     path: null,
+    initColCount: 0,
     ...defaultEvents
 };
 

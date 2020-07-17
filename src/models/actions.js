@@ -54,8 +54,10 @@ export default class TableActions {
     patchRows = (...patches) =>
         this._getAction(self.PATCH_ROWS, patches);
 
-    setRowValues = map =>
-        this._getAction(self.SET_ROW_VALUES, map);
+    //maps is an param array of arrays with two items: the old and the new value
+    //Use array instead of object to allow for oldValue types other than string
+    setRowValues = (...maps) =>
+        this._getAction(self.SET_ROW_VALUES, maps);
 
     deleteRows = (...values) =>
         this._getAction(self.DELETE_ROWS, values);
@@ -100,7 +102,7 @@ export default class TableActions {
     previousPage = () => this.goToPage(pagePositions.Previous);
     nextPage = () => this.goToPage(pagePositions.Next);
 
-    setRowValue = (oldValue, newValue) => this.setRowValues({ oldValue: newValue });
+    setRowValue = (oldValue, newValue) => this.setRowValues([oldValue, newValue]);
 
     addRow = item => this.addRows(item);
 

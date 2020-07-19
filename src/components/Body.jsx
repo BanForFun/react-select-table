@@ -45,8 +45,8 @@ function Body({
             classes.push(styles.selected);
         if (activeValue === value)
             classes.push(styles.active);
-        if (row.classNames)
-            classes.push(...row.classNames);
+        if (row.className)
+            classes.push(row.className);
 
         return <tr key={`row_${name}_${value}`}
             ref={el => rowRefs.current[index] = el}

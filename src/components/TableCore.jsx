@@ -28,9 +28,9 @@ function TableCore(props) {
         emptyPlaceholder,
         loadingPlaceholder,
         errorPlaceholder,
-        onItemsDelete,
         onItemsOpen,
         onColumnResizeEnd,
+        onKeyDown,
 
         //Redux state
         items,
@@ -207,11 +207,6 @@ function TableCore(props) {
         onItemsOpen(selectedValues, enterKey);
     }, [selectedValues, onItemsOpen]);
 
-    const raiseItemsDelete = useCallback(() => {
-        if (selectedValues.length === 0) return;
-        onItemsDelete(selectedValues);
-    }, [selectedValues, onItemsDelete]);
-
     const selectFromKeyboard = useCallback((e, index) => {
         const value = values[index];
 
@@ -256,10 +251,6 @@ function TableCore(props) {
         e.stopPropagation();
     }, []);
 
-    const handleDoubleClick = useCallback(() => {
-        raiseItemsOpen(false);
-    }, [raiseItemsOpen]);
-
     const handleContextMenu = useCallback(e => {
         if (isTouching.current) dragStart(e);
 
@@ -268,8 +259,6 @@ function TableCore(props) {
     }, [actions]);
 
     const handleKeyDown = useCallback(e => {
-        let preventDefault = true;
-
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey && options.multiSelect)
@@ -290,20 +279,17 @@ function TableCore(props) {
             case 35: //End
                 selectFromKeyboard(e, items.length - 1);
                 break;
-            case 46: //Delete:
-                raiseItemsDelete();
-                break;
             default:
-                preventDefault = false;
-                break;
+                return onKeyDown(e, selectedValues);
         }
 
-        if (preventDefault) e.preventDefault();
+        e.preventDefault();
     }, [
         selectFromKeyboard,
         selectAtOffset,
         raiseItemsOpen,
-        raiseItemsDelete,
+        onKeyDown,
+        selectedValues,
         actions,
         options,
         items.length
@@ -376,7 +362,7 @@ function TableCore(props) {
                 ref={bodyContainer}
                 style={widthStyle}
                 onKeyDown={handleKeyDown}
-                onDoubleClick={handleDoubleClick}
+                onDoubleClick={() => raiseItemsOpen(false)}
                 onContextMenu={handleContextMenu}
                 onTouchStart={handleTouchStart}
                 onMouseDown={handleMouseDown}>
@@ -438,6 +424,7 @@ TableCore.propTypes = {
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,
     onColumnResizeEnd: PropTypes.func,
+    onKeyDown: PropTypes.func,
     emptyPlaceholder: PropTypes.node,
     loadingPlaceholder: PropTypes.node,
     errorPlaceholder: PropTypes.node
@@ -446,6 +433,6 @@ TableCore.propTypes = {
 TableCore.defaultProps = {
     onItemsOpen: () => { },
     onColumnResizeEnd: () => { },
-    onItemsDelete: () => { },
+    onKeyDown: () => { },
     ...defaultEvents
 };

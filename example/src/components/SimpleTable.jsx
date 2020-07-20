@@ -8,12 +8,14 @@ function logEvent(type) {
     return args => console.log(type, args);
 }
 
+const shortTodos = todos.slice(0, 50);
+
 function SimpleTable({ pageCount }) {
     return (
         <div className="container">
             <h1>Simple table</h1>
             <Table
-                items={todos}
+                items={shortTodos}
                 onContextMenu={logEvent("Context menu")}
                 onSelectionChange={logEvent("Selection")}
                 onItemsOpen={logEvent("Open")}

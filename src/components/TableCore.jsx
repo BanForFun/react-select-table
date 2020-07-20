@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { Fragment, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import _ from "lodash";
 import Head from "./Head";
 import Body from "./Body";
@@ -16,7 +16,7 @@ import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
 import { tableOptions, defaultEvents } from '../utils/optionUtils';
-import useEvent from '../hooks/useEventListener';
+import useWindowEvent from '../hooks/useWindowEvent';
 
 function TableCore(props) {
     const {
@@ -45,6 +45,8 @@ function TableCore(props) {
 
     const bodyContainer = useRef();
     const headContainer = useRef();
+
+    const isTouching = useRef(false);
 
     const options = useMemo(() =>
         tableOptions[namespace], [namespace]);
@@ -86,35 +88,36 @@ function TableCore(props) {
 
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
-    const dragStart = useCallback(e => {
+    const dragStart = useCallback(mousePos => {
         //Return if listBox is enabled or multiSelect is disabled
         const dragEnabled = !options.listBox && options.multiSelect;
         //Return if the mouse button pressed wasn't the primary one
-        if (!dragEnabled || e.button !== 0) return;
+        if (!dragEnabled) return;
 
-        const { clientX: x, clientY: y } = e;
+        const [mouseX, mouseY] = mousePos;
         const root = bodyContainer.current.offsetParent;
 
-        setLastMousePos([x, y]);
+        setLastMousePos(mousePos);
         setSelOrigin([
-            x + root.scrollLeft,
-            y + root.scrollTop
+            mouseX + root.scrollLeft,
+            mouseY + root.scrollTop
         ]);
     }, [options]);
 
     const dragEnd = useCallback(() => {
-        if (!selOrigin) return false;
+        if (!selOrigin) return;
 
         setSelOrigin(null);
         setSelRect(null);
-        return true;
+
+        isTouching.current = false;
     }, [selOrigin]);
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
     const [lastMousePos, setLastMousePos] = useState(null);
-    const updateSelectRect = useCallback(mousePos => {
-        if (!selOrigin) return false;
+    const updateSelectRect = useCallback((mousePos = null) => {
+        if (!selOrigin) return;
 
         if (!mousePos) mousePos = lastMousePos;
         else setLastMousePos(mousePos);
@@ -178,28 +181,23 @@ function TableCore(props) {
 
         //Set rectangle in state
         setSelRect(rect);
-        return true;
     }, [selOrigin, values, selectedValues, lastMousePos, actions]);
 
-    useEvent(window, "mousemove", useCallback(e =>
-        updateSelectRect([e.clientX, e.clientY]), [updateSelectRect]));
-
-    useEvent(window, "mouseup", useCallback(() =>
-        dragEnd(), [dragEnd]));
-
-    useEvent(window, "touchmove", useCallback(e => {
-        const [touch] = e.touches;
-        const pos = [touch.clientX, touch.clientY];
-        if (updateSelectRect(pos)){
-            e.preventDefault();
-            e.stopPropagation();
-        }
+    useWindowEvent("mousemove", useCallback(e => {
+        updateSelectRect([e.clientX, e.clientY])
     }, [updateSelectRect]));
 
-    useEvent(window, "touchend", useCallback(e => {
-        isTouching.current = false;
-        if (dragEnd()) e.stopPropagation();
-    }, [dragEnd]));
+    useWindowEvent("mouseup", dragEnd);
+
+    useWindowEvent("touchmove", useCallback(e => {
+        if (selOrigin) e.preventDefault();
+
+        const [touch] = e.touches;
+        const pos = [touch.clientX, touch.clientY];
+        updateSelectRect(pos);
+    }, [updateSelectRect, selOrigin]));
+
+    useWindowEvent("touchend", dragEnd);
     //#endregion
 
     const raiseItemsOpen = useCallback(enterKey => {
@@ -227,38 +225,25 @@ function TableCore(props) {
         selectFromKeyboard(e, offsetIndex);
     }, [selectFromKeyboard, activeValue, values]);
 
-    const deselectRows = useCallback(e => {
-        if (e.currentTarget !== e.target ||
-            e.ctrlKey || e.button !== 0) return;
-
-        actions.clearSelection();
-    }, [actions]);
-
     //#region Event Handlers
-    const handleMouseDown = useCallback(e => {
-        deselectRows(e);
-        dragStart(e);
-    }, [dragStart, deselectRows]);
+    const handleMouseDown = e => {
+        if (e.button !== 0) return;
 
-    const handleScroll = useCallback(() => {
-        if (!selOrigin) return;
-        updateSelectRect();
-    }, [selOrigin, updateSelectRect]);
+        if (e.currentTarget === e.target && !e.ctrlKey)
+            actions.clearSelection();
 
-    const isTouching = useRef(false);
-    const handleTouchStart = useCallback(e => {
-        isTouching.current = true;
-        e.stopPropagation();
-    }, []);
+        dragStart([e.clientX, e.clientY]);
+    };
 
-    const handleContextMenu = useCallback(e => {
-        if (isTouching.current) dragStart(e);
+    const handleContextMenu = e => {
+        if (isTouching.current)
+            dragStart([e.clientX, e.clientY]);
 
         if (e.currentTarget !== e.target) return;
         actions.contextMenu(null, e.ctrlKey);
-    }, [actions]);
+    };
 
-    const handleKeyDown = useCallback(e => {
+    const handleKeyDown = e => {
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey && options.multiSelect)
@@ -284,16 +269,7 @@ function TableCore(props) {
         }
 
         e.preventDefault();
-    }, [
-        selectFromKeyboard,
-        selectAtOffset,
-        raiseItemsOpen,
-        onKeyDown,
-        selectedValues,
-        actions,
-        options,
-        items.length
-    ]);
+    };
     //#endregion
 
     const parsedColumns = useMemo(() => {
@@ -311,15 +287,6 @@ function TableCore(props) {
         }));
     }, [columnOrder, columnWidth, columns]);
 
-    const commonParams = {
-        name,
-        namespace,
-        context,
-        actions,
-        options,
-        columns: parsedColumns
-    }
-
     const selectionRect = useMemo(() => {
         if (!selRect) return null;
 
@@ -327,55 +294,85 @@ function TableCore(props) {
         return <div className={styles.selection} style={style} />
     }, [selRect]);
 
-    const widthStyle = useMemo(() => {
-        const tableWidth = _.sum(columnWidth);
-        return { width: `${tableWidth}%` };
-    }, [columnWidth]);
-
     const colGroup = useMemo(() =>
         <ColumnResizer name={name} columns={parsedColumns} />,
         [name, parsedColumns]);
 
-    const placeholder = useMemo(() => {
-        if (error) return errorPlaceholder;
-        if (isLoading) return loadingPlaceholder;
-        if (items.length === 0) return emptyPlaceholder;
-        return null;
-    }, [
-      items.length, error, isLoading,
-      emptyPlaceholder, errorPlaceholder, loadingPlaceholder
-    ]);
+    const renderTable = () => {
+        const commonParams = {
+            name,
+            namespace,
+            context,
+            actions,
+            options,
+            columns: parsedColumns
+        }
 
-    return (
-        <div className={styles.container} onScroll={handleScroll}>
+        const tableWidth = `${_.sum(columnWidth)}%`;
+        const isEmpty = items.length === 0;
+
+        return <Fragment>
             <div className={styles.headContainer}
-                tabIndex="0"
-                ref={headContainer}
-                style={widthStyle}>
+                 tabIndex="0"
+                 ref={headContainer}
+                 style={{
+                     width: tableWidth
+                 }}>
                 <table className={className}>
                     {colGroup}
                     <Head {...commonParams} onResizeEnd={onColumnResizeEnd} />
                 </table>
             </div>
-            <div className={styles.bodyContainer}
-                tabIndex="0"
-                ref={bodyContainer}
-                style={widthStyle}
-                onKeyDown={handleKeyDown}
-                onDoubleClick={() => raiseItemsOpen(false)}
-                onContextMenu={handleContextMenu}
-                onTouchStart={handleTouchStart}
-                onMouseDown={handleMouseDown}>
-                {selectionRect}
-                <table className={className} >
-                    {colGroup}
-                    <Body {...commonParams} rowRefs={rowRefs} />
-                </table>
-                {placeholder && <div className={styles.placeholder}
+            {isEmpty ?
+                //Empty placeholder
+                <div className={styles.placeholder}
                      onContextMenu={() => actions.contextMenu(null)}
-                >{placeholder}</div>}
-            </div>
-        </div >
+                     onKeyDown={e => onKeyDown(e, selectedValues)}
+                >{emptyPlaceholder}</div> :
+
+                //Table body
+                <div className={styles.bodyContainer}
+                     tabIndex="0"
+                     ref={bodyContainer}
+                     style={{
+                         width: tableWidth
+                     }}
+                     onKeyDown={handleKeyDown}
+                     onDoubleClick={() => raiseItemsOpen(false)}
+                     onContextMenu={handleContextMenu}
+                     onTouchStart={() => isTouching.current = true}
+                     onMouseDown={handleMouseDown}
+                >
+                    {selectionRect}
+                    <table className={className} >
+                        {colGroup}
+                        <Body {...commonParams} rowRefs={rowRefs} />
+                    </table>
+                </div>
+            }
+
+        </Fragment>
+    }
+
+    const renderContent = () => {
+        let placeholder = null
+
+        if (error) //Error
+            placeholder = errorPlaceholder;
+        else if (isLoading) //Loading
+            placeholder = loadingPlaceholder;
+        else //All good
+            return renderTable();
+
+        return <div className={styles.placeholder}>
+            {placeholder}
+        </div>
+    };
+
+    return (
+        <div className={styles.container}
+             onScroll={() => updateSelectRect()}
+        >{renderContent()}</div>
     )
 }
 

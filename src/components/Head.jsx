@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
 import { makeGetStateSlice } from '../selectors/namespaceSelectors';
-import useEvent from '../hooks/useEventListener';
+import useWindowEvent from '../hooks/useWindowEvent';
 import { boolAttrib } from '../utils/attributeUtils';
 
 function Head({
@@ -16,11 +16,12 @@ function Head({
     options,
     onResizeEnd
 }) {
+    const isResizing = useRef(false);
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
 
     const updateWidth = useCallback(xPos => {
-        if (resizingIndex === null) return false;
+        if (resizingIndex === null) return;
 
         const head = header.current;
         const headXPos = head.getBoundingClientRect().x;
@@ -32,33 +33,27 @@ function Head({
         const percent = absPercent - offset;
 
         actions.setColumnWidth(resizingIndex, percent);
-        return true;
     }, [resizingIndex, columnWidth, actions]);
 
-    const endResize = useCallback(() => {
-        if (resizingIndex === null) return false;
+    const dragEnd = useCallback(() => {
+        if (resizingIndex === null) return;
 
         setResizingIndex(null);
         onResizeEnd(columnWidth);
-        return true;
-    }, [onResizeEnd, columnWidth, resizingIndex])
+    }, [resizingIndex, onResizeEnd, columnWidth]);
 
-    useEvent(window, "mousemove", useCallback(e =>
-        updateWidth(e.clientX), [updateWidth]));
+    useWindowEvent("mousemove", e => updateWidth(e.clientX));
 
-    useEvent(window, "mouseup", useCallback(() =>
-        endResize(), [endResize]));
+    useWindowEvent("mouseup", dragEnd);
 
-    useEvent(window, "touchmove", useCallback(e => {
-        if (updateWidth(e.touches[0].clientX)){
-            e.preventDefault();
-            e.stopPropagation();
-        }
-    }, [updateWidth]));
+    useWindowEvent("touchmove", e => {
+        if (resizingIndex === null) return;
 
-    useEvent(window, "touchend", useCallback(e => {
-        if (endResize()) e.stopPropagation();
-    }, [endResize]));
+        e.preventDefault();
+        updateWidth(e.touches[0].clientX);
+    });
+
+    useWindowEvent("touchend", dragEnd);
 
     return (
         <thead
@@ -69,7 +64,10 @@ function Head({
                 {columns.map((col, index) => {
                     const { path, meta, title } = col;
 
-                    const startResize = () => setResizingIndex(index);
+                    const startResize = () => {
+                        setResizingIndex(index);
+                        isResizing.current = true;
+                    }
 
                     const handleClick = e => {
                         if (!path) return;

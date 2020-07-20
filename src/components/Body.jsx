@@ -15,16 +15,16 @@ function Body({
     activeValue,
     actions
 }) {
-    const handleRowSelect = useCallback((e, value) => {
+    const handleRowSelect = (e, value) => {
         if (e.button !== 0) return;
         actions.selectRow(value, e.ctrlKey, e.shiftKey);
-    }, [actions]);
+    };
 
-    const handleRowContextMenu = useCallback((e, value) => {
+    const handleRowContextMenu = (e, value) => {
         actions.contextMenu(value, e.ctrlKey);
-    }, [actions]);
+    };
 
-    const renderColumn = useCallback((row, column) => {
+    const renderColumn = (row, column) => {
         const rowValue = row[options.valueProperty];
         const { meta, path, render, isHeader } = column;
 
@@ -35,9 +35,9 @@ function Body({
         const key = `body_${name}_${rowValue}_${meta.id}`;
         if (isHeader) return <th key={key}>{content}</th>;
         return <td key={key}>{content}</td>
-    }, [options, name]);
+    };
 
-    const renderRow = useCallback((row, index) => {
+    const renderRow = (row, index) => {
         const value = row[options.valueProperty];
 
         const classes = [];
@@ -55,17 +55,7 @@ function Body({
             onMouseDown={e => handleRowSelect(e, value)}>
             {columns.map(col => renderColumn(row, col))}
         </tr>
-    }, [
-        options,
-        name,
-        columns,
-        selectedValues,
-        activeValue,
-        actions,
-        handleRowContextMenu,
-        handleRowSelect,
-        renderColumn
-    ]);
+    };
 
     return <tbody>
         {items.map(renderRow)}

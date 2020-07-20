@@ -204,6 +204,9 @@ export default function createTable(namespace, options = {}, initState = {}) {
 
                     //Clear selection
                     draft.selectedValues = [];
+
+                    //Clear active and pivot values
+                    setActivePivotValue(null);
                     break;
                 }
                 case actions.SORT_BY: {

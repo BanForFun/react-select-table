@@ -29,9 +29,9 @@
 }
 
 .headContainer {
+    flex: none;
     position: sticky;
     top: 0;
-    flex: none;
     z-index: 1;
     outline: none;
     background-color: whitesmoke;
@@ -112,4 +112,6 @@
 
 .placeholder {
     flex: auto;
+    outline: none;
+    z-index: 0;
 }

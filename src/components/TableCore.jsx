@@ -331,6 +331,7 @@ function TableCore(props) {
             {isEmpty ?
                 //Empty placeholder
                 <div className={styles.placeholder}
+                     tabIndex="0"
                      onContextMenu={() => actions.contextMenu(null)}
                      onKeyDown={e => onKeyDown(e, selectedValues)}
                 >{emptyPlaceholder}</div> :

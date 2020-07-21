@@ -74,7 +74,7 @@ function Head({
                         actions.sortBy(path, e.shiftKey);
                     }
 
-                    const addSeperator = options.scrollX ||
+                    const addSeparator = options.scrollX ||
                         index < columns.length - 1;
 
                     return <th key={`head_${name}_${meta.id}`}
@@ -82,8 +82,8 @@ function Head({
                         data-order={sortBy[path]}
                         onClick={handleClick}>
                         {title} <SortIcon />
-                        {addSeperator && <div
-                            className={styles.seperator}
+                        {addSeparator && <div
+                            className={styles.separator}
                             onClick={e => e.stopPropagation()}
                             onTouchStart={startResize}
                             onMouseDown={startResize} />}

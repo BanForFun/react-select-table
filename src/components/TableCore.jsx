@@ -127,19 +127,21 @@ function TableCore(props) {
         const body = bodyContainer.current;
         const root = body.offsetParent;
 
-        //Calculate client rectangle
+        //Calculate selection rectangle
         const rect = Rect.fromPoints(
             mouseX + root.scrollLeft,
             mouseY + root.scrollTop,
             originX, originY
         );
 
-        //Calculate visible client bounds
+        //Calculate visible container bounds
         const rootBounds = root.getBoundingClientRect();
         const clientBounds = Rect.fromPosSize(
             rootBounds.x, rootBounds.y,
             root.clientWidth, root.clientHeight
         );
+
+        //Remove header from container bounds
         clientBounds.top += body.offsetTop;
         clientBounds.left += body.offsetLeft;
 
@@ -149,8 +151,10 @@ function TableCore(props) {
             body.scrollWidth, body.scrollHeight
         );
 
-        //Make client rectangle be relative to container
+        //Limit selection rectangle to table bounds
         rect.limit(scrollBounds);
+
+        //Make selection rectangle be relative to container
         rect.offsetBy(-rootBounds.x, -rootBounds.y);
 
         //Scroll if necessary
@@ -287,16 +291,15 @@ function TableCore(props) {
         }));
     }, [columnOrder, columnWidth, columns]);
 
-    const selectionRect = useMemo(() => {
+    const renderSelectionBox = () => {
         if (!selRect) return null;
 
-        const style = _.pick(selRect, "left", "top", "width", "height");
-        return <div className={styles.selection} style={style} />
-    }, [selRect]);
-
-    const colGroup = useMemo(() =>
-        <ColumnResizer name={name} columns={parsedColumns} />,
-        [name, parsedColumns]);
+        const posSize = _.mapValues(
+            _.pick(selRect, "left", "top", "width", "height"),
+            n => `${n}px`
+        );
+        return <div className={styles.selection} style={posSize}/>
+    };
 
     const renderTable = () => {
         const commonParams = {
@@ -310,6 +313,8 @@ function TableCore(props) {
 
         const tableWidth = `${_.sum(columnWidth)}%`;
         const isEmpty = items.length === 0;
+
+        const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
 
         return <Fragment>
             <div className={styles.headContainer}
@@ -343,7 +348,7 @@ function TableCore(props) {
                      onTouchStart={() => isTouching.current = true}
                      onMouseDown={handleMouseDown}
                 >
-                    {selectionRect}
+                    {renderSelectionBox()}
                     <table className={className} >
                         {colGroup}
                         <Body {...commonParams} rowRefs={rowRefs} />

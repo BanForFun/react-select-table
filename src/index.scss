@@ -104,7 +104,10 @@
 }
 
 .sortIcon {
-    height: 1.25em;
+    $size: 1.25em;
+    height: $size;
+    width: $size;
+
     vertical-align: text-top;
     fill: currentColor;
     display: none;

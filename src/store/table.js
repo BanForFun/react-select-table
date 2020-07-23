@@ -120,6 +120,12 @@ export default function createTable(namespace, options = {}, initState = {}) {
         draft.isLoading = false;
     }
 
+    function clearSelection() {
+        setActivePivotValue(null);
+        if (!options.listBox)
+            draft.selectedValues = [];
+    }
+
     //Validate initial state
     updateItems();
     updateSelection();
@@ -202,11 +208,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     draft.isLoading = true;
                     draft.error = null;
 
-                    //Clear selection
-                    draft.selectedValues = [];
-
-                    //Clear active and pivot values
-                    setActivePivotValue(null);
+                    clearSelection();
                     break;
                 }
                 case actions.SORT_BY: {
@@ -272,9 +274,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     break;
                 }
                 case actions.CLEAR_SELECTION: {
-                    setActivePivotValue(null);
-                    if (!options.listBox)
-                        draft.selectedValues = [];
+                    clearSelection();
                     break;
                 }
                 case actions.SET_ROW_SELECTED: {

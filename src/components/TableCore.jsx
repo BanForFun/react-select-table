@@ -27,7 +27,7 @@ function TableCore(props) {
         columns,
         emptyPlaceholder,
         loadingPlaceholder,
-        errorPlaceholder,
+        renderError,
         onItemsOpen,
         onColumnResizeEnd,
         onKeyDown,
@@ -364,7 +364,7 @@ function TableCore(props) {
         let placeholder = null
 
         if (error) //Error
-            placeholder = errorPlaceholder;
+            placeholder = renderError(error);
         else if (isLoading) //Loading
             placeholder = loadingPlaceholder;
         else //All good
@@ -430,12 +430,13 @@ TableCore.propTypes = {
     onKeyDown: PropTypes.func,
     emptyPlaceholder: PropTypes.node,
     loadingPlaceholder: PropTypes.node,
-    errorPlaceholder: PropTypes.node
+    renderError: PropTypes.func
 };
 
 TableCore.defaultProps = {
     onItemsOpen: () => { },
     onColumnResizeEnd: () => { },
     onKeyDown: () => { },
+    renderError: () => null,
     ...defaultEvents
 };

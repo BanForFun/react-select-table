@@ -162,7 +162,10 @@ export default function createTable(namespace, options = {}, initState = {}) {
                     break;
                 }
                 case actions.SET_ROW_VALUES: {
-                    for (let [oldValue, newValue] of payload) {
+                    for (let valueString in payload) {
+                        const newValue = payload[valueString];
+                        const oldValue = state.items[valueString][valueProperty];
+
                         //Update active value
                         if (oldValue === state.activeValue)
                             draft.activeValue = newValue;

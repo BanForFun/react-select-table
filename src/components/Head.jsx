@@ -12,7 +12,7 @@ function Head({
     sortBy,
     name,
     columnWidth,
-    actions,
+    dispatchActions,
     options,
     onResizeEnd
 }) {
@@ -32,8 +32,8 @@ function Head({
         const offset = _.sum(_.take(columnWidth, resizingIndex));
         const percent = absPercent - offset;
 
-        actions.setColumnWidth(resizingIndex, percent);
-    }, [resizingIndex, columnWidth, actions]);
+        dispatchActions.setColumnWidth(resizingIndex, percent);
+    }, [resizingIndex, columnWidth, dispatchActions]);
 
     const dragEnd = useCallback(() => {
         if (resizingIndex === null) return;
@@ -71,7 +71,7 @@ function Head({
 
                     const handleClick = e => {
                         if (!path) return;
-                        actions.sortBy(path, e.shiftKey);
+                        dispatchActions.sortBy(path, e.shiftKey);
                     }
 
                     const addSeparator = options.scrollX ||

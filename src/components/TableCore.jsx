@@ -55,7 +55,7 @@ function TableCore(props) {
         _.map(items, options.valueProperty),
         [items, options]);
 
-    const actions = useMemo(() => {
+    const dispatchActions = useMemo(() => {
         const actions = new InternalActions(namespace);
         return bindActionCreators(actions, dispatch);
     }, [namespace, dispatch]);
@@ -73,8 +73,8 @@ function TableCore(props) {
     //Set column count
     useEffect(() => {
         if (columnOrder) return;
-        actions.setColumnCount(columns.length)
-    }, [columns.length, columnOrder, actions]);
+        dispatchActions.setColumnCount(columns.length)
+    }, [columns.length, columnOrder, dispatchActions]);
 
     //#endregion
 
@@ -180,12 +180,12 @@ function TableCore(props) {
             //Check for collision with the selection rectangle
             const intersects = bottom > rect.top && top < rect.bottom;
             if (selectedValues.includes(value) !== intersects)
-                actions.setRowSelected(value, intersects);
+                dispatchActions.setRowSelected(value, intersects);
         }
 
         //Set rectangle in state
         setSelRect(rect);
-    }, [selOrigin, values, selectedValues, lastMousePos, actions]);
+    }, [selOrigin, values, selectedValues, lastMousePos, dispatchActions]);
 
     useWindowEvent("mousemove", useCallback(e => {
         updateSelectRect([e.clientX, e.clientY])
@@ -213,11 +213,11 @@ function TableCore(props) {
         const value = values[index];
 
         const onlyCtrl = e.ctrlKey && !e.shiftKey;
-        if (onlyCtrl) actions.setActiveRow(value);
-        else actions.selectRow(value, e.ctrlKey, e.shiftKey);
+        if (onlyCtrl) dispatchActions.setActiveRow(value);
+        else dispatchActions.selectRow(value, e.ctrlKey, e.shiftKey);
 
         ensureRowVisible(rowRefs.current[index], bodyContainer.current);
-    }, [values, actions]);
+    }, [values, dispatchActions]);
 
     const selectAtOffset = useCallback((e, offset) => {
         const activeIndex = values.indexOf(activeValue);
@@ -234,7 +234,7 @@ function TableCore(props) {
         if (e.button !== 0) return;
 
         if (e.currentTarget === e.target && !e.ctrlKey)
-            actions.clearSelection();
+            dispatchActions.clearSelection();
 
         dragStart([e.clientX, e.clientY]);
     };
@@ -244,14 +244,14 @@ function TableCore(props) {
             dragStart([e.clientX, e.clientY]);
 
         if (e.currentTarget !== e.target) return;
-        actions.contextMenu(null, e.ctrlKey);
+        dispatchActions.contextMenu(null, e.ctrlKey);
     };
 
     const handleKeyDown = e => {
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey && options.multiSelect)
-                    actions.selectAll();
+                    dispatchActions.selectAll();
                 break;
             case 38: //Up
                 selectAtOffset(e, -1);
@@ -306,7 +306,7 @@ function TableCore(props) {
             name,
             namespace,
             context,
-            actions,
+            dispatchActions,
             options,
             columns: parsedColumns
         }
@@ -332,7 +332,7 @@ function TableCore(props) {
                 //Empty placeholder
                 <div className={styles.placeholder}
                      tabIndex="0"
-                     onContextMenu={() => actions.contextMenu(null)}
+                     onContextMenu={() => dispatchActions.contextMenu(null)}
                      onKeyDown={e => onKeyDown(e, selectedValues)}
                 >{emptyPlaceholder}</div> :
 
@@ -437,6 +437,6 @@ TableCore.defaultProps = {
     onItemsOpen: () => { },
     onColumnResizeEnd: () => { },
     onKeyDown: () => { },
-    renderError: () => null,
+    renderError: msg => msg,
     ...defaultEvents
 };

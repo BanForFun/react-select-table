@@ -13,15 +13,15 @@ function Body({
     rowRefs,
     selectedValues,
     activeValue,
-    actions
+    dispatchActions
 }) {
     const handleRowSelect = (e, value) => {
         if (e.button !== 0) return;
-        actions.selectRow(value, e.ctrlKey, e.shiftKey);
+        dispatchActions.selectRow(value, e.ctrlKey, e.shiftKey);
     };
 
     const handleRowContextMenu = (e, value) => {
-        actions.contextMenu(value, e.ctrlKey);
+        dispatchActions.contextMenu(value, e.ctrlKey);
     };
 
     const renderColumn = (row, column) => {

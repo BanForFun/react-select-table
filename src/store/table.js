@@ -118,6 +118,7 @@ export default function createTable(namespace, options = {}, initState = {}) {
     function setItems(items, areKeyed) {
         draft.items = areKeyed ? items : _.keyBy(items, valueProperty);
         draft.isLoading = false;
+        draft.error = null;
     }
 
     function clearSelection() {

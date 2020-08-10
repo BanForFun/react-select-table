@@ -16,12 +16,13 @@ function Head({
     options,
     onResizeEnd
 }) {
-    const isResizing = useRef(false);
     const [resizingIndex, setResizingIndex] = useState(null);
     const header = useRef();
 
+    const isResizing = resizingIndex !== null;
+
     const updateWidth = useCallback(xPos => {
-        if (resizingIndex === null) return;
+        if (!isResizing) return;
 
         const head = header.current;
         const headXPos = head.getBoundingClientRect().x;
@@ -36,19 +37,18 @@ function Head({
     }, [resizingIndex, columnWidth, dispatchActions]);
 
     const dragEnd = useCallback(() => {
-        if (resizingIndex === null) return;
+        if (!isResizing) return;
 
         setResizingIndex(null);
         onResizeEnd(columnWidth);
-    }, [resizingIndex, onResizeEnd, columnWidth]);
+    }, [isResizing, onResizeEnd, columnWidth]);
 
     useWindowEvent("mousemove", e => updateWidth(e.clientX));
 
     useWindowEvent("mouseup", dragEnd);
 
     useWindowEvent("touchmove", e => {
-        if (resizingIndex === null) return;
-
+        if (!isResizing) return;
         e.preventDefault();
         updateWidth(e.touches[0].clientX);
     });
@@ -56,18 +56,13 @@ function Head({
     useWindowEvent("touchend", dragEnd);
 
     return (
-        <thead
-            ref={header}
-            data-resizing={boolAttrib(resizingIndex)}
-        >
+        <thead ref={header} data-resizing={boolAttrib(isResizing)}>
             <tr>
                 {columns.map((col, index) => {
                     const { path, meta, title } = col;
 
-                    const startResize = () => {
+                    const startResize = () =>
                         setResizingIndex(index);
-                        isResizing.current = true;
-                    }
 
                     const handleClick = e => {
                         if (!path) return;
@@ -86,7 +81,8 @@ function Head({
                             className={styles.separator}
                             onClick={e => e.stopPropagation()}
                             onTouchStart={startResize}
-                            onMouseDown={startResize} />}
+                            onMouseDown={startResize}
+                        />}
                     </th>
                 })}
             </tr>

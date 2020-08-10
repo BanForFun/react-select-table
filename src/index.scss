@@ -36,10 +36,6 @@
     outline: none;
     background-color: whitesmoke;
 
-    thead[data-resizing] th {
-        cursor: col-resize;
-    }
-
     th {
         white-space: nowrap;
         position: relative;
@@ -55,6 +51,10 @@
         &[data-order=desc] .sortIcon {
             transform: rotate(180deg);
         }
+    }
+
+    thead[data-resizing] th {
+        cursor: col-resize !important;
     }
 }
 

@@ -409,7 +409,7 @@ function makeMapState() {
 
 export default connect(makeMapState)(TableCore);
 
-const columnShape = PropTypes.shape({
+export const columnShape = PropTypes.shape({
     title: PropTypes.string,
     key: PropTypes.string,
     path: PropTypes.string,

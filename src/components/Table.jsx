@@ -1,12 +1,10 @@
 
-import React, { useEffect, useMemo, useState, useContext } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import { Provider } from "react-redux";
-import TableCore from "./TableCore.jsx";
+import TableCore, {columnShape} from "./TableCore.jsx";
 import InternalActions from "../models/internalActions.js";
 import getStore, { reducerExists } from "../store/configureStore.js";
-import { TableNameContext } from "../hoc/withTable.js";
-import useEither from "../hooks/useEither.js";
 
 function useAutoDispatch(creator, param) {
     useEffect(() => {
@@ -24,13 +22,10 @@ function Table({
     pageSize,
     itemParser,
     itemPredicate,
-    name: propName,
+    name,
     ...props
 }) {
     const store = getStore();
-
-    const contextName = useContext(TableNameContext);
-    const name = useEither(propName, contextName);
 
     const [isReady, setReady] = useState(false);
     useEffect(() => {
@@ -62,8 +57,17 @@ function Table({
 export default Table;
 
 Table.propTypes = {
-    ...TableCore.propTypes,
+    name: PropTypes.string.isRequired,
+    columns: PropTypes.arrayOf(columnShape).isRequired,
     items: PropTypes.array.isRequired,
+    className: PropTypes.string,
+    onContextMenu: PropTypes.func,
+    onItemsOpen: PropTypes.func,
+    onSelectionChange: PropTypes.func,
+    onColumnResizeEnd: PropTypes.func,
+    onKeyDown: PropTypes.func,
+    emptyPlaceholder: PropTypes.node,
+    loadingPlaceholder: PropTypes.node,
     filter: PropTypes.any,
     page: PropTypes.number,
     pageSize: PropTypes.number

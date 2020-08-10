@@ -5,15 +5,15 @@ import eventMiddleware from "./eventMiddleware";
 let store;
 const asyncReducers = {};
 
-export default function getStore(doCreate = false) {
+export default function getStore() {
+    //Store doesn't exists
+    if (!store)
+        throw new Error("Store was not initialized.");
+
     //Store exists
-    if (store) return store;
-    //Store doesn't exist, don't create
-    if (!doCreate) throw new Error("Store was not initialized.");
-    //Store doesn't exist, create one
-    configureStore();
     return store;
 }
+
 
 function configureStore() {
     store = createStore(getReducer(), composeWithDevTools(
@@ -29,14 +29,17 @@ function rebuildReducers() {
     store.replaceReducer(getReducer());
 }
 
-export function injectReducer(namespace, reducer) {
-    asyncReducers[namespace] = reducer;
-    if (store) rebuildReducers();
-    else configureStore();
+export function injectReducers(reducers) {
+    Object.assign(asyncReducers, reducers);
+
+    if (store)
+        rebuildReducers();
+    else
+        configureStore();
 }
 
-export function removeReducer(namespace) {
-    delete asyncReducers[namespace];
+export function removeReducers(namespaces) {
+    namespaces.forEach(ns => delete asyncReducers[ns]);
     rebuildReducers();
 }
 

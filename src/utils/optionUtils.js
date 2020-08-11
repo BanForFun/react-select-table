@@ -24,7 +24,7 @@ const defaultOptions = {
     multiSelect: true,
     listBox: false,
     minColumnWidth: 3,
-    valueProperty: "_id",
+    valueProperty: "id",
     scrollX: false,
     multiSort: false,
     path: null,

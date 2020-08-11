@@ -1,13 +1,12 @@
 import { default as actions } from "../models/actions";
 import { tableOptions } from "../utils/optionUtils";
 import { areItemsEqual, inArray } from "../utils/arrayUtils";
-import { makeGetStateSlice } from "../selectors/namespaceSelectors";
+import {getTableSlice} from "../utils/reduxUtils";
 
 const eventMiddleware = store => next => action => {
     const { type, namespace } = action;
 
-    const getSlice = makeGetStateSlice();
-    const getTable = () => getSlice(store.getState(), namespace);
+    const getTable = () => getTableSlice(store.getState(), namespace);
 
     switch (type) {
         case actions.SET_ROWS:

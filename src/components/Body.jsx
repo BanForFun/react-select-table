@@ -1,9 +1,9 @@
 import _ from "lodash";
-import React, { useCallback } from 'react';
+import React from 'react';
 import styles from "../index.scss";
-import { makeGetStateSlice } from "../selectors/namespaceSelectors";
 import { connect } from "react-redux";
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
+import {getTableSlice} from "../utils/reduxUtils";
 
 function Body({
     columns,
@@ -63,11 +63,10 @@ function Body({
 }
 
 function makeMapState() {
-    const getSlice = makeGetStateSlice();
     const getItems = makeGetPaginatedItems();
 
     return (root, props) => {
-        const slice = getSlice(root, props.namespace);
+        const slice = getTableSlice(root, props.namespace);
         const picked = _.pick(slice,
             "tableItems",
             "selectedValues",

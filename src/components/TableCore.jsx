@@ -1,3 +1,5 @@
+import styles from "../index.scss";
+
 import React, { Fragment, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import _ from "lodash";
 import Head from "./Head";
@@ -10,13 +12,12 @@ import {
     ensurePosVisible,
     ensureRowVisible
 } from '../utils/elementUtils';
-import styles from "../index.scss";
-import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import InternalActions from '../models/internalActions';
 import { tableOptions, defaultEvents } from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
+import {getTableSlice} from "../utils/reduxUtils";
 
 function TableCore(props) {
     const {
@@ -383,12 +384,11 @@ function TableCore(props) {
 }
 
 function makeMapState() {
-    const getSlice = makeGetStateSlice();
     const getItems = makeGetPaginatedItems();
 
     return (root, props) => {
         const namespace = props.namespace || props.name;
-        const slice = getSlice(root, namespace);
+        const slice = getTableSlice(root, namespace);
         const pick = _.pick(slice,
             "columnWidth",
             "columnOrder",

@@ -3,9 +3,9 @@ import _ from "lodash";
 import { connect } from 'react-redux';
 import styles from "../index.scss";
 import SortIcon from './SortIcon';
-import { makeGetStateSlice } from '../selectors/namespaceSelectors';
 import useWindowEvent from '../hooks/useWindowEvent';
 import { boolAttrib } from '../utils/attributeUtils';
+import {getTableSlice} from "../utils/reduxUtils";
 
 function Head({
     columns,
@@ -90,11 +90,9 @@ function Head({
     );
 }
 
-function makeMapState() {
-    const getSlice = makeGetStateSlice();
-
-    return (root, props) => _.pick(
-        getSlice(root, props.namespace),
+function makeMapState(root, props) {
+    const slice = getTableSlice(root, props.namespace)
+    return _.pick(slice,
         "columnWidth",
         "sortBy"
     );

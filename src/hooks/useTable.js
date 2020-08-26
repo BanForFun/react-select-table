@@ -12,6 +12,8 @@ export default function useTable(name) {
     //Pagination
     const getPageCount = useMemo(makeGetPageCount, []);
     props.pageCount = useSelector(() => getPageCount(table));
+    props.tableItems = useSelector(() => table.tableItems);
+    props.selectedValues = useSelector(() => table.selectedValues);
 
     return props;
 }

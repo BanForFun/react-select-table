@@ -30,10 +30,7 @@ function getColumnWidth(count) {
     return _.times(count, _.constant(width));
 }
 
-export default function createTable(namespace, options = {}, initState = {}) {
-    //State
-    let draft = _.defaults(initState, defaultState);
-
+export default function createTable(namespace, options = {}) {
     //Options
     const {
         valueProperty,
@@ -42,6 +39,9 @@ export default function createTable(namespace, options = {}, initState = {}) {
         scrollX,
         multiSort
     } = setOptions(namespace, options);
+
+    const initState = {...defaultState, ...options.initState};
+    let draft = initState;
 
     if (options.initItems)
         setItems(options.initItems, false);

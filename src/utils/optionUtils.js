@@ -29,6 +29,7 @@ const defaultOptions = {
     multiSort: false,
     path: null,
     initColCount: 0,
+    initState: {},
     ...defaultEvents
 };
 

@@ -20,6 +20,7 @@ function Table({
     filter,
     page,
     pageSize,
+    columnOrder,
     itemParser,
     itemPredicate,
     name,
@@ -47,6 +48,7 @@ function Table({
     useAutoDispatch(actions.setRows, items);
     useAutoDispatch(actions.goToPage, page);
     useAutoDispatch(actions.setPageSize, pageSize);
+    useAutoDispatch(actions.setColumnOrder, columnOrder);
 
     if (!isReady) return null;
     return <Provider store={store}>
@@ -69,6 +71,7 @@ Table.propTypes = {
     emptyPlaceholder: PropTypes.node,
     loadingPlaceholder: PropTypes.node,
     filter: PropTypes.any,
+    columnOrder: PropTypes.arrayOf(PropTypes.number),
     page: PropTypes.number,
     pageSize: PropTypes.number
 }

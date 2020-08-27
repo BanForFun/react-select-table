@@ -46,9 +46,6 @@ export default function createTable(namespace, options = {}) {
     if (options.initItems)
         setItems(options.initItems, false);
 
-    if (options.initColCount)
-        draft.columnWidth = getColumnWidth(options.initColCount);
-
     //Selectors
     const getPageCount = makeGetPageCount();
 

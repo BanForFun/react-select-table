@@ -28,8 +28,7 @@ const defaultOptions = {
     scrollX: false,
     multiSort: false,
     path: null,
-    initState: {},
-    ...defaultEvents
+    initState: {}
 };
 
 export function setDefaultOptions(options) {
@@ -38,6 +37,6 @@ export function setDefaultOptions(options) {
 
 export function setOptions(namespace, options) {
     _.defaults(options, defaultOptions);
+    Object.assign(options, defaultEvents);
     tableOptions[namespace] = options;
-    return options;
 }

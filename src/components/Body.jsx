@@ -29,8 +29,7 @@ function Body({
         const { meta, path, render, isHeader } = column;
 
         const value = _.get(row, path);
-        const valueOrRow = path ? value : row;
-        const content = render ? render(valueOrRow, row) : value;
+        const content = render ? render(value, row) : value;
 
         const key = `body_${name}_${rowValue}_${meta.id}`;
         if (isHeader) return <th key={key}>{content}</th>;

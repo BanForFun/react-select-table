@@ -32,13 +32,14 @@ function getColumnWidth(count) {
 
 export default function createTable(namespace, options = {}) {
     //Options
+    setOptions(namespace, options);
     const {
         valueProperty,
         listBox,
         multiSelect,
         scrollX,
         multiSort
-    } = setOptions(namespace, options);
+    } = options;
 
     const initState = {...defaultState, ...options.initState};
     let draft = initState;

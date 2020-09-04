@@ -27,7 +27,7 @@ function TableCore(props) {
         className,
         columns,
         emptyPlaceholder,
-        loadingPlaceholder,
+        loadingIndicator,
         renderError,
         onItemsOpen,
         onColumnResizeEnd,
@@ -69,7 +69,7 @@ function TableCore(props) {
         useEffect(() => {
             options[event] = handler;
         }, [handler, options]);
-    };
+    }
 
     //Set column count
     useEffect(() => {
@@ -367,7 +367,7 @@ function TableCore(props) {
         if (error) //Error
             placeholder = renderError(error);
         else if (isLoading) //Loading
-            placeholder = loadingPlaceholder;
+            placeholder = loadingIndicator;
         else //All good
             return renderTable();
 
@@ -429,7 +429,7 @@ TableCore.propTypes = {
     onColumnResizeEnd: PropTypes.func,
     onKeyDown: PropTypes.func,
     emptyPlaceholder: PropTypes.node,
-    loadingPlaceholder: PropTypes.node,
+    loadingIndicator: PropTypes.node,
     renderError: PropTypes.func
 };
 

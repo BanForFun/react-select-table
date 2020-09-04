@@ -41,7 +41,3 @@ export function setOptions(namespace, options) {
     tableOptions[namespace] = options;
     return options;
 }
-
-export function getTablePath(namespace) {
-    return tableOptions[namespace].path;
-}

@@ -1,7 +1,7 @@
-import { default as actions } from "../models/actions";
+import actions from "../models/actions";
 import { tableOptions } from "../utils/optionUtils";
-import { areItemsEqual, inArray } from "../utils/arrayUtils";
-import {getTableSlice} from "../utils/reduxUtils";
+import { areItemsEqual } from "../utils/arrayUtils";
+import { getTableSlice } from "../utils/reduxUtils";
 
 const eventMiddleware = store => next => action => {
     const { type, namespace } = action;
@@ -32,7 +32,7 @@ const eventMiddleware = store => next => action => {
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
                 options.onContextMenu(options.listBox
-                    ? inArray(table.activeValue) : table.selectedValues);
+                    ? table.activeValue : table.selectedValues);
 
             return result;
         default:

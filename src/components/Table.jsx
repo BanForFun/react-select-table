@@ -69,7 +69,7 @@ Table.propTypes = {
     onColumnResizeEnd: PropTypes.func,
     onKeyDown: PropTypes.func,
     emptyPlaceholder: PropTypes.node,
-    loadingPlaceholder: PropTypes.node,
+    loadingIndicator: PropTypes.node,
     filter: PropTypes.any,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     page: PropTypes.number,

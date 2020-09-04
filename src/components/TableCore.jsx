@@ -285,10 +285,9 @@ function TableCore(props) {
 
         //Add column metadata
         return orderedColumns.map((col, index) => ({
-            ...col, meta: {
-                width: `${columnWidth[index]}%`,
-                id: col.key || col.path
-            }
+            ...col,
+            _width: `${columnWidth[index]}%`,
+            _id: col.key || col.path
         }));
     }, [columnOrder, columnWidth, columns]);
 

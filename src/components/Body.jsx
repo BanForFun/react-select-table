@@ -26,14 +26,16 @@ function Body({
 
     const renderColumn = (row, column) => {
         const rowValue = row[options.valueProperty];
-        const { meta, path, render, isHeader } = column;
+        const { _id, path, render, isHeader } = column;
 
         const value = _.get(row, path);
         const content = render ? render(value, row) : value;
 
-        const key = `body_${name}_${rowValue}_${meta.id}`;
-        if (isHeader) return <th key={key}>{content}</th>;
-        return <td key={key}>{content}</td>
+        const props = {
+            key: `body_${name}_${rowValue}_${_id}`
+        }
+        if (isHeader) return <th {...props}>{content}</th>;
+        return <td {...props}>{content}</td>
     };
 
     const renderRow = (row, index) => {
@@ -47,11 +49,13 @@ function Body({
         if (row._className)
             classes.push(row._className);
 
-        return <tr key={`row_${name}_${value}`}
+        return <tr
+            key={`row_${name}_${value}`}
             ref={el => rowRefs.current[index] = el}
             className={classes.join(' ')}
             onContextMenu={e => handleRowContextMenu(e, value)}
-            onMouseDown={e => handleRowSelect(e, value)}>
+            onMouseDown={e => handleRowSelect(e, value)}
+        >
             {columns.map(col => renderColumn(row, col))}
         </tr>
     };

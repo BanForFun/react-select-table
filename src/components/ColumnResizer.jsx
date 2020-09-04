@@ -1,13 +1,13 @@
 import React from 'react';
-import _ from "lodash";
 
 const ColumnResizer = ({ columns, name }) => {
     return <colgroup>
         {columns.map(col => {
-            const { width, id } = col.meta;
-
-            return <col key={`col_${name}_${id}`}
-                style={{ width }} />
+            const { _width, _id } = col;
+            return <col
+                key={`col_${name}_${_id}`}
+                style={{ width: _width }}
+            />
         })}
     </colgroup>;
 }

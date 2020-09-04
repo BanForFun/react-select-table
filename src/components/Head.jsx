@@ -59,7 +59,7 @@ function Head({
         <thead ref={header} data-resizing={boolAttrib(isResizing)}>
             <tr>
                 {columns.map((col, index) => {
-                    const { path, meta, title } = col;
+                    const { _id, path, title } = col;
 
                     const startResize = () =>
                         setResizingIndex(index);
@@ -72,7 +72,7 @@ function Head({
                     const addSeparator = options.scrollX ||
                         index < columns.length - 1;
 
-                    return <th key={`head_${name}_${meta.id}`}
+                    return <th key={`head_${name}_${_id}`}
                         data-sortable={boolAttrib(path)}
                         data-order={sortBy[path]}
                         onClick={handleClick}>

@@ -3,7 +3,7 @@ import React from 'react';
 import styles from "../index.scss";
 import { connect } from "react-redux";
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
-import {getTableSlice} from "../utils/reduxUtils";
+import { getTableSlice } from "../utils/reduxUtils";
 
 function Body({
     columns,
@@ -26,13 +26,14 @@ function Body({
 
     const renderColumn = (row, column) => {
         const rowValue = row[options.valueProperty];
-        const { _id, path, render, isHeader } = column;
+        const { _id, path, render, className, isHeader } = column;
 
         const value = _.get(row, path);
         const content = render ? render(value, row) : value;
 
         const props = {
-            key: `body_${name}_${rowValue}_${_id}`
+            key: `body_${name}_${rowValue}_${_id}`,
+            className
         }
         if (isHeader) return <th {...props}>{content}</th>;
         return <td {...props}>{content}</td>

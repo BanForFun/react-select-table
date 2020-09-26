@@ -25,11 +25,11 @@ Used to reorder and/or hide columns. It can be set to an array containing indexe
 
 If null, all columns passed to the [`columns`][columns] prop will be rendered.
 
-#### `columnWidth` *array of number*
+#### `columnWidths` *array of number*
 
 > **Default**: `[]`
 >
-> **Modified by**: [`setColumnWidth`](#setColumnWidth)
+> **Modified by**: [`setColumnWidths`](#setColumnWidths)
 
 Array of **[visible][columnOrder]** columns widths as percentages of the table width. On initialization, all columns are set to be of equal width.
 
@@ -219,7 +219,7 @@ Finds the item with [value][value]: `oldValue` and changes its value to `newValu
 
 Parameters: none
 
-Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Sets [`error`](#error-string) state to `null`. Clears the selection. 
+Removes all items. Sets [`isLoading`](#isloading-boolean) state to true. Sets [`error`](#error-string) state to `null`. Clears the selection.
 
 #### Selection actions
 
@@ -295,7 +295,7 @@ Sets [`error`](#error-string) state to `message`. Sets [`isLoading`](#isloading-
 
 #### Column actions
 
-#### `setColumnWidth`
+#### `setColumnWidths`
 
 > **Type**: `SET_COLUMN_WIDTH`
 

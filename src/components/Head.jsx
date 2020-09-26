@@ -5,43 +5,67 @@ import styles from "../index.scss";
 import SortIcon from './SortIcon';
 import useWindowEvent from '../hooks/useWindowEvent';
 import { boolAttrib } from '../utils/attributeUtils';
-import {getTableSlice} from "../utils/reduxUtils";
+import { getTableSlice } from "../utils/reduxUtils";
+import produce from "immer";
 
 function Head({
     columns,
     sortBy,
     name,
-    columnWidth,
+    columnWidths,
+    setColumnWidths,
     dispatchActions,
     options,
     onResizeEnd
 }) {
-    const [resizingIndex, setResizingIndex] = useState(null);
+    const [resizingIndex, setResizingIndex] = useState(-1);
     const header = useRef();
 
-    const isResizing = resizingIndex !== null;
+    const isResizing = resizingIndex >= 0;
 
     const updateWidth = useCallback(xPos => {
         if (!isResizing) return;
 
+        const index = resizingIndex;
         const head = header.current;
         const headXPos = head.getBoundingClientRect().x;
         const absX = xPos - headXPos;
 
-        const fullWidth = _.sum(columnWidth);
-        const absPercent = absX * fullWidth / head.clientWidth;
-        const offset = _.sum(_.take(columnWidth, resizingIndex));
-        const percent = absPercent - offset;
+        const fullWidth = _.sum(columnWidths);
+        const absWidth = absX * fullWidth / head.clientWidth;
+        const offset = _.sum(_.take(columnWidths, index));
+        const newWidth = absWidth - offset;
 
-        dispatchActions.setColumnWidth(resizingIndex, percent);
-    }, [resizingIndex, columnWidth, dispatchActions]);
+        setColumnWidths(produce(columnWidths, width => {
+            const minWidth = options.minColumnWidth;
+
+            if (options.scrollX) {
+                width[index] = Math.max(newWidth, minWidth);
+                return;
+            }
+
+            const thisWidth = width[index];
+            const nextWidth = width[index + 1];
+            const availableWidth = thisWidth + nextWidth;
+            const maxWidth = availableWidth - minWidth;
+            const limitedWidth = _.clamp(newWidth, minWidth, maxWidth);
+
+            width[index] = limitedWidth;
+            width[index + 1] = availableWidth - limitedWidth;
+        }));
+    }, [
+        resizingIndex,
+        columnWidths,
+        setColumnWidths,
+        options
+    ]);
 
     const dragEnd = useCallback(() => {
         if (!isResizing) return;
 
-        setResizingIndex(null);
-        onResizeEnd(columnWidth);
-    }, [isResizing, onResizeEnd, columnWidth]);
+        setResizingIndex(-1);
+        onResizeEnd(columnWidths);
+    }, [isResizing, onResizeEnd, columnWidths]);
 
     useWindowEvent("mousemove", e => updateWidth(e.clientX));
 
@@ -93,7 +117,6 @@ function Head({
 function makeMapState(root, props) {
     const slice = getTableSlice(root, props.namespace)
     return _.pick(slice,
-        "columnWidth",
         "sortBy"
     );
 }

@@ -1,18 +1,20 @@
 
-import React, { useEffect, useMemo, useState } from "react";
-import PropTypes from "prop-types";
-import { Provider } from "react-redux";
-import TableCore, {columnShape} from "./TableCore.jsx";
-import InternalActions from "../models/internalActions.js";
+import React, { useEffect, useState, useMemo } from "react";
+import { Provider, useDispatch } from "react-redux";
+import TableCore, { columnShape } from "./TableCore.jsx";
 import getStore, { reducerExists } from "../store/configureStore.js";
+import PropTypes from "prop-types";
+import Actions from "../models/actions";
 
 function useAutoDispatch(creator, param) {
+    const dispatch = useDispatch();
+
     useEffect(() => {
         if (!creator) return;
         if (param === undefined) return;
 
-        getStore().dispatch(creator(param));
-    }, [creator, param]);
+        dispatch(creator(param));
+    }, [creator, param, dispatch]);
 }
 
 function Table({
@@ -20,9 +22,6 @@ function Table({
     filter,
     page,
     pageSize,
-    columnOrder,
-    itemParser,
-    itemPredicate,
     name,
     ...props
 }) {
@@ -35,20 +34,20 @@ function Table({
 
         //For the first table
         updateReady();
+
         //For subsequent tables
         store.subscribe(updateReady);
     }, [name]);
 
-    const actions = useMemo(() => {
-        if (!isReady) return {};
-        return new InternalActions(name);
-    }, [name, isReady]);
+    const actions = useMemo(() =>
+        isReady && new Actions(name),
+        [name, isReady]
+    );
 
     useAutoDispatch(actions.setFilter, filter);
     useAutoDispatch(actions.setRows, items);
     useAutoDispatch(actions.goToPage, page);
     useAutoDispatch(actions.setPageSize, pageSize);
-    useAutoDispatch(actions.setColumnOrder, columnOrder);
 
     if (!isReady) return null;
     return <Provider store={store}>
@@ -66,12 +65,13 @@ Table.propTypes = {
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,
-    onColumnResizeEnd: PropTypes.func,
+    onColumnsResizeEnd: PropTypes.func,
     onKeyDown: PropTypes.func,
     emptyPlaceholder: PropTypes.node,
     loadingIndicator: PropTypes.node,
     filter: PropTypes.any,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
+    initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     page: PropTypes.number,
     pageSize: PropTypes.number
 }

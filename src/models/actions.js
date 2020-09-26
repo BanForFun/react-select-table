@@ -16,10 +16,6 @@ export default class TableActions {
     static SET_FILTER = "TABLE_SET_FILTER";
     static SET_ERROR = "TABLE_SET_ERROR";
 
-    //Columns
-    static SET_COLUMN_WIDTH = "TABLE_SET_COLUMN_WIDTH";
-    static SET_COLUMN_ORDER = "TABLE_SET_COLUMN_ORDER";
-
     //Selection
     static SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
     static SELECT_ROW = "TABLE_SELECT_ROW";
@@ -65,12 +61,6 @@ export default class TableActions {
 
     setRows = (items, keyed = false) =>
         this._getAction(self.SET_ROWS, { items, keyed });
-
-    setColumnWidth = (index, width) =>
-        this._getAction(self.SET_COLUMN_WIDTH, { index, width });
-
-    setColumnOrder = (order) =>
-        this._getAction(self.SET_COLUMN_ORDER, order);
 
     sortBy = (path, shiftKey = false) =>
         this._getAction(self.SORT_BY, { path, shiftKey });

@@ -4,7 +4,7 @@ import {pagePositions, sortOrders} from "../constants/enums";
 import {sortTuple} from "../utils/mathUtils";
 import {inArray, pullFirst} from "../utils/arrayUtils";
 import {deleteKeys} from "../utils/objectUtils";
-import actions from "../models/internalActions";
+import Actions from "../models/actions";
 import {setOptions} from "../utils/optionUtils";
 import {makeGetPageCount} from "../selectors/paginationSelectors";
 import {createSelector} from "reselect";
@@ -25,11 +25,6 @@ const defaultState = {
     error: null
 };
 
-function getColumnWidth(count) {
-    const width = 100 / count;
-    return _.times(count, _.constant(width));
-}
-
 export default function createTable(namespace, options = {}) {
     //Options
     setOptions(namespace, options);
@@ -37,7 +32,6 @@ export default function createTable(namespace, options = {}) {
         valueProperty,
         listBox,
         multiSelect,
-        scrollX,
         multiSort
     } = options;
 
@@ -73,14 +67,6 @@ export default function createTable(namespace, options = {}) {
         s => s.tableItems,
         items => _.map(items, valueProperty)
     );
-
-    //Updaters (validators)
-    function updateColumns() {
-        if (!draft.columnOrder) return;
-        const count = draft.columnOrder.length;
-        if (draft.columnWidth.length !== count)
-            draft.columnWidth = getColumnWidth(count);
-    }
 
     function updatePagination(allowZero = false) {
         const index = draft.currentPage;
@@ -128,7 +114,6 @@ export default function createTable(namespace, options = {}) {
     //Validate initial state
     updateItems();
     updateSelection();
-    updateColumns();
     updatePagination();
 
     return (state = initState, action) => {
@@ -140,13 +125,13 @@ export default function createTable(namespace, options = {}) {
             const { payload } = action;
             switch (action.type) {
                 //Items
-                case actions.SET_ROWS: {
+                case Actions.SET_ROWS: {
                     setItems(payload.items, payload.keyed);
                     updateItems();
                     updateSelection();
                     break;
                 }
-                case actions.ADD_ROWS: {
+                case Actions.ADD_ROWS: {
                     for (let item of payload) {
                         const value = item[valueProperty];
                         draft.items[value] = item;
@@ -154,13 +139,13 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case actions.DELETE_ROWS: {
+                case Actions.DELETE_ROWS: {
                     deleteKeys(draft.items, payload);
                     deselectRows(payload);
                     updateItems();
                     break;
                 }
-                case actions.SET_ROW_VALUES: {
+                case Actions.SET_ROW_VALUES: {
                     for (let valueString in payload) {
                         const newValue = payload[valueString];
                         const oldValue = state.items[valueString][valueProperty];
@@ -187,7 +172,7 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case actions.PATCH_ROWS: {
+                case Actions.PATCH_ROWS: {
                     const {items} = draft;
                     for (let patch of payload) {
                         const value = patch[valueProperty];
@@ -203,7 +188,7 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case actions.CLEAR_ROWS: {
+                case Actions.CLEAR_ROWS: {
                     //Clear items
                     draft.items = {};
                     draft.tableItems = [];
@@ -213,7 +198,7 @@ export default function createTable(namespace, options = {}) {
                     clearSelection();
                     break;
                 }
-                case actions.SORT_BY: {
+                case Actions.SORT_BY: {
                     const { path, shiftKey } = payload;
                     if (!multiSort || !shiftKey)
                         draft.sortBy = {};
@@ -227,20 +212,20 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case actions.SET_FILTER: {
+                case Actions.SET_FILTER: {
                     draft.filter = payload;
                     updateItems();
                     updateSelection();
                     break;
                 }
-                case actions.SET_ERROR: {
+                case Actions.SET_ERROR: {
                     draft.isLoading = false;
                     draft.error = payload;
                     break;
                 }
 
                 //Selection
-                case actions.SELECT_ROW: {
+                case Actions.SELECT_ROW: {
                     const { value, ctrlKey, shiftKey } = payload;
                     let addToSelection = [value];
 
@@ -275,11 +260,11 @@ export default function createTable(namespace, options = {}) {
 
                     break;
                 }
-                case actions.CLEAR_SELECTION: {
+                case Actions.CLEAR_SELECTION: {
                     clearSelection();
                     break;
                 }
-                case actions.SET_ROW_SELECTED: {
+                case Actions.SET_ROW_SELECTED: {
                     const { value, selected } = payload;
 
                     if (!selected)
@@ -288,15 +273,15 @@ export default function createTable(namespace, options = {}) {
                         draft.selectedValues.push(value);
                     break;
                 }
-                case actions.SELECT_ALL: {
+                case Actions.SELECT_ALL: {
                     draft.selectedValues = getValues(draft);
                     break;
                 }
-                case actions.SET_ACTIVE_ROW: {
+                case Actions.SET_ACTIVE_ROW: {
                     setActivePivotValue(payload);
                     break;
                 }
-                case actions.CONTEXT_MENU: {
+                case Actions.CONTEXT_MENU: {
                     const { value, ctrlKey } = payload;
                     //This action should still be dispatched in order to be handeled by eventMiddleware
                     if (ctrlKey) break;
@@ -308,41 +293,14 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
 
-                //Columns
-                case actions.SET_COLUMN_WIDTH: {
-                    const { index, width } = payload;
-                    const minWidth = options.minColumnWidth;
-
-                    if (scrollX) {
-                        draft.columnWidth[index] = Math.max(width, minWidth);
-                        break;
-                    }
-
-                    const thisWidth = draft.columnWidth[index];
-                    const nextWidth = draft.columnWidth[index + 1];
-
-                    const availableWidth = thisWidth + nextWidth;
-                    const maxWidth = availableWidth - minWidth;
-
-                    const limitedWidth = _.clamp(width, minWidth, maxWidth);
-                    draft.columnWidth[index] = limitedWidth;
-                    draft.columnWidth[index + 1] = availableWidth - limitedWidth;
-                    break;
-                }
-                case actions.SET_COLUMN_ORDER: {
-                    draft.columnOrder = payload;
-                    updateColumns(draft);
-                    break;
-                }
-
                 //Pagination
-                case actions.SET_PAGE_SIZE: {
+                case Actions.SET_PAGE_SIZE: {
                     draft.pageSize = payload;
                     draft.currentPage = 1;
                     updatePagination(draft);
                     break;
                 }
-                case actions.GO_TO_PAGE: {
+                case Actions.GO_TO_PAGE: {
                     //Payload is index
                     let newIndex = state.currentPage;
                     let allowZero = false;
@@ -365,15 +323,6 @@ export default function createTable(namespace, options = {}) {
 
                     draft.currentPage = newIndex;
                     updatePagination(draft, allowZero);
-                    break;
-                }
-
-                //Internal
-                case actions.SET_COLUMN_COUNT: {
-                    //Check necessary for initial columnWidth state
-                    if (state.columnWidth.length === payload) break;
-                    draft.columnOrder = null;
-                    draft.columnWidth = getColumnWidth(payload);
                     break;
                 }
                 default:

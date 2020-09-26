@@ -14,7 +14,7 @@ import {
 } from '../utils/elementUtils';
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
-import InternalActions from '../models/internalActions';
+import Actions from '../models/actions';
 import { tableOptions, defaultEvents } from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
 import {getTableSlice} from "../utils/reduxUtils";
@@ -30,17 +30,17 @@ function TableCore(props) {
         loadingIndicator,
         renderError,
         onItemsOpen,
-        onColumnResizeEnd,
+        onColumnsResizeEnd,
         onKeyDown,
+        initColumnWidths,
+        columnOrder: _columnOrder,
 
         //Redux state
         items,
         error,
         isLoading,
         selectedValues,
-        columnWidth,
         activeValue,
-        columnOrder,
         dispatch
     } = props;
 
@@ -54,14 +54,48 @@ function TableCore(props) {
 
     const values = useMemo(() =>
         _.map(items, options.valueProperty),
-        [items, options]);
+        [items, options]
+    );
 
-    const dispatchActions = useMemo(() => {
-        const actions = new InternalActions(namespace);
-        return bindActionCreators(actions, dispatch);
-    }, [namespace, dispatch]);
+    const actionDispatchers = useMemo(() =>
+        bindActionCreators(new Actions(namespace), dispatch),
+        [namespace, dispatch]
+    );
 
-    //#region Reducer updater
+    //#region Columns
+
+    const columnOrder = useMemo(() =>
+        _columnOrder || _.range(columns.length),
+        [_columnOrder, columns]
+    )
+
+    const [_columnWidths, setColumnWidths] = useState(initColumnWidths);
+
+    const columnWidths = useMemo(() => {
+        const count = columnOrder.length;
+
+        if (count === _columnWidths.length)
+            return _columnWidths;
+
+        return _.times(count, _.constant(100 / count))
+    }, [_columnWidths, columnOrder.length])
+
+    const parsedColumns = useMemo(() =>
+        columnOrder.map((index, order) => {
+            const column = columns[index];
+
+            return {
+                ...column,
+                _width: `${columnWidths[order]}%`,
+                _id: column.key || column.path
+            }
+        }),
+        [columnOrder, columnWidths, columns]
+    );
+
+    //#endregion
+
+    //#region Reducer updates
 
     //Register event handlers
     for (let event in defaultEvents) {
@@ -70,12 +104,6 @@ function TableCore(props) {
             options[event] = handler;
         }, [handler, options]);
     }
-
-    //Set column count
-    useEffect(() => {
-        if (columnOrder) return;
-        dispatchActions.setColumnCount(columns.length)
-    }, [columns.length, columnOrder, dispatchActions]);
 
     //#endregion
 
@@ -181,12 +209,12 @@ function TableCore(props) {
             //Check for collision with the selection rectangle
             const intersects = bottom > rect.top && top < rect.bottom;
             if (selectedValues.includes(value) !== intersects)
-                dispatchActions.setRowSelected(value, intersects);
+                actionDispatchers.setRowSelected(value, intersects);
         }
 
         //Set rectangle in state
         setSelRect(rect);
-    }, [selOrigin, values, selectedValues, lastMousePos, dispatchActions]);
+    }, [selOrigin, values, selectedValues, lastMousePos, actionDispatchers]);
 
     useWindowEvent("mousemove", useCallback(e => {
         updateSelectRect([e.clientX, e.clientY])
@@ -205,6 +233,8 @@ function TableCore(props) {
     useWindowEvent("touchend", dragEnd);
     //#endregion
 
+    //#region Helpers
+
     const raiseItemsOpen = useCallback(enterKey => {
         if (selectedValues.length === 0) return;
         onItemsOpen(selectedValues, enterKey);
@@ -214,11 +244,11 @@ function TableCore(props) {
         const value = values[index];
 
         const onlyCtrl = e.ctrlKey && !e.shiftKey;
-        if (onlyCtrl) dispatchActions.setActiveRow(value);
-        else dispatchActions.selectRow(value, e.ctrlKey, e.shiftKey);
+        if (onlyCtrl) actionDispatchers.setActiveRow(value);
+        else actionDispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
 
         ensureRowVisible(rowRefs.current[index], bodyContainer.current);
-    }, [values, dispatchActions]);
+    }, [values, actionDispatchers]);
 
     const selectAtOffset = useCallback((e, offset) => {
         const activeIndex = values.indexOf(activeValue);
@@ -230,12 +260,14 @@ function TableCore(props) {
         selectFromKeyboard(e, offsetIndex);
     }, [selectFromKeyboard, activeValue, values]);
 
+    //#endregion
+
     //#region Event Handlers
     const handleMouseDown = e => {
         if (e.button !== 0) return;
 
         if (e.currentTarget === e.target && !e.ctrlKey)
-            dispatchActions.clearSelection();
+            actionDispatchers.clearSelection();
 
         dragStart([e.clientX, e.clientY]);
     };
@@ -245,14 +277,14 @@ function TableCore(props) {
             dragStart([e.clientX, e.clientY]);
 
         if (e.currentTarget !== e.target) return;
-        dispatchActions.contextMenu(null, e.ctrlKey);
+        actionDispatchers.contextMenu(null, e.ctrlKey);
     };
 
     const handleKeyDown = e => {
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey && options.multiSelect)
-                    dispatchActions.selectAll();
+                    actionDispatchers.selectAll();
                 break;
             case 38: //Up
                 selectAtOffset(e, -1);
@@ -277,20 +309,6 @@ function TableCore(props) {
     };
     //#endregion
 
-    const parsedColumns = useMemo(() => {
-        //Order and filter columns
-        const orderedColumns = columnOrder
-            ? columnOrder.map(i => columns[i])
-            : columns;
-
-        //Add column metadata
-        return orderedColumns.map((col, index) => ({
-            ...col,
-            _width: `${columnWidth[index]}%`,
-            _id: col.key || col.path
-        }));
-    }, [columnOrder, columnWidth, columns]);
-
     const renderSelectionBox = () => {
         if (!selRect) return null;
 
@@ -306,12 +324,12 @@ function TableCore(props) {
             name,
             namespace,
             context,
-            dispatchActions,
+            dispatchActions: actionDispatchers,
             options,
             columns: parsedColumns
         }
 
-        const tableWidth = `${_.sum(columnWidth)}%`;
+        const tableWidth = `${_.sum(columnWidths)}%`;
         const isEmpty = items.length === 0;
 
         const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
@@ -325,14 +343,18 @@ function TableCore(props) {
                  }}>
                 <table className={className}>
                     {colGroup}
-                    <Head {...commonParams} onResizeEnd={onColumnResizeEnd} />
+                    <Head {...commonParams}
+                          onResizeEnd={onColumnsResizeEnd}
+                          columnWidths={columnWidths}
+                          setColumnWidths={setColumnWidths}
+                    />
                 </table>
             </div>
             {isEmpty ?
                 //Empty placeholder
                 <div className={styles.placeholder}
                      tabIndex="0"
-                     onContextMenu={() => dispatchActions.contextMenu(null)}
+                     onContextMenu={() => actionDispatchers.contextMenu(null)}
                      onKeyDown={e => onKeyDown(e, selectedValues)}
                 >{emptyPlaceholder}</div> :
 
@@ -389,8 +411,6 @@ function makeMapState() {
         const namespace = props.namespace || props.name;
         const slice = getTableSlice(root, namespace);
         const pick = _.pick(slice,
-            "columnWidth",
-            "columnOrder",
             "selectedValues",
             "activeValue",
             "isLoading",
@@ -425,17 +445,20 @@ TableCore.propTypes = {
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,
-    onColumnResizeEnd: PropTypes.func,
+    onColumnsResizeEnd: PropTypes.func,
     onKeyDown: PropTypes.func,
     emptyPlaceholder: PropTypes.node,
     loadingIndicator: PropTypes.node,
+    columnOrder: PropTypes.arrayOf(PropTypes.number),
+    initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     renderError: PropTypes.func
 };
 
 TableCore.defaultProps = {
     onItemsOpen: () => { },
-    onColumnResizeEnd: () => { },
+    onColumnsResizeEnd: () => { },
     onKeyDown: () => { },
     renderError: msg => msg,
+    initColumnWidths: [],
     ...defaultEvents
 };

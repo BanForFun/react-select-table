@@ -4,18 +4,18 @@
 
 ## Features
 
-* Item parsing, filtering and sorting
+* Item parsing
+* Item filtering
+* Item sorting
+* Item pagination
 * Resizable columns
 * Sticky header
-* Mouse drag selection with automatic scrolling
+* Drag selection with automatic scrolling
 * [Keyboard shortcut support](#shortcuts)
-* Controlled from parameters or optionally redux
-* Row deselection when table container is clicked
-* Optional redux item management
-* Multi-column sorting
+* Keyboard and mouse selection
+* (Multi) column sorting
 * Listbox mode
-* Pagination
-* Touch support
+* Touch support (chrome only)
 
 ### Shortcuts
 
@@ -30,18 +30,7 @@
 
 
 
-## 4.0.0 - Breaking changes
-
-### Common
-
-* Renamed `isListbox` option to `listBox`
-* Renamed `isMultiselect` option to `multiSelect`
-
-### Table
-
-* Added `setError` action and `error` state property
-* Added `isKeyed` argument to `setRows` action creator
-* Removed `replaceRow` action creator as `addRow` does basically the same thing.
+# [4.0.0 Breaking changes](/docs/changes.md)
 
 
 
@@ -55,7 +44,7 @@ $ npm install react-select-table
 $ yarn add react-select-table
 ```
 
-In your `App.js` import the stylesheet.
+In your `App.js` import the stylesheet
 
 ````javascript
 import 'react-select-table/dist/index.css';
@@ -67,15 +56,25 @@ import 'react-select-table/dist/index.css';
 
 ### Without redux
 
-[Todo list](https://codesandbox.io/s/rst-simple-wk07o)
+[Todo list with horizontal scrolling](https://codesandbox.io/s/table-v4-simple-pqtos)
 
-[Todo list with pagination](https://codesandbox.io/s/rst-simple-pagination-2trg2)
+[Todo list with pagination](https://codesandbox.io/s/table-v4-pagination-r8vw1)
 
 ### With redux
 
-[Todo list with adding and filtering](https://codesandbox.io/s/rst-redux-mrii6)
+[Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
 
-[Todo list with pagination](https://codesandbox.io/s/rst-redux-pagination-v5ehy)
+[Todo list with pagination](https://codesandbox.io/s/tablecore-v4-pagination-ozgqt)
+
+
+
+## Before you read
+
+You will see the term 'value' referenced many times. The table rows are objects in an array, in which every object must have a property with a unique value (that would be '_id' when using MongoDB). That unique value is considered the item's value.
+
+JavaScript types are written in *italic*
+
+HTML elements are written in **bold**
 
 
 
@@ -85,8 +84,8 @@ This library contains two components:
 
 ### TableCore
 
-Uses redux for state management. [Go to documentation](/docs/core.md)
+Controlled with redux. [TableCore documentation](/docs/core.md)
 
 ### Table
 
-A wrapper for **TableCore** which uses the component parameters to update the redux state internally. Redux is not required for its use but item management becomes your responsibility. [Go to documentation](/docs/table.md)
+A wrapper for `TableCore` which uses component props to update the redux state internally. Many features are missing compared to `TableCore`. [Table documentation](/docs/table.md)

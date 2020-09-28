@@ -33,10 +33,10 @@ export default class TableActions {
     }
 
     goToPage = index =>
-        this._getAction(self.GO_TO_PAGE, index);
+        this._getAction(self.GO_TO_PAGE, { index });
 
     setPageSize = size =>
-        this._getAction(self.SET_PAGE_SIZE, size);
+        this._getAction(self.SET_PAGE_SIZE, { size });
 
     clearRows = () =>
         this._getAction(self.CLEAR_ROWS);
@@ -45,19 +45,19 @@ export default class TableActions {
         this._getAction(self.CONTEXT_MENU, { value, ctrlKey });
 
     setFilter = filter =>
-        this._getAction(self.SET_FILTER, filter);
+        this._getAction(self.SET_FILTER, { filter });
 
     patchRows = (...patches) =>
-        this._getAction(self.PATCH_ROWS, patches);
+        this._getAction(self.PATCH_ROWS, { patches });
 
     setRowValues = map =>
-        this._getAction(self.SET_ROW_VALUES, map);
+        this._getAction(self.SET_ROW_VALUES, { map });
 
     deleteRows = (...values) =>
-        this._getAction(self.DELETE_ROWS, values);
+        this._getAction(self.DELETE_ROWS, { values });
 
     addRows = (...items) =>
-        this._getAction(self.ADD_ROWS,  items);
+        this._getAction(self.ADD_ROWS, { items });
 
     setRows = (items, keyed = false) =>
         this._getAction(self.SET_ROWS, { items, keyed });
@@ -69,7 +69,7 @@ export default class TableActions {
         this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
 
     setActiveRow = value =>
-        this._getAction(self.SET_ACTIVE_ROW, value);
+        this._getAction(self.SET_ACTIVE_ROW, { value });
 
     clearSelection = () =>
         this._getAction(self.CLEAR_SELECTION);
@@ -80,8 +80,8 @@ export default class TableActions {
     setRowSelected = (value, selected) =>
         this._getAction(self.SET_ROW_SELECTED, { value, selected });
 
-    setError = message =>
-        this._getAction(self.SET_ERROR, message);
+    setError = error =>
+        this._getAction(self.SET_ERROR, { error });
 
     //#region Aliases
 

@@ -11,8 +11,6 @@ import {createSelector} from "reselect";
 
 const defaultState = {
     sortBy: {},
-    columnOrder: null,
-    columnWidth: [],
     selectedValues: [],
     activeValue: null,
     filter: null,
@@ -132,7 +130,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.ADD_ROWS: {
-                    for (let item of payload) {
+                    for (let item of payload.items) {
                         const value = item[valueProperty];
                         draft.items[value] = item;
                     }
@@ -140,15 +138,16 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.DELETE_ROWS: {
-                    deleteKeys(draft.items, payload);
-                    deselectRows(payload);
+                    const { values } = payload;
+
+                    deleteKeys(draft.items, values);
+                    deselectRows(values);
                     updateItems();
                     break;
                 }
                 case Actions.SET_ROW_VALUES: {
-                    for (let valueString in payload) {
-                        const newValue = payload[valueString];
-                        const oldValue = state.items[valueString][valueProperty];
+                    _.forEach(payload.map, (newValue, oldValueString) => {
+                        const oldValue = state.items[oldValueString][valueProperty];
 
                         //Update active value
                         if (oldValue === state.activeValue)
@@ -167,14 +166,14 @@ export default function createTable(namespace, options = {}) {
 
                         //Delete old item
                         delete draft.items[oldValue];
-                    }
+                    })
 
                     updateItems();
                     break;
                 }
                 case Actions.PATCH_ROWS: {
                     const {items} = draft;
-                    for (let patch of payload) {
+                    for (let patch of payload.patches) {
                         const value = patch[valueProperty];
 
                         if (items[value])
@@ -213,14 +212,14 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_FILTER: {
-                    draft.filter = payload;
+                    draft.filter = payload.filter;
                     updateItems();
                     updateSelection();
                     break;
                 }
                 case Actions.SET_ERROR: {
                     draft.isLoading = false;
-                    draft.error = payload;
+                    draft.error = payload.error;
                     break;
                 }
 
@@ -278,7 +277,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ACTIVE_ROW: {
-                    setActivePivotValue(payload);
+                    setActivePivotValue(payload.value);
                     break;
                 }
                 case Actions.CONTEXT_MENU: {
@@ -295,17 +294,18 @@ export default function createTable(namespace, options = {}) {
 
                 //Pagination
                 case Actions.SET_PAGE_SIZE: {
-                    draft.pageSize = payload;
+                    draft.pageSize = payload.size;
                     draft.currentPage = 1;
                     updatePagination(draft);
                     break;
                 }
                 case Actions.GO_TO_PAGE: {
-                    //Payload is index
+                    const {index} = payload;
+
                     let newIndex = state.currentPage;
                     let allowZero = false;
 
-                    switch (payload) {
+                    switch (index) {
                         case pagePositions.Last:
                             newIndex = getPageCount(draft);
                             break;
@@ -316,7 +316,7 @@ export default function createTable(namespace, options = {}) {
                             newIndex--;
                             break;
                         default:
-                            newIndex = isNaN(payload) ? 0 : payload;
+                            newIndex = isNaN(index) ? 0 : index;
                             allowZero = true;
                             break;
                     }

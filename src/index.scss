@@ -18,9 +18,9 @@
     }
 
     &:not(:focus-within) tr {
-        &.active {
-            box-shadow: none;
-        }
+        //&.active {
+        //    box-shadow: none;
+        //}
 
         &.selected {
             background-color: #d3dbcd;

@@ -18,6 +18,9 @@ import Actions from '../models/actions';
 import { tableOptions, defaultEvents } from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
 import {getTableSlice} from "../utils/reduxUtils";
+import {matchModifiers} from "../utils/eventUtils";
+
+const dragSelectionType = "drag";
 
 function TableCore(props) {
     const {
@@ -39,7 +42,7 @@ function TableCore(props) {
         items,
         error,
         isLoading,
-        selectedValues,
+        selection,
         activeValue,
         dispatch
     } = props;
@@ -57,7 +60,7 @@ function TableCore(props) {
         [items, options]
     );
 
-    const actionDispatchers = useMemo(() =>
+    const dispatchers = useMemo(() =>
         bindActionCreators(new Actions(namespace), dispatch),
         [namespace, dispatch]
     );
@@ -148,73 +151,88 @@ function TableCore(props) {
     const updateSelectRect = useCallback((mousePos = null) => {
         if (!selOrigin) return;
 
-        if (!mousePos) mousePos = lastMousePos;
-        else setLastMousePos(mousePos);
+        //Cache last mouse position
+        if (!mousePos)
+            mousePos = lastMousePos;
+        else
+            setLastMousePos(mousePos);
 
-        const [mouseX, mouseY] = mousePos;
-        const [originX, originY] = selOrigin;
+        //Get elements
         const body = bodyContainer.current;
         const root = body.offsetParent;
 
+        //Deconstruct positions
+        const [mouseX, mouseY] = mousePos;
+        const [originX, originY] = selOrigin;
+
         //Calculate selection rectangle
         const rect = Rect.fromPoints(
-            mouseX + root.scrollLeft,
-            mouseY + root.scrollTop,
+            mouseX + root.scrollLeft, mouseY + root.scrollTop,
             originX, originY
         );
 
+        //Get header size
+        const {
+            offsetTop: headerHeight,
+            offsetLeft: headerWidth
+        } = body;
+
         //Calculate visible container bounds
         const rootBounds = root.getBoundingClientRect();
-        const clientBounds = Rect.fromPosSize(
-            rootBounds.x, rootBounds.y,
-            root.clientWidth, root.clientHeight
+        const visibleBounds = new Rect(
+            rootBounds.left + headerWidth,
+            rootBounds.top + headerHeight,
+            rootBounds.right,
+            rootBounds.bottom
         );
-
-        //Remove header from container bounds
-        clientBounds.top += body.offsetTop;
-        clientBounds.left += body.offsetLeft;
 
         //Calculate table bounds
         const scrollBounds = Rect.fromPosSize(
-            clientBounds.x, clientBounds.y,
+            visibleBounds.x, visibleBounds.y,
             body.scrollWidth, body.scrollHeight
         );
 
-        //Limit selection rectangle to table bounds
+        //Limit selection rectangle and make relative to table bounds.
         rect.limit(scrollBounds);
-
-        //Make selection rectangle be relative to container
         rect.offsetBy(-rootBounds.x, -rootBounds.y);
 
         //Scroll if necessary
-        ensurePosVisible(root, mouseX, mouseY, clientBounds);
+        ensurePosVisible(root, mouseX, mouseY, visibleBounds);
 
-        //Calculate top and bottom most visible positions
-        const topVisible = root.scrollTop + body.offsetTop;
-        const bottomVisible = topVisible + clientBounds.height;
+        //Calculate relative visible range
+        const topVisible = root.scrollTop + headerHeight;
+        const bottomVisible = topVisible + root.scrollHeight;
+
+        //Calculate relative mouse Y position
+        const relMouseY = mouseY - rootBounds.y + root.scrollTop;
 
         //Modify selection based on collision
         for (let i = 0; i < values.length; i++) {
-            const value = values[i];
+            //Get element
             const row = rowRefs.current[i];
 
-            //Calculate top and bottom position
-            const top = row.offsetTop + body.offsetTop;
-            const bottom = top + row.clientHeight;
-
-            //Skip if rows not visible
-            if (bottom < topVisible) continue;
+            //Calculate top
+            const top = row.offsetTop + headerHeight;
             if (top > bottomVisible) break;
 
-            //Check for collision with the selection rectangle
-            const intersects = bottom > rect.top && top < rect.bottom;
-            if (selectedValues.includes(value) !== intersects)
-                actionDispatchers.setRowSelected(value, intersects);
+            //Calculate bottom
+            const bottom = top + row.scrollHeight;
+            if (bottom < topVisible) continue;
+
+            //Check collision with rectangle and cursor
+            const intersects = bottom > rect.top && top <= rect.bottom;
+            const cursorInside = _.inRange(relMouseY, top, bottom);
+
+            //Update selection
+            const value = values[i];
+            const isSelected = selection.get(value) === dragSelectionType;
+            if (isSelected !== intersects || cursorInside)
+                dispatchers.setRowSelected(value, intersects, dragSelectionType);
         }
 
         //Set rectangle in state
         setSelRect(rect);
-    }, [selOrigin, values, selectedValues, lastMousePos, actionDispatchers]);
+    }, [selOrigin, values, selection, lastMousePos, dispatchers]);
 
     useWindowEvent("mousemove", useCallback(e => {
         updateSelectRect([e.clientX, e.clientY])
@@ -235,30 +253,37 @@ function TableCore(props) {
 
     //#region Helpers
 
-    const raiseItemsOpen = useCallback(enterKey => {
-        if (selectedValues.length === 0) return;
-        onItemsOpen(selectedValues, enterKey);
-    }, [selectedValues, onItemsOpen]);
+    const openItems = useCallback((e, enterKey) => {
+        if (!enterKey || matchModifiers(e, false, false))
+            onItemsOpen([...selection], enterKey);
+        else
+            dispatchers.selectRow(activeValue, e.ctrlKey, e.shiftKey)
+    }, [selection, activeValue, dispatchers, onItemsOpen]);
 
-    const selectFromKeyboard = useCallback((e, index) => {
+    const selectIndex = useCallback((e, index) => {
         const value = values[index];
 
-        const onlyCtrl = e.ctrlKey && !e.shiftKey;
-        if (onlyCtrl) actionDispatchers.setActiveRow(value);
-        else actionDispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
+        if (matchModifiers(e, true, false))
+            dispatchers.setActiveRow(value);
+        else
+            dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
 
         ensureRowVisible(rowRefs.current[index], bodyContainer.current);
-    }, [values, actionDispatchers]);
+    }, [values, dispatchers]);
 
-    const selectAtOffset = useCallback((e, offset) => {
-        const activeIndex = values.indexOf(activeValue);
-        if (activeIndex < 0) return;
+    const selectOffset = useCallback((e, offset) => {
+        if (activeValue == null) return;
 
-        const offsetIndex = activeIndex + offset;
-        if (!_.inRange(offsetIndex, 0, values.length)) return;
+        const index = _.clamp(
+            values.indexOf(activeValue) + offset,
+            0, values.length - 1
+        );
+        selectIndex(e, index);
+    }, [selectIndex, activeValue, values]);
 
-        selectFromKeyboard(e, offsetIndex);
-    }, [selectFromKeyboard, activeValue, values]);
+    const raiseKeyDown = useCallback(e => {
+        onKeyDown(e, [...selection]);
+    }, [selection, onKeyDown])
 
     //#endregion
 
@@ -266,8 +291,12 @@ function TableCore(props) {
     const handleMouseDown = e => {
         if (e.button !== 0) return;
 
-        if (e.currentTarget === e.target && !e.ctrlKey)
-            actionDispatchers.clearSelection();
+        if (
+            e.currentTarget === e.target && //Click was below items
+            !e.ctrlKey &&
+            !options.listBox
+        )
+            dispatchers.clearSelection();
 
         dragStart([e.clientX, e.clientY]);
     };
@@ -277,32 +306,32 @@ function TableCore(props) {
             dragStart([e.clientX, e.clientY]);
 
         if (e.currentTarget !== e.target) return;
-        actionDispatchers.contextMenu(null, e.ctrlKey);
+        dispatchers.contextMenu(null, e.ctrlKey);
     };
 
     const handleKeyDown = e => {
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey && options.multiSelect)
-                    actionDispatchers.selectAll();
+                    dispatchers.selectAll();
                 break;
             case 38: //Up
-                selectAtOffset(e, -1);
+                selectOffset(e, -1);
                 break;
             case 40: //Down
-                selectAtOffset(e, 1);
+                selectOffset(e, 1);
                 break;
             case 13: //Enter
-                raiseItemsOpen(true);
+                openItems(e, true);
                 break;
             case 36: //Home
-                selectFromKeyboard(e, 0);
+                selectIndex(e, 0);
                 break;
             case 35: //End
-                selectFromKeyboard(e, items.length - 1);
+                selectIndex(e, items.length - 1);
                 break;
             default:
-                return onKeyDown(e, selectedValues);
+                return raiseKeyDown(e);
         }
 
         e.preventDefault();
@@ -324,7 +353,7 @@ function TableCore(props) {
             name,
             namespace,
             context,
-            dispatchActions: actionDispatchers,
+            dispatchers,
             options,
             columns: parsedColumns
         }
@@ -354,8 +383,8 @@ function TableCore(props) {
                 //Empty placeholder
                 <div className={styles.placeholder}
                      tabIndex="0"
-                     onContextMenu={() => actionDispatchers.contextMenu(null)}
-                     onKeyDown={e => onKeyDown(e, selectedValues)}
+                     onContextMenu={() => dispatchers.contextMenu(null)}
+                     onKeyDown={raiseKeyDown}
                 >{emptyPlaceholder}</div> :
 
                 //Table body
@@ -366,7 +395,7 @@ function TableCore(props) {
                          width: tableWidth
                      }}
                      onKeyDown={handleKeyDown}
-                     onDoubleClick={() => raiseItemsOpen(false)}
+                     onDoubleClick={e => openItems(e, false)}
                      onContextMenu={handleContextMenu}
                      onTouchStart={() => isTouching.current = true}
                      onMouseDown={handleMouseDown}
@@ -411,7 +440,7 @@ function makeMapState() {
         const namespace = props.namespace || props.name;
         const slice = getTableSlice(root, namespace);
         const pick = _.pick(slice,
-            "selectedValues",
+            "selection",
             "activeValue",
             "isLoading",
             "error",

@@ -1,7 +1,20 @@
 import actions from "../models/actions";
 import { tableOptions } from "../utils/optionUtils";
-import { areItemsEqual } from "../utils/arrayUtils";
 import { getTableSlice } from "../utils/reduxUtils";
+
+function compareSets(a, b) {
+    //Compare references
+    if (a === b) return true;
+
+    //Compare length
+    if (a.size !== b.size) return false;
+
+    //Compare items
+    for (let entry of a)
+        if (!b.has(entry)) return false;
+
+    return true;
+}
 
 const eventMiddleware = store => next => action => {
     const { type, namespace } = action;
@@ -20,19 +33,18 @@ const eventMiddleware = store => next => action => {
         case actions.SELECT_ALL:
         case actions.CONTEXT_MENU:
             const options = tableOptions[namespace];
-            const prevSel = getTable().selectedValues;
+            const prevSel = getTable().selection;
 
             const result = next(action);
             const table = getTable();
 
             //Raise onSelectionChange
-            if (!areItemsEqual(prevSel, table.selectedValues))
-                options.onSelectionChange(table.selectedValues);
+            if (!compareSets(prevSel, table.selection))
+                options.onSelectionChange([...table.selection]);
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                options.onContextMenu(options.listBox
-                    ? table.activeValue : table.selectedValues);
+                options.onContextMenu(options.listBox ? table.activeValue : [...table.selection]);
 
             return result;
         default:

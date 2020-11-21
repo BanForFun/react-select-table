@@ -14,7 +14,7 @@ function Head({
     name,
     columnWidths,
     setColumnWidths,
-    dispatchActions,
+    dispatchers,
     options,
     onResizeEnd
 }) {
@@ -90,7 +90,7 @@ function Head({
 
                     const handleClick = e => {
                         if (!path) return;
-                        dispatchActions.sortBy(path, e.shiftKey);
+                        dispatchers.sortBy(path, e.shiftKey);
                     }
 
                     const addSeparator = options.scrollX ||

@@ -4,7 +4,7 @@ import { Table, withTables, useTable } from 'react-select-table';
 import todos from "../todos";
 import columns from "../columns";
 
-function logEvent(type) {
+function log(type) {
     return args => console.log(type, args);
 }
 
@@ -19,12 +19,13 @@ function SimpleTable() {
             <Table
                 {...tableProps}
                 items={shortTodos}
-                onContextMenu={logEvent("Context menu")}
-                onSelectionChange={logEvent("Selection")}
-                onItemsOpen={logEvent("Open")}
+                onContextMenu={log("Context menu")}
+                onSelectionChange={log("Selection")}
+                onItemsOpen={log("Open")}
+                initColumnWidths={[10, 70, 20]}
                 columns={columns}
-                pageSize={2}
-                className="table" />
+                className="table"
+            />
             {pageCount}
         </div>
     )

@@ -1,21 +1,22 @@
-import produce from "immer";
+import produce, {enableMapSet} from "immer";
 import _ from "lodash";
 import {pagePositions, sortOrders} from "../constants/enums";
 import {sortTuple} from "../utils/mathUtils";
-import {inArray, pullFirst} from "../utils/arrayUtils";
 import {deleteKeys} from "../utils/objectUtils";
 import Actions from "../models/actions";
 import {setOptions} from "../utils/optionUtils";
 import {makeGetPageCount} from "../selectors/paginationSelectors";
 import {createSelector} from "reselect";
 
+enableMapSet();
+
 const defaultState = {
-    sortBy: {},
-    selectedValues: [],
+    selection: new Map(),
     activeValue: null,
+    pivotValue: null,
     filter: null,
     items: {},
-    pivotValue: null,
+    sortBy: {},
     tableItems: [],
     isLoading: false,
     pageSize: 0,
@@ -37,7 +38,7 @@ export default function createTable(namespace, options = {}) {
     let draft = initState;
 
     if (options.initItems)
-        setItems(options.initItems, false);
+        draft.items = _.keyBy(options.initItems, valueProperty);
 
     //Selectors
     const getPageCount = makeGetPageCount();
@@ -58,14 +59,15 @@ export default function createTable(namespace, options = {}) {
         getFilteredItems,
         s => s.sortBy,
         (items, sortBy) =>
-            _.orderBy(items, Object.keys(sortBy), Object.values(sortBy))
+            _.orderBy(items, _.keys(sortBy), _.values(sortBy))
     );
 
     const getValues = createSelector(
         s => s.tableItems,
         items => _.map(items, valueProperty)
-    );
+    )
 
+    //Updaters
     function updatePagination(allowZero = false) {
         const index = draft.currentPage;
         const min = allowZero ? 0 : 1;
@@ -78,35 +80,36 @@ export default function createTable(namespace, options = {}) {
     }
 
     function updateSelection() {
-        const newValues = _.map(draft.tableItems, valueProperty);
-        const toDeselect = _.difference(draft.selectedValues, newValues);
-        deselectRows(toDeselect);
+        const visibleSet = new Set(getValues(draft));
+
+        const deselect = [];
+        for (let value of draft.selection)
+            if (!visibleSet.has(value)) deselect.push(value);
+
+        deselectRows(deselect);
     }
 
     //Helpers
-    function deselectRows(toDeselect) {
-        //Active value
-        if (toDeselect.includes(draft.activeValue))
-            draft.activeValue = null;
+    function deselectRows(deselect) {
+        deselect.forEach(v => draft.selection.delete(v));
+    }
 
-        //Selected values
-        _.pullAll(draft.selectedValues, toDeselect);
+    function selectRows(select) {
+        select.forEach(v => draft.selection.set(v, null));
     }
 
     function setActivePivotValue(value) {
         draft.pivotValue = draft.activeValue = value;
     }
 
-    function setItems(items, areKeyed) {
-        draft.items = areKeyed ? items : _.keyBy(items, valueProperty);
-        draft.isLoading = false;
-        draft.error = null;
-    }
+    function setActivePivotIndex(index) {
+        const items = draft.tableItems;
+        if (!items.length)
+            return setActivePivotValue(null);
 
-    function clearSelection() {
-        setActivePivotValue(null);
-        if (!options.listBox)
-            draft.selectedValues = [];
+        //Normally, index will never be negative, but just to make sure
+        const newIndex = _.clamp(index, 0, items.length - 1);
+        setActivePivotValue(items[newIndex][valueProperty]);
     }
 
     //Validate initial state
@@ -115,7 +118,8 @@ export default function createTable(namespace, options = {}) {
     updatePagination();
 
     return (state = initState, action) => {
-        if (action.namespace !== namespace) return state;
+        if (action.namespace !== namespace)
+            return state;
 
         return produce(state, newDraft => {
             draft = newDraft;
@@ -124,25 +128,58 @@ export default function createTable(namespace, options = {}) {
             switch (action.type) {
                 //Items
                 case Actions.SET_ROWS: {
-                    setItems(payload.items, payload.keyed);
+                    const { items, keyed } = payload;
+
+                    draft.items = keyed ? items : _.keyBy(items, valueProperty);
+                    draft.isLoading = false;
+                    draft.error = null;
+
                     updateItems();
                     updateSelection();
+                    setActivePivotIndex(0);
                     break;
                 }
                 case Actions.ADD_ROWS: {
-                    for (let item of payload.items) {
+                    const { items } = payload;
+                    if (!items.length) break;
+
+                    //Add items
+                    const addedValues = new Set();
+                    items.forEach(item => {
                         const value = item[valueProperty];
                         draft.items[value] = item;
-                    }
+                        addedValues.add(value);
+                    });
                     updateItems();
+
+                    //Select added visible items
+                    const visibleValues = getValues(draft);
+                    const { selection } = draft;
+
+                    let lastValue;
+                    selection.clear();
+                    for (let value of visibleValues) {
+                        if (!addedValues.has(value)) continue;
+                        selection.set(value, null);
+                        lastValue = value;
+                    }
+
+                    //Set last added visible item active
+                    if (lastValue !== undefined)
+                        setActivePivotValue(lastValue);
+
                     break;
                 }
                 case Actions.DELETE_ROWS: {
                     const { values } = payload;
+                    if (!values.length) break;
 
                     deleteKeys(draft.items, values);
                     deselectRows(values);
                     updateItems();
+
+                    //TODO: Set last visible item deleted active
+
                     break;
                 }
                 case Actions.SET_ROW_VALUES: {
@@ -154,9 +191,12 @@ export default function createTable(namespace, options = {}) {
                             draft.activeValue = newValue;
 
                         //Update selected value
-                        const selectedIndex = state.selectedValues.indexOf(oldValue);
-                        if (selectedIndex >= 0)
-                            draft.selectedValues[selectedIndex] = newValue;
+                        const {selection} = draft;
+                        const type = selection.get(oldValue);
+                        if (type !== undefined) {
+                            selection.delete(oldValue);
+                            selection.set(newValue, type);
+                        }
 
                         //Create new item
                         draft.items[newValue] = {
@@ -188,13 +228,16 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_ROWS: {
-                    //Clear items
-                    draft.items = {};
-                    draft.tableItems = [];
-                    draft.isLoading = true;
-                    draft.error = null;
-
-                    clearSelection();
+                    const patch = {
+                        items: {},
+                        tableItems: [],
+                        isLoading: false,
+                        error: null,
+                        selection: new Map(),
+                        activeValue: null,
+                        pivotValue: null
+                    }
+                    Object.assign(draft, patch);
                     break;
                 }
                 case Actions.SORT_BY: {
@@ -226,69 +269,79 @@ export default function createTable(namespace, options = {}) {
                 //Selection
                 case Actions.SELECT_ROW: {
                     const { value, ctrlKey, shiftKey } = payload;
-                    let addToSelection = [value];
+                    const { selection } = draft;
 
                     if (!multiSelect) {
-                        draft.selectedValues = addToSelection;
-                        draft.activeValue = value;
+                        selection.clear();
+                        selection.set(value, null);
+                        setActivePivotValue(value);
                         break;
                     }
 
-                    const isSelected = state.selectedValues.includes(value);
+                    if (!ctrlKey)
+                        selection.clear();
+
                     if (shiftKey) {
                         const values = getValues(draft);
                         const pivotIndex = values.indexOf(state.pivotValue);
                         const newIndex = values.indexOf(value);
 
                         const [startIndex, endIndex] = sortTuple(pivotIndex, newIndex);
-                        addToSelection = values.slice(startIndex, endIndex + 1);
-                    } else if (ctrlKey && isSelected) {
-                        pullFirst(draft.selectedValues, value);
-                        addToSelection = [];
+                        const newSelection = values.slice(startIndex, endIndex + 1);
+                        selectRows(newSelection);
                     }
+                    else if (ctrlKey && selection.has(value))
+                        selection.delete(value);
+                    else
+                        selection.set(value, null);
 
                     //Set active value
                     draft.activeValue = value;
+
                     //Set pivot value
-                    if (!shiftKey) draft.pivotValue = value;
-                    //Set selected values
-                    if (ctrlKey)
-                        draft.selectedValues.push(...addToSelection);
-                    else
-                        draft.selectedValues = addToSelection;
+                    if (!shiftKey)
+                        draft.pivotValue = value;
 
                     break;
                 }
                 case Actions.CLEAR_SELECTION: {
-                    clearSelection();
+                    draft.selection.clear();
                     break;
                 }
                 case Actions.SET_ROW_SELECTED: {
-                    const { value, selected } = payload;
+                    const { value, selected, type } = payload;
+                    const { selection } = draft;
 
-                    if (!selected)
-                        pullFirst(draft.selectedValues, value);
-                    else
-                        draft.selectedValues.push(value);
+                    if (selected) {
+                        selection.set(value, type);
+                        setActivePivotValue(value);
+                        break;
+                    }
+
+                    selection.delete(value);
                     break;
                 }
                 case Actions.SELECT_ALL: {
-                    draft.selectedValues = getValues(draft);
+                    draft.selection.clear();
+                    selectRows(getValues(draft));
                     break;
                 }
                 case Actions.SET_ACTIVE_ROW: {
-                    setActivePivotValue(payload.value);
+                    draft.activeValue = payload.value;
                     break;
                 }
                 case Actions.CONTEXT_MENU: {
                     const { value, ctrlKey } = payload;
-                    //This action should still be dispatched in order to be handeled by eventMiddleware
-                    if (ctrlKey) break;
+                    const { selection } = draft;
 
+                    //This action should still be dispatched in order to be handled by eventMiddleware
+                    if (ctrlKey) break;
                     setActivePivotValue(value);
-                    const isSelected = state.selectedValues.includes(value);
-                    if (!listBox && !isSelected)
-                        draft.selectedValues = inArray(value);
+
+                    if (listBox || selection.has(value)) break;
+                    selection.clear();
+                    selection.add(value, null);
+
                     break;
                 }
 

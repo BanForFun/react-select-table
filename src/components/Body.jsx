@@ -4,6 +4,7 @@ import styles from "../index.scss";
 import { connect } from "react-redux";
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { getTableSlice } from "../utils/reduxUtils";
+import classNames from "classnames";
 
 function Body({
     columns,
@@ -11,17 +12,17 @@ function Body({
     options,
     items,
     rowRefs,
-    selectedValues,
+    selection,
     activeValue,
-    dispatchActions
+    dispatchers
 }) {
     const handleRowSelect = (e, value) => {
         if (e.button !== 0) return;
-        dispatchActions.selectRow(value, e.ctrlKey, e.shiftKey);
+        dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
     };
 
     const handleRowContextMenu = (e, value) => {
-        dispatchActions.contextMenu(value, e.ctrlKey);
+        dispatchers.contextMenu(value, e.ctrlKey);
     };
 
     const renderColumn = (row, column) => {
@@ -42,18 +43,15 @@ function Body({
     const renderRow = (row, index) => {
         const value = row[options.valueProperty];
 
-        const classes = [];
-        if (selectedValues.includes(value))
-            classes.push(styles.selected);
-        if (activeValue === value)
-            classes.push(styles.active);
-        if (row._className)
-            classes.push(row._className);
+        const classes = {
+            [styles.selected]: selection.has(value),
+            [styles.active]: activeValue === value
+        };
 
         return <tr
             key={`row_${name}_${value}`}
             ref={el => rowRefs.current[index] = el}
-            className={classes.join(' ')}
+            className={classNames(classes, row._className)}
             onContextMenu={e => handleRowContextMenu(e, value)}
             onMouseDown={e => handleRowSelect(e, value)}
         >
@@ -73,7 +71,7 @@ function makeMapState() {
         const slice = getTableSlice(root, props.namespace);
         const picked = _.pick(slice,
             "tableItems",
-            "selectedValues",
+            "selection",
             "activeValue"
         );
 

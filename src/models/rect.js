@@ -13,12 +13,12 @@ export default class Rect {
         return new Rect(left, top, right, bottom);
     }
 
-    static fromPosSize(x, y, width, height) {
-        const right = x + width;
-        const bottom = y + height;
-
-        return new Rect(x, y, right, bottom);
-    }
+    // static fromPosSize(x, y, width, height) {
+    //     const right = x + width;
+    //     const bottom = y + height;
+    //
+    //     return new Rect(x, y, right, bottom);
+    // }
 
     constructor(left, top, right, bottom) {
         this.left = left;
@@ -27,19 +27,19 @@ export default class Rect {
         this.bottom = bottom;
     }
 
-    offsetBy(x, y) {
-        this.left += x;
-        this.right += x;
-        this.top += y;
-        this.bottom += y;
-    }
-
-    limit(rect) {
-        this.left = Math.max(this.left, rect.left);
-        this.top = Math.max(this.top, rect.top);
-        this.right = Math.min(this.right, rect.right);
-        this.bottom = Math.min(this.bottom, rect.bottom);
-    }
+    // offsetBy(x, y) {
+    //     this.left += x;
+    //     this.right += x;
+    //     this.top += y;
+    //     this.bottom += y;
+    // }
+    //
+    // limit(rect) {
+    //     this.left = Math.max(this.left, rect.left);
+    //     this.top = Math.max(this.top, rect.top);
+    //     this.right = Math.min(this.right, rect.right);
+    //     this.bottom = Math.min(this.bottom, rect.bottom);
+    // }
 
     get x() {
         return this.left;

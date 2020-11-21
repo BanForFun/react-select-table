@@ -15,6 +15,7 @@ import { tableOptions, defaultEvents } from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
 import {getTableSlice} from "../utils/reduxUtils";
 import {matchModifiers} from "../utils/eventUtils";
+import {clampOffset} from "../utils/mathUtils";
 
 const dragSelectionType = "drag";
 
@@ -32,6 +33,7 @@ function TableCore(props) {
         onColumnsResizeEnd,
         onKeyDown,
         initColumnWidths,
+        scrollFactor,
         columnOrder: _columnOrder,
 
         //Redux state
@@ -124,11 +126,12 @@ function TableCore(props) {
 
         const [mouseX, mouseY] = mousePos;
         const root = bodyContainer.current.offsetParent;
+        const bounds = root.getBoundingClientRect();
 
         setLastMousePos(mousePos);
         setSelOrigin([
-            mouseX + root.scrollLeft,
-            mouseY + root.scrollTop
+            mouseX + root.scrollLeft - bounds.x,
+            mouseY + root.scrollTop - bounds.y
         ]);
     }, [options]);
 
@@ -153,69 +156,69 @@ function TableCore(props) {
         else
             setLastMousePos(mousePos);
 
-        //Get elements
-        const body = bodyContainer.current;
-        const root = body.offsetParent;
-
         //Deconstruct positions
         const [mouseX, mouseY] = mousePos;
         const [originX, originY] = selOrigin;
 
-        //Calculate selection rectangle
-        const rect = Rect.fromPoints(
-            mouseX + root.scrollLeft, mouseY + root.scrollTop,
-            originX, originY
-        );
-
-        //Get header size
+        //Get body values
         const {
+            offsetParent: rootEl,
             offsetTop: headerHeight,
-            offsetLeft: headerWidth
-        } = body;
+            offsetLeft: headerWidth,
+            scrollWidth,
+            scrollHeight,
+        } = bodyContainer.current;
+
+        //Get scroll position
+        const {
+            scrollLeft: scrollX,
+            scrollTop: scrollY
+        } = rootEl;
 
         //Calculate visible container bounds
-        const rootBounds = root.getBoundingClientRect();
+        const bounds = rootEl.getBoundingClientRect();
         const visibleBounds = new Rect(
-            rootBounds.left + headerWidth,
-            rootBounds.top + headerHeight,
-            rootBounds.right,
-            rootBounds.bottom
+            bounds.left + headerWidth,
+            bounds.top + headerHeight,
+            bounds.right,
+            bounds.bottom
         );
-
-        //Calculate table bounds
-        const scrollBounds = Rect.fromPosSize(
-            visibleBounds.x, visibleBounds.y,
-            body.scrollWidth, body.scrollHeight
-        );
-
-        //Limit selection rectangle and make relative to table bounds.
-        rect.limit(scrollBounds);
-        rect.offsetBy(-rootBounds.x, -rootBounds.y);
 
         //Scroll horizontally
         const scrollRight = mouseX - visibleBounds.right;
         const scrollLeft = visibleBounds.left - mouseX;
 
         if (scrollRight > 0)
-            root.scrollLeft += scrollRight;
+            rootEl.scrollLeft += scrollRight * scrollFactor;
         else if (scrollLeft > 0)
-            root.scrollLeft -= scrollLeft;
+            rootEl.scrollLeft -= scrollLeft * scrollFactor;
 
         //Scroll vertically
         const scrollDown = mouseY - visibleBounds.bottom;
         const scrollUp = visibleBounds.top - mouseY;
 
         if (scrollDown > 0)
-            root.scrollTop += scrollDown;
+            rootEl.scrollTop += scrollDown * scrollFactor;
         else if (scrollUp > 0)
-            root.scrollTop -= scrollUp;
+            rootEl.scrollTop -= scrollUp * scrollFactor;
+
+        //Calculate relative mouse position
+        const relMouseY = clampOffset(
+            mouseY + scrollY - bounds.y,
+            headerHeight, scrollHeight
+        );
+
+        const relMouseX = clampOffset(
+            mouseX + scrollX - bounds.x,
+            headerWidth, scrollWidth
+        );
+
+        //Calculate selection rectangle
+        const rect = Rect.fromPoints(relMouseX, relMouseY, originX, originY);
 
         //Calculate relative visible range
-        const topVisible = root.scrollTop + headerHeight;
-        const bottomVisible = topVisible + root.offsetHeight;
-
-        //Calculate relative mouse Y position
-        const relMouseY = mouseY - rootBounds.y + root.scrollTop;
+        const topVisible = rootEl.scrollTop + headerHeight;
+        const bottomVisible = topVisible + visibleBounds.height;
 
         //Modify selection based on collision
         for (let i = 0; i < values.length; i++) {
@@ -230,20 +233,30 @@ function TableCore(props) {
             const bottom = top + row.offsetHeight;
             if (bottom < topVisible) continue;
 
+            //Get row value
+            const value = values[i];
+
             //Check collision with rectangle and cursor
-            const intersects = bottom > rect.top && top <= rect.bottom;
-            const cursorInside = _.inRange(relMouseY, top, bottom);
+            const intersected = bottom > rect.top && top <= rect.bottom;
+            const setActive = value !== activeValue && _.inRange(relMouseY, top, bottom);
 
             //Update selection
-            const value = values[i];
             const isSelected = selection.get(value) === dragSelectionType;
-            if (isSelected !== intersects || cursorInside)
-                dispatchers.setRowSelected(value, intersects, dragSelectionType);
+            if (isSelected !== intersected || setActive)
+                dispatchers.setRowSelected(value, intersected, dragSelectionType);
         }
 
         //Set rectangle in state
         setSelRect(rect);
-    }, [selOrigin, values, selection, lastMousePos, dispatchers]);
+    }, [
+        selOrigin,
+        values,
+        activeValue,
+        selection,
+        lastMousePos,
+        dispatchers,
+        scrollFactor
+    ]);
 
     useWindowEvent("mousemove", useCallback(e => {
         updateSelectRect([e.clientX, e.clientY])
@@ -365,11 +378,12 @@ function TableCore(props) {
     const renderSelectionBox = () => {
         if (!selRect) return null;
 
-        const posSize = _.mapValues(
+        const style = _.mapValues(
             _.pick(selRect, "left", "top", "width", "height"),
             n => `${n}px`
         );
-        return <div className={styles.selection} style={posSize}/>
+
+        return <div className={styles.selection} style={style}/>
     };
 
     const renderTable = () => {
@@ -513,5 +527,6 @@ TableCore.defaultProps = {
     onKeyDown: () => { },
     renderError: msg => msg,
     initColumnWidths: [],
+    scrollFactor: 0.2,
     ...defaultEvents
 };

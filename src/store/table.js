@@ -94,8 +94,8 @@ export default function createTable(namespace, options = {}) {
         deselect.forEach(v => draft.selection.delete(v));
     }
 
-    function selectRows(select) {
-        select.forEach(v => draft.selection.set(v, null));
+    function selectRows(select, type = null) {
+        select.forEach(v => draft.selection.set(v, type));
     }
 
     function setActivePivotValue(value) {
@@ -107,7 +107,6 @@ export default function createTable(namespace, options = {}) {
         if (!items.length)
             return setActivePivotValue(null);
 
-        //Normally, index will never be negative, but just to make sure
         const newIndex = _.clamp(index, 0, items.length - 1);
         setActivePivotValue(items[newIndex][valueProperty]);
     }
@@ -156,30 +155,33 @@ export default function createTable(namespace, options = {}) {
                     const visibleValues = getValues(draft);
                     const { selection } = draft;
 
-                    let lastValue;
                     selection.clear();
                     for (let value of visibleValues) {
                         if (!addedValues.has(value)) continue;
+
+                        //Set first added item as active
+                        if (!selection.size)
+                            setActivePivotValue(value);
+
                         selection.set(value, null);
-                        lastValue = value;
                     }
-
-                    //Set last added visible item active
-                    if (lastValue !== undefined)
-                        setActivePivotValue(lastValue);
-
                     break;
                 }
                 case Actions.DELETE_ROWS: {
                     const { values } = payload;
                     if (!values.length) break;
 
-                    deleteKeys(draft.items, values);
+                    const activeIndex = _.findIndex(draft.tableItems,
+                            item => item[valueProperty] === draft.activeValue);
+
+                    //Deselect items
                     deselectRows(values);
+
+                    //Delete items
+                    deleteKeys(draft.items, values);
                     updateItems();
 
-                    //TODO: Set last visible item deleted active
-
+                    setActivePivotIndex(activeIndex);
                     break;
                 }
                 case Actions.SET_ROW_VALUES: {
@@ -314,11 +316,10 @@ export default function createTable(namespace, options = {}) {
 
                     if (selected) {
                         selection.set(value, type);
-                        setActivePivotValue(value);
-                        break;
+                        draft.activeValue = value;
                     }
-
-                    selection.delete(value);
+                    else
+                        selection.delete(value);
                     break;
                 }
                 case Actions.SELECT_ALL: {
@@ -327,7 +328,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ACTIVE_ROW: {
-                    draft.activeValue = payload.value;
+                    setActivePivotValue(payload.value);
                     break;
                 }
                 case Actions.CONTEXT_MENU: {
@@ -340,7 +341,7 @@ export default function createTable(namespace, options = {}) {
 
                     if (listBox || selection.has(value)) break;
                     selection.clear();
-                    selection.add(value, null);
+                    selection.set(value, null);
 
                     break;
                 }

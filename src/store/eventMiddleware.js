@@ -2,7 +2,7 @@ import actions from "../models/actions";
 import { tableOptions } from "../utils/optionUtils";
 import { getTableSlice } from "../utils/reduxUtils";
 
-function compareSets(a, b) {
+function compareMapKeys(a, b) {
     //Compare references
     if (a === b) return true;
 
@@ -10,8 +10,8 @@ function compareSets(a, b) {
     if (a.size !== b.size) return false;
 
     //Compare items
-    for (let entry of a)
-        if (!b.has(entry)) return false;
+    for (let key of a.keys())
+        if (!b.has(key)) return false;
 
     return true;
 }
@@ -38,13 +38,15 @@ const eventMiddleware = store => next => action => {
             const result = next(action);
             const table = getTable();
 
+            const getSelected = () => Array.from(table.selection.keys());
+
             //Raise onSelectionChange
-            if (!compareSets(prevSel, table.selection))
-                options.onSelectionChange([...table.selection]);
+            if (!compareMapKeys(prevSel, table.selection))
+                options.onSelectionChange(getSelected());
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                options.onContextMenu(options.listBox ? table.activeValue : [...table.selection]);
+                options.onContextMenu(options.listBox ? table.activeValue : getSelected());
 
             return result;
         default:

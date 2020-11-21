@@ -17,22 +17,38 @@ function ReduxTable() {
     const getPageCount = useMemo(makeGetPageCount, []);
     const pageCount = useSelector(getPageCount);
     const currentPage = useSelector(s => s.currentPage);
+    const selection = useSelector(s => Array.from(s.selection.keys()));
 
-    return <div className="container">
-        <h1>Redux table</h1>
+    const handleKeyDown = e => {
+        switch(e.keyCode) {
+            case 46:
+                dispatch(actions.deleteRows(...selection));
+                break;
+        }
+    }
+
+    return <div className="container" id="redux" onKeyDown={handleKeyDown}>
         <TableCore
             className="table"
             name={tableNamespace}
             columns={columns}
             context={ReactReduxContext}
         />
-        <div>Page:&nbsp;
-            <input type="number" id="pageIndex"
-                min={1} max={pageCount}
+        <div>
+            Page:
+            <input
+                type="number"
+                id="pageIndex"
+                className="mx-2"
+                min={1}
+                max={pageCount}
                 value={currentPage}
                 onChange={handlePageChange}
             />
-            &nbsp;/ {pageCount}
+            / {pageCount}
+        </div>
+        <div id="controls">
+
         </div>
     </div>
 }

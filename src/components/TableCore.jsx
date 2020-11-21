@@ -2,16 +2,12 @@ import styles from "../index.scss";
 
 import React, { Fragment, useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import _ from "lodash";
-import Head from "./Head";
-import Body from "./Body";
+import TableHead from "./Head";
+import TableBody from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
 import { connect } from 'react-redux';
 import Rect from '../models/rect';
-import {
-    ensurePosVisible,
-    ensureRowVisible
-} from '../utils/elementUtils';
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import Actions from '../models/actions';
@@ -196,12 +192,27 @@ function TableCore(props) {
         rect.limit(scrollBounds);
         rect.offsetBy(-rootBounds.x, -rootBounds.y);
 
-        //Scroll if necessary
-        ensurePosVisible(root, mouseX, mouseY, visibleBounds);
+        //Scroll horizontally
+        const scrollRight = mouseX - visibleBounds.right;
+        const scrollLeft = visibleBounds.left - mouseX;
+
+        if (scrollRight > 0)
+            root.scrollLeft += scrollRight;
+        else if (scrollLeft > 0)
+            root.scrollLeft -= scrollLeft;
+
+        //Scroll vertically
+        const scrollDown = mouseY - visibleBounds.bottom;
+        const scrollUp = visibleBounds.top - mouseY;
+
+        if (scrollDown > 0)
+            root.scrollTop += scrollDown;
+        else if (scrollUp > 0)
+            root.scrollTop -= scrollUp;
 
         //Calculate relative visible range
         const topVisible = root.scrollTop + headerHeight;
-        const bottomVisible = topVisible + root.scrollHeight;
+        const bottomVisible = topVisible + root.offsetHeight;
 
         //Calculate relative mouse Y position
         const relMouseY = mouseY - rootBounds.y + root.scrollTop;
@@ -216,7 +227,7 @@ function TableCore(props) {
             if (top > bottomVisible) break;
 
             //Calculate bottom
-            const bottom = top + row.scrollHeight;
+            const bottom = top + row.offsetHeight;
             if (bottom < topVisible) continue;
 
             //Check collision with rectangle and cursor
@@ -268,16 +279,29 @@ function TableCore(props) {
         else
             dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
 
-        ensureRowVisible(rowRefs.current[index], bodyContainer.current);
+        //Get elements
+        const body = bodyContainer.current;
+        const root = body.offsetParent;
+        const row = rowRefs.current[index];
+
+        //Scroll up
+        const scrollUp = row.offsetTop < root.scrollTop;
+        if (scrollUp)
+            root.scrollTop = row.offsetTop;
+
+        //Scroll down
+        const visibleHeight = root.offsetHeight - body.offsetTop;
+        const rowBottom = row.offsetTop + row.offsetHeight;
+        const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
+        if (scrollDown)
+            root.scrollTop = rowBottom - visibleHeight;
     }, [values, dispatchers]);
 
     const selectOffset = useCallback((e, offset) => {
         if (activeValue == null) return;
 
-        const index = _.clamp(
-            values.indexOf(activeValue) + offset,
-            0, values.length - 1
-        );
+        const offsetIndex = values.indexOf(activeValue) + offset;
+        const index = _.clamp(offsetIndex, 0, values.length - 1);
         selectIndex(e, index);
     }, [selectIndex, activeValue, values]);
 
@@ -372,10 +396,10 @@ function TableCore(props) {
                  }}>
                 <table className={className}>
                     {colGroup}
-                    <Head {...commonParams}
-                          onResizeEnd={onColumnsResizeEnd}
-                          columnWidths={columnWidths}
-                          setColumnWidths={setColumnWidths}
+                    <TableHead {...commonParams}
+                               onResizeEnd={onColumnsResizeEnd}
+                               columnWidths={columnWidths}
+                               setColumnWidths={setColumnWidths}
                     />
                 </table>
             </div>
@@ -403,7 +427,7 @@ function TableCore(props) {
                     {renderSelectionBox()}
                     <table className={className} >
                         {colGroup}
-                        <Body {...commonParams} rowRefs={rowRefs} />
+                        <TableBody {...commonParams} rowRefs={rowRefs} />
                     </table>
                 </div>
             }

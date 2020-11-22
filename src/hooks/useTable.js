@@ -15,7 +15,7 @@ export default function useTable(name) {
     props.pageCount = useSelector(() => getPageCount(state));
     props.tableItems = useSelector(() => state.tableItems);
     props.keyedItems = useSelector(() => state.items);
-    props.selection = useSelector(() => Array.from(state.selection.keys()));
+    props.selection = useSelector(() => [...state.selection]);
 
     return props;
 }

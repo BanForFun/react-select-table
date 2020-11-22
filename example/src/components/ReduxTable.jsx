@@ -17,7 +17,7 @@ function ReduxTable() {
     const getPageCount = useMemo(makeGetPageCount, []);
     const pageCount = useSelector(getPageCount);
     const currentPage = useSelector(s => s.currentPage);
-    const selection = useSelector(s => Array.from(s.selection.keys()));
+    const selection = useSelector(s => s.selection);
 
     const handleKeyDown = e => {
         switch(e.keyCode) {
@@ -27,7 +27,7 @@ function ReduxTable() {
         }
     }
 
-    return <div className="container" id="redux" onKeyDown={handleKeyDown}>
+    return <div id="redux" onKeyDown={handleKeyDown}>
         <TableCore
             className="table"
             name={tableNamespace}
@@ -46,9 +46,6 @@ function ReduxTable() {
                 onChange={handlePageChange}
             />
             / {pageCount}
-        </div>
-        <div id="controls">
-
         </div>
     </div>
 }

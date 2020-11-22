@@ -11,7 +11,7 @@ import {createSelector} from "reselect";
 enableMapSet();
 
 const defaultState = {
-    selection: new Map(),
+    selection: new Set(),
     activeValue: null,
     pivotValue: null,
     filter: null,
@@ -94,10 +94,6 @@ export default function createTable(namespace, options = {}) {
         deselect.forEach(v => draft.selection.delete(v));
     }
 
-    function selectRows(select, type = null) {
-        select.forEach(v => draft.selection.set(v, type));
-    }
-
     function setActivePivotValue(value) {
         draft.pivotValue = draft.activeValue = value;
     }
@@ -163,7 +159,7 @@ export default function createTable(namespace, options = {}) {
                         if (!selection.size)
                             setActivePivotValue(value);
 
-                        selection.set(value, null);
+                        selection.add(value);
                     }
                     break;
                 }
@@ -194,11 +190,8 @@ export default function createTable(namespace, options = {}) {
 
                         //Update selected value
                         const {selection} = draft;
-                        const type = selection.get(oldValue);
-                        if (type !== undefined) {
-                            selection.delete(oldValue);
-                            selection.set(newValue, type);
-                        }
+                        if (selection.delete(oldValue))
+                            selection.add(newValue)
 
                         //Create new item
                         draft.items[newValue] = {
@@ -275,7 +268,7 @@ export default function createTable(namespace, options = {}) {
 
                     if (!multiSelect) {
                         selection.clear();
-                        selection.set(value, null);
+                        selection.add(value);
                         setActivePivotValue(value);
                         break;
                     }
@@ -290,12 +283,12 @@ export default function createTable(namespace, options = {}) {
 
                         const [startIndex, endIndex] = sortTuple(pivotIndex, newIndex);
                         const newSelection = values.slice(startIndex, endIndex + 1);
-                        selectRows(newSelection);
+                        newSelection.forEach(v => selection.add(v));
                     }
                     else if (ctrlKey && selection.has(value))
                         selection.delete(value);
                     else
-                        selection.set(value, null);
+                        selection.add(value);
 
                     //Set active value
                     draft.activeValue = value;
@@ -311,11 +304,11 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ROW_SELECTED: {
-                    const { value, selected, type } = payload;
+                    const { value, selected } = payload;
                     const { selection } = draft;
 
                     if (selected) {
-                        selection.set(value, type);
+                        selection.add(value);
                         draft.activeValue = value;
                     }
                     else
@@ -323,8 +316,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SELECT_ALL: {
-                    draft.selection.clear();
-                    selectRows(getValues(draft));
+                    draft.selection = new Set(getValues(draft));
                     break;
                 }
                 case Actions.SET_ACTIVE_ROW: {
@@ -341,7 +333,7 @@ export default function createTable(namespace, options = {}) {
 
                     if (listBox || selection.has(value)) break;
                     selection.clear();
-                    selection.set(value, null);
+                    selection.add(value);
 
                     break;
                 }

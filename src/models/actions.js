@@ -77,8 +77,8 @@ export default class TableActions {
     selectAll = () =>
         this._getAction(self.SELECT_ALL);
 
-    setRowSelected = (value, selected, type = null) =>
-        this._getAction(self.SET_ROW_SELECTED, { value, selected, type });
+    setRowSelected = (value, selected) =>
+        this._getAction(self.SET_ROW_SELECTED, { value, selected });
 
     setError = error =>
         this._getAction(self.SET_ERROR, { error });

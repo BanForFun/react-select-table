@@ -17,8 +17,6 @@ import {getTableSlice} from "../utils/reduxUtils";
 import {matchModifiers} from "../utils/eventUtils";
 import {clampOffset} from "../utils/mathUtils";
 
-const dragSelectionType = "drag";
-
 function TableCore(props) {
     const {
         name,
@@ -108,6 +106,37 @@ function TableCore(props) {
 
     //#endregion
 
+    const findRowIndex = useCallback(target => {
+        const headerHeight = bodyContainer.current.offsetTop;
+        const rows = rowRefs.current;
+
+        const getValue = index => rows[index].offsetTop + headerHeight;
+
+        let start = 0;
+        let end = rows.length - 1;
+
+        if (target > getValue(end))
+            return end;
+
+        if (target < getValue(start))
+            return start;
+
+        //Binary search
+        while (start <= end) {
+            const middle = Math.floor((start + end) / 2);
+            const value = getValue(middle);
+
+            if (value < target)
+                start = middle + 1;
+            else if (value > target)
+                end = middle - 1;
+            else
+                return middle;
+        }
+
+        return start - 1;
+    }, []);
+
     //#region Drag selection
 
     //Create row refs
@@ -120,20 +149,23 @@ function TableCore(props) {
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback(mousePos => {
         //Return if listBox is enabled or multiSelect is disabled
-        const dragEnabled = !options.listBox && options.multiSelect;
-        //Return if the mouse button pressed wasn't the primary one
-        if (!dragEnabled) return;
+        if (options.listBox || !options.multiSelect) return;
 
         const [mouseX, mouseY] = mousePos;
         const root = bodyContainer.current.offsetParent;
         const bounds = root.getBoundingClientRect();
 
-        setLastMousePos(mousePos);
-        setSelOrigin([
-            mouseX + root.scrollLeft - bounds.x,
-            mouseY + root.scrollTop - bounds.y
-        ]);
-    }, [options]);
+        const relMouseX = mouseX + root.scrollLeft - bounds.x;
+        const relMouseY = mouseY + root.scrollTop - bounds.y;
+
+        setMousePos(mousePos);
+        setRelMouseY(relMouseY);
+        setSelOrigin({
+            x: relMouseX,
+            y: relMouseY,
+            index: findRowIndex(relMouseY)
+        });
+    }, [options, findRowIndex]);
 
     const dragEnd = useCallback(() => {
         if (!selOrigin) return;
@@ -146,19 +178,20 @@ function TableCore(props) {
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
-    const [lastMousePos, setLastMousePos] = useState(null);
+    const [lastMousePos, setMousePos] = useState(null);
+    const [lastRelMouseY, setRelMouseY] = useState();
+
     const updateSelectRect = useCallback((mousePos = null) => {
         if (!selOrigin) return;
 
-        //Cache last mouse position
+        //Load mouse position
         if (!mousePos)
             mousePos = lastMousePos;
         else
-            setLastMousePos(mousePos);
+            setMousePos(mousePos);
 
         //Deconstruct positions
         const [mouseX, mouseY] = mousePos;
-        const [originX, originY] = selOrigin;
 
         //Get body values
         const {
@@ -203,47 +236,50 @@ function TableCore(props) {
             rootEl.scrollTop -= scrollUp * scrollFactor;
 
         //Calculate relative mouse position
-        const relMouseY = clampOffset(
-            mouseY + scrollY - bounds.y,
-            headerHeight, scrollHeight
-        );
-
         const relMouseX = clampOffset(
             mouseX + scrollX - bounds.x,
             headerWidth, scrollWidth
         );
 
+        const relMouseY = clampOffset(
+            mouseY + scrollY - bounds.y,
+            headerHeight, scrollHeight
+        );
+
+        //Define selection check area
+        const maxMouseY = Math.max(relMouseY, lastRelMouseY);
+        const minMouseY = Math.min(relMouseY, lastRelMouseY);
+        setRelMouseY(relMouseY);
+
         //Calculate selection rectangle
-        const rect = Rect.fromPoints(relMouseX, relMouseY, originX, originY);
+        const rect = Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y);
 
-        //Calculate relative visible range
-        const topVisible = rootEl.scrollTop + headerHeight;
-        const bottomVisible = topVisible + visibleBounds.height;
 
-        //Modify selection based on collision
-        for (let i = 0; i < values.length; i++) {
-            //Get element
-            const row = rowRefs.current[i];
+        let index;
 
-            //Calculate top
-            const top = row.offsetTop + headerHeight;
-            if (top > bottomVisible) break;
+        function updateCurrent(select) {
+            const value = values[index];
+            if (select !== selection.has(value))
+                dispatchers.setRowSelected(value, select);
+        }
 
-            //Calculate bottom
-            const bottom = top + row.offsetHeight;
-            if (bottom < topVisible) continue;
+        //Search down
+        index = selOrigin.index + 1;
+        while (index < values.length) {
+            const top = rowRefs.current[index].offsetTop + headerHeight;
+            if (top > maxMouseY) break;
 
-            //Get row value
-            const value = values[i];
+            updateCurrent(top < relMouseY);
+            index++;
+        }
 
-            //Check collision with rectangle and cursor
-            const intersected = bottom > rect.top && top <= rect.bottom;
-            const setActive = value !== activeValue && _.inRange(relMouseY, top, bottom);
+        //Search up
+        index = selOrigin.index;
+        while (index > 0) {
+            const top = rowRefs.current[index--].offsetTop + headerHeight;
+            if (top < minMouseY) break;
 
-            //Update selection
-            const isSelected = selection.get(value) === dragSelectionType;
-            if (isSelected !== intersected || setActive)
-                dispatchers.setRowSelected(value, intersected, dragSelectionType);
+            updateCurrent(top > relMouseY)
         }
 
         //Set rectangle in state
@@ -255,7 +291,9 @@ function TableCore(props) {
         selection,
         lastMousePos,
         dispatchers,
-        scrollFactor
+        scrollFactor,
+        findRowIndex,
+        lastRelMouseY
     ]);
 
     useWindowEvent("mousemove", useCallback(e => {
@@ -275,7 +313,7 @@ function TableCore(props) {
     useWindowEvent("touchend", dragEnd);
     //#endregion
 
-    //#region Helpers
+    //#region Selection utils
 
     const openItems = useCallback((e, enterKey) => {
         if (!enterKey || matchModifiers(e, false, false))

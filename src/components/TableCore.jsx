@@ -158,8 +158,8 @@ function TableCore(props) {
         const relMouseX = mouseX + root.scrollLeft - bounds.x;
         const relMouseY = mouseY + root.scrollTop - bounds.y;
 
-        setMousePos(mousePos);
-        setRelMouseY(relMouseY);
+        lastMousePos.current = mousePos;
+        lastRelMouseY.current = relMouseY;
         setSelOrigin({
             x: relMouseX,
             y: relMouseY,
@@ -178,17 +178,17 @@ function TableCore(props) {
 
     //Update selection rectangle
     const [selRect, setSelRect] = useState(null);
-    const [lastMousePos, setMousePos] = useState(null);
-    const [lastRelMouseY, setRelMouseY] = useState();
+    const lastMousePos = useRef();
+    const lastRelMouseY = useRef();
 
     const updateSelectRect = useCallback((mousePos = null) => {
         if (!selOrigin) return;
 
         //Load mouse position
         if (!mousePos)
-            mousePos = lastMousePos;
+            mousePos = lastMousePos.current;
         else
-            setMousePos(mousePos);
+            lastMousePos.current = mousePos;
 
         //Deconstruct positions
         const [mouseX, mouseY] = mousePos;
@@ -247,24 +247,29 @@ function TableCore(props) {
         );
 
         //Define selection check area
-        const maxMouseY = Math.max(relMouseY, lastRelMouseY);
-        const minMouseY = Math.min(relMouseY, lastRelMouseY);
-        setRelMouseY(relMouseY);
+        const maxMouseY = Math.max(relMouseY, lastRelMouseY.current);
+        const minMouseY = Math.min(relMouseY, lastRelMouseY.current);
+        lastRelMouseY.current = relMouseY;
 
         //Calculate selection rectangle
         const rect = Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y);
 
-
+        //Set up search
+        const pivotIndex = selOrigin.index;
+        let setActive = values[pivotIndex];
         let index;
 
         function updateCurrent(select) {
             const value = values[index];
+
             if (select !== selection.has(value))
                 dispatchers.setRowSelected(value, select);
+            else if (select)
+                setActive = value;
         }
 
         //Search down
-        index = selOrigin.index + 1;
+        index = pivotIndex + 1;
         while (index < values.length) {
             const top = rowRefs.current[index].offsetTop + headerHeight;
             if (top > maxMouseY) break;
@@ -274,13 +279,16 @@ function TableCore(props) {
         }
 
         //Search up
-        index = selOrigin.index;
+        index = pivotIndex;
         while (index > 0) {
             const top = rowRefs.current[index--].offsetTop + headerHeight;
             if (top < minMouseY) break;
 
             updateCurrent(top > relMouseY)
         }
+
+        if (setActive !== activeValue)
+            dispatchers.setRowSelected(setActive, true);
 
         //Set rectangle in state
         setSelRect(rect);
@@ -289,11 +297,9 @@ function TableCore(props) {
         values,
         activeValue,
         selection,
-        lastMousePos,
         dispatchers,
         scrollFactor,
-        findRowIndex,
-        lastRelMouseY
+        findRowIndex
     ]);
 
     useWindowEvent("mousemove", useCallback(e => {

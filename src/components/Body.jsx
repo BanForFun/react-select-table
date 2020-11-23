@@ -1,5 +1,5 @@
 import _ from "lodash";
-import React from 'react';
+import React, {useCallback} from 'react';
 import styles from "../index.scss";
 import { connect } from "react-redux";
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
@@ -11,19 +11,19 @@ function Body({
     name,
     options,
     items,
-    rowRefs,
+    tableBodyRef,
     selection,
     activeValue,
     dispatchers
 }) {
-    const handleRowSelect = (e, value) => {
+    const handleRowSelect = useCallback((e, value) => {
         if (e.button !== 0) return;
         dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
-    };
+    }, [dispatchers]);
 
-    const handleRowContextMenu = (e, value) => {
+    const handleRowContextMenu = useCallback((e, value) => {
         dispatchers.contextMenu(value, e.ctrlKey);
-    };
+    }, [dispatchers]);
 
     const renderColumn = (row, column) => {
         const rowValue = row[options.valueProperty];
@@ -40,7 +40,7 @@ function Body({
         return <td {...props}>{content}</td>
     };
 
-    const renderRow = (row, index) => {
+    const renderRow = (row) => {
         const value = row[options.valueProperty];
 
         const classes = {
@@ -50,7 +50,6 @@ function Body({
 
         return <tr
             key={`row_${name}_${value}`}
-            ref={el => rowRefs.current[index] = el}
             className={classNames(classes, row._className)}
             onContextMenu={e => handleRowContextMenu(e, value)}
             onMouseDown={e => handleRowSelect(e, value)}
@@ -59,7 +58,7 @@ function Body({
         </tr>
     };
 
-    return <tbody>
+    return <tbody ref={tableBodyRef}>
         {items.map(renderRow)}
     </tbody>;
 }

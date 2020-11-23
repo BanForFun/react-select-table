@@ -21,10 +21,8 @@ function Head({
     const [resizingIndex, setResizingIndex] = useState(-1);
     const header = useRef();
 
-    const isResizing = resizingIndex >= 0;
-
     const updateWidth = useCallback(xPos => {
-        if (!isResizing) return;
+        if (resizingIndex < 0) return;
 
         const index = resizingIndex;
         const head = header.current;
@@ -61,26 +59,29 @@ function Head({
     ]);
 
     const dragEnd = useCallback(() => {
-        if (!isResizing) return;
+        if (resizingIndex < 0) return;
 
         setResizingIndex(-1);
         onResizeEnd(columnWidths);
-    }, [isResizing, onResizeEnd, columnWidths]);
+    }, [resizingIndex, onResizeEnd, columnWidths]);
 
-    useWindowEvent("mousemove", e => updateWidth(e.clientX));
+    useWindowEvent("mousemove", useCallback(e => {
+        updateWidth(e.clientX)
+    },[updateWidth]));
 
     useWindowEvent("mouseup", dragEnd);
 
-    useWindowEvent("touchmove", e => {
-        if (!isResizing) return;
+    useWindowEvent("touchmove", useCallback(e => {
+        if (resizingIndex < 0) return;
+
         e.preventDefault();
         updateWidth(e.touches[0].clientX);
-    });
+    }, [resizingIndex, updateWidth]));
 
     useWindowEvent("touchend", dragEnd);
 
     return (
-        <thead ref={header} data-resizing={boolAttrib(isResizing)}>
+        <thead ref={header} data-resizing={boolAttrib(resizingIndex >= 0)}>
             <tr>
                 {columns.map((col, index) => {
                     const { _id, path, title } = col;

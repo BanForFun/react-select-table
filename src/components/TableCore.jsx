@@ -13,7 +13,7 @@ import { bindActionCreators } from 'redux';
 import Actions from '../models/actions';
 import { tableOptions, defaultEvents } from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
-import {getTableSlice} from "../utils/reduxUtils";
+import {getTableSlice} from '../utils/reduxUtils';
 import {matchModifiers} from "../utils/eventUtils";
 import {clampOffset} from "../utils/mathUtils";
 
@@ -43,8 +43,8 @@ function TableCore(props) {
         dispatch
     } = props;
 
-    const bodyRef = useRef();
-    const tableRef = useRef();
+    const bodyContainerRef = useRef();
+    const tableBodyRef = useRef();
 
     const isTouching = useRef(false);
 
@@ -107,8 +107,8 @@ function TableCore(props) {
     //#endregion
 
     const findRowIndex = useCallback(target => {
-        const headerHeight = bodyRef.current.offsetTop;
-        const rows = rowRefs.current;
+        const headerHeight = bodyContainerRef.current.offsetTop;
+        const rows = tableBodyRef.current.children;
 
         const getValue = index => rows[index].offsetTop + headerHeight;
 
@@ -133,12 +133,6 @@ function TableCore(props) {
 
     //#region Drag selection
 
-    //Create row refs
-    const rowRefs = useRef([]);
-    useEffect(() => {
-        rowRefs.current = rowRefs.current.slice(0, items.length);
-    }, [items.length]);
-
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback((mousePos, belowItems) => {
@@ -146,7 +140,7 @@ function TableCore(props) {
         if (options.listBox || !options.multiSelect) return;
 
         const [mouseX, mouseY] = mousePos;
-        const root = bodyRef.current.offsetParent;
+        const root = bodyContainerRef.current.offsetParent;
         const bounds = root.getBoundingClientRect();
 
         const relMouseX = mouseX + root.scrollLeft - bounds.x;
@@ -194,13 +188,18 @@ function TableCore(props) {
             offsetLeft: headerWidth,
             scrollWidth,
             scrollHeight
-        } = bodyRef.current;
+        } = bodyContainerRef.current;
 
         //Get scroll position
         const {
             scrollLeft: scrollX,
             scrollTop: scrollY
         } = rootEl;
+
+        const {
+            offsetHeight: tableHeight,
+            children: rows
+        } = tableBodyRef.current;
 
         //Calculate visible container bounds
         const bounds = rootEl.getBoundingClientRect();
@@ -267,8 +266,8 @@ function TableCore(props) {
 
         function getCurrentTop() {
             const baseHeight = index >= values.length
-                ? tableRef.current.offsetHeight
-                : rowRefs.current[index].offsetTop
+                ? tableHeight
+                : rows[index].offsetTop
 
             return baseHeight + headerHeight;
         }
@@ -290,7 +289,7 @@ function TableCore(props) {
             if (top < minMouseY) break;
 
             index--;
-            updateCurrent(top > relMouseY)
+            updateCurrent(top > relMouseY);
         }
 
         if (setActive !== null && setActive !== activeValue)
@@ -343,9 +342,9 @@ function TableCore(props) {
             dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
 
         //Get elements
-        const body = bodyRef.current;
+        const body = bodyContainerRef.current;
         const root = body.offsetParent;
-        const row = rowRefs.current[index];
+        const row = tableBodyRef.current.children[index];
 
         //Scroll up
         const scrollUp = row.offsetTop < root.scrollTop;
@@ -375,7 +374,7 @@ function TableCore(props) {
     //#endregion
 
     //#region Event Handlers
-    const handleMouseDown = e => {
+    const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
 
         const belowItems = e.currentTarget === e.target;
@@ -384,9 +383,9 @@ function TableCore(props) {
             dispatchers.clearSelection();
 
         dragStart([e.clientX, e.clientY], belowItems);
-    };
+    }, [dragStart, dispatchers, options]);
 
-    const handleContextMenu = e => {
+    const handleContextMenu = useCallback(e => {
         const belowItems = e.currentTarget === e.target;
 
         if (belowItems)
@@ -394,9 +393,9 @@ function TableCore(props) {
 
         if (isTouching.current)
             dragStart([e.clientX, e.clientY], belowItems);
-    };
+    }, [dragStart, dispatchers]);
 
-    const handleKeyDown = e => {
+    const handleKeyDown = useCallback(e => {
         switch (e.keyCode) {
             case 65: //A
                 if (e.ctrlKey && options.multiSelect)
@@ -422,7 +421,10 @@ function TableCore(props) {
         }
 
         e.preventDefault();
-    };
+    }, [
+        dispatchers, options, items,
+        selectOffset, selectIndex, openItems, raiseKeyDown
+    ]);
     //#endregion
 
     const renderSelectionBox = () => {
@@ -478,7 +480,7 @@ function TableCore(props) {
                 //Table body
                 <div className={styles.bodyContainer}
                      tabIndex="0"
-                     ref={bodyRef}
+                     ref={bodyContainerRef}
                      style={containerStyle}
                      onKeyDown={handleKeyDown}
                      onDoubleClick={e => openItems(e, false)}
@@ -487,9 +489,9 @@ function TableCore(props) {
                      onMouseDown={handleMouseDown}
                 >
                     {renderSelectionBox()}
-                    <table className={className} ref={tableRef}>
+                    <table className={className}>
                         {colGroup}
-                        <TableBody {...commonParams} rowRefs={rowRefs} />
+                        <TableBody {...commonParams} tableBodyRef={tableBodyRef} />
                     </table>
                 </div>
             }

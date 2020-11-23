@@ -8,8 +8,6 @@ function log(type) {
     return args => console.log(type, args);
 }
 
-const shortTodos = todos.slice(0, 50);
-
 function SimpleTable() {
     const {pageCount, tableProps} = useTable("test");
 
@@ -17,7 +15,7 @@ function SimpleTable() {
         <div id="simple">
             <Table
                 {...tableProps}
-                items={shortTodos}
+                items={todos}
                 onContextMenu={log("Context menu")}
                 onItemsOpen={log("Open")}
                 initColumnWidths={[10, 70, 20]}

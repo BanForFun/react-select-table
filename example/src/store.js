@@ -12,7 +12,7 @@ const store = createStore(
             initItems: todos,
             scrollX: true,
             initState: {
-                pageSize: 5
+                pageSize: 800
             }
         }
     ),

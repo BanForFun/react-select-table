@@ -73,5 +73,6 @@ Table.propTypes = {
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     page: PropTypes.number,
-    pageSize: PropTypes.number
+    pageSize: PropTypes.number,
+    scrollFactor: PropTypes.number
 }

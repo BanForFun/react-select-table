@@ -43,8 +43,8 @@ function TableCore(props) {
         dispatch
     } = props;
 
-    const bodyContainer = useRef();
-    const headContainer = useRef();
+    const bodyRef = useRef();
+    const tableRef = useRef();
 
     const isTouching = useRef(false);
 
@@ -107,19 +107,13 @@ function TableCore(props) {
     //#endregion
 
     const findRowIndex = useCallback(target => {
-        const headerHeight = bodyContainer.current.offsetTop;
+        const headerHeight = bodyRef.current.offsetTop;
         const rows = rowRefs.current;
 
         const getValue = index => rows[index].offsetTop + headerHeight;
 
         let start = 0;
         let end = rows.length - 1;
-
-        if (target > getValue(end))
-            return end;
-
-        if (target < getValue(start))
-            return start;
 
         //Binary search
         while (start <= end) {
@@ -147,12 +141,12 @@ function TableCore(props) {
 
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
-    const dragStart = useCallback(mousePos => {
+    const dragStart = useCallback((mousePos, belowItems) => {
         //Return if listBox is enabled or multiSelect is disabled
         if (options.listBox || !options.multiSelect) return;
 
         const [mouseX, mouseY] = mousePos;
-        const root = bodyContainer.current.offsetParent;
+        const root = bodyRef.current.offsetParent;
         const bounds = root.getBoundingClientRect();
 
         const relMouseX = mouseX + root.scrollLeft - bounds.x;
@@ -163,7 +157,7 @@ function TableCore(props) {
         setSelOrigin({
             x: relMouseX,
             y: relMouseY,
-            index: findRowIndex(relMouseY)
+            index: belowItems ? -1 : findRowIndex(relMouseY)
         });
     }, [options, findRowIndex]);
 
@@ -199,8 +193,8 @@ function TableCore(props) {
             offsetTop: headerHeight,
             offsetLeft: headerWidth,
             scrollWidth,
-            scrollHeight,
-        } = bodyContainer.current;
+            scrollHeight
+        } = bodyRef.current;
 
         //Get scroll position
         const {
@@ -255,8 +249,11 @@ function TableCore(props) {
         const rect = Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y);
 
         //Set up search
-        const pivotIndex = selOrigin.index;
-        let setActive = values[pivotIndex];
+        const belowItems = selOrigin.index < 0;
+
+        const pivotIndex = belowItems ? values.length : selOrigin.index;
+        let setActive = belowItems ? null : values[pivotIndex];
+
         let index;
 
         function updateCurrent(select) {
@@ -268,10 +265,18 @@ function TableCore(props) {
                 setActive = value;
         }
 
+        function getCurrentTop() {
+            const baseHeight = index >= values.length
+                ? tableRef.current.offsetHeight
+                : rowRefs.current[index].offsetTop
+
+            return baseHeight + headerHeight;
+        }
+
         //Search down
         index = pivotIndex + 1;
         while (index < values.length) {
-            const top = rowRefs.current[index].offsetTop + headerHeight;
+            const top = getCurrentTop();
             if (top > maxMouseY) break;
 
             updateCurrent(top < relMouseY);
@@ -281,13 +286,14 @@ function TableCore(props) {
         //Search up
         index = pivotIndex;
         while (index > 0) {
-            const top = rowRefs.current[index--].offsetTop + headerHeight;
+            const top = getCurrentTop();
             if (top < minMouseY) break;
 
+            index--;
             updateCurrent(top > relMouseY)
         }
 
-        if (setActive !== activeValue)
+        if (setActive !== null && setActive !== activeValue)
             dispatchers.setRowSelected(setActive, true);
 
         //Set rectangle in state
@@ -323,7 +329,7 @@ function TableCore(props) {
 
     const openItems = useCallback((e, enterKey) => {
         if (!enterKey || matchModifiers(e, false, false))
-            onItemsOpen([...selection], enterKey);
+            onItemsOpen(selection, enterKey);
         else
             dispatchers.selectRow(activeValue, e.ctrlKey, e.shiftKey)
     }, [selection, activeValue, dispatchers, onItemsOpen]);
@@ -337,7 +343,7 @@ function TableCore(props) {
             dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
 
         //Get elements
-        const body = bodyContainer.current;
+        const body = bodyRef.current;
         const root = body.offsetParent;
         const row = rowRefs.current[index];
 
@@ -363,7 +369,7 @@ function TableCore(props) {
     }, [selectIndex, activeValue, values]);
 
     const raiseKeyDown = useCallback(e => {
-        onKeyDown(e, [...selection]);
+        onKeyDown(e, selection);
     }, [selection, onKeyDown])
 
     //#endregion
@@ -372,22 +378,22 @@ function TableCore(props) {
     const handleMouseDown = e => {
         if (e.button !== 0) return;
 
-        if (
-            e.currentTarget === e.target && //Click was below items
-            !e.ctrlKey &&
-            !options.listBox
-        )
+        const belowItems = e.currentTarget === e.target;
+
+        if (belowItems && !e.ctrlKey && !options.listBox)
             dispatchers.clearSelection();
 
-        dragStart([e.clientX, e.clientY]);
+        dragStart([e.clientX, e.clientY], belowItems);
     };
 
     const handleContextMenu = e => {
-        if (isTouching.current)
-            dragStart([e.clientX, e.clientY]);
+        const belowItems = e.currentTarget === e.target;
 
-        if (e.currentTarget !== e.target) return;
-        dispatchers.contextMenu(null, e.ctrlKey);
+        if (belowItems)
+            dispatchers.contextMenu(null, e.ctrlKey);
+
+        if (isTouching.current)
+            dragStart([e.clientX, e.clientY], belowItems);
     };
 
     const handleKeyDown = e => {
@@ -440,7 +446,9 @@ function TableCore(props) {
             columns: parsedColumns
         }
 
-        const tableWidth = `${_.sum(columnWidths)}%`;
+        const containerStyle = {
+            width: `${_.sum(columnWidths)}%`
+        };
         const isEmpty = items.length === 0;
 
         const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
@@ -448,10 +456,8 @@ function TableCore(props) {
         return <Fragment>
             <div className={styles.headContainer}
                  tabIndex="0"
-                 ref={headContainer}
-                 style={{
-                     width: tableWidth
-                 }}>
+                 style={containerStyle}
+            >
                 <table className={className}>
                     {colGroup}
                     <TableHead {...commonParams}
@@ -472,10 +478,8 @@ function TableCore(props) {
                 //Table body
                 <div className={styles.bodyContainer}
                      tabIndex="0"
-                     ref={bodyContainer}
-                     style={{
-                         width: tableWidth
-                     }}
+                     ref={bodyRef}
+                     style={containerStyle}
                      onKeyDown={handleKeyDown}
                      onDoubleClick={e => openItems(e, false)}
                      onContextMenu={handleContextMenu}
@@ -483,7 +487,7 @@ function TableCore(props) {
                      onMouseDown={handleMouseDown}
                 >
                     {renderSelectionBox()}
-                    <table className={className} >
+                    <table className={className} ref={tableRef}>
                         {colGroup}
                         <TableBody {...commonParams} rowRefs={rowRefs} />
                     </table>
@@ -562,7 +566,8 @@ TableCore.propTypes = {
     loadingIndicator: PropTypes.node,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
-    renderError: PropTypes.func
+    renderError: PropTypes.func,
+    scrollFactor: PropTypes.number
 };
 
 TableCore.defaultProps = {

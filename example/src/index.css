@@ -17,14 +17,11 @@ body {
     width: 4ch;
 }
 
-#redux {
+#redux, #simple {
     padding: 2rem;
     height: 100%;
-}
-
-#redux {
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: 1fr auto;
     /*grid-template-columns: 75% 1fr;*/
     grid-gap: 1rem;
 }

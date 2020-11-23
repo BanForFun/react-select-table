@@ -33,6 +33,7 @@ function ReduxTable() {
             name={tableNamespace}
             columns={columns}
             context={ReactReduxContext}
+            scrollFactor={0.5}
         />
         <div>
             Page:

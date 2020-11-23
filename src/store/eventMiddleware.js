@@ -40,11 +40,11 @@ const eventMiddleware = store => next => action => {
 
             //Raise onSelectionChange
             if (!compareSets(prevSel, table.selection))
-                options.onSelectionChange([...table.selection]);
+                options.onSelectionChange(table.selection);
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                options.onContextMenu(options.listBox ? table.activeValue : [...table.selection]);
+                options.onContextMenu(options.listBox ? table.activeValue : table.selection);
 
             return result;
         default:

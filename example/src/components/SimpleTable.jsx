@@ -14,8 +14,7 @@ function SimpleTable() {
     const {pageCount, tableProps} = useTable("test");
 
     return (
-        <div className="container">
-            <h1>Simple table</h1>
+        <div id="simple">
             <Table
                 {...tableProps}
                 items={shortTodos}

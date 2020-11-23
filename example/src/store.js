@@ -9,9 +9,12 @@ const store = createStore(
     createTable(tableNamespace,
         {
             valueProperty: "id",
-            initItems: todos
-        },
-        { pageSize: 5 }
+            initItems: todos,
+            scrollX: true,
+            initState: {
+                pageSize: 5
+            }
+        }
     ),
     composeWithDevTools(applyMiddleware(eventMiddleware))
 );

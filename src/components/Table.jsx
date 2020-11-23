@@ -68,7 +68,6 @@ Table.propTypes = {
     onColumnsResizeEnd: PropTypes.func,
     onKeyDown: PropTypes.func,
     emptyPlaceholder: PropTypes.node,
-    loadingIndicator: PropTypes.node,
     filter: PropTypes.any,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),

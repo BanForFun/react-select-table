@@ -14,10 +14,13 @@ export default class TableActions {
     static CLEAR_ROWS = "TABLE_CLEAR_ROWS";
     static SORT_BY = "TABLE_SORT_BY";
     static SET_FILTER = "TABLE_SET_FILTER";
+
+    //Displaying
     static SET_ERROR = "TABLE_SET_ERROR";
+    static START_LOADING = "TABLE_START_LOADING";
 
     //Selection
-    static SET_ROW_SELECTED = "TABLE_SET_ROW_SELECTED";
+    static SET_ROWS_SELECTED = "TABLE_SET_ROWS_SELECTED";
     static SELECT_ROW = "TABLE_SELECT_ROW";
     static CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
     static SELECT_ALL = "TABLE_SELECT_ALL";
@@ -59,8 +62,8 @@ export default class TableActions {
     addRows = (...items) =>
         this._getAction(self.ADD_ROWS, { items });
 
-    setRows = (items, keyed = false) =>
-        this._getAction(self.SET_ROWS, { items, keyed });
+    setRows = items =>
+        this._getAction(self.SET_ROWS, { items });
 
     sortBy = (path, shiftKey = false) =>
         this._getAction(self.SORT_BY, { path, shiftKey });
@@ -68,8 +71,8 @@ export default class TableActions {
     selectRow = (value, ctrlKey = false, shiftKey = false) =>
         this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
 
-    setActiveRow = value =>
-        this._getAction(self.SET_ACTIVE_ROW, { value });
+    setActiveRow = (value, pivot = true) =>
+        this._getAction(self.SET_ACTIVE_ROW, { value, pivot });
 
     clearSelection = () =>
         this._getAction(self.CLEAR_SELECTION);
@@ -77,11 +80,14 @@ export default class TableActions {
     selectAll = () =>
         this._getAction(self.SELECT_ALL);
 
-    setRowSelected = (value, selected) =>
-        this._getAction(self.SET_ROW_SELECTED, { value, selected });
+    setRowsSelected = map =>
+        this._getAction(self.SET_ROWS_SELECTED, { map });
 
     setError = error =>
         this._getAction(self.SET_ERROR, { error });
+
+    startLoading = () =>
+        this._getAction(self.START_LOADING);
 
     //#region Aliases
 
@@ -90,8 +96,9 @@ export default class TableActions {
     previousPage = () => this.goToPage(pagePositions.Previous);
     nextPage = () => this.goToPage(pagePositions.Next);
 
-    setRowValue = (oldValue, newValue) =>
-        this.setRowValues({[oldValue]: newValue});
+    setRowValue = (oldValue, newValue) => this.setRowValues({[oldValue]: newValue});
+
+    setRowSelected = (value, selected) => this.setRowsSelected({[value]: selected});
 
     addRow = item => this.addRows(item);
 

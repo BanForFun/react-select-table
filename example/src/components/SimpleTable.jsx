@@ -17,6 +17,7 @@ function SimpleTable() {
                 {...tableProps}
                 items={todos}
                 onContextMenu={log("Context menu")}
+                onSelectionChange={log("Selection")}
                 onItemsOpen={log("Open")}
                 initColumnWidths={[10, 70, 20]}
                 columns={columns}

@@ -40,3 +40,13 @@ export function setOptions(namespace, options) {
     Object.assign(options, defaultEvents);
     tableOptions[namespace] = options;
 }
+
+export function formatSelection(selection, namespace) {
+    if (tableOptions[namespace].multiSelect)
+        return selection;
+
+    for (let value of selection)
+        return value;
+
+    return null;
+}

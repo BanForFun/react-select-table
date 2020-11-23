@@ -11,7 +11,7 @@ import Rect from '../models/rect';
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { bindActionCreators } from 'redux';
 import Actions from '../models/actions';
-import { tableOptions, defaultEvents } from '../utils/optionUtils';
+import {tableOptions, defaultEvents, formatSelection} from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
 import {getTableSlice} from '../utils/reduxUtils';
 import {matchModifiers} from "../utils/eventUtils";
@@ -20,7 +20,7 @@ import {clampOffset} from "../utils/mathUtils";
 function TableCore(props) {
     const {
         name,
-        namespace,
+        namespace: ns,
         context,
         className,
         columns,
@@ -48,8 +48,7 @@ function TableCore(props) {
 
     const isTouching = useRef(false);
 
-    const options = useMemo(() =>
-        tableOptions[namespace], [namespace]);
+    const options = useMemo(() => tableOptions[ns], [ns]);
 
     const values = useMemo(() =>
         _.map(items, options.valueProperty),
@@ -57,8 +56,8 @@ function TableCore(props) {
     );
 
     const dispatchers = useMemo(() =>
-        bindActionCreators(new Actions(namespace), dispatch),
-        [namespace, dispatch]
+        bindActionCreators(new Actions(ns), dispatch),
+        [ns, dispatch]
     );
 
     //#region Columns
@@ -253,13 +252,14 @@ function TableCore(props) {
         const pivotIndex = belowItems ? values.length : selOrigin.index;
         let setActive = belowItems ? null : values[pivotIndex];
 
+        const selectMap = {};
         let index;
 
         function updateCurrent(select) {
             const value = values[index];
 
             if (select !== selection.has(value))
-                dispatchers.setRowSelected(value, select);
+                selectMap[value] = select;
             else if (select)
                 setActive = value;
         }
@@ -292,8 +292,10 @@ function TableCore(props) {
             updateCurrent(top > relMouseY);
         }
 
-        if (setActive !== null && setActive !== activeValue)
-            dispatchers.setRowSelected(setActive, true);
+        dispatchers.setRowsSelected(selectMap);
+
+        // if (setActive !== null && setActive !== activeValue)
+            // dispatchers.setRowSelected(setActive, true);
 
         //Set rectangle in state
         setSelRect(rect);
@@ -328,10 +330,10 @@ function TableCore(props) {
 
     const openItems = useCallback((e, enterKey) => {
         if (!enterKey || matchModifiers(e, false, false))
-            onItemsOpen(selection, enterKey);
+            onItemsOpen(formatSelection(selection, ns), enterKey);
         else
             dispatchers.selectRow(activeValue, e.ctrlKey, e.shiftKey)
-    }, [selection, activeValue, dispatchers, onItemsOpen]);
+    }, [selection, activeValue, dispatchers, ns, onItemsOpen]);
 
     const selectIndex = useCallback((e, index) => {
         const value = values[index];
@@ -368,8 +370,8 @@ function TableCore(props) {
     }, [selectIndex, activeValue, values]);
 
     const raiseKeyDown = useCallback(e => {
-        onKeyDown(e, selection);
-    }, [selection, onKeyDown])
+        onKeyDown(e, formatSelection(selection, ns));
+    }, [selection, ns, onKeyDown])
 
     //#endregion
 
@@ -441,7 +443,7 @@ function TableCore(props) {
     const renderTable = () => {
         const commonParams = {
             name,
-            namespace,
+            namespace: ns,
             context,
             dispatchers,
             options,

@@ -1,5 +1,5 @@
 import actions from "../models/actions";
-import { tableOptions } from "../utils/optionUtils";
+import {formatSelection, tableOptions} from "../utils/optionUtils";
 import { getTableSlice } from "../utils/reduxUtils";
 
 function compareSets(a, b) {
@@ -18,8 +18,7 @@ function compareSets(a, b) {
 
 const eventMiddleware = store => next => action => {
     const { type, namespace } = action;
-
-    const getTable = () => getTableSlice(store.getState(), namespace);
+    const getState = () => getTableSlice(store.getState(), namespace);
 
     switch (type) {
         case actions.SET_ROWS:
@@ -33,18 +32,23 @@ const eventMiddleware = store => next => action => {
         case actions.SELECT_ALL:
         case actions.CONTEXT_MENU:
             const options = tableOptions[namespace];
-            const prevSel = getTable().selection;
 
+            const prevState = getState();
             const result = next(action);
-            const table = getTable();
+            const state = getState();
+
+            const {selection} = state;
 
             //Raise onSelectionChange
-            if (!compareSets(prevSel, table.selection))
-                options.onSelectionChange(table.selection);
+            if (!compareSets(prevState.selection, selection))
+                options.onSelectionChange(formatSelection(selection, namespace));
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                options.onContextMenu(options.listBox ? table.activeValue : table.selection);
+                options.onContextMenu(options.listBox
+                    ? state.activeValue
+                    : formatSelection(selection, namespace)
+                );
 
             return result;
         default:

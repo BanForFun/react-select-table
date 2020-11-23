@@ -107,6 +107,15 @@ export default function createTable(namespace, options = {}) {
         setActivePivotValue(items[newIndex][valueProperty]);
     }
 
+    function clearSelection() {
+        draft.selection.clear();
+        setActivePivotValue(null);
+    }
+
+    function restoreValueFormat(value) {
+        return draft.items[value][valueProperty];
+    }
+
     //Validate initial state
     updateItems();
     updateSelection();
@@ -123,11 +132,13 @@ export default function createTable(namespace, options = {}) {
             switch (action.type) {
                 //Items
                 case Actions.SET_ROWS: {
-                    const { items, keyed } = payload;
+                    const { items } = payload;
 
-                    draft.items = keyed ? items : _.keyBy(items, valueProperty);
-                    draft.isLoading = false;
-                    draft.error = null;
+                    Object.assign(draft, {
+                        items: Array.isArray(items) ? _.keyBy(items, valueProperty) : items,
+                        isLoading: false,
+                        error: null
+                    });
 
                     updateItems();
                     updateSelection();
@@ -168,7 +179,7 @@ export default function createTable(namespace, options = {}) {
                     if (!values.length) break;
 
                     const activeIndex = _.findIndex(draft.tableItems,
-                            item => item[valueProperty] === draft.activeValue);
+                        item => item[valueProperty] === draft.activeValue);
 
                     //Deselect items
                     deselectRows(values);
@@ -181,8 +192,8 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ROW_VALUES: {
-                    _.forEach(payload.map, (newValue, oldValueString) => {
-                        const oldValue = state.items[oldValueString][valueProperty];
+                    _.forEach(payload.map, (newValue, oldValue) => {
+                        oldValue = restoreValueFormat(oldValue);
 
                         //Update active value
                         if (oldValue === state.activeValue)
@@ -223,20 +234,20 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_ROWS: {
-                    const patch = {
+                    Object.assign(draft, {
                         items: {},
                         tableItems: [],
                         isLoading: false,
-                        error: null,
-                        selection: new Map(),
-                        activeValue: null,
-                        pivotValue: null
-                    }
-                    Object.assign(draft, patch);
+                        error: null
+                    });
+
+                    clearSelection();
+                    updateItems();
                     break;
                 }
                 case Actions.SORT_BY: {
                     const { path, shiftKey } = payload;
+
                     if (!multiSort || !shiftKey)
                         draft.sortBy = {};
 
@@ -255,9 +266,16 @@ export default function createTable(namespace, options = {}) {
                     updateSelection();
                     break;
                 }
+
+                //Displaying
                 case Actions.SET_ERROR: {
                     draft.isLoading = false;
                     draft.error = payload.error;
+                    break;
+                }
+                case Actions.START_LOADING: {
+                    draft.isLoading = true;
+                    draft.error = null;
                     break;
                 }
 
@@ -300,19 +318,20 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_SELECTION: {
-                    draft.selection.clear();
+                    clearSelection();
                     break;
                 }
-                case Actions.SET_ROW_SELECTED: {
-                    const { value, selected } = payload;
-                    const { selection } = draft;
+                case Actions.SET_ROWS_SELECTED: {
+                    _.forEach(payload.map, (selected, value) => {
+                        value = restoreValueFormat(value);
 
-                    if (selected) {
-                        selection.add(value);
-                        draft.activeValue = value;
-                    }
-                    else
-                        selection.delete(value);
+                        if (selected) {
+                            draft.selection.add(value);
+                            draft.activeValue = value;
+                        } else {
+                            draft.selection.delete(value);
+                        }
+                    });
                     break;
                 }
                 case Actions.SELECT_ALL: {
@@ -320,7 +339,9 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ACTIVE_ROW: {
-                    setActivePivotValue(payload.value);
+                    draft.activeValue = payload.value;
+                    if (payload.pivot)
+                        draft.pivotValue = payload.value;
                     break;
                 }
                 case Actions.CONTEXT_MENU: {

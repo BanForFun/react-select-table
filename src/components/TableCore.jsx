@@ -40,6 +40,7 @@ function TableCore(props) {
         isLoading,
         selection,
         activeValue,
+        pivotValue,
         dispatch
     } = props;
 
@@ -244,11 +245,10 @@ function TableCore(props) {
         lastRelMouseY.current = relMouseY;
 
         //Calculate selection rectangle
-        const rect = Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y);
+        setSelRect(Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y));
 
         //Set up search
         const belowItems = selOrigin.index < 0;
-
         const pivotIndex = belowItems ? values.length : selOrigin.index;
         let setActive = belowItems ? null : values[pivotIndex];
 
@@ -292,17 +292,23 @@ function TableCore(props) {
             updateCurrent(top > relMouseY);
         }
 
-        dispatchers.setRowsSelected(selectMap);
+        if (setActive !== null && setActive !== activeValue)
+            selectMap[setActive] = true;
 
-        // if (setActive !== null && setActive !== activeValue)
-            // dispatchers.setRowSelected(setActive, true);
+        if (!_.isEmpty(selectMap))
+            dispatchers.setRowsSelected(selectMap);
 
-        //Set rectangle in state
-        setSelRect(rect);
+        if (!belowItems) return;
+
+        const lastValue = _.last(values);
+        if (pivotValue !== lastValue && selectMap[lastValue])
+            dispatchers.setPivotRow(lastValue);
+
     }, [
         selOrigin,
         values,
         activeValue,
+        pivotValue,
         selection,
         dispatchers,
         scrollFactor,
@@ -532,6 +538,7 @@ function makeMapState() {
         const pick = _.pick(slice,
             "selection",
             "activeValue",
+            "pivotValue",
             "isLoading",
             "error",
             "tableItems"

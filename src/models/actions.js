@@ -25,6 +25,7 @@ export default class TableActions {
     static CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
     static SELECT_ALL = "TABLE_SELECT_ALL";
     static SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
+    static SET_PIVOT_ROW = "TABLE_SET_PIVOT_ROW";
     static CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 
     //Pagination
@@ -71,8 +72,11 @@ export default class TableActions {
     selectRow = (value, ctrlKey = false, shiftKey = false) =>
         this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
 
-    setActiveRow = (value, pivot = true) =>
-        this._getAction(self.SET_ACTIVE_ROW, { value, pivot });
+    setActiveRow = value =>
+        this._getAction(self.SET_ACTIVE_ROW, { value });
+
+    setPivotRow = value =>
+        this._getAction(self.SET_PIVOT_ROW, { value });
 
     clearSelection = () =>
         this._getAction(self.CLEAR_SELECTION);
@@ -89,22 +93,18 @@ export default class TableActions {
     startLoading = () =>
         this._getAction(self.START_LOADING);
 
-    //#region Aliases
+    //Aliases
 
     firstPage = () => this.goToPage(1);
     lastPage = () => this.goToPage(pagePositions.Last);
     previousPage = () => this.goToPage(pagePositions.Previous);
     nextPage = () => this.goToPage(pagePositions.Next);
 
+    //Backwards compatibility
     setRowValue = (oldValue, newValue) => this.setRowValues({[oldValue]: newValue});
-
     setRowSelected = (value, selected) => this.setRowsSelected({[value]: selected});
-
     addRow = item => this.addRows(item);
-
     patchRow = patch => this.patchRows(patch);
-
-    //#endregion
 }
 
 const self = TableActions;

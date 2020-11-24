@@ -77,6 +77,9 @@ export default function createTable(namespace, options = {}) {
 
     function updateItems() {
         draft.tableItems = getSortedItems(draft);
+
+        if (draft.activeValue === null)
+            setActivePivotIndex(0);
     }
 
     function updateSelection() {
@@ -105,11 +108,6 @@ export default function createTable(namespace, options = {}) {
 
         const newIndex = _.clamp(index, 0, items.length - 1);
         setActivePivotValue(items[newIndex][valueProperty]);
-    }
-
-    function clearSelection() {
-        draft.selection.clear();
-        setActivePivotValue(null);
     }
 
     function restoreValueFormat(value) {
@@ -142,7 +140,6 @@ export default function createTable(namespace, options = {}) {
 
                     updateItems();
                     updateSelection();
-                    setActivePivotIndex(0);
                     break;
                 }
                 case Actions.ADD_ROWS: {
@@ -234,6 +231,8 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_ROWS: {
+                    draft.selection.clear();
+                    setActivePivotValue(null);
                     Object.assign(draft, {
                         items: {},
                         tableItems: [],
@@ -241,7 +240,6 @@ export default function createTable(namespace, options = {}) {
                         error: null
                     });
 
-                    clearSelection();
                     updateItems();
                     break;
                 }
@@ -318,19 +316,18 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_SELECTION: {
-                    clearSelection();
+                    draft.selection.clear();
                     break;
                 }
                 case Actions.SET_ROWS_SELECTED: {
-                    _.forEach(payload.map, (selected, value) => {
+                    _.forEach(payload.map, (select, value) => {
                         value = restoreValueFormat(value);
 
-                        if (selected) {
-                            draft.selection.add(value);
-                            draft.activeValue = value;
-                        } else {
-                            draft.selection.delete(value);
-                        }
+                        if (!select)
+                            return draft.selection.delete(value);
+
+                        draft.selection.add(value);
+                        draft.activeValue = value;
                     });
                     break;
                 }
@@ -339,9 +336,11 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ACTIVE_ROW: {
-                    draft.activeValue = payload.value;
-                    if (payload.pivot)
-                        draft.pivotValue = payload.value;
+                    setActivePivotValue(payload.value);
+                    break;
+                }
+                case Actions.SET_PIVOT_ROW: {
+                    draft.pivotValue = payload.value;
                     break;
                 }
                 case Actions.CONTEXT_MENU: {

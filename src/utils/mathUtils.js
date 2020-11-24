@@ -1,9 +1,10 @@
 import _ from "lodash";
 
 export function sortTuple(a, b) {
-    const max = a > b ? a : b;
-    const min = a < b ? a : b;
-    return [min, max];
+    return [
+        a > b ? b : a,
+        a > b ? a : b
+    ];
 }
 
 export function clampOffset(number, lower, offset) {

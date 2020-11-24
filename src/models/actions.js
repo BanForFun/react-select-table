@@ -5,6 +5,10 @@ export default class TableActions {
         this.namespace = namespace;
     }
 
+    _getAction(type, payload = null) {
+        return { type, namespace: this.namespace, payload };
+    }
+
     //Rows
     static SET_ROWS = "TABLE_SET_ROWS";
     static ADD_ROWS = "TABLE_ADD_ROWS";
@@ -31,10 +35,6 @@ export default class TableActions {
     //Pagination
     static GO_TO_PAGE = "TABLE_GO_TO_PAGE";
     static SET_PAGE_SIZE = "TABLE_SET_PAGE_SIZE";
-
-    _getAction(type, payload = null) {
-        return { type, namespace: this.namespace, payload };
-    }
 
     goToPage = index =>
         this._getAction(self.GO_TO_PAGE, { index });
@@ -94,7 +94,6 @@ export default class TableActions {
         this._getAction(self.START_LOADING);
 
     //Aliases
-
     firstPage = () => this.goToPage(1);
     lastPage = () => this.goToPage(pagePositions.Last);
     previousPage = () => this.goToPage(pagePositions.Previous);

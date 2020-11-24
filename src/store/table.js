@@ -1,12 +1,12 @@
 import produce, {enableMapSet} from "immer";
 import _ from "lodash";
 import {pagePositions, sortOrders} from "../constants/enums";
-import {sortTuple} from "../utils/mathUtils";
 import {deleteKeys} from "../utils/objectUtils";
 import Actions from "../models/actions";
 import {setOptions} from "../utils/optionUtils";
 import {makeGetPageCount} from "../selectors/paginationSelectors";
 import {createSelector} from "reselect";
+import {forRange} from "../utils/loopUtils";
 
 enableMapSet();
 
@@ -294,12 +294,19 @@ export default function createTable(namespace, options = {}) {
 
                     if (shiftKey) {
                         const values = getValues(draft);
+
                         const pivotIndex = values.indexOf(state.pivotValue);
+                        const prevIndex = values.indexOf(state.activeValue);
                         const newIndex = values.indexOf(value);
 
-                        const [startIndex, endIndex] = sortTuple(pivotIndex, newIndex);
-                        const newSelection = values.slice(startIndex, endIndex + 1);
-                        newSelection.forEach(v => selection.add(v));
+                        if (ctrlKey) {
+                            //Clear old selection
+                            forRange(pivotIndex, prevIndex, i =>
+                                selection.delete(values[i]));
+                        }
+
+                        forRange(pivotIndex, newIndex, i =>
+                            selection.add(values[i]));
                     }
                     else if (ctrlKey && selection.has(value))
                         selection.delete(value);
@@ -317,6 +324,7 @@ export default function createTable(namespace, options = {}) {
                 }
                 case Actions.CLEAR_SELECTION: {
                     draft.selection.clear();
+                    draft.pivotValue = draft.activeValue;
                     break;
                 }
                 case Actions.SET_ROWS_SELECTED: {

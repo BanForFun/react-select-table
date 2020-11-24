@@ -28,7 +28,7 @@ const eventMiddleware = store => next => action => {
         case actions.SET_FILTER:
         case actions.SELECT_ROW:
         case actions.CLEAR_SELECTION:
-        case actions.SET_ROW_SELECTED:
+        case actions.SET_ROWS_SELECTED:
         case actions.SELECT_ALL:
         case actions.CONTEXT_MENU:
             const options = tableOptions[namespace];

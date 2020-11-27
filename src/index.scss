@@ -1,3 +1,14 @@
+$primary: #c4d9b1;
+$primary-light: #d3dbcd;
+$primary-dark: #b1cc97;
+
+$bg: #F5F5F5;
+$bg-dark: #F2F2F2;
+
+@mixin activeShadow($color) {
+    box-shadow: inset 0 -2px 0 0 $color;
+}
+
 .container {
     display: flex;
     position: relative;
@@ -20,11 +31,11 @@
 
     &:not(:focus-within) tr {
         &.active {
-            box-shadow: none;
+            @include activeShadow($primary);
         }
 
         &.selected {
-            background-color: #d3dbcd;
+            background-color: $primary-light;
         }
     }
 }
@@ -35,7 +46,7 @@
     top: 0;
     z-index: 1;
     outline: none;
-    background-color: whitesmoke;
+    background-color: $bg;
 
     th {
         white-space: nowrap;
@@ -70,15 +81,15 @@
         }
 
         &:hover {
-            background-color: #e0e0e0;
+            background-color: $bg-dark;
         }
 
         &.active {
-            box-shadow: inset 0 -2px 0 0 #b1cc97;
+            @include activeShadow($primary-dark);
         }
 
         &.selected {
-            background-color: #c4d9b1;
+            background-color: $primary;
         }
     }
 }

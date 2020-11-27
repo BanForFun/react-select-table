@@ -2,8 +2,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -20,13 +19,10 @@ body {
 #redux, #simple {
     padding: 2rem;
     height: 100%;
-    display: grid;
-    grid-template-rows: 1fr auto;
-    /*grid-template-columns: 75% 1fr;*/
-    grid-gap: 1rem;
+    display: flex;
+    flex-direction: column;
 }
 
-#controls {
-    grid-column: 2;
-    grid-row: 1 / span 3;
+.rst-container {
+    flex: auto;
 }

@@ -65,7 +65,7 @@ export default function createTable(namespace, options = {}) {
     const getValues = createSelector(
         s => s.tableItems,
         items => _.map(items, valueProperty)
-    )
+    );
 
     //Updaters
     function updatePagination(allowZero = false) {
@@ -77,37 +77,40 @@ export default function createTable(namespace, options = {}) {
 
     function updateItems() {
         draft.tableItems = getSortedItems(draft);
-
-        if (draft.activeValue === null)
-            setActivePivotIndex(0);
     }
 
     function updateSelection() {
-        const visibleSet = new Set(getValues(draft));
+        const newSelection = new Set();
+        for (let value of getValues(draft)) {
+            if (!draft.selection.has(value)) continue;
+            newSelection.add(value);
+        }
 
-        const deselect = [];
-        for (let value of draft.selection)
-            if (!visibleSet.has(value)) deselect.push(value);
-
-        deselectRows(deselect);
+        draft.selection = newSelection;
     }
 
-    //Helpers
-    function deselectRows(deselect) {
-        deselect.forEach(v => draft.selection.delete(v));
+    function updateActive() {
+        if (draft.activeValue == null)
+            trySetActiveIndex(0);
     }
 
-    function setActivePivotValue(value) {
-        draft.pivotValue = draft.activeValue = value;
+    function setActiveValue(value) {
+        //Convert undefined to null
+        draft.activeValue = value ?? null;
+        draft.pivotValue = null;
     }
 
-    function setActivePivotIndex(index) {
+    function clearSelection() {
+        draft.selection.clear();
+        setActiveValue(null);
+    }
+
+    function trySetActiveIndex(index) {
         const items = draft.tableItems;
-        if (!items.length)
-            return setActivePivotValue(null);
+        if (!items.length) return;
 
         const newIndex = _.clamp(index, 0, items.length - 1);
-        setActivePivotValue(items[newIndex][valueProperty]);
+        setActiveValue(items[newIndex][valueProperty]);
     }
 
     function restoreValueFormat(value) {
@@ -117,6 +120,7 @@ export default function createTable(namespace, options = {}) {
     //Validate initial state
     updateItems();
     updateSelection();
+    updateActive();
     updatePagination();
 
     return (state = initState, action) => {
@@ -140,76 +144,76 @@ export default function createTable(namespace, options = {}) {
 
                     updateItems();
                     updateSelection();
+                    updateActive();
                     break;
                 }
                 case Actions.ADD_ROWS: {
                     const { items } = payload;
                     if (!items.length) break;
 
+                    //Clear selection
+                    const {selection} = draft;
+                    selection.clear();
+
                     //Add items
-                    const addedValues = new Set();
                     items.forEach(item => {
                         const value = item[valueProperty];
                         draft.items[value] = item;
-                        addedValues.add(value);
+                        selection.add(value);
                     });
                     updateItems();
+                    updateSelection();
 
-                    //Select added visible items
-                    const visibleValues = getValues(draft);
-                    const { selection } = draft;
-
-                    selection.clear();
-                    for (let value of visibleValues) {
-                        if (!addedValues.has(value)) continue;
-
-                        //Set first added item as active
-                        if (!selection.size)
-                            setActivePivotValue(value);
-
-                        selection.add(value);
-                    }
+                    //Set first visible added item active
+                    setActiveValue(_.find(getValues(draft), v => selection.has(v)));
                     break;
                 }
                 case Actions.DELETE_ROWS: {
                     const { values } = payload;
                     if (!values.length) break;
 
+                    //Store previous active index
                     const activeIndex = _.findIndex(draft.tableItems,
                         item => item[valueProperty] === draft.activeValue);
-
-                    //Deselect items
-                    deselectRows(values);
 
                     //Delete items
                     deleteKeys(draft.items, values);
                     updateItems();
+                    updateSelection();
 
-                    setActivePivotIndex(activeIndex);
+                    //Restore active index
+                    trySetActiveIndex(activeIndex);
                     break;
                 }
                 case Actions.SET_ROW_VALUES: {
-                    _.forEach(payload.map, (newValue, oldValue) => {
+                    const { map } = payload;
+                    _.forEach(map, (newValue, oldValue) => {
                         oldValue = restoreValueFormat(oldValue);
 
-                        //Update active value
-                        if (oldValue === state.activeValue)
-                            draft.activeValue = newValue;
-
-                        //Update selected value
+                        //Update selection
                         const {selection} = draft;
                         if (selection.delete(oldValue))
                             selection.add(newValue)
 
                         //Create new item
                         draft.items[newValue] = {
-                            ...state.items[oldValue],
+                            ...draft.items[oldValue],
                             [valueProperty]: newValue
                         };
 
                         //Delete old item
                         delete draft.items[oldValue];
-                    })
+                    });
+
+                    //Update active value
+                    const newActive = map[draft.activeValue];
+                    if (newActive !== undefined)
+                        draft.activeValue = newActive;
+
+                    //Update pivot value
+                    const newPivot = map[draft.pivotValue];
+                    if (newPivot !== undefined)
+                        draft.pivotValue = newPivot;
 
                     updateItems();
                     break;
@@ -231,8 +235,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_ROWS: {
-                    draft.selection.clear();
-                    setActivePivotValue(null);
+                    clearSelection();
                     Object.assign(draft, {
                         items: {},
                         tableItems: [],
@@ -249,11 +252,10 @@ export default function createTable(namespace, options = {}) {
                     if (!multiSort || !shiftKey)
                         draft.sortBy = {};
 
-                    const { sortBy } = draft;
-                    if (state.sortBy[path] === sortOrders.Ascending)
-                        sortBy[path] = sortOrders.Descending;
-                    else
-                        sortBy[path] = sortOrders.Ascending;
+                    draft.sortBy[path] =
+                        state.sortBy[path] === sortOrders.Ascending
+                        ? sortOrders.Descending
+                        : sortOrders.Ascending
 
                     updateItems();
                     break;
@@ -282,10 +284,11 @@ export default function createTable(namespace, options = {}) {
                     const { value, ctrlKey, shiftKey } = payload;
                     const { selection } = draft;
 
+                    draft.activeValue = value;
+
                     if (!multiSelect) {
                         selection.clear();
                         selection.add(value);
-                        setActivePivotValue(value);
                         break;
                     }
 
@@ -293,9 +296,10 @@ export default function createTable(namespace, options = {}) {
                         selection.clear();
 
                     if (shiftKey) {
-                        const values = getValues(draft);
+                        draft.pivotValue ??= state.activeValue;
 
-                        const pivotIndex = values.indexOf(state.pivotValue);
+                        const values = getValues(draft);
+                        const pivotIndex = values.indexOf(draft.pivotValue);
                         const prevIndex = values.indexOf(state.activeValue);
                         const newIndex = values.indexOf(value);
 
@@ -307,24 +311,22 @@ export default function createTable(namespace, options = {}) {
 
                         forRange(pivotIndex, newIndex, i =>
                             selection.add(values[i]));
+
+                        break;
                     }
-                    else if (ctrlKey && selection.has(value))
+
+                    draft.pivotValue = null;
+
+                    if (ctrlKey && selection.has(value))
                         selection.delete(value);
                     else
                         selection.add(value);
-
-                    //Set active value
-                    draft.activeValue = value;
-
-                    //Set pivot value
-                    if (!shiftKey)
-                        draft.pivotValue = value;
 
                     break;
                 }
                 case Actions.CLEAR_SELECTION: {
                     draft.selection.clear();
-                    draft.pivotValue = draft.activeValue;
+                    draft.pivotValue = null;
                     break;
                 }
                 case Actions.SET_ROWS_SELECTED: {
@@ -344,7 +346,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ACTIVE_ROW: {
-                    setActivePivotValue(payload.value);
+                    setActiveValue(payload.value);
                     break;
                 }
                 case Actions.SET_PIVOT_ROW: {
@@ -357,7 +359,7 @@ export default function createTable(namespace, options = {}) {
 
                     //This action should still be dispatched in order to be handled by eventMiddleware
                     if (ctrlKey) break;
-                    setActivePivotValue(value);
+                    setActiveValue(value);
 
                     if (listBox || selection.has(value)) break;
                     selection.clear();
@@ -376,9 +378,8 @@ export default function createTable(namespace, options = {}) {
                 case Actions.GO_TO_PAGE: {
                     const {index} = payload;
 
-                    let newIndex = state.currentPage;
                     let allowZero = false;
-
+                    let newIndex = state.currentPage;
                     switch (index) {
                         case pagePositions.Last:
                             newIndex = getPageCount(draft);

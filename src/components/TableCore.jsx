@@ -248,12 +248,16 @@ function TableCore(props) {
         setSelRect(Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y));
 
         //Set up search
-        const belowItems = selOrigin.index < 0;
-        const pivotIndex = belowItems ? values.length : selOrigin.index;
-        let setActive = belowItems ? null : values[pivotIndex];
+        const rowCount = values.length;
+        const originIndex = selOrigin.index;
+        const belowItems = originIndex < 0;
+        let setActive = belowItems ? null : values[originIndex];
+        const pivotIndex = belowItems ? rowCount : originIndex;
+        const setPivot = values[belowItems ? rowCount - 1 : originIndex];
 
-        const selectMap = {};
         let index;
+        const selectMap = {};
+
 
         function updateCurrent(select) {
             const value = values[index];
@@ -265,7 +269,7 @@ function TableCore(props) {
         }
 
         function getCurrentTop() {
-            const baseHeight = index >= values.length
+            const baseHeight = index >= rowCount
                 ? tableHeight
                 : rows[index].offsetTop
 
@@ -274,7 +278,7 @@ function TableCore(props) {
 
         //Search down
         index = pivotIndex + 1;
-        while (index < values.length) {
+        while (index < rowCount) {
             const top = getCurrentTop();
             if (top > maxMouseY) break;
 
@@ -298,12 +302,8 @@ function TableCore(props) {
         if (!_.isEmpty(selectMap))
             dispatchers.setRowsSelected(selectMap);
 
-        if (!belowItems) return;
-
-        const lastValue = _.last(values);
-        if (pivotValue !== lastValue && selectMap[lastValue])
-            dispatchers.setPivotRow(lastValue);
-
+        if (pivotValue !== setPivot && selection.has(setPivot))
+            dispatchers.setPivotRow(setPivot);
     }, [
         selOrigin,
         values,

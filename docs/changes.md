@@ -1,3 +1,26 @@
+# 5.0.0
+
+## Breaking changes
+
+* The selected values argument passed to event handlers `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when `multiSelect` option is disabled, and a *Set* of values when it is enabled
+* Removed `selectedValues` *array* state property. Replaced with `selection` *Set* property
+* Removed `selectedValues` *array* property from `useTable` result. Replaced with `selection` *Set* property
+* `clearRows` action now sets `isLoading` state to false instead of true
+* Action creator `setRowSelected` calls `setRowsSelected` (action type and payload format has changed)
+* Removed optional `keyed` *boolean* parameter for `setRows` action creator. The rows are assumed to be keyed, if the `items` argument is an object
+* Removed `loadingIndicator` Table component prop
+* Action creator `clearRows` clears the selection even if `listBox` option is enabled
+
+## Non-breaking changes
+
+* Added `startLoading` action creator
+* Added `setRowsSelected` action creator
+* Added `scrollFactor` component prop
+* Added `setPivotRow` action creator
+* Added `keyedItems` *object* property to `useTable` result
+
+
+
 # 4.0.0
 
 ## Breaking changes
@@ -66,15 +89,11 @@
 
 # 2.4.0
 
-## Non-breaking changes
-
 * `initTable`/`disposeTable` and `useTable` are deprecated and replaced by the `withTable` and `withTables` HOCs
 
 
 
 # 2.3.0
-
-## Non-breaking changes
 
 * Added pagination support. Page size can be set with the `setPageSize` action creator. Current page can be set with the `goToPage` action creator. The number of pages can be retrieved using the `makeGetPageCount` selector.
 
@@ -82,15 +101,11 @@
 
 # 2.2.0
 
-## Non-breaking changes
-
 * Vertical scrollbar is now full height
 
 
 
 # 2.1.0
-
-## Non-breaking changes
 
 * Added horizontal scrolling (disabled by default). Can be enabled by setting the `scrollX` option to true.
 

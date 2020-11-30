@@ -1,36 +1,44 @@
 # react-select-table
 
-> React ListView component with drag selection and keyboard shortcut support.
-
 ## Features
 
 * Item parsing
 * Item filtering
 * Item sorting
 * Item pagination
-* Resizable columns
+* Re-sizable columns
 * Sticky header
 * Drag selection with automatic scrolling
-* [Keyboard shortcut support](#shortcuts)
-* Keyboard and mouse selection
-* (Multi) column sorting
-* Listbox mode
+* Windows ListView-like selection behavior
+* Single and multi column sorting modes
+* Single and multi selection modes
+* ListBox mode
 * Touch support (chrome only)
+* Optionally controlled with redux
 
 ### Shortcuts
 
 * `Shift`+`Click` to select range
 * `Shift`+`Up`/`Down` to expand/shrink selection
-* `Shift`+`Home`/`End` to select range to the first/last item
-* `Ctrl`+`Click` to toggle item selection
-* `Up`/`Down` to select the previous/next item
+* `Ctrl`+`Click`/`Enter` to toggle selection of the active item
+* `Ctrl`+`Up`/`Down` to set the active item
+* `Up`/`Down` to select the only previous/next item
 * `Ctrl`+`A` to select all items
 * `Home` to select the first item
 * `End` to select the last item
 
 
 
-# [4.0.0 Breaking changes](/docs/changes.md)
+## Version 5.0.0
+
+### [Developer changes](./docs/changes.md)
+
+### End user changes
+
+* Drag selection big performance increase
+* Drag-selecting while holding `Shift` doesn't deselect the already selected items
+* Using the table with only the keyboard is now entirely possible
+* Fixed automatic scrolling when navigating with the keyboard
 
 
 
@@ -38,13 +46,13 @@
 
 ```shell
 # Npm
-$ npm install react-select-table
+npm install react-select-table
 
 # Yarn
-$ yarn add react-select-table
+yarn add react-select-table
 ```
 
-In your `App.js` import the stylesheet
+In your `App.js` or equivalent import the stylesheet
 
 ````javascript
 import 'react-select-table/dist/index.css';
@@ -52,40 +60,34 @@ import 'react-select-table/dist/index.css';
 
 
 
-## Examples
+## Introduction
 
-### Without redux
-
-[Todo list with horizontal scrolling](https://codesandbox.io/s/table-v4-simple-pqtos)
-
-[Todo list with pagination](https://codesandbox.io/s/table-v4-pagination-r8vw1)
-
-### With redux
-
-[Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
-
-[Todo list with pagination](https://codesandbox.io/s/tablecore-v4-pagination-ozgqt)
+You will see the term 'value' referenced many times. The table rows are given in an array of objects, in which every object must have a property with a unique value (that would be `_id` when using MongoDB for example). That unique value is considered the item's value
 
 
 
-## Before you read
-
-You will see the term 'value' referenced many times. The table rows are objects in an array, in which every object must have a property with a unique value (that would be '_id' when using MongoDB). That unique value is considered the item's value.
-
-JavaScript types are written in *italic*
-
-HTML elements are written in **bold**
-
-
-
-## Usage
+## Components
 
 This library contains two components: 
 
 ### TableCore
 
-Controlled with redux. [TableCore documentation](/docs/core.md)
+Controlled with redux
+
+Examples:
+
+* [Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
+* [Todo list with pagination](https://codesandbox.io/s/tablecore-v4-pagination-ozgqt)
+
+**[Documentation](/docs/core.md)**
 
 ### Table
 
-A wrapper for `TableCore` which uses component props to update the redux state internally. Many features are missing compared to `TableCore`. [Table documentation](/docs/table.md)
+A wrapper for `TableCore` which uses component props to update the redux state internally. Many features are missing compared to `TableCore`, but it is easier to implement
+
+Examples: 
+
+* [Todo list with horizontal scrolling](https://codesandbox.io/s/table-v4-simple-pqtos)
+* [Todo list with pagination](https://codesandbox.io/s/table-v4-pagination-r8vw1)
+
+**[Documentation](/docs/table.md)**

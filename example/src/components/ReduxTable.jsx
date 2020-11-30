@@ -27,8 +27,20 @@ function ReduxTable() {
                 dispatch(actions.addRows(
                     {
                         "userId": 1,
-                        "id": 3,
-                        "title": "fugiat veniam minus",
+                        "id": 2,
+                        "title": "quis ut nam facilis et officia qui",
+                        "completed": false
+                    },
+                    {
+                        "userId": 1,
+                        "id": 6,
+                        "title": "qui ullam ratione quibusdam voluptatem quia omnis",
+                        "completed": false
+                    },
+                    {
+                        "userId": 1,
+                        "id": 7,
+                        "title": "illo expedita consequatur quia in",
                         "completed": false
                     },
                     {
@@ -36,12 +48,6 @@ function ReduxTable() {
                         "id": 4,
                         "title": "et porro tempora",
                         "completed": true
-                    },
-                    {
-                        "userId": 1,
-                        "id": 5,
-                        "title": "laboriosam mollitia et enim quasi adipisci quia provident illum",
-                        "completed": false
                     }
                 ));
                 break;

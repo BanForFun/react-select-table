@@ -563,22 +563,23 @@ export const columnShape = PropTypes.shape({
 });
 
 TableCore.propTypes = {
-    name: PropTypes.string.isRequired,
-    columns: PropTypes.arrayOf(columnShape).isRequired,
+    renderError: PropTypes.func,
+    loadingIndicator: PropTypes.node,
     namespace: PropTypes.string,
     context: PropTypes.any,
+
+    name: PropTypes.string.isRequired,
+    columns: PropTypes.arrayOf(columnShape).isRequired,
     className: PropTypes.string,
+    emptyPlaceholder: PropTypes.node,
+    columnOrder: PropTypes.arrayOf(PropTypes.number),
+    initColumnWidths: PropTypes.arrayOf(PropTypes.number),
+    scrollFactor: PropTypes.number,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,
     onColumnsResizeEnd: PropTypes.func,
-    onKeyDown: PropTypes.func,
-    emptyPlaceholder: PropTypes.node,
-    loadingIndicator: PropTypes.node,
-    columnOrder: PropTypes.arrayOf(PropTypes.number),
-    initColumnWidths: PropTypes.arrayOf(PropTypes.number),
-    renderError: PropTypes.func,
-    scrollFactor: PropTypes.number
+    onKeyDown: PropTypes.func
 };
 
 TableCore.defaultProps = {

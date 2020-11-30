@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Provider, useDispatch } from "react-redux";
 import TableCore, { columnShape } from "./TableCore.jsx";
 import getStore, { reducerExists } from "../store/configureStore.js";
@@ -28,16 +27,18 @@ function Table({
     const store = getStore();
 
     const [isReady, setReady] = useState(false);
-    useEffect(() => {
-        const updateReady = () =>
-            setReady(reducerExists(name));
 
+    const updateReady = useCallback(() => {
+        setReady(reducerExists(name));
+    }, [name]);
+
+    useEffect(() => {
         //For the first table
         updateReady();
 
         //For subsequent tables
         store.subscribe(updateReady);
-    }, [name]);
+    }, [updateReady]);
 
     const actions = useMemo(() =>
         isReady && new Actions(name),
@@ -58,20 +59,21 @@ function Table({
 export default Table;
 
 Table.propTypes = {
+    items: PropTypes.array,
+    page: PropTypes.number,
+    pageSize: PropTypes.number,
+    filter: PropTypes.any,
+
     name: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
-    items: PropTypes.array.isRequired,
     className: PropTypes.string,
+    emptyPlaceholder: PropTypes.node,
+    columnOrder: PropTypes.arrayOf(PropTypes.number),
+    initColumnWidths: PropTypes.arrayOf(PropTypes.number),
+    scrollFactor: PropTypes.number,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,
     onColumnsResizeEnd: PropTypes.func,
-    onKeyDown: PropTypes.func,
-    emptyPlaceholder: PropTypes.node,
-    filter: PropTypes.any,
-    columnOrder: PropTypes.arrayOf(PropTypes.number),
-    initColumnWidths: PropTypes.arrayOf(PropTypes.number),
-    page: PropTypes.number,
-    pageSize: PropTypes.number,
-    scrollFactor: PropTypes.number
+    onKeyDown: PropTypes.func
 }

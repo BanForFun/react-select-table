@@ -10,6 +10,7 @@
 * Removed optional `keyed` *boolean* parameter for `setRows` action creator. The rows are assumed to be keyed, if the `items` argument is an object
 * Removed `loadingIndicator` Table component prop
 * Action creator `clearRows` clears the selection even if `listBox` option is enabled
+* Table header not rendered while there are no visible items
 
 ## Non-breaking changes
 

@@ -359,7 +359,9 @@ export default function createTable(namespace, options = {}) {
 
                     //This action should still be dispatched in order to be handled by eventMiddleware
                     if (ctrlKey) break;
-                    setActiveValue(value);
+
+                    if (value !== null)
+                        setActiveValue(value);
 
                     if (listBox || selection.has(value)) break;
                     selection.clear();
@@ -403,6 +405,9 @@ export default function createTable(namespace, options = {}) {
                 default:
                     break;
             }
+
+            //Ensure selection doesn't contain null
+            draft.selection.delete(null);
         });
     }
 }

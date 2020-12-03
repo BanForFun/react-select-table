@@ -1,4 +1,4 @@
-export function matchModifiers(e, ctrl = null, shift = null, alt = null) {
+export function matchModifiers(e, ctrl = false, shift = false, alt = false) {
     function match(value, target) {
         if (target === null) return true;
         return value === target;

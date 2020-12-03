@@ -334,9 +334,10 @@ function TableCore(props) {
 
     //#region Selection utils
 
-    const openItems = useCallback((e, enterKey) => {
-        if (!enterKey || matchModifiers(e, false, false))
-            onItemsOpen(formatSelection(selection, ns), enterKey);
+    const openItems = useCallback((e, byKeyboard) => {
+        const openByKeyboard = matchModifiers(e) && selection.size;
+        if (!byKeyboard || openByKeyboard)
+            onItemsOpen(formatSelection(selection, ns), byKeyboard);
         else
             dispatchers.selectRow(activeValue, e.ctrlKey, e.shiftKey)
     }, [selection, activeValue, dispatchers, ns, onItemsOpen]);
@@ -344,7 +345,7 @@ function TableCore(props) {
     const selectIndex = useCallback((e, index) => {
         const value = values[index];
 
-        if (matchModifiers(e, true, false))
+        if (matchModifiers(e, true))
             dispatchers.setActiveRow(value);
         else
             dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
@@ -386,7 +387,6 @@ function TableCore(props) {
         if (e.button !== 0) return;
 
         const belowItems = e.currentTarget === e.target;
-
         if (belowItems && !e.ctrlKey && !options.listBox)
             dispatchers.clearSelection();
 
@@ -395,7 +395,6 @@ function TableCore(props) {
 
     const handleContextMenu = useCallback(e => {
         const belowItems = e.currentTarget === e.target;
-
         if (belowItems)
             dispatchers.contextMenu(null, e.ctrlKey);
 
@@ -406,7 +405,7 @@ function TableCore(props) {
     const handleKeyDown = useCallback(e => {
         switch (e.keyCode) {
             case 65: //A
-                if (e.ctrlKey && options.multiSelect)
+                if (matchModifiers(e, true) && options.multiSelect)
                     dispatchers.selectAll();
                 break;
             case 38: //Up
@@ -435,7 +434,7 @@ function TableCore(props) {
     ]);
     //#endregion
 
-    const renderSelectionBox = () => {
+    function renderSelectionBox() {
         if (!selRect) return null;
 
         const style = _.mapValues(
@@ -446,8 +445,8 @@ function TableCore(props) {
         return <div className={styles.selection} style={style}/>
     };
 
-    const renderTable = () => {
-        const commonParams = {
+    function renderTable() {
+        const commonProps = {
             name,
             namespace: ns,
             context,
@@ -459,73 +458,64 @@ function TableCore(props) {
         const containerStyle = {
             width: `${_.sum(columnWidths)}%`
         };
-        const isEmpty = items.length === 0;
 
         const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
 
-        return <Fragment>
-            <div className={styles.headContainer}
-                 tabIndex="0"
+        let placeholder = null;
+        if (error)
+            placeholder = renderError(error);
+        else if (isLoading)
+            placeholder = loadingIndicator;
+        else if (items.length === 0)
+            placeholder = emptyPlaceholder;
+
+        if (placeholder)
+            return <div className={styles.placeholder}
+                        tabIndex="0"
+                        onContextMenu={() => dispatchers.contextMenu(null)}
+                        onKeyDown={raiseKeyDown}
+            >{placeholder}</div>
+
+        return <>
+            <div tabIndex="-1"
                  style={containerStyle}
+                 className={styles.headContainer}
             >
                 <table className={className}>
                     {colGroup}
-                    <TableHead {...commonParams}
+                    <TableHead {...commonProps}
                                onResizeEnd={onColumnsResizeEnd}
                                columnWidths={columnWidths}
                                setColumnWidths={setColumnWidths}
                     />
                 </table>
             </div>
-            {isEmpty ?
-                //Empty placeholder
-                <div className={styles.placeholder}
-                     tabIndex="0"
-                     onContextMenu={() => dispatchers.contextMenu(null)}
-                     onKeyDown={raiseKeyDown}
-                >{emptyPlaceholder}</div> :
-
-                //Table body
-                <div className={styles.bodyContainer}
-                     tabIndex="0"
-                     ref={bodyContainerRef}
-                     style={containerStyle}
-                     onKeyDown={handleKeyDown}
-                     onDoubleClick={e => openItems(e, false)}
-                     onContextMenu={handleContextMenu}
-                     onTouchStart={() => isTouching.current = true}
-                     onMouseDown={handleMouseDown}
-                >
-                    {renderSelectionBox()}
-                    <table className={className}>
-                        {colGroup}
-                        <TableBody {...commonParams} tableBodyRef={tableBodyRef} />
-                    </table>
-                </div>
-            }
-
-        </Fragment>
+            <div className={styles.bodyContainer}
+                 tabIndex="0"
+                 style={containerStyle}
+                 ref={bodyContainerRef}
+                 onKeyDown={handleKeyDown}
+                 onDoubleClick={e => openItems(e, false)}
+                 onContextMenu={handleContextMenu}
+                 onTouchStart={() => isTouching.current = true}
+                 onMouseDown={handleMouseDown}
+            >
+                {renderSelectionBox()}
+                <table className={className}>
+                    {colGroup}
+                    <TableBody {...commonProps} tableBodyRef={tableBodyRef} />
+                </table>
+            </div>
+        </>
     }
-
-    const renderContent = () => {
-        let placeholder = null
-
-        if (error) //Error
-            placeholder = renderError(error);
-        else if (isLoading) //Loading
-            placeholder = loadingIndicator;
-        else //All good
-            return renderTable();
-
-        return <div className={styles.placeholder}>
-            {placeholder}
-        </div>
-    };
 
     return (
         <div className={styles.container}
+             tabIndex="-1"
              onScroll={() => updateSelectRect()}
-        >{renderContent()}</div>
+        >
+            {renderTable()}
+        </div>
     )
 }
 

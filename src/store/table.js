@@ -330,14 +330,17 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ROWS_SELECTED: {
+                    const {selection} = draft;
                     _.forEach(payload.map, (select, value) => {
                         value = restoreValueFormat(value);
 
                         if (!select)
-                            return draft.selection.delete(value);
+                            selection.delete(value);
+                        else
+                            selection.add(value);
 
-                        draft.selection.add(value);
-                        draft.activeValue = value;
+                        if (select || !selection.size)
+                            draft.activeValue = value;
                     });
                     break;
                 }

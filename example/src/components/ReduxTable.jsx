@@ -1,8 +1,10 @@
-import React, { useMemo, useCallback } from 'react'
+import React, {useMemo, useCallback, useState} from 'react'
+import _ from "lodash";
 import { TableCore, TableActions, makeGetPageCount } from 'react-select-table';
 import columns from '../columns';
 import { ReactReduxContext, useDispatch, useSelector } from 'react-redux';
 import {tableNamespace} from "../store";
+import todos from "../todos";
 
 const actions = new TableActions(tableNamespace);
 
@@ -10,58 +12,65 @@ function ReduxTable() {
     const dispatch = useDispatch();
 
     const handlePageChange = useCallback(e => {
-        const index = parseInt(e.target.value);
-        dispatch(actions.goToPage(index));
+        const number = parseInt(e.target.value);
+        dispatch(actions.goToPage(number - 1));
     }, [dispatch]);
 
     const getPageCount = useMemo(makeGetPageCount, []);
     const pageCount = useSelector(getPageCount);
-    const currentPage = useSelector(s => s.currentPage);
+    const pageIndex = useSelector(s => s.currentPage);
+    const keyedItems = useSelector(s => s.items);
 
-    const handleKeyDown = useCallback((e, selection) => {
+    const [clipboard, setClipboard] = useState(null);
+
+    const handleKeyDown = useCallback(e => {
         switch(e.keyCode) {
-            case 46: //Delete
-                dispatch(actions.deleteRows(...selection));
+            case 49: //1
+                dispatch(actions.setRows(todos));
                 break;
-            case 112: //F1
-                dispatch(actions.addRows(
-                    {
-                        "userId": 1,
-                        "id": 2,
-                        "title": "quis ut nam facilis et officia qui",
-                        "completed": false
-                    },
-                    {
-                        "userId": 1,
-                        "id": 6,
-                        "title": "qui ullam ratione quibusdam voluptatem quia omnis",
-                        "completed": false
-                    },
-                    {
-                        "userId": 1,
-                        "id": 7,
-                        "title": "illo expedita consequatur quia in",
-                        "completed": false
-                    },
-                    {
-                        "userId": 1,
-                        "id": 4,
-                        "title": "et porro tempora",
-                        "completed": true
-                    }
-                ));
+            case 50: //2
+                dispatch(actions.startLoading());
+                break;
+            case 51: //3
+                dispatch(actions.setError("Error"));
+                break;
+            case 52: //4
+                dispatch(actions.clearRows());
                 break;
         }
     }, [dispatch]);
 
-    return <div id="redux">
+    const handleTableKeyDown = useCallback((e, selection) => {
+        switch(e.keyCode) {
+            case 46: //Delete
+                dispatch(actions.deleteRows(...selection));
+                break;
+        }
+
+        if (!e.ctrlKey) return;
+
+        switch (e.keyCode) {
+            case 88: //X
+                setClipboard(_.values(_.pick(keyedItems, ...selection)));
+                dispatch(actions.deleteRows(...selection));
+                break;
+            case 86: //V
+                if (!clipboard) break;
+                dispatch(actions.addRows(...clipboard));
+                setClipboard(null);
+                break;
+        }
+    }, [dispatch, clipboard, keyedItems]);
+
+    return <div id="redux" onKeyDown={handleKeyDown}>
         <TableCore
             className="table"
             name={tableNamespace}
             columns={columns}
             context={ReactReduxContext}
+            loadingIndicator="Loading..."
             scrollFactor={0.5}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleTableKeyDown}
         />
         <div className="py-3">
             Page: <input
@@ -70,12 +79,15 @@ function ReduxTable() {
                 className="mx-2"
                 min={1}
                 max={pageCount}
-                value={currentPage}
+                value={pageIndex + 1}
                 onChange={handlePageChange}
             /> / {pageCount}
         </div>
         <div>
-            F1 = Add items
+            1 = Set items |
+            2 = Start loading |
+            3 = Set error |
+            4 = Clear items
         </div>
     </div>
 }

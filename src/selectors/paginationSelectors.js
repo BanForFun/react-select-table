@@ -7,7 +7,7 @@ export const makeGetPageCount = () => createSelector(
     ],
     (itemCount, pageSize) => {
         if (!pageSize) return 1;
-        return Math.ceil(itemCount / pageSize)
+        return Math.max(Math.ceil(itemCount / pageSize), 1);
     }
 )
 
@@ -20,8 +20,8 @@ export const makeGetPaginatedItems = () => createSelector(
     (items, pageSize, pageIndex) => {
         if (!pageSize) return items;
 
-        const start = (pageIndex - 1) * pageSize;
-        const end = pageIndex * pageSize;
+        const start = pageIndex * pageSize;
+        const end = (pageIndex + 1) * pageSize;
         return items.slice(start, end);
     }
 )

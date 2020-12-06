@@ -34,7 +34,9 @@
     },
     "peerDependencies": {
         "react": "^16.0.0",
-        "react-dom": "^16.0.0"
+        "react-dom": "^16.0.0",
+        "react-redux": "^7.2.0",
+        "redux": "^4.0.5"
     },
     "devDependencies": {
         "@babel/plugin-proposal-logical-assignment-operators": "^7.12.1",
@@ -64,9 +66,6 @@
         "immer": "^6.0.3",
         "lodash": "^4.17.20",
         "prop-types": "^15.7.2",
-        "react-redux": "^7.2.0",
-        "redux": "^4.0.5",
-        "redux-devtools-extension": "^2.13.8",
         "reselect": "^4.0.0"
     }
 }

@@ -15,6 +15,7 @@
 * ListBox mode
 * Touch support (chrome only)
 * Optionally controlled with redux
+* Events
 
 ### Shortcuts
 
@@ -66,14 +67,6 @@ You will see the term 'value' referenced many times. The table rows are given in
 
 
 
-## Components
-
-This library contains two components: 
-
-### TableCore
-
-Controlled with redux
-
 Examples:
 
 * [Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
@@ -81,13 +74,3 @@ Examples:
 
 **[Documentation](/docs/core.md)**
 
-### Table
-
-A wrapper for `TableCore` which uses component props to update the redux state internally. Many features are missing compared to `TableCore`, but it is easier to implement
-
-Examples: 
-
-* [Todo list with horizontal scrolling](https://codesandbox.io/s/table-v4-simple-pqtos)
-* [Todo list with pagination](https://codesandbox.io/s/table-v4-pagination-r8vw1)
-
-**[Documentation](/docs/table.md)**

@@ -2,23 +2,30 @@
 
 ## Breaking changes
 
-* The selected values argument passed to event handlers `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when `multiSelect` option is disabled, and a *Set* of values when it is enabled
-* Removed `selectedValues` *array* state property. Replaced with `selection` *Set* property
-* Removed `selectedValues` *array* property from `useTable` result. Replaced with `selection` *Set* property
+* The selected values argument passed to event handlers `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when `multiSelect` option is disabled, and a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
+* Removed `selectedValues` state property. Replaced with `selection` property
 * `clearRows` action now sets `isLoading` state to false instead of true
 * Action creator `setRowSelected` calls `setRowsSelected` (action type and payload format has changed)
 * Removed optional `keyed` *boolean* parameter for `setRows` action creator. The rows are assumed to be keyed, if the `items` argument is an object
 * Removed `loadingIndicator` Table component prop
 * Action creator `clearRows` clears the selection even if `listBox` option is enabled
 * Table header not rendered while there are no visible items
+* `initItems` option accepts keyed items as object
+* Removed `Table` component and everything related, as it was limiting the features of `TableCore`
+* `setRows` clears the selection
+* Removed `activeValue` and `pivotValue`, replaced with `activeIndex` and `pivotIndex`
+* Removed action creator `setActiveValue`, replaced with `setActiveIndex`
+* `currentPage` and  `goToPage` parameter are zero-based (instead of one-based)
+* Action creators `setRowSelected`, `contextMenu` and `selectRow` take the row index instead of the value
 
 ## Non-breaking changes
 
 * Added `startLoading` action creator
 * Added `setRowsSelected` action creator
 * Added `scrollFactor` component prop
-* Added `setPivotRow` action creator
+* Added `setPivotIndex` action creator
 * Added `keyedItems` *object* property to `useTable` result
+* The [classnames](https://www.npmjs.com/package/classnames) library is used to parse the `_className` property of rows, so objects and arrays are accepted as well as strings
 
 
 

@@ -24,7 +24,7 @@ Passed through to the **table** elements
 
 #### `emptyPlaceholder` *node*
 
-Rendered when the [items array][items] is empty
+Rendered when the table contains no [visible items][tableItems]
 
 
 
@@ -42,7 +42,7 @@ An array of indexes corresponding to item in the [columns array][columns]. Speci
 
 #### `initColumnWidths` *number[]*
 
-An array containing the initial width (in percentage) of every column after [ordering][columnOrder]. If the length of the array doesn't match the number of visible columns, the available width will be shared equally among all columns.
+An array containing the initial width (in percentage) of every column after [ordering][columnOrder]. If the length of the array doesn't match the number of visible columns, the available width will be distributed equally to all columns.
 
 
 
@@ -52,7 +52,7 @@ Arguments:
 
 | Type             | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
-| *any[]* \| *any* | If the [list box][listBox] option is disabled: the [selected values][selectedValues]. Otherwise: the [active value][activeValue] |
+| *any[]* \| *any* | If the [list box][listBox] option is enabled, then the [active value][activeValue] will be passed.<br/>Otherwise, the [selected values][selectedValues] will be passed instead. |
 
 Raised when the user right-clicks on a row, the table container, or the empty placeholder
 
@@ -62,10 +62,10 @@ Raised when the user right-clicks on a row, the table container, or the empty pl
 
 Arguments:
 
-| Type      | Description                                                 |
-| --------- | ----------------------------------------------------------- |
-| *any[]*   | The [selected values][selectedValues]                       |
-| *boolean* | True if caused by enter key press, false if by double click |
+| Type             | Description                                                 |
+| ---------------- | ----------------------------------------------------------- |
+| *any[]* \| *any* | The [selected values][selectedValues]                       |
+| *boolean*        | True if caused by enter key press, false if by double click |
 
 Raised when the user double-clicks on a row or presses the enter key. Will not be raised if no rows are selected
 
@@ -75,9 +75,9 @@ Raised when the user double-clicks on a row or presses the enter key. Will not b
 
 Arguments:
 
-| Type    | Description                               |
-| ------- | ----------------------------------------- |
-| *any[]* | The new [selected values][selectedValues] |
+| Type | Description                               |
+| ---- | ----------------------------------------- |
+|      | The new [selected values][selectedValues] |
 
 Raised when the selection changes
 
@@ -108,16 +108,26 @@ Raised when the key down event is not handled internally
 
 
 
-[selectedValues]: ./state.md#selectedvalues-any
-[activeValue]: ./state.md#activevalue-any
-[ items ]: ./state.md#items-any
-[isLoading]: ./state.md#isloading-boolean
+### Selected values argument
 
+If the [multiple selection][multiSelect] option is enabled, then the [Set of selected values][selectedValues] will be passed.
 
-
-[ listBox ]: ./options.md#listbox-boolean
+Otherwise, the single selected value will be passed, or null if no item is selected.
 
 
 
 [ columns ]: #columns-column
 [ columnOrder ]: #columnorder-number
+[selectedValues]: #selected-values-argument
+
+
+
+[selection]: ./state.md#selection-set
+[activeValue]: ./state.md#activevalue-any
+[ tableItems ]: ./state.md#tableItems-object
+[isLoading]: ./state.md#isloading-boolean
+
+
+
+[ listBox ]: ./options.md#listbox-boolean
+[ multiSelect ]: ./options.md#multiselect-boolean

@@ -18,9 +18,9 @@ export default class TableActions {
     static CLEAR_ROWS = "TABLE_CLEAR_ROWS";
     static SORT_BY = "TABLE_SORT_BY";
     static SET_FILTER = "TABLE_SET_FILTER";
+    static SET_ERROR = "TABLE_SET_ERROR";
 
     //Displaying
-    static SET_ERROR = "TABLE_SET_ERROR";
     static START_LOADING = "TABLE_START_LOADING";
 
     //Selection
@@ -28,8 +28,8 @@ export default class TableActions {
     static SELECT_ROW = "TABLE_SELECT_ROW";
     static CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
     static SELECT_ALL = "TABLE_SELECT_ALL";
-    static SET_ACTIVE_ROW = "TABLE_SET_ACTIVE_ROW";
-    static SET_PIVOT_ROW = "TABLE_SET_PIVOT_ROW";
+    static SET_ACTIVE_INDEX = "TABLE_SET_ACTIVE_INDEX";
+    static SET_PIVOT_INDEX = "TABLE_SET_PIVOT_INDEX";
     static CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 
     //Pagination
@@ -45,8 +45,8 @@ export default class TableActions {
     clearRows = () =>
         this._getAction(self.CLEAR_ROWS);
 
-    contextMenu = (value, ctrlKey) =>
-        this._getAction(self.CONTEXT_MENU, { value, ctrlKey });
+    contextMenu = (index, ctrlKey) =>
+        this._getAction(self.CONTEXT_MENU, { index, ctrlKey });
 
     setFilter = filter =>
         this._getAction(self.SET_FILTER, { filter });
@@ -69,14 +69,14 @@ export default class TableActions {
     sortBy = (path, shiftKey = false) =>
         this._getAction(self.SORT_BY, { path, shiftKey });
 
-    selectRow = (value, ctrlKey = false, shiftKey = false) =>
-        this._getAction(self.SELECT_ROW, { value, ctrlKey, shiftKey });
+    selectRow = (index, ctrlKey = false, shiftKey = false) =>
+        this._getAction(self.SELECT_ROW, { index, ctrlKey, shiftKey });
 
-    setActiveRow = value =>
-        this._getAction(self.SET_ACTIVE_ROW, { value });
+    setActiveIndex = index =>
+        this._getAction(self.SET_ACTIVE_INDEX, { index });
 
-    setPivotRow = value =>
-        this._getAction(self.SET_PIVOT_ROW, { value });
+    setPivotIndex = index =>
+        this._getAction(self.SET_PIVOT_INDEX, { index });
 
     clearSelection = () =>
         this._getAction(self.CLEAR_SELECTION);
@@ -94,14 +94,14 @@ export default class TableActions {
         this._getAction(self.START_LOADING);
 
     //Aliases
-    firstPage = () => this.goToPage(1);
+    firstPage = () => this.goToPage(0);
     lastPage = () => this.goToPage(pagePositions.Last);
     previousPage = () => this.goToPage(pagePositions.Previous);
     nextPage = () => this.goToPage(pagePositions.Next);
 
     //Backwards compatibility
     setRowValue = (oldValue, newValue) => this.setRowValues({[oldValue]: newValue});
-    setRowSelected = (value, selected) => this.setRowsSelected({[value]: selected});
+    setRowSelected = (index, selected) => this.setRowsSelected({[index]: selected});
     addRow = item => this.addRows(item);
     patchRow = patch => this.patchRows(patch);
 }

@@ -13,16 +13,16 @@ function Body({
     items,
     tableBodyRef,
     selection,
-    activeValue,
+    activeIndex,
     dispatchers
 }) {
-    const handleRowSelect = useCallback((e, value) => {
+    const handleRowSelect = useCallback((e, index) => {
         if (e.button !== 0) return;
-        dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
+        dispatchers.selectRow(index, e.ctrlKey, e.shiftKey);
     }, [dispatchers]);
 
-    const handleRowContextMenu = useCallback((e, value) => {
-        dispatchers.contextMenu(value, e.ctrlKey);
+    const handleRowContextMenu = useCallback((e, index) => {
+        dispatchers.contextMenu(index, e.ctrlKey);
     }, [dispatchers]);
 
     const renderColumn = (row, column) => {
@@ -40,19 +40,19 @@ function Body({
         return <td {...props}>{content}</td>
     };
 
-    const renderRow = (row) => {
+    const renderRow = (row, index) => {
         const value = row[options.valueProperty];
 
         const classes = {
             [styles.selected]: selection.has(value),
-            [styles.active]: activeValue === value
+            [styles.active]: activeIndex === index
         };
 
         return <tr
             key={`row_${name}_${value}`}
             className={classNames(classes, row._className)}
-            onContextMenu={e => handleRowContextMenu(e, value)}
-            onMouseDown={e => handleRowSelect(e, value)}
+            onContextMenu={e => handleRowContextMenu(e, index)}
+            onMouseDown={e => handleRowSelect(e, index)}
         >
             {columns.map(col => renderColumn(row, col))}
         </tr>
@@ -71,7 +71,7 @@ function makeMapState() {
         const picked = _.pick(slice,
             "tableItems",
             "selection",
-            "activeValue"
+            "activeIndex"
         );
 
         return {

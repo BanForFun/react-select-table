@@ -1,4 +1,5 @@
 import _ from "lodash";
+import {getFirstItem} from "./setUtils";
 
 export const tableOptions = {};
 
@@ -45,8 +46,5 @@ export function formatSelection(selection, namespace) {
     if (tableOptions[namespace].multiSelect)
         return selection;
 
-    for (let value of selection)
-        return value;
-
-    return null;
+    return getFirstItem(selection) ?? null;
 }

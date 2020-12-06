@@ -1,6 +1,6 @@
 import styles from "../index.scss";
 
-import React, { Fragment, useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import _ from "lodash";
 import TableHead from "./Head";
 import TableBody from "./Body";
@@ -8,8 +8,8 @@ import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
 import { connect } from 'react-redux';
 import Rect from '../models/rect';
-import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
-import { bindActionCreators } from 'redux';
+import {makeGetPaginatedItems} from "../selectors/paginationSelectors";
+import {bindActionCreators} from 'redux';
 import Actions from '../models/actions';
 import {tableOptions, defaultEvents, formatSelection} from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
@@ -39,8 +39,8 @@ function TableCore(props) {
         error,
         isLoading,
         selection,
-        activeValue,
-        pivotValue,
+        activeIndex,
+        pivotIndex,
         dispatch
     } = props;
 
@@ -251,21 +251,18 @@ function TableCore(props) {
         const rowCount = values.length;
         const originIndex = selOrigin.index;
         const belowItems = originIndex < 0;
-        let setActive = belowItems ? null : values[originIndex];
-        const pivotIndex = belowItems ? rowCount : originIndex;
-        const setPivot = values[belowItems ? rowCount - 1 : originIndex];
+        let setActive = belowItems ? null : originIndex;
+        const searchStart = belowItems ? rowCount : originIndex;
+        const setPivot = belowItems ? rowCount - 1 : originIndex;
 
         let index;
         const selectMap = {};
 
-
         function updateCurrent(select) {
-            const value = values[index];
-
-            if (select !== selection.has(value))
-                selectMap[value] = select;
+            if (select !== selection.has(values[index]))
+                selectMap[index] = select;
             else if (select)
-                setActive = value;
+                setActive = index;
         }
 
         function getCurrentTop() {
@@ -277,7 +274,7 @@ function TableCore(props) {
         }
 
         //Search down
-        index = pivotIndex + 1;
+        index = searchStart + 1;
         while (index < rowCount) {
             const top = getCurrentTop();
             if (top > maxMouseY) break;
@@ -287,7 +284,7 @@ function TableCore(props) {
         }
 
         //Search up
-        index = pivotIndex;
+        index = searchStart;
         while (index > 0) {
             const top = getCurrentTop();
             if (top < minMouseY) break;
@@ -296,19 +293,19 @@ function TableCore(props) {
             updateCurrent(top > relMouseY);
         }
 
-        if (setActive !== null && setActive !== activeValue)
+        if (setActive !== null && setActive !== activeIndex)
             selectMap[setActive] = true;
 
         if (!_.isEmpty(selectMap))
             dispatchers.setRowsSelected(selectMap);
 
-        if (pivotValue !== setPivot && selection.has(setPivot))
-            dispatchers.setPivotRow(setPivot);
+        if (pivotIndex !== setPivot && selection.has(values[setPivot]))
+            dispatchers.setPivotIndex(setPivot);
     }, [
         selOrigin,
         values,
-        activeValue,
-        pivotValue,
+        activeIndex,
+        pivotIndex,
         selection,
         dispatchers,
         scrollFactor,
@@ -339,16 +336,21 @@ function TableCore(props) {
         if (!byKeyboard || openByKeyboard)
             onItemsOpen(formatSelection(selection, ns), byKeyboard);
         else
-            dispatchers.selectRow(activeValue, e.ctrlKey, e.shiftKey)
-    }, [selection, activeValue, dispatchers, ns, onItemsOpen]);
+            dispatchers.selectRow(activeIndex, e.ctrlKey, e.shiftKey);
+    }, [
+        selection,
+        activeIndex,
+        values,
+        dispatchers,
+        ns,
+        onItemsOpen
+    ]);
 
     const selectIndex = useCallback((e, index) => {
-        const value = values[index];
-
         if (matchModifiers(e, true))
-            dispatchers.setActiveRow(value);
+            dispatchers.setActiveIndex(index);
         else
-            dispatchers.selectRow(value, e.ctrlKey, e.shiftKey);
+            dispatchers.selectRow(index, e.ctrlKey, e.shiftKey);
 
         //Get elements
         const body = bodyContainerRef.current;
@@ -366,15 +368,14 @@ function TableCore(props) {
         const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
         if (scrollDown)
             root.scrollTop = rowBottom - visibleHeight;
-    }, [values, dispatchers]);
+    }, [dispatchers]);
 
     const selectOffset = useCallback((e, offset) => {
-        if (activeValue == null) return;
+        if (activeIndex == null) return;
 
-        const offsetIndex = values.indexOf(activeValue) + offset;
-        const index = _.clamp(offsetIndex, 0, values.length - 1);
+        const index = _.clamp(activeIndex + offset, 0, values.length - 1);
         selectIndex(e, index);
-    }, [selectIndex, activeValue, values]);
+    }, [selectIndex, activeIndex, values]);
 
     const raiseKeyDown = useCallback(e => {
         onKeyDown(e, formatSelection(selection, ns));
@@ -424,7 +425,8 @@ function TableCore(props) {
                 selectIndex(e, items.length - 1);
                 break;
             default:
-                return raiseKeyDown(e);
+                raiseKeyDown(e);
+                return;
         }
 
         e.preventDefault();
@@ -443,7 +445,7 @@ function TableCore(props) {
         );
 
         return <div className={styles.selection} style={style}/>
-    };
+    }
 
     function renderTable() {
         const commonProps = {
@@ -460,21 +462,28 @@ function TableCore(props) {
         };
 
         const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
+        const isEmpty = items.length === 0;
 
         let placeholder = null;
-        if (error)
-            placeholder = renderError(error);
-        else if (isLoading)
+        //Order of checks is important
+        if (isLoading)
             placeholder = loadingIndicator;
-        else if (items.length === 0)
+        else if (error)
+            placeholder = renderError(error);
+        else if (isEmpty)
             placeholder = emptyPlaceholder;
 
-        if (placeholder)
+        if (placeholder) {
+            const events = isEmpty ? {
+                onContextMenu: () => dispatchers.contextMenu(null),
+                onKeyDown: raiseKeyDown
+            } : null
+
             return <div className={styles.placeholder}
                         tabIndex="0"
-                        onContextMenu={() => dispatchers.contextMenu(null)}
-                        onKeyDown={raiseKeyDown}
+                        {...events}
             >{placeholder}</div>
+        }
 
         return <>
             <div tabIndex="-1"
@@ -527,16 +536,15 @@ function makeMapState() {
         const slice = getTableSlice(root, namespace);
         const pick = _.pick(slice,
             "selection",
-            "activeValue",
-            "pivotValue",
+            "activeIndex",
+            "pivotIndex",
             "isLoading",
             "error",
             "tableItems"
         );
 
         return {
-            ...pick,
-            namespace,
+            ...pick, namespace,
             items: getItems(slice)
         }
     }

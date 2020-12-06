@@ -1,14 +1,14 @@
 import styles from "../index.scss";
 
-import React, {useState, useEffect, useCallback, useRef, useMemo} from 'react';
+import React, {Fragment, useState, useEffect, useCallback, useRef, useMemo, useContext} from 'react';
 import _ from "lodash";
-import TableHead from "./Head";
-import TableBody from "./Body";
+import TableHead from "./TableHead";
+import TableBody from "./TableBody";
 import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
-import { connect } from 'react-redux';
+import {connect, ReactReduxContext} from 'react-redux';
 import Rect from '../models/rect';
-import {makeGetPaginatedItems} from "../selectors/paginationSelectors";
+import {makeGetPageCount, makeGetPaginatedItems} from "../selectors/paginationSelectors";
 import {bindActionCreators} from 'redux';
 import Actions from '../models/actions';
 import {tableOptions, defaultEvents, formatSelection} from '../utils/optionUtils';
@@ -16,23 +16,26 @@ import useWindowEvent from '../hooks/useWindowEvent';
 import {getTableSlice} from '../utils/reduxUtils';
 import {matchModifiers} from "../utils/eventUtils";
 import {clampOffset} from "../utils/mathUtils";
+import DefaultError from "./TableError";
+import DefaultPagination from "./TablePagination";
 
 function TableCore(props) {
     const {
         name,
-        namespace: ns,
-        context,
+        ns,
         className,
         columns,
         emptyPlaceholder,
         loadingIndicator,
-        renderError,
         onItemsOpen,
         onColumnsResizeEnd,
         onKeyDown,
         initColumnWidths,
         scrollFactor,
         columnOrder: _columnOrder,
+        Error: TableError,
+        Pagination: TablePagination,
+        options,
 
         //Redux state
         items,
@@ -41,6 +44,8 @@ function TableCore(props) {
         selection,
         activeIndex,
         pivotIndex,
+        currentPage,
+        pageCount,
         dispatch
     } = props;
 
@@ -48,8 +53,6 @@ function TableCore(props) {
     const tableBodyRef = useRef();
 
     const isTouching = useRef(false);
-
-    const options = useMemo(() => tableOptions[ns], [ns]);
 
     const values = useMemo(() =>
         _.map(items, options.valueProperty),
@@ -450,8 +453,7 @@ function TableCore(props) {
     function renderTable() {
         const commonProps = {
             name,
-            namespace: ns,
-            context,
+            ns,
             dispatchers,
             options,
             columns: parsedColumns
@@ -465,11 +467,10 @@ function TableCore(props) {
         const isEmpty = items.length === 0;
 
         let placeholder = null;
-        //Order of checks is important
         if (isLoading)
             placeholder = loadingIndicator;
         else if (error)
-            placeholder = renderError(error);
+            placeholder = <TableError error={error} />;
         else if (isEmpty)
             placeholder = emptyPlaceholder;
 
@@ -479,9 +480,10 @@ function TableCore(props) {
                 onKeyDown: raiseKeyDown
             } : null
 
-            return <div className={styles.placeholder}
-                        tabIndex="0"
-                        {...events}
+            return <div
+                className={styles.placeholder}
+                tabIndex="0"
+                {...events}
             >{placeholder}</div>
         }
 
@@ -526,31 +528,46 @@ function TableCore(props) {
             {renderTable()}
         </div>
     )
-}
+};
 
 function makeMapState() {
     const getItems = makeGetPaginatedItems();
+    const getPageCount = makeGetPageCount();
 
     return (root, props) => {
-        const namespace = props.namespace || props.name;
-        const slice = getTableSlice(root, namespace);
-        const pick = _.pick(slice,
-            "selection",
-            "activeIndex",
-            "pivotIndex",
-            "isLoading",
-            "error",
-            "tableItems"
-        );
+        const state = getTableSlice(root, props.ns);
 
         return {
-            ...pick, namespace,
-            items: getItems(slice)
+            ..._.pick(state,
+                "selection",
+                "activeIndex",
+                "pivotIndex",
+                "isLoading",
+                "currentPage",
+                "error",
+                "tableItems"
+            ),
+            items: getItems(state),
+            pageCount: getPageCount(state)
         }
     }
 }
 
-export default connect(makeMapState)(TableCore);
+const ConnectedTable = connect(makeMapState)(TableCore);
+
+export default function TableConnector(props) {
+    const ns = props.namespace || props.name;
+    const options = tableOptions[ns];
+
+    if (!options.context)
+        throw new Error("Please pass the global context to the context option");
+
+    const contextValue = useContext(options.context);
+
+    return <ReactReduxContext.Provider value={contextValue}>
+        <ConnectedTable {...props} ns={ns} options={options} />
+    </ReactReduxContext.Provider>
+}
 
 export const columnShape = PropTypes.shape({
     title: PropTypes.string,
@@ -560,16 +577,14 @@ export const columnShape = PropTypes.shape({
     isHeader: PropTypes.bool
 });
 
-TableCore.propTypes = {
-    renderError: PropTypes.func,
+TableConnector.propTypes = {
+    Error: PropTypes.elementType,
     loadingIndicator: PropTypes.node,
+    emptyPlaceholder: PropTypes.node,
     namespace: PropTypes.string,
-    context: PropTypes.any,
-
     name: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
     className: PropTypes.string,
-    emptyPlaceholder: PropTypes.node,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     scrollFactor: PropTypes.number,
@@ -580,12 +595,13 @@ TableCore.propTypes = {
     onKeyDown: PropTypes.func
 };
 
-TableCore.defaultProps = {
+TableConnector.defaultProps = {
     onItemsOpen: () => { },
     onColumnsResizeEnd: () => { },
     onKeyDown: () => { },
     renderError: msg => msg,
     initColumnWidths: [],
     scrollFactor: 0.2,
+    Error: DefaultError,
     ...defaultEvents
 };

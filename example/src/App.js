@@ -1,11 +1,10 @@
+import 'bootstrap/dist/css/bootstrap.css';
+import 'react-select-table/dist/index.css';
+
 import React from 'react';
 import { Switch, Route, Redirect } from "react-router-dom";
 
 import ReduxTable from './components/ReduxTable';
-
-import 'bootstrap/dist/css/bootstrap.css';
-import 'react-select-table/dist/index.css';
-
 
 function App() {
   return <div id="app">

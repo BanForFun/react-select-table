@@ -29,7 +29,8 @@ const defaultOptions = {
     scrollX: false,
     multiSort: false,
     path: null,
-    initState: {}
+    initState: {},
+    context: null
 };
 
 export function setDefaultOptions(options) {

@@ -1,14 +1,14 @@
 import React, { useState, useRef, useCallback } from 'react';
 import _ from "lodash";
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 import styles from "../index.scss";
-import SortIcon from './SortIcon';
+import AngleDownIcon from './AngleDownIcon';
 import useWindowEvent from '../hooks/useWindowEvent';
 import { boolAttrib } from '../utils/attributeUtils';
 import { getTableSlice } from "../utils/reduxUtils";
 import produce from "immer";
 
-function Head({
+function TableHead({
     columns,
     sortBy,
     name,
@@ -99,9 +99,10 @@ function Head({
 
                     return <th key={`head_${name}_${_id}`}
                         data-sortable={boolAttrib(path)}
-                        data-order={sortBy[path]}
-                        onClick={handleClick}>
-                        {title} <SortIcon />
+                        onClick={handleClick}
+                    >
+                        {title}
+                        <AngleDownIcon className={styles.sortIcon} data-order={sortBy[path]}/>
                         {addSeparator && <div
                             className={styles.separator}
                             onClick={e => e.stopPropagation()}
@@ -116,10 +117,10 @@ function Head({
 }
 
 function makeMapState(root, props) {
-    const slice = getTableSlice(root, props.namespace)
+    const slice = getTableSlice(root, props.ns)
     return _.pick(slice,
         "sortBy"
     );
 }
 
-export default connect(makeMapState)(Head);
+export default connect(makeMapState)(TableHead);

@@ -67,7 +67,6 @@ function ReduxTable() {
             className="table"
             name={tableNamespace}
             columns={columns}
-            context={ReactReduxContext}
             loadingIndicator="Loading..."
             scrollFactor={0.5}
             onKeyDown={handleTableKeyDown}

@@ -1,12 +1,12 @@
 import _ from "lodash";
 import React, {useCallback} from 'react';
 import styles from "../index.scss";
-import { connect } from "react-redux";
+import {connect} from "react-redux";
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import { getTableSlice } from "../utils/reduxUtils";
 import classNames from "classnames";
 
-function Body({
+function TableBody({
     columns,
     name,
     options,
@@ -67,18 +67,17 @@ function makeMapState() {
     const getItems = makeGetPaginatedItems();
 
     return (root, props) => {
-        const slice = getTableSlice(root, props.namespace);
-        const picked = _.pick(slice,
-            "tableItems",
-            "selection",
-            "activeIndex"
-        );
+        const slice = getTableSlice(root, props.ns);
 
         return {
-            ...picked,
+            ..._.pick(slice,
+                "tableItems",
+                "selection",
+                "activeIndex"
+            ),
             items: getItems(slice)
         }
     }
 }
 
-export default connect(makeMapState)(Body);
+export default connect(makeMapState)(TableBody);

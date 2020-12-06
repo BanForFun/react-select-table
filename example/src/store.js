@@ -5,8 +5,9 @@ import todos from "./todos";
 
 export const tableNamespace = "todos";
 
-const store = createStore(
-    createTable(tableNamespace,
+export default function setupStore() {
+    const tableReducer = createTable(
+        tableNamespace,
         {
             valueProperty: "id",
             initItems: todos,
@@ -15,8 +16,10 @@ const store = createStore(
                 pageSize: 8
             }
         }
-    ),
-    composeWithDevTools(applyMiddleware(eventMiddleware))
-);
+    );
 
-export default store;
+    return createStore(
+        tableReducer,
+        composeWithDevTools(applyMiddleware(eventMiddleware))
+    );
+};

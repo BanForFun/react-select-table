@@ -6,8 +6,9 @@ export const makeGetPageCount = () => createSelector(
         state => state.pageSize
     ],
     (itemCount, pageSize) => {
-        if (!pageSize) return 1;
-        return Math.max(Math.ceil(itemCount / pageSize), 1);
+        if (!pageSize) return 0;
+        if (!itemCount) return 1;
+        return Math.ceil(itemCount / pageSize);
     }
 )
 

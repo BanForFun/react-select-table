@@ -3,8 +3,8 @@ import React, {useCallback} from 'react';
 import styles from "../index.scss";
 import {connect} from "react-redux";
 import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
-import { getTableSlice } from "../utils/reduxUtils";
 import classNames from "classnames";
+import {getTableSlice} from "../utils/optionUtils";
 
 function TableBody({
     columns,

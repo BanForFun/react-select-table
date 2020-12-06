@@ -4,27 +4,34 @@ import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
 
 import styles from "../index.scss";
+import usePagination from "../hooks/usePagination";
 
-function TablePagination({ pageIndex, pageCount, dispatchers }) {
+function TablePagination({ ns }) {
+    const {
+        pageCount, pageIndex,
+        isFirst, isLast,
+        goToPage, nextPage, previousPage
+    } = usePagination(ns);
+
     if (!pageCount) return null;
 
     const prevClass = classNames({
         "page-item": true,
-        "disabled": pageIndex === 0
+        "disabled": isFirst
     });
 
     const nextClass = classNames({
         "page-item": true,
-        "disabled": pageIndex === pageCount - 1
+        "disabled": isLast
     });
 
-    return <nav aria-label="Pagination">
-        <ul className="pagination pagination-sm">
+    return <nav className={styles.pagination} aria-label="Pagination">
+        <ul className="pagination">
             <li className={prevClass}>
                 <button
                     className="page-link"
                     aria-label="Previous"
-                    onClick={() => dispatchers.previousPage()}
+                    onClick={() => previousPage()}
                 >
                     <AngleDownIcon className={styles.prevPage} />
                 </button>
@@ -38,7 +45,7 @@ function TablePagination({ pageIndex, pageCount, dispatchers }) {
                     return <li className={itemClass}>
                         <button
                             className="page-link"
-                            onClick={() => dispatchers.goToPage(i)}
+                            onClick={() => goToPage(i)}
                         >{i + 1}</button>
                     </li>
                 })
@@ -47,7 +54,7 @@ function TablePagination({ pageIndex, pageCount, dispatchers }) {
                 <button
                     className="page-link"
                     aria-label="Next"
-                    onClick={() => dispatchers.nextPage()}
+                    onClick={() => nextPage()}
                 >
                     <AngleDownIcon className={styles.nextPage} />
                 </button>

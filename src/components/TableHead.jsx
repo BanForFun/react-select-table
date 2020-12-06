@@ -1,12 +1,13 @@
+import styles from "../index.scss";
+
 import React, { useState, useRef, useCallback } from 'react';
 import _ from "lodash";
+import produce from "immer";
 import {connect} from 'react-redux';
-import styles from "../index.scss";
 import AngleDownIcon from './AngleDownIcon';
 import useWindowEvent from '../hooks/useWindowEvent';
 import { boolAttrib } from '../utils/attributeUtils';
-import { getTableSlice } from "../utils/reduxUtils";
-import produce from "immer";
+import {getTableSlice} from "../utils/optionUtils";
 
 function TableHead({
     columns,
@@ -102,7 +103,10 @@ function TableHead({
                         onClick={handleClick}
                     >
                         {title}
-                        <AngleDownIcon className={styles.sortIcon} data-order={sortBy[path]}/>
+                        <AngleDownIcon
+                            className={styles.sortIcon}
+                            data-order={sortBy[path]}
+                        />
                         {addSeparator && <div
                             className={styles.separator}
                             onClick={e => e.stopPropagation()}

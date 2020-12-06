@@ -49,3 +49,8 @@ export function formatSelection(selection, namespace) {
 
     return getFirstItem(selection) ?? null;
 }
+
+export function getTableSlice(state, namespace) {
+    const {path} = tableOptions[namespace];
+    return path ? _.get(state, path) : state;
+}

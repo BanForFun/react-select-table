@@ -1,8 +1,8 @@
-import React, {useMemo, useCallback, useState} from 'react'
+import React, {useCallback, useState} from 'react'
 import _ from "lodash";
-import { TableCore, TableActions, makeGetPageCount } from 'react-select-table';
+import { TableCore, TableActions, TablePagination } from 'react-select-table';
 import columns from '../columns';
-import { ReactReduxContext, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {tableNamespace} from "../store";
 import todos from "../todos";
 
@@ -11,14 +11,6 @@ const actions = new TableActions(tableNamespace);
 function ReduxTable() {
     const dispatch = useDispatch();
 
-    const handlePageChange = useCallback(e => {
-        const number = parseInt(e.target.value);
-        dispatch(actions.goToPage(number - 1));
-    }, [dispatch]);
-
-    const getPageCount = useMemo(makeGetPageCount, []);
-    const pageCount = useSelector(getPageCount);
-    const pageIndex = useSelector(s => s.currentPage);
     const keyedItems = useSelector(s => s.items);
 
     const [clipboard, setClipboard] = useState(null);
@@ -72,15 +64,7 @@ function ReduxTable() {
             onKeyDown={handleTableKeyDown}
         />
         <div className="py-3">
-            Page: <input
-                type="number"
-                id="pageIndex"
-                className="mx-2"
-                min={1}
-                max={pageCount}
-                value={pageIndex + 1}
-                onChange={handlePageChange}
-            /> / {pageCount}
+            <TablePagination ns={tableNamespace} />
         </div>
         <div>
             1 = Set items |

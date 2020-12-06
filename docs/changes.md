@@ -17,6 +17,8 @@
 * Removed action creator `setActiveValue`, replaced with `setActiveIndex`
 * `currentPage` and  `goToPage` parameter are zero-based (instead of one-based)
 * Action creators `setRowSelected`, `contextMenu` and `selectRow` take the row index instead of the value
+* react-redux context is now passed as an option instead of component prop
+* Removed `renderError` prop, replaced with `Error` prop
 
 ## Non-breaking changes
 

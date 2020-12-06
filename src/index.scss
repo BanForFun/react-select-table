@@ -131,7 +131,7 @@ $text-dark: #333333;
 }
 
 %pageNavButton {
-    height: 1.5em;
+    height: 1.25em;
     vertical-align: top;
     fill: currentColor;
 }
@@ -144,4 +144,12 @@ $text-dark: #333333;
 .prevPage {
     @extend %pageNavButton;
     transform: rotate(-90deg);
+}
+
+.pagination {
+    margin-top: 1rem;
+
+    ul {
+        margin: 0;
+    }
 }

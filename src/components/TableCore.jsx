@@ -10,14 +10,12 @@ import {connect, ReactReduxContext} from 'react-redux';
 import Rect from '../models/rect';
 import {makeGetPageCount, makeGetPaginatedItems} from "../selectors/paginationSelectors";
 import {bindActionCreators} from 'redux';
-import Actions from '../models/actions';
-import {tableOptions, defaultEvents, formatSelection} from '../utils/optionUtils';
+import TableActions from '../models/actions';
+import {tableOptions, defaultEvents, formatSelection, getTableSlice} from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
-import {getTableSlice} from '../utils/reduxUtils';
 import {matchModifiers} from "../utils/eventUtils";
 import {clampOffset} from "../utils/mathUtils";
 import DefaultError from "./TableError";
-import DefaultPagination from "./TablePagination";
 
 function TableCore(props) {
     const {
@@ -34,7 +32,6 @@ function TableCore(props) {
         scrollFactor,
         columnOrder: _columnOrder,
         Error: TableError,
-        Pagination: TablePagination,
         options,
 
         //Redux state
@@ -44,8 +41,6 @@ function TableCore(props) {
         selection,
         activeIndex,
         pivotIndex,
-        currentPage,
-        pageCount,
         dispatch
     } = props;
 
@@ -60,7 +55,7 @@ function TableCore(props) {
     );
 
     const dispatchers = useMemo(() =>
-        bindActionCreators(new Actions(ns), dispatch),
+        bindActionCreators(new TableActions(ns), dispatch),
         [ns, dispatch]
     );
 
@@ -487,7 +482,7 @@ function TableCore(props) {
             >{placeholder}</div>
         }
 
-        return <>
+        return <Fragment>
             <div tabIndex="-1"
                  style={containerStyle}
                  className={styles.headContainer}
@@ -517,7 +512,7 @@ function TableCore(props) {
                     <TableBody {...commonProps} tableBodyRef={tableBodyRef} />
                 </table>
             </div>
-        </>
+        </Fragment>
     }
 
     return (
@@ -528,7 +523,7 @@ function TableCore(props) {
             {renderTable()}
         </div>
     )
-};
+}
 
 function makeMapState() {
     const getItems = makeGetPaginatedItems();

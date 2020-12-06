@@ -1,6 +1,5 @@
 import actions from "../models/actions";
-import {formatSelection, tableOptions} from "../utils/optionUtils";
-import { getTableSlice } from "../utils/reduxUtils";
+import {formatSelection, getTableSlice, tableOptions} from "../utils/optionUtils";
 
 function compareSets(a, b) {
     //Compare references

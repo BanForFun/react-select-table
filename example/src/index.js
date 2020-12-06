@@ -8,9 +8,9 @@ import { Provider, ReactReduxContext } from 'react-redux'
 import setupStore from "./store";
 import {setDefaultOptions} from "react-select-table";
 
-// setDefaultOptions({
-//     context: ReactReduxContext
-// });
+setDefaultOptions({
+    context: ReactReduxContext
+});
 
 const store = setupStore();
 

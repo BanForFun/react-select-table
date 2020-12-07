@@ -1,5 +1,7 @@
 import _ from "lodash";
 import {getFirstItem} from "./setUtils";
+import {makeGetPaginatedItems, getPageCount, getTopIndex} from "../selectors/paginationSelectors";
+import TableActions from "../models/actions";
 
 export const tableOptions = {};
 
@@ -38,19 +40,36 @@ export function setDefaultOptions(options) {
 }
 
 export function setOptions(namespace, options) {
-    _.defaults(options, defaultOptions);
-    Object.assign(options, defaultEvents);
-    tableOptions[namespace] = options;
+    const { path, multiSelect } = _.defaults(options, defaultOptions);
+
+    function formatSelection(selection) {
+        if (multiSelect) return selection;
+        return getFirstItem(selection) ?? null;
+    }
+
+    function getStateSlice(state) {
+        return path ? _.get(state, path) : state;
+    }
+
+    //Assign utils
+    options.utils = {
+        actions: new TableActions(namespace),
+        formatSelection,
+        getStateSlice,
+
+        //Selectors
+        getPageCount,
+        getTopIndex,
+        getPaginatedItems: makeGetPaginatedItems()
+    }
+
+    //Assign events
+    options.events = {...defaultEvents};
+
+    tableOptions[namespace] = Object.freeze(options);
+    return options; //Object.freeze mutates object
 }
 
-export function formatSelection(selection, namespace) {
-    if (tableOptions[namespace].multiSelect)
-        return selection;
-
-    return getFirstItem(selection) ?? null;
-}
-
-export function getTableSlice(state, namespace) {
-    const {path} = tableOptions[namespace];
-    return path ? _.get(state, path) : state;
+export function getUtils(namespace) {
+    return tableOptions[namespace].utils;
 }

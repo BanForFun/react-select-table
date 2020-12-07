@@ -7,7 +7,6 @@ import {connect} from 'react-redux';
 import AngleDownIcon from './AngleDownIcon';
 import useWindowEvent from '../hooks/useWindowEvent';
 import { boolAttrib } from '../utils/attributeUtils';
-import {getTableSlice} from "../utils/optionUtils";
 
 function TableHead({
     columns,
@@ -92,7 +91,7 @@ function TableHead({
 
                     const handleClick = e => {
                         if (!path) return;
-                        dispatchers.sortBy(path, e.shiftKey);
+                        dispatchers.sortItemsBy(path, e.shiftKey);
                     }
 
                     const addSeparator = options.scrollX ||
@@ -120,11 +119,10 @@ function TableHead({
     );
 }
 
-function makeMapState(root, props) {
-    const slice = getTableSlice(root, props.ns)
-    return _.pick(slice,
-        "sortBy"
-    );
+function mapState(root, props) {
+    const {utils} = props.options;
+    const state = utils.getStateSlice(root);
+    return _.pick(state,"sortBy");
 }
 
-export default connect(makeMapState)(TableHead);
+export default connect(mapState)(TableHead);

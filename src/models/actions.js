@@ -9,27 +9,27 @@ export default class TableActions {
         return { type, namespace: this.namespace, payload };
     }
 
-    //Rows
-    static SET_ROWS = "TABLE_SET_ROWS";
-    static ADD_ROWS = "TABLE_ADD_ROWS";
-    static DELETE_ROWS = "TABLE_DELETE_ROWS";
-    static SET_ROW_VALUES = "TABLE_SET_ROW_VALUES";
-    static PATCH_ROWS = "TABLE_PATCH_ROWS";
-    static CLEAR_ROWS = "TABLE_CLEAR_ROWS";
-    static SORT_BY = "TABLE_SORT_BY";
-    static SET_FILTER = "TABLE_SET_FILTER";
-    static SET_ERROR = "TABLE_SET_ERROR";
+    //Items
+    static SET_ITEMS = "TABLE_SET_ITEMS";
+    static ADD_ITEMS = "TABLE_ADD_ITEMS";
+    static DELETE_ITEMS = "TABLE_DELETE_ITEMS";
+    static SET_ITEM_VALUES = "TABLE_SET_ITEM_VALUES";
+    static PATCH_ITEMS = "TABLE_PATCH_ITEMS";
+    static CLEAR_ITEMS = "TABLE_CLEAR_ITEMS";
+    static SORT_ITEMS_BY = "TABLE_SORT_ITEMS_BY";
+    static SET_ITEM_FILTER = "TABLE_SET_ITEM_FILTER";
 
     //Displaying
+    static SET_ERROR = "TABLE_SET_ERROR";
     static START_LOADING = "TABLE_START_LOADING";
 
     //Selection
-    static SET_ROWS_SELECTED = "TABLE_SET_ROWS_SELECTED";
-    static SELECT_ROW = "TABLE_SELECT_ROW";
+    static SET_SELECTED = "TABLE_SET_SELECTED";
+    static SELECT = "TABLE_SELECT";
     static CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
     static SELECT_ALL = "TABLE_SELECT_ALL";
-    static SET_ACTIVE_INDEX = "TABLE_SET_ACTIVE_INDEX";
-    static SET_PIVOT_INDEX = "TABLE_SET_PIVOT_INDEX";
+    static SET_ACTIVE = "TABLE_SET_ACTIVE";
+    static SET_PIVOT = "TABLE_SET_PIVOT";
     static CONTEXT_MENU = "TABLE_CONTEXT_MENU";
 
     //Pagination
@@ -42,41 +42,41 @@ export default class TableActions {
     setPageSize = size =>
         this._getAction(self.SET_PAGE_SIZE, { size });
 
-    clearRows = () =>
-        this._getAction(self.CLEAR_ROWS);
+    clearItems = () =>
+        this._getAction(self.CLEAR_ITEMS);
 
     contextMenu = (index, ctrlKey) =>
         this._getAction(self.CONTEXT_MENU, { index, ctrlKey });
 
-    setFilter = filter =>
-        this._getAction(self.SET_FILTER, { filter });
+    setItemFilter = filter =>
+        this._getAction(self.SET_ITEM_FILTER, { filter });
 
-    patchRows = (...patches) =>
-        this._getAction(self.PATCH_ROWS, { patches });
+    patchItems = (...patches) =>
+        this._getAction(self.PATCH_ITEMS, { patches });
 
-    setRowValues = map =>
-        this._getAction(self.SET_ROW_VALUES, { map });
+    setItemValues = map =>
+        this._getAction(self.SET_ITEM_VALUES, { map });
 
-    deleteRows = (...values) =>
-        this._getAction(self.DELETE_ROWS, { values });
+    deleteItems = (...values) =>
+        this._getAction(self.DELETE_ITEMS, { values });
 
-    addRows = (...items) =>
-        this._getAction(self.ADD_ROWS, { items });
+    addItems = (...items) =>
+        this._getAction(self.ADD_ITEMS, { items });
 
-    setRows = items =>
-        this._getAction(self.SET_ROWS, { items });
+    setItems = items =>
+        this._getAction(self.SET_ITEMS, { items });
 
-    sortBy = (path, shiftKey = false) =>
-        this._getAction(self.SORT_BY, { path, shiftKey });
+    sortItemsBy = (path, shiftKey = false) =>
+        this._getAction(self.SORT_ITEMS_BY, { path, shiftKey });
 
-    selectRow = (index, ctrlKey = false, shiftKey = false) =>
-        this._getAction(self.SELECT_ROW, { index, ctrlKey, shiftKey });
+    select = (index, ctrlKey = false, shiftKey = false) =>
+        this._getAction(self.SELECT, { index, ctrlKey, shiftKey });
 
-    setActiveIndex = index =>
-        this._getAction(self.SET_ACTIVE_INDEX, { index });
+    setActive = index =>
+        this._getAction(self.SET_ACTIVE, { index });
 
-    setPivotIndex = index =>
-        this._getAction(self.SET_PIVOT_INDEX, { index });
+    setPivot = index =>
+        this._getAction(self.SET_PIVOT, { index });
 
     clearSelection = () =>
         this._getAction(self.CLEAR_SELECTION);
@@ -84,8 +84,8 @@ export default class TableActions {
     selectAll = () =>
         this._getAction(self.SELECT_ALL);
 
-    setRowsSelected = map =>
-        this._getAction(self.SET_ROWS_SELECTED, { map });
+    setSelected = map =>
+        this._getAction(self.SET_SELECTED, { map });
 
     setError = error =>
         this._getAction(self.SET_ERROR, { error });
@@ -98,12 +98,6 @@ export default class TableActions {
     lastPage = () => this.goToPage(pagePositions.Last);
     previousPage = () => this.goToPage(pagePositions.Previous);
     nextPage = () => this.goToPage(pagePositions.Next);
-
-    //Backwards compatibility
-    setRowValue = (oldValue, newValue) => this.setRowValues({[oldValue]: newValue});
-    setRowSelected = (index, selected) => this.setRowsSelected({[index]: selected});
-    addRow = item => this.addRows(item);
-    patchRow = patch => this.patchRows(patch);
 }
 
 const self = TableActions;

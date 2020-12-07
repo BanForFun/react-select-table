@@ -18,7 +18,7 @@ function ReduxTable() {
     const handleKeyDown = useCallback(e => {
         switch(e.keyCode) {
             case 49: //1
-                dispatch(actions.setRows(todos));
+                dispatch(actions.setItems(todos));
                 break;
             case 50: //2
                 dispatch(actions.startLoading());
@@ -27,7 +27,7 @@ function ReduxTable() {
                 dispatch(actions.setError("Error"));
                 break;
             case 52: //4
-                dispatch(actions.clearRows());
+                dispatch(actions.clearItems());
                 break;
         }
     }, [dispatch]);
@@ -35,7 +35,7 @@ function ReduxTable() {
     const handleTableKeyDown = useCallback((e, selection) => {
         switch(e.keyCode) {
             case 46: //Delete
-                dispatch(actions.deleteRows(...selection));
+                dispatch(actions.deleteItems(...selection));
                 break;
         }
 
@@ -44,11 +44,11 @@ function ReduxTable() {
         switch (e.keyCode) {
             case 88: //X
                 setClipboard(_.values(_.pick(keyedItems, ...selection)));
-                dispatch(actions.deleteRows(...selection));
+                dispatch(actions.deleteItems(...selection));
                 break;
             case 86: //V
                 if (!clipboard) break;
-                dispatch(actions.addRows(...clipboard));
+                dispatch(actions.addItems(...clipboard));
                 setClipboard(null);
                 break;
         }

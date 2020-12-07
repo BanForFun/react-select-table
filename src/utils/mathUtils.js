@@ -10,3 +10,10 @@ export function sortTuple(a, b) {
 export function clampOffset(number, lower, offset) {
     return _.clamp(number, lower, lower + offset);
 }
+
+export function divMod(a, b) {
+    const remainder = a % b;
+    const quotient = (a - remainder) / b;
+
+    return [quotient, remainder];
+}

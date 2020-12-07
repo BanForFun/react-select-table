@@ -1,22 +1,10 @@
 import { createSelector } from "reselect";
 
-export const makeGetPageCount = () => createSelector(
-    [
-        state => state.tableItems.length,
-        state => state.pageSize
-    ],
-    (itemCount, pageSize) => {
-        if (!pageSize) return 0;
-        if (!itemCount) return 1;
-        return Math.ceil(itemCount / pageSize);
-    }
-)
-
 export const makeGetPaginatedItems = () => createSelector(
     [
-        state => state.tableItems,
-        state => state.pageSize,
-        state => state.currentPage
+        slice => slice.tableItems,
+        slice => slice.pageSize,
+        slice => slice.currentPage
     ],
     (items, pageSize, pageIndex) => {
         if (!pageSize) return items;
@@ -26,3 +14,19 @@ export const makeGetPaginatedItems = () => createSelector(
         return items.slice(start, end);
     }
 )
+
+export function getPageCount(slice) {
+    const { pageSize } = slice;
+    if (!pageSize) return 0;
+
+    const itemCount = slice.tableItems.length;
+    if (!itemCount) return 1;
+
+    return Math.ceil(itemCount / pageSize);
+}
+
+export function getTopIndex(slice) {
+    const { pageSize } = slice;
+    return pageSize && (pageSize * slice.currentPage);
+}
+

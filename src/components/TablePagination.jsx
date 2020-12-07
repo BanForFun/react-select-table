@@ -42,7 +42,7 @@ function TablePagination({ ns }) {
                         "page-item": true,
                         "active": pageIndex === i
                     });
-                    return <li className={itemClass}>
+                    return <li className={itemClass} key={i}>
                         <button
                             className="page-link"
                             onClick={() => goToPage(i)}

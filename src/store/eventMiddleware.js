@@ -1,5 +1,5 @@
 import actions from "../models/actions";
-import {formatSelection, getTableSlice, tableOptions} from "../utils/optionUtils";
+import {tableOptions} from "../utils/optionUtils";
 
 function compareSets(a, b) {
     //Compare references
@@ -17,38 +17,38 @@ function compareSets(a, b) {
 
 const eventMiddleware = store => next => action => {
     const { type, namespace, payload } = action;
-    const getState = () => getTableSlice(store.getState(), namespace);
 
     switch (type) {
-        case actions.SET_ROWS:
-        case actions.DELETE_ROWS:
-        case actions.SET_ROW_VALUES:
-        case actions.CLEAR_ROWS:
-        case actions.SET_FILTER:
-        case actions.SELECT_ROW:
+        case actions.SET_ITEMS:
+        case actions.DELETE_ITEMS:
+        case actions.SET_ITEM_VALUES:
+        case actions.CLEAR_ITEMS:
+        case actions.SET_ITEM_FILTER:
+        case actions.SELECT:
         case actions.CLEAR_SELECTION:
-        case actions.SET_ROWS_SELECTED:
+        case actions.SET_SELECTED:
         case actions.SELECT_ALL:
         case actions.SET_ERROR:
         case actions.START_LOADING:
         case actions.CONTEXT_MENU:
             const options = tableOptions[namespace];
+            const { events, utils } = options;
+
+            const getState = () => utils.getStateSlice(store.getState());
 
             const prevState = getState();
             const result = next(action);
-            const state = getState();
-
-            const {selection} = state;
+            const {selection} = getState();
 
             //Raise onSelectionChange
             if (!compareSets(prevState.selection, selection))
-                options.onSelectionChange(formatSelection(selection, namespace));
+                events.onSelectionChange(utils.formatSelection(selection));
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                options.onContextMenu(options.listBox
+                events.onContextMenu(options.listBox
                     ? payload.value
-                    : formatSelection(selection, namespace)
+                    : utils.formatSelection(selection)
                 );
 
             return result;

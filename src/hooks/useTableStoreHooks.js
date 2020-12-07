@@ -1,31 +1,32 @@
 import {useMemo, useCallback} from "react";
-import {getTableSlice, tableOptions} from "../utils/optionUtils";
 import {createDispatchHook, createSelectorHook} from "react-redux";
 import {bindActionCreators} from "redux";
-import TableActions from "../models/actions";
+
+import {tableOptions} from "../utils/optionUtils";
 
 export default function useTableStoreHooks(ns) {
-    const {context} = tableOptions[ns];
+    const {context, utils} = tableOptions[ns];
 
     //Dispatch
     const useDispatch = useMemo(() => createDispatchHook(context), [context]);
     const dispatch = useDispatch();
 
     const dispatchers = useMemo(() =>
-        bindActionCreators(new TableActions(ns), dispatch),
-        [ns, dispatch]
+        bindActionCreators(utils.actions, dispatch),
+        [utils, dispatch]
     );
 
     //Select
     const useRootSelector = useMemo(() => createSelectorHook(context), [context]);
 
     const useSelector = useCallback(selector =>
-        useRootSelector(state => selector(getTableSlice(state, ns))),
-        [ns, useRootSelector]
+        useRootSelector(state => selector(utils.getStateSlice(state))),
+        [utils, useRootSelector]
     );
 
     return {
         dispatchers,
-        useSelector
+        useSelector,
+        utils
     }
 }

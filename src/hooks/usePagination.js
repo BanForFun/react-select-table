@@ -1,12 +1,9 @@
-import {useMemo} from "react";
 import useTableStoreHooks from "./useTableStoreHooks";
-import {makeGetPageCount} from "../selectors/paginationSelectors";
 
 export default function usePagination(ns) {
-    const {useSelector, dispatchers} = useTableStoreHooks(ns);
+    const {useSelector, dispatchers, utils} = useTableStoreHooks(ns);
 
-    const getPageCount = useMemo(makeGetPageCount, []);
-    const pageCount = useSelector(getPageCount);
+    const pageCount = useSelector(utils.getPageCount);
     const pageIndex = useSelector(s => s.currentPage);
 
     return {

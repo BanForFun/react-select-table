@@ -2,15 +2,14 @@ import _ from "lodash";
 import React, {useCallback} from 'react';
 import styles from "../index.scss";
 import {connect} from "react-redux";
-import { makeGetPaginatedItems } from "../selectors/paginationSelectors";
 import classNames from "classnames";
-import {getTableSlice} from "../utils/optionUtils";
 
 function TableBody({
     columns,
     name,
     options,
-    items,
+    rows,
+    topIndex,
     tableBodyRef,
     selection,
     activeIndex,
@@ -18,7 +17,7 @@ function TableBody({
 }) {
     const handleRowSelect = useCallback((e, index) => {
         if (e.button !== 0) return;
-        dispatchers.selectRow(index, e.ctrlKey, e.shiftKey);
+        dispatchers.select(index, e.ctrlKey, e.shiftKey);
     }, [dispatchers]);
 
     const handleRowContextMenu = useCallback((e, index) => {
@@ -40,7 +39,8 @@ function TableBody({
         return <td {...props}>{content}</td>
     };
 
-    const renderRow = (row, index) => {
+    const renderRow = (row, rowIndex) => {
+        const index = rowIndex + topIndex;
         const value = row[options.valueProperty];
 
         const classes = {
@@ -59,25 +59,25 @@ function TableBody({
     };
 
     return <tbody ref={tableBodyRef}>
-        {items.map(renderRow)}
+        {rows.map(renderRow)}
     </tbody>;
 }
 
-function makeMapState() {
-    const getItems = makeGetPaginatedItems();
+function mapState(root, props) {
+    const {utils} = props.options;
+    const state = utils.getStateSlice(root);
 
-    return (root, props) => {
-        const slice = getTableSlice(root, props.ns);
+    const topIndex = utils.getTopIndex(state);
+    const rows = utils.getPaginatedItems(state);
 
-        return {
-            ..._.pick(slice,
-                "tableItems",
-                "selection",
-                "activeIndex"
-            ),
-            items: getItems(slice)
-        }
+    return {
+        ..._.pick(state,
+            "selection",
+            "activeIndex"
+        ),
+        rows,
+        topIndex
     }
 }
 
-export default connect(makeMapState)(TableBody);
+export default connect(mapState)(TableBody);

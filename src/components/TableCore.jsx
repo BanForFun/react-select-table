@@ -8,10 +8,8 @@ import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
 import {connect, ReactReduxContext} from 'react-redux';
 import Rect from '../models/rect';
-import {makeGetPageCount, makeGetPaginatedItems} from "../selectors/paginationSelectors";
 import {bindActionCreators} from 'redux';
-import TableActions from '../models/actions';
-import {tableOptions, defaultEvents, formatSelection, getTableSlice} from '../utils/optionUtils';
+import {tableOptions, defaultEvents} from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
 import {matchModifiers} from "../utils/eventUtils";
 import {clampOffset} from "../utils/mathUtils";
@@ -35,7 +33,9 @@ function TableCore(props) {
         options,
 
         //Redux state
-        items,
+        tableItems: items,
+        rowCount,
+        topIndex,
         error,
         isLoading,
         selection,
@@ -49,15 +49,20 @@ function TableCore(props) {
 
     const isTouching = useRef(false);
 
-    const values = useMemo(() =>
-        _.map(items, options.valueProperty),
-        [items, options]
-    );
+    const {utils} = options;
+    const itemCount = items.length;
 
     const dispatchers = useMemo(() =>
-        bindActionCreators(new TableActions(ns), dispatch),
-        [ns, dispatch]
+        bindActionCreators(utils.actions, dispatch),
+        [utils, dispatch]
     );
+
+    for (let reduxEvent in defaultEvents) {
+        const handler = props[reduxEvent];
+        useEffect(() => {
+            options.events[reduxEvent] = handler;
+        }, [handler, options]);
+    }
 
     //#region Columns
 
@@ -92,17 +97,10 @@ function TableCore(props) {
 
     //#endregion
 
-    //#region Reducer updates
-
-    //Register event handlers
-    for (let event in defaultEvents) {
-        const handler = props[event];
-        useEffect(() => {
-            options[event] = handler;
-        }, [handler, options]);
-    }
-
-    //#endregion
+    const isItemSelected = useCallback(index =>
+        selection.has(items[index][options.valueProperty]),
+        [selection, items, options]
+    );
 
     const findRowIndex = useCallback(target => {
         const headerHeight = bodyContainerRef.current.offsetTop;
@@ -246,21 +244,22 @@ function TableCore(props) {
         setSelRect(Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y));
 
         //Set up search
-        const rowCount = values.length;
         const originIndex = selOrigin.index;
         const belowItems = originIndex < 0;
-        let setActive = belowItems ? null : originIndex;
         const searchStart = belowItems ? rowCount : originIndex;
-        const setPivot = belowItems ? rowCount - 1 : originIndex;
+
+        let setActive = belowItems ? null : originIndex + topIndex;
+        const setPivot = (belowItems ? rowCount - 1 : originIndex) + topIndex;
 
         let index;
         const selectMap = {};
 
         function updateCurrent(select) {
-            if (select !== selection.has(values[index]))
-                selectMap[index] = select;
+            const itemIndex = topIndex + index;
+            if (select !== isItemSelected(itemIndex))
+                selectMap[itemIndex] = select;
             else if (select)
-                setActive = index;
+                setActive = itemIndex;
         }
 
         function getCurrentTop() {
@@ -295,19 +294,21 @@ function TableCore(props) {
             selectMap[setActive] = true;
 
         if (!_.isEmpty(selectMap))
-            dispatchers.setRowsSelected(selectMap);
+            dispatchers.setSelected(selectMap);
 
-        if (pivotIndex !== setPivot && selection.has(values[setPivot]))
-            dispatchers.setPivotIndex(setPivot);
+        if (pivotIndex !== setPivot && isItemSelected(setPivot))
+            dispatchers.setPivot(setPivot);
     }, [
         selOrigin,
-        values,
+        rowCount,
+        topIndex,
         activeIndex,
         pivotIndex,
         selection,
         dispatchers,
         scrollFactor,
-        findRowIndex
+        findRowIndex,
+        isItemSelected
     ]);
 
     useWindowEvent("mousemove", useCallback(e => {
@@ -332,28 +333,26 @@ function TableCore(props) {
     const openItems = useCallback((e, byKeyboard) => {
         const openByKeyboard = matchModifiers(e) && selection.size;
         if (!byKeyboard || openByKeyboard)
-            onItemsOpen(formatSelection(selection, ns), byKeyboard);
+            onItemsOpen(utils.formatSelection(selection), byKeyboard);
         else
-            dispatchers.selectRow(activeIndex, e.ctrlKey, e.shiftKey);
+            dispatchers.select(activeIndex, e.ctrlKey, e.shiftKey);
     }, [
-        selection,
-        activeIndex,
-        values,
-        dispatchers,
-        ns,
+        selection, activeIndex,
+        dispatchers, utils,
         onItemsOpen
     ]);
 
     const selectIndex = useCallback((e, index) => {
         if (matchModifiers(e, true))
-            dispatchers.setActiveIndex(index);
+            dispatchers.setActive(index);
         else
-            dispatchers.selectRow(index, e.ctrlKey, e.shiftKey);
+            dispatchers.select(index, e.ctrlKey, e.shiftKey);
 
         //Get elements
         const body = bodyContainerRef.current;
         const root = body.offsetParent;
         const row = tableBodyRef.current.children[index];
+        if (!row) return;
 
         //Scroll up
         const scrollUp = row.offsetTop < root.scrollTop;
@@ -371,9 +370,15 @@ function TableCore(props) {
     const selectOffset = useCallback((e, offset) => {
         if (activeIndex == null) return;
 
-        const index = _.clamp(activeIndex + offset, 0, values.length - 1);
+        const index = activeIndex + offset;
+        if (index < 0) return;
+        if (index >= itemCount) return;
+
         selectIndex(e, index);
-    }, [selectIndex, activeIndex, values]);
+    }, [
+        selectIndex,
+        activeIndex, itemCount
+    ]);
 
     const raiseKeyDown = useCallback(e => {
         onKeyDown(e, formatSelection(selection, ns));
@@ -420,7 +425,7 @@ function TableCore(props) {
                 selectIndex(e, 0);
                 break;
             case 35: //End
-                selectIndex(e, items.length - 1);
+                selectIndex(e, itemCount - 1);
                 break;
             default:
                 raiseKeyDown(e);
@@ -429,7 +434,7 @@ function TableCore(props) {
 
         e.preventDefault();
     }, [
-        dispatchers, options, items,
+        dispatchers, options, itemCount,
         selectOffset, selectIndex, openItems, raiseKeyDown
     ]);
     //#endregion
@@ -448,7 +453,6 @@ function TableCore(props) {
     function renderTable() {
         const commonProps = {
             name,
-            ns,
             dispatchers,
             options,
             columns: parsedColumns
@@ -459,18 +463,17 @@ function TableCore(props) {
         };
 
         const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
-        const isEmpty = items.length === 0;
 
         let placeholder = null;
         if (isLoading)
             placeholder = loadingIndicator;
         else if (error)
             placeholder = <TableError error={error} />;
-        else if (isEmpty)
+        else if (!rowCount)
             placeholder = emptyPlaceholder;
 
         if (placeholder) {
-            const events = isEmpty ? {
+            const events = noItems ? {
                 onContextMenu: () => dispatchers.contextMenu(null),
                 onKeyDown: raiseKeyDown
             } : null
@@ -525,37 +528,35 @@ function TableCore(props) {
     )
 }
 
-function makeMapState() {
-    const getItems = makeGetPaginatedItems();
-    const getPageCount = makeGetPageCount();
+function mapState(root, props) {
+    const {utils} = props.options;
+    const state = utils.getStateSlice(root);
 
-    return (root, props) => {
-        const state = getTableSlice(root, props.ns);
+    const rows = utils.getPaginatedItems(state);
+    const topIndex = utils.getTopIndex(state);
 
-        return {
-            ..._.pick(state,
-                "selection",
-                "activeIndex",
-                "pivotIndex",
-                "isLoading",
-                "currentPage",
-                "error",
-                "tableItems"
-            ),
-            items: getItems(state),
-            pageCount: getPageCount(state)
-        }
-    }
+    return {
+        ..._.pick(state,
+            "selection",
+            "isLoading",
+            "activeIndex",
+            "tableItems",
+            "pivotIndex",
+            "error"
+        ),
+        rowCount: rows.length,
+        topIndex
+    };
 }
 
-const ConnectedTable = connect(makeMapState)(TableCore);
+const ConnectedTable = connect(mapState)(TableCore);
 
 export default function TableConnector(props) {
     const ns = props.namespace || props.name;
     const options = tableOptions[ns];
 
     if (!options.context)
-        throw new Error("Please pass the global context to the context option");
+        throw new Error("Please import ReactReduxContext from react-redux and pass it to the context option");
 
     const contextValue = useContext(options.context);
 

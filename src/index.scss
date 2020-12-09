@@ -17,7 +17,6 @@ $text-dark: #333333;
     display: flex;
     position: relative;
     flex-direction: column;
-    overflow: auto;
     user-select: none;
 
     table {
@@ -42,6 +41,11 @@ $text-dark: #333333;
             background-color: $primary-light;
         }
     }
+}
+
+.tableContainer {
+    flex: auto;
+    overflow: auto;
 }
 
 .headContainer {
@@ -130,26 +134,7 @@ $text-dark: #333333;
     height: 100%;
 }
 
-%pageNavButton {
-    height: 1.25em;
-    vertical-align: top;
-    fill: currentColor;
-}
-
-.nextPage {
-    @extend %pageNavButton;
-    transform: rotate(90deg);
-}
-
-.prevPage {
-    @extend %pageNavButton;
-    transform: rotate(-90deg);
-}
-
 .pagination {
     margin-top: 1rem;
-
-    ul {
-        margin: 0;
-    }
+    flex: none;
 }

@@ -3,16 +3,15 @@ import classNames from "classnames";
 import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
 
-import styles from "../index.scss";
-import usePagination from "../hooks/usePagination";
+import styles from "./Pagination.module.scss";
 
-function TablePagination({ ns }) {
-    const {
+function DefaultPagination(
+    {
         pageCount, pageIndex,
         isFirst, isLast,
         goToPage, nextPage, previousPage
-    } = usePagination(ns);
-
+    }
+    ) {
     if (!pageCount) return null;
 
     const prevClass = classNames({
@@ -25,7 +24,7 @@ function TablePagination({ ns }) {
         "disabled": isLast
     });
 
-    return <nav className={styles.pagination} aria-label="Pagination">
+    return <nav aria-label="Pagination">
         <ul className="pagination">
             <li className={prevClass}>
                 <button
@@ -63,4 +62,4 @@ function TablePagination({ ns }) {
     </nav>
 }
 
-export default TablePagination;
+export default DefaultPagination;

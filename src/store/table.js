@@ -20,7 +20,7 @@ const defaultState = {
     tableItems: [],
     isLoading: false,
     pageSize: 0,
-    currentPage: 0,
+    pageIndex: 0,
     error: null
 };
 
@@ -65,12 +65,8 @@ export default function createTable(namespace, options = {}) {
 
     //Updaters
     function updatePage() {
-        const { pageSize, activeIndex } = draft;
-        if (activeIndex === null) return;
-
-        draft.currentPage = pageSize
-            ? Math.trunc(activeIndex / pageSize)
-            : 0;
+        const maxIndex = utils.getPageCount(draft) - 1;
+        draft.pageIndex = Math.max(draft.pageIndex, maxIndex);
     }
 
     function updateItems() {
@@ -100,6 +96,15 @@ export default function createTable(namespace, options = {}) {
     function setActiveIndex(index = 0) {
         draft.activeIndex = draft.tableItems.length ? index : null;
         draft.pivotIndex = null;
+    }
+
+    function goToActiveIndex() {
+        const { pageSize, activeIndex } = draft;
+        if (activeIndex === null) return;
+
+        draft.pageIndex = pageSize
+            ? Math.trunc(activeIndex / pageSize)
+            : 0;
     }
 
     function clearSelection() {
@@ -143,7 +148,7 @@ export default function createTable(namespace, options = {}) {
 
                     patchDraft({
                         items: ensureKeyed(items),
-                        currentPage: 1,
+                        pageIndex: 1,
                         isLoading: false,
                         error: null
                     });
@@ -215,7 +220,7 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case Actions.SORT_ITEMS_BY: {
+                case Actions.SORT_ITEMS: {
                     const { path, shiftKey } = payload;
 
                     clearSelection();
@@ -242,7 +247,7 @@ export default function createTable(namespace, options = {}) {
                     patchDraft({
                         items: {},
                         tableItems: [],
-                        currentPage: 1,
+                        pageIndex: 1,
                         isLoading: false,
                         error: null
                     });
@@ -267,6 +272,7 @@ export default function createTable(namespace, options = {}) {
                     const value = getIndexValue(index);
 
                     draft.activeIndex = index;
+                    goToActiveIndex();
 
                     if (!multiSelect) {
                         selection.clear();
@@ -329,6 +335,7 @@ export default function createTable(namespace, options = {}) {
                 }
                 case Actions.SET_ACTIVE: {
                     setActiveIndex(payload.index);
+                    goToActiveIndex();
                     break;
                 }
                 case Actions.SET_PIVOT: {
@@ -371,7 +378,7 @@ export default function createTable(namespace, options = {}) {
                     if (!draft.pageSize) break;
 
                     const lastIndex = utils.getPageCount(draft) - 1;
-                    let newIndex = draft.currentPage;
+                    let newIndex = draft.pageIndex;
 
                     switch (index) {
                         case pagePositions.Last:
@@ -388,7 +395,7 @@ export default function createTable(namespace, options = {}) {
                             break;
                     }
 
-                    draft.currentPage = _.clamp(newIndex, 0, lastIndex);
+                    draft.pageIndex = _.clamp(newIndex, 0, lastIndex);
                     break;
                 }
                 default:

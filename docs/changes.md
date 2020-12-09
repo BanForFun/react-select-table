@@ -1,23 +1,56 @@
+
+
 # 5.0.0
 
 ## Breaking changes
 
+* Renamed action creators and types
+
+  | Old creator name  | New creator name | Old action type     | New action type   |
+  | ----------------- | ---------------- | ------------------- | ----------------- |
+  | `clearRows`       | `clearItems`     | `CLEAR_ROWS`        | `CLEAR_ITEMS`     |
+  | `setRows`         | `setItems`       | `SET_ROWS`          | `SET_ITEMS`       |
+  | `deleteRows`      | `deleteItems`    | `DELETE_ROWS`       | `DELETE_ITEMS`    |
+  | `setRowValues`    | `setItemValues`  | `SET_ROW_VALUES`    | `SET_ITEM_VALUES` |
+  | `patchRows`       | `patchItems`     | `PATCH_ROWS`        | `PATCH_ITEMS`     |
+  | `sortBy`          | `sortItems`      | `SORT_BY`           | `SORT_ITEMS`      |
+  | `setFilter`       | `setItemFilter`  | `SET_FILTER`        | `SET_ITEM_FILTER` |
+  | `setRowsSelected` | `setSelected`    | `SET_ROWS_SELECTED` | `SET_SELECTED`    |
+  | `selectRow`       | `select`         | `SELECT_ROW`        | `SELECT`          |
+  | `setActiveRow`    | `setActive`      | `SET_ACTIVE_ROW`    | `SET_ACTIVE`      |
+
+* Removed action creator aliases: `setRowValue`, `setRowSelected`, `addRow`, `patchRow`
+
 * The selected values argument passed to event handlers `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when `multiSelect` option is disabled, and a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
+
 * Removed `selectedValues` state property. Replaced with `selection` property
-* `clearRows` action now sets `isLoading` state to false instead of true
-* Action creator `setRowSelected` calls `setRowsSelected` (action type and payload format has changed)
-* Removed optional `keyed` *boolean* parameter for `setRows` action creator. The rows are assumed to be keyed, if the `items` argument is an object
-* Removed `loadingIndicator` Table component prop
-* Action creator `clearRows` clears the selection even if `listBox` option is enabled
+
+* `clearItems` action now sets `isLoading` state to false instead of true
+
+* Removed optional `keyed` *boolean* parameter from `setItems` action creator. The rows are assumed to be keyed, if the `items` argument is an object
+
+* Action creator `clearItems` clears the selection even if `listBox` option is enabled
+
 * Table header not rendered while there are no visible items
+
 * `initItems` option accepts keyed items as object
+
 * Removed `Table` component and everything related, as it was limiting the features of `TableCore`
-* `setRows` clears the selection
+
+* Actions `setItems`, `deleteItems`, `sortItems` and `setItemFilter` clear the selection
+
 * Removed `activeValue` and `pivotValue`, replaced with `activeIndex` and `pivotIndex`
+
 * Removed action creator `setActiveValue`, replaced with `setActiveIndex`
-* `currentPage` and  `goToPage` parameter are zero-based (instead of one-based)
-* Action creators `setRowSelected`, `contextMenu` and `selectRow` take the row index instead of the value
+
+* Renamed `currentPage` state property to `pageIndex` and made it zero-based
+
+* `goToPage` parameter is zero-based
+
+* Action creators `setSelected`, `contextMenu` and `select` take the item index instead of the value
+
 * react-redux context is now passed as an option instead of component prop
+
 * Removed `renderError` prop, replaced with `Error` prop
 
 ## Non-breaking changes

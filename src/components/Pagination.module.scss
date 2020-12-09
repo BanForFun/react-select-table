@@ -1,0 +1,15 @@
+%pageNavButton {
+    height: 1.25em;
+    vertical-align: top;
+    fill: currentColor;
+}
+
+.nextPage {
+    @extend %pageNavButton;
+    transform: rotate(90deg);
+}
+
+.prevPage {
+    @extend %pageNavButton;
+    transform: rotate(-90deg);
+}

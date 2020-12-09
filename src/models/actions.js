@@ -16,7 +16,7 @@ export default class TableActions {
     static SET_ITEM_VALUES = "TABLE_SET_ITEM_VALUES";
     static PATCH_ITEMS = "TABLE_PATCH_ITEMS";
     static CLEAR_ITEMS = "TABLE_CLEAR_ITEMS";
-    static SORT_ITEMS_BY = "TABLE_SORT_ITEMS_BY";
+    static SORT_ITEMS = "TABLE_SORT_ITEMS";
     static SET_ITEM_FILTER = "TABLE_SET_ITEM_FILTER";
 
     //Displaying
@@ -66,8 +66,8 @@ export default class TableActions {
     setItems = items =>
         this._getAction(self.SET_ITEMS, { items });
 
-    sortItemsBy = (path, shiftKey = false) =>
-        this._getAction(self.SORT_ITEMS_BY, { path, shiftKey });
+    sortItems = (path, shiftKey = false) =>
+        this._getAction(self.SORT_ITEMS, { path, shiftKey });
 
     select = (index, ctrlKey = false, shiftKey = false) =>
         this._getAction(self.SELECT, { index, ctrlKey, shiftKey });

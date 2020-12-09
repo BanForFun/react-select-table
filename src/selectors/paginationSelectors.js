@@ -4,7 +4,7 @@ export const makeGetPaginatedItems = () => createSelector(
     [
         slice => slice.tableItems,
         slice => slice.pageSize,
-        slice => slice.currentPage
+        slice => slice.pageIndex
     ],
     (items, pageSize, pageIndex) => {
         if (!pageSize) return items;
@@ -27,6 +27,6 @@ export function getPageCount(slice) {
 
 export function getTopIndex(slice) {
     const { pageSize } = slice;
-    return pageSize && (pageSize * slice.currentPage);
+    return pageSize && (pageSize * slice.pageIndex);
 }
 

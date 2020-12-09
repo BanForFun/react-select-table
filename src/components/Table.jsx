@@ -2,8 +2,8 @@ import styles from "../index.scss";
 
 import React, {Fragment, useState, useEffect, useCallback, useRef, useMemo, useContext} from 'react';
 import _ from "lodash";
-import TableHead from "./TableHead";
-import TableBody from "./TableBody";
+import TableHead from "./Head";
+import TableBody from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
 import {connect, ReactReduxContext} from 'react-redux';
@@ -13,12 +13,13 @@ import {tableOptions, defaultEvents} from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
 import {matchModifiers} from "../utils/eventUtils";
 import {clampOffset} from "../utils/mathUtils";
-import DefaultError from "./TableError";
+import DefaultError from "./DefaultError";
+import DefaultPagination from "./DefaultPagination";
 
 function TableCore(props) {
     const {
         name,
-        ns,
+        options,
         className,
         columns,
         emptyPlaceholder,
@@ -30,11 +31,13 @@ function TableCore(props) {
         scrollFactor,
         columnOrder: _columnOrder,
         Error: TableError,
-        options,
+        Pagination: TablePagination,
 
         //Redux state
         tableItems: items,
         rowCount,
+        pageIndex,
+        pageCount,
         topIndex,
         error,
         isLoading,
@@ -342,12 +345,7 @@ function TableCore(props) {
         onItemsOpen
     ]);
 
-    const selectIndex = useCallback((e, index) => {
-        if (matchModifiers(e, true))
-            dispatchers.setActive(index);
-        else
-            dispatchers.select(index, e.ctrlKey, e.shiftKey);
-
+    const scrollToIndex = useCallback(index => {
         //Get elements
         const body = bodyContainerRef.current;
         const root = body.offsetParent;
@@ -365,7 +363,16 @@ function TableCore(props) {
         const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
         if (scrollDown)
             root.scrollTop = rowBottom - visibleHeight;
-    }, [dispatchers]);
+    }, []);
+
+    const selectIndex = useCallback((e, index) => {
+        if (matchModifiers(e, true))
+            dispatchers.setActive(index);
+        else
+            dispatchers.select(index, e.ctrlKey, e.shiftKey);
+
+        scrollToIndex(index);
+    }, [dispatchers, scrollToIndex]);
 
     const selectOffset = useCallback((e, offset) => {
         if (activeIndex == null) return;
@@ -375,14 +382,11 @@ function TableCore(props) {
         if (index >= itemCount) return;
 
         selectIndex(e, index);
-    }, [
-        selectIndex,
-        activeIndex, itemCount
-    ]);
+    }, [selectIndex, activeIndex, itemCount]);
 
     const raiseKeyDown = useCallback(e => {
-        onKeyDown(e, formatSelection(selection, ns));
-    }, [selection, ns, onKeyDown])
+        onKeyDown(e, utils.formatSelection(selection));
+    }, [selection, utils, onKeyDown])
 
     //#endregion
 
@@ -434,7 +438,7 @@ function TableCore(props) {
 
         e.preventDefault();
     }, [
-        dispatchers, options, itemCount,
+        dispatchers, options, itemCount, rowCount, topIndex,
         selectOffset, selectIndex, openItems, raiseKeyDown
     ]);
     //#endregion
@@ -465,62 +469,77 @@ function TableCore(props) {
         const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
 
         let placeholder = null;
+        let events = null;
+
         if (isLoading)
             placeholder = loadingIndicator;
         else if (error)
             placeholder = <TableError error={error} />;
-        else if (!rowCount)
+        else if (!rowCount) {
             placeholder = emptyPlaceholder;
-
-        if (placeholder) {
-            const events = noItems ? {
+            events = {
                 onContextMenu: () => dispatchers.contextMenu(null),
                 onKeyDown: raiseKeyDown
-            } : null
-
-            return <div
-                className={styles.placeholder}
-                tabIndex="0"
-                {...events}
-            >{placeholder}</div>
+            };
         }
 
+        if (placeholder)
+            return <div className={styles.placeholder}
+                        tabIndex="0"
+                        {...events}
+            >{placeholder}</div>
+
+
+
         return <Fragment>
-            <div tabIndex="-1"
-                 style={containerStyle}
-                 className={styles.headContainer}
-            >
-                <table className={className}>
-                    {colGroup}
-                    <TableHead {...commonProps}
-                               onResizeEnd={onColumnsResizeEnd}
-                               columnWidths={columnWidths}
-                               setColumnWidths={setColumnWidths}
-                    />
-                </table>
+            <div className={styles.tableContainer}>
+                <div className={styles.headContainer}
+                     style={containerStyle}
+                >
+                    <table className={className}>
+                        {colGroup}
+                        <TableHead {...commonProps}
+                                   onResizeEnd={onColumnsResizeEnd}
+                                   columnWidths={columnWidths}
+                                   setColumnWidths={setColumnWidths}
+                        />
+                    </table>
+                </div>
+                <div className={styles.bodyContainer}
+                     style={containerStyle}
+                     ref={bodyContainerRef}
+                     onDoubleClick={e => openItems(e, false)}
+                     onTouchStart={() => isTouching.current = true}
+                     onContextMenu={handleContextMenu}
+                     onMouseDown={handleMouseDown}
+                >
+                    {renderSelectionBox()}
+                    <table className={className}>
+                        {colGroup}
+                        <TableBody {...commonProps} tableBodyRef={tableBodyRef} />
+                    </table>
+                </div>
             </div>
-            <div className={styles.bodyContainer}
-                 tabIndex="0"
-                 style={containerStyle}
-                 ref={bodyContainerRef}
-                 onKeyDown={handleKeyDown}
-                 onDoubleClick={e => openItems(e, false)}
-                 onContextMenu={handleContextMenu}
-                 onTouchStart={() => isTouching.current = true}
-                 onMouseDown={handleMouseDown}
-            >
-                {renderSelectionBox()}
-                <table className={className}>
-                    {colGroup}
-                    <TableBody {...commonProps} tableBodyRef={tableBodyRef} />
-                </table>
+            <div className={styles.pagination}>
+                <TablePagination
+                    pageCount={pageCount}
+                    pageIndex={pageIndex}
+                    isFirst={pageIndex === 0}
+                    isLast={pageIndex === pageCount - 1}
+                    nextPage={dispatchers.nextPage}
+                    previousPage={dispatchers.previousPage}
+                    goToPage={dispatchers.goToPage}
+                    firstPage={dispatchers.firstPage}
+                    lastPage={dispatchers.lastPage}
+                />
             </div>
         </Fragment>
     }
 
     return (
         <div className={styles.container}
-             tabIndex="-1"
+             tabIndex="0"
+             onKeyDown={handleKeyDown}
              onScroll={() => updateSelectRect()}
         >
             {renderTable()}
@@ -534,6 +553,7 @@ function mapState(root, props) {
 
     const rows = utils.getPaginatedItems(state);
     const topIndex = utils.getTopIndex(state);
+    const pageCount = utils.getPageCount(state);
 
     return {
         ..._.pick(state,
@@ -542,10 +562,12 @@ function mapState(root, props) {
             "activeIndex",
             "tableItems",
             "pivotIndex",
+            "pageIndex",
             "error"
         ),
         rowCount: rows.length,
-        topIndex
+        topIndex,
+        pageCount
     };
 }
 
@@ -575,6 +597,7 @@ export const columnShape = PropTypes.shape({
 
 TableConnector.propTypes = {
     Error: PropTypes.elementType,
+    Pagination: PropTypes.elementType,
     loadingIndicator: PropTypes.node,
     emptyPlaceholder: PropTypes.node,
     namespace: PropTypes.string,
@@ -599,5 +622,6 @@ TableConnector.defaultProps = {
     initColumnWidths: [],
     scrollFactor: 0.2,
     Error: DefaultError,
+    Pagination: DefaultPagination,
     ...defaultEvents
 };

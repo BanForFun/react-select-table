@@ -1,6 +1,6 @@
 import React, {useCallback, useState} from 'react'
 import _ from "lodash";
-import { TableCore, TableActions, TablePagination } from 'react-select-table';
+import { TableCore, TableActions } from 'react-select-table';
 import columns from '../columns';
 import { useDispatch, useSelector } from 'react-redux';
 import {tableNamespace} from "../store";
@@ -63,9 +63,6 @@ function ReduxTable() {
             scrollFactor={0.5}
             onKeyDown={handleTableKeyDown}
         />
-        <div className="py-3">
-            <TablePagination ns={tableNamespace} />
-        </div>
         <div>
             1 = Set items |
             2 = Start loading |

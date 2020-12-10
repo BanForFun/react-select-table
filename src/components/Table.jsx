@@ -12,7 +12,7 @@ import {bindActionCreators} from 'redux';
 import {tableOptions, defaultEvents} from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
 import {matchModifiers} from "../utils/eventUtils";
-import {clampOffset} from "../utils/mathUtils";
+import {sortTuple} from "../utils/mathUtils";
 import DefaultError from "./DefaultError";
 import DefaultPagination from "./DefaultPagination";
 
@@ -108,10 +108,7 @@ function TableCore(props) {
     );
 
     const findRowIndex = useCallback(target => {
-        const headerHeight = bodyContainerRef.current.offsetTop;
         const rows = tableBodyRef.current.children;
-
-        const getValue = index => rows[index].offsetTop + headerHeight;
 
         let start = 0;
         let end = rows.length - 1;
@@ -119,7 +116,7 @@ function TableCore(props) {
         //Binary search
         while (start <= end) {
             const middle = Math.floor((start + end) / 2);
-            const value = getValue(middle);
+            const value = rows[middle].offsetTop;
 
             if (value < target)
                 start = middle + 1;
@@ -137,15 +134,19 @@ function TableCore(props) {
     //Drag start
     const [selOrigin, setSelOrigin] = useState(null);
     const dragStart = useCallback((mousePos, belowItems) => {
-        //Return if listBox is enabled or multiSelect is disabled
-        if (options.listBox || !options.multiSelect) return;
+        //Return if multiSelect is disabled
+        if (!options.multiSelect) return;
 
         const [mouseX, mouseY] = mousePos;
-        const root = bodyContainerRef.current.offsetParent;
+        const {
+            offsetParent: root,
+            offsetTop: headerHeight,
+            offsetLeft: headerWidth
+        } = bodyContainerRef.current;
         const bounds = root.getBoundingClientRect();
 
-        const relMouseX = mouseX + root.scrollLeft - bounds.x;
-        const relMouseY = mouseY + root.scrollTop - bounds.y;
+        const relMouseX = mouseX + root.scrollLeft - bounds.x - headerWidth;
+        const relMouseY = mouseY + root.scrollTop - bounds.y - headerHeight;
 
         lastMousePos.current = mousePos;
         lastRelMouseY.current = relMouseY;
@@ -157,96 +158,22 @@ function TableCore(props) {
     }, [options, findRowIndex]);
 
     const dragEnd = useCallback(() => {
-        if (!selOrigin) return;
-
         setSelOrigin(null);
         setSelRect(null);
 
         isTouching.current = false;
-    }, [selOrigin]);
+    }, []);
 
-    //Update selection rectangle
-    const [selRect, setSelRect] = useState(null);
-    const lastMousePos = useRef();
     const lastRelMouseY = useRef();
-
-    const updateSelectRect = useCallback((mousePos = null) => {
-        if (!selOrigin) return;
-
-        //Load mouse position
-        if (!mousePos)
-            mousePos = lastMousePos.current;
-        else
-            lastMousePos.current = mousePos;
-
-        //Deconstruct positions
-        const [mouseX, mouseY] = mousePos;
-
-        //Get body values
-        const {
-            offsetParent: rootEl,
-            offsetTop: headerHeight,
-            offsetLeft: headerWidth,
-            scrollWidth,
-            scrollHeight
-        } = bodyContainerRef.current;
-
-        //Get scroll position
-        const {
-            scrollLeft: scrollX,
-            scrollTop: scrollY
-        } = rootEl;
-
+    const updateDragSelection = useCallback(relMouseY => {
         const {
             offsetHeight: tableHeight,
             children: rows
         } = tableBodyRef.current;
 
-        //Calculate visible container bounds
-        const bounds = rootEl.getBoundingClientRect();
-        const visibleBounds = new Rect(
-            bounds.left + headerWidth,
-            bounds.top + headerHeight,
-            bounds.right,
-            bounds.bottom
-        );
-
-        //Scroll horizontally
-        const scrollRight = mouseX - visibleBounds.right;
-        const scrollLeft = visibleBounds.left - mouseX;
-
-        if (scrollRight > 0)
-            rootEl.scrollLeft += scrollRight * scrollFactor;
-        else if (scrollLeft > 0)
-            rootEl.scrollLeft -= scrollLeft * scrollFactor;
-
-        //Scroll vertically
-        const scrollDown = mouseY - visibleBounds.bottom;
-        const scrollUp = visibleBounds.top - mouseY;
-
-        if (scrollDown > 0)
-            rootEl.scrollTop += scrollDown * scrollFactor;
-        else if (scrollUp > 0)
-            rootEl.scrollTop -= scrollUp * scrollFactor;
-
-        //Calculate relative mouse position
-        const relMouseX = clampOffset(
-            mouseX + scrollX - bounds.x,
-            headerWidth, scrollWidth
-        );
-
-        const relMouseY = clampOffset(
-            mouseY + scrollY - bounds.y,
-            headerHeight, scrollHeight
-        );
-
         //Define selection check area
-        const maxMouseY = Math.max(relMouseY, lastRelMouseY.current);
-        const minMouseY = Math.min(relMouseY, lastRelMouseY.current);
+        const [minMouseY, maxMouseY] = sortTuple(relMouseY, lastRelMouseY.current);
         lastRelMouseY.current = relMouseY;
-
-        //Calculate selection rectangle
-        setSelRect(Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y));
 
         //Set up search
         const originIndex = selOrigin.index;
@@ -259,7 +186,7 @@ function TableCore(props) {
         let rowIndex;
         const selectMap = {};
 
-        function updateCurrent(select) {
+        const updateCurrent = select => {
             const itemIndex = startIndex + rowIndex;
             if (select !== isIndexSelected(itemIndex))
                 selectMap[itemIndex] = select;
@@ -267,13 +194,10 @@ function TableCore(props) {
                 setActive = itemIndex;
         }
 
-        function getCurrentTop() {
-            const baseHeight = rowIndex >= rowCount
-                ? tableHeight
-                : rows[rowIndex].offsetTop
-
-            return baseHeight + headerHeight;
-        }
+        const getCurrentTop = () =>
+            rowIndex >= rowCount
+            ? tableHeight
+            : rows[rowIndex].offsetTop;
 
         //Search down
         rowIndex = searchStart + 1;
@@ -311,14 +235,87 @@ function TableCore(props) {
         pivotIndex,
         selection,
         dispatchers,
-        scrollFactor,
-        findRowIndex,
         isIndexSelected
     ]);
 
+    //Update selection rectangle
+    const [selRect, setSelRect] = useState(null);
+    const lastMousePos = useRef();
+
+    const updateSelectionRect = useCallback((mousePos = null) => {
+        if (!selOrigin) return;
+
+        //Load mouse position
+        if (!mousePos)
+            mousePos = lastMousePos.current;
+        else
+            lastMousePos.current = mousePos;
+
+        //Deconstruct positions
+        const [mouseX, mouseY] = mousePos;
+
+        //Get body values
+        const {
+            offsetParent: rootEl,
+            offsetTop: headerHeight,
+            offsetLeft: headerWidth,
+            scrollWidth,
+            scrollHeight
+        } = bodyContainerRef.current;
+
+        //Get scroll position
+        const {
+            scrollLeft: scrollX,
+            scrollTop: scrollY
+        } = rootEl;
+
+        //Calculate visible container bounds
+        const bounds = rootEl.getBoundingClientRect();
+        const visibleBounds = new Rect(
+            bounds.left + headerWidth,
+            bounds.top + headerHeight,
+            bounds.right,
+            bounds.bottom
+        );
+
+        //Scroll horizontally
+        const scrollRight = mouseX - visibleBounds.right;
+        const scrollLeft = visibleBounds.left - mouseX;
+
+        if (scrollRight > 0)
+            rootEl.scrollLeft += scrollRight * scrollFactor;
+        else if (scrollLeft > 0)
+            rootEl.scrollLeft -= scrollLeft * scrollFactor;
+
+        //Scroll vertically
+        const scrollDown = mouseY - visibleBounds.bottom;
+        const scrollUp = visibleBounds.top - mouseY;
+
+        if (scrollDown > 0)
+            rootEl.scrollTop += scrollDown * scrollFactor;
+        else if (scrollUp > 0)
+            rootEl.scrollTop -= scrollUp * scrollFactor;
+
+        //Calculate relative mouse position
+        const relMouseX = _.clamp(scrollX - scrollLeft, 0, scrollWidth);
+        const relMouseY = _.clamp(scrollY - scrollUp, 0, scrollHeight);
+
+        //Calculate selection rectangle
+        setSelRect(
+            Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y)
+                .offsetBy(headerWidth, headerHeight)
+        );
+
+        updateDragSelection(relMouseY);
+    }, [
+        selOrigin,
+        scrollFactor,
+        updateDragSelection
+    ]);
+
     useWindowEvent("mousemove", useCallback(e => {
-        updateSelectRect([e.clientX, e.clientY])
-    }, [updateSelectRect]));
+        updateSelectionRect([e.clientX, e.clientY])
+    }, [updateSelectionRect]));
 
     useWindowEvent("mouseup", dragEnd);
 
@@ -327,8 +324,8 @@ function TableCore(props) {
 
         const [touch] = e.touches;
         const pos = [touch.clientX, touch.clientY];
-        updateSelectRect(pos);
-    }, [updateSelectRect, selOrigin]));
+        updateSelectionRect(pos);
+    }, [updateSelectionRect, selOrigin]));
 
     useWindowEvent("touchend", dragEnd);
     //#endregion
@@ -471,7 +468,7 @@ function TableCore(props) {
 
     function renderTable() {
         //Placeholder
-        let placeholder = null;
+        let placeholder;
         let events = null;
 
         if (isLoading)
@@ -486,7 +483,7 @@ function TableCore(props) {
             };
         }
 
-        if (placeholder)
+        if (placeholder !== undefined)
             return <div className={styles.placeholder}
                         tabIndex="0"
                         {...events}
@@ -568,7 +565,7 @@ function TableCore(props) {
         <div className={styles.container}
              tabIndex="0"
              onKeyDown={handleKeyDown}
-             onScroll={() => updateSelectRect()}
+             onScroll={() => updateSelectionRect()}
         >
             {renderTable()}
         </div>
@@ -652,5 +649,7 @@ TableConnector.defaultProps = {
     scrollFactor: 0.2,
     Error: DefaultError,
     Pagination: DefaultPagination,
+    loadingIndicator: null,
+    emptyPlaceholder: null,
     ...defaultEvents
 };

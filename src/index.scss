@@ -17,6 +17,8 @@ $text-dark: #333333;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    outline: none;
+    user-select: none;
 
     table {
         width: 100%;
@@ -138,8 +140,11 @@ $text-dark: #333333;
 }
 
 .pagination {
-    margin-top: 1rem;
     flex: none;
+
+    ul {
+        margin: 1rem 0 0 0;
+    }
 }
 
 %pageNavButton {

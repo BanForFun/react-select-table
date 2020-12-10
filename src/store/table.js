@@ -6,7 +6,6 @@ import Actions from "../models/actions";
 import {setOptions} from "../utils/optionUtils";
 import {createSelector} from "reselect";
 import {forRange} from "../utils/loopUtils";
-// import * as setUtils from "../utils/setUtils";
 
 enableMapSet();
 
@@ -66,7 +65,7 @@ export default function createTable(namespace, options = {}) {
     //Updaters
     function updatePage() {
         const maxIndex = utils.getPageCount(draft) - 1;
-        draft.pageIndex = Math.max(draft.pageIndex, maxIndex);
+        draft.pageIndex = Math.min(draft.pageIndex, maxIndex);
     }
 
     function updateItems() {
@@ -76,21 +75,6 @@ export default function createTable(namespace, options = {}) {
         //Update items
         draft.tableItems = getSortedItems(draft);
     }
-
-    // function updateSelection() {
-    //     const {selection} = draft;
-    //
-    //     //Validate selection
-    //     selection.remove(null);
-    //
-    //     if (!selection.size) return;
-    //
-    //     if (!multiSelect) {
-    //         const first = setUtils.getFirstItem(selection);
-    //         selection.clear();
-    //         selection.add(first);
-    //     }
-    // }
 
     //Utilities
     function setActiveIndex(index = 0) {
@@ -148,7 +132,7 @@ export default function createTable(namespace, options = {}) {
 
                     patchDraft({
                         items: ensureKeyed(items),
-                        pageIndex: 1,
+                        pageIndex: 0,
                         isLoading: false,
                         error: null
                     });
@@ -247,7 +231,7 @@ export default function createTable(namespace, options = {}) {
                     patchDraft({
                         items: {},
                         tableItems: [],
-                        pageIndex: 1,
+                        pageIndex: 0,
                         isLoading: false,
                         error: null
                     });
@@ -316,7 +300,7 @@ export default function createTable(namespace, options = {}) {
                 case Actions.SET_SELECTED: {
                     const {selection} = draft;
                     _.forEach(payload.map, (select, index) => {
-                        index = +index;
+                        index = parseInt(index);
 
                         const value = getIndexValue(index);
                         if (!select)
@@ -377,12 +361,12 @@ export default function createTable(namespace, options = {}) {
                     const {index} = payload;
                     if (!draft.pageSize) break;
 
-                    const lastIndex = utils.getPageCount(draft) - 1;
+                    const pageCount = utils.getPageCount(draft);
                     let newIndex = draft.pageIndex;
 
                     switch (index) {
                         case pagePositions.Last:
-                            newIndex = lastIndex;
+                            newIndex = pageCount - 1;
                             break;
                         case pagePositions.Next:
                             newIndex++;
@@ -395,7 +379,9 @@ export default function createTable(namespace, options = {}) {
                             break;
                     }
 
-                    draft.pageIndex = _.clamp(newIndex, 0, lastIndex);
+                    if (!_.inRange(newIndex, pageCount)) break;
+                    draft.pageIndex = newIndex;
+
                     break;
                 }
                 default:

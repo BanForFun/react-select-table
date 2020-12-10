@@ -5,6 +5,10 @@ import todos from "./todos";
 
 export const tableNamespace = "todos";
 
+const compose = composeWithDevTools({
+    serialize: true
+});
+
 export default function setupStore() {
     const tableReducer = createTable(
         tableNamespace,
@@ -13,13 +17,13 @@ export default function setupStore() {
             initItems: todos,
             scrollX: true,
             initState: {
-                pageSize: 8
+                // pageSize: 8
             }
         }
     );
 
     return createStore(
         tableReducer,
-        composeWithDevTools(applyMiddleware(eventMiddleware))
+        compose(applyMiddleware(eventMiddleware))
     );
 };

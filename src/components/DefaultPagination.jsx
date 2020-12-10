@@ -23,12 +23,12 @@ function DefaultPagination(
         "disabled": isLast
     });
 
-    return <nav aria-label="Pagination">
+    return <nav aria-label="pagination">
         <ul className="pagination">
             <li className={prevClass}>
                 <button
                     className="page-link"
-                    aria-label="Previous"
+                    aria-label="previous"
                     onClick={() => previousPage()}
                 >
                     <AngleDownIcon className={styles.prevPage} />
@@ -51,7 +51,7 @@ function DefaultPagination(
             <li className={nextClass}>
                 <button
                     className="page-link"
-                    aria-label="Next"
+                    aria-label="next"
                     onClick={() => nextPage()}
                 >
                     <AngleDownIcon className={styles.nextPage} />

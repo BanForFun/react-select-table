@@ -27,12 +27,14 @@ export default class Rect {
         this.bottom = bottom;
     }
 
-    // offsetBy(x, y) {
-    //     this.left += x;
-    //     this.right += x;
-    //     this.top += y;
-    //     this.bottom += y;
-    // }
+    offsetBy(x, y) {
+        this.left += x;
+        this.right += x;
+        this.top += y;
+        this.bottom += y;
+
+        return this;
+    }
     //
     // limit(rect) {
     //     this.left = Math.max(this.left, rect.left);

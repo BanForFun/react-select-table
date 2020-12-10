@@ -14,6 +14,7 @@ export const makeGetPaginatedItems = () => createSelector(
 
         return {
             startIndex,
+            endIndex,
             rows: items.slice(startIndex, endIndex)
         };
     }

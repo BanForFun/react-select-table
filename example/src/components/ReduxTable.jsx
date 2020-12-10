@@ -16,6 +16,8 @@ function ReduxTable() {
     const [clipboard, setClipboard] = useState(null);
 
     const handleKeyDown = useCallback(e => {
+        if (!e.ctrlKey) return;
+
         switch(e.keyCode) {
             case 49: //1
                 dispatch(actions.setItems(todos));
@@ -64,10 +66,11 @@ function ReduxTable() {
             onKeyDown={handleTableKeyDown}
         />
         <div>
-            1 = Set items |
-            2 = Start loading |
-            3 = Set error |
-            4 = Clear items
+            <b>Ctrl +</b> |
+            1: Set items |
+            2: Start loading |
+            3: Set error |
+            4: Clear items |
         </div>
     </div>
 }

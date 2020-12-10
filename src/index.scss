@@ -15,9 +15,8 @@ $text-dark: #333333;
 
 .container {
     display: flex;
-    position: relative;
     flex-direction: column;
-    user-select: none;
+    overflow: hidden;
 
     table {
         width: 100%;
@@ -25,6 +24,7 @@ $text-dark: #333333;
         margin-bottom: 0;
         border-collapse: separate;
         border-spacing: 0;
+        user-select: none;
     }
 
     td, th {
@@ -44,6 +44,9 @@ $text-dark: #333333;
 }
 
 .tableContainer {
+    display: flex;
+    flex-direction: column;
+    position: relative;
     flex: auto;
     overflow: auto;
 }
@@ -137,4 +140,20 @@ $text-dark: #333333;
 .pagination {
     margin-top: 1rem;
     flex: none;
+}
+
+%pageNavButton {
+    height: 1.25em;
+    vertical-align: top;
+    fill: currentColor;
+}
+
+.nextPage {
+    @extend %pageNavButton;
+    transform: rotate(90deg);
+}
+
+.prevPage {
+    @extend %pageNavButton;
+    transform: rotate(-90deg);
 }

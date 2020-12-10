@@ -1,6 +1,6 @@
 import _ from "lodash";
 import {getFirstItem} from "./setUtils";
-import {makeGetPaginatedItems, getPageCount, getTopIndex} from "../selectors/paginationSelectors";
+import {makeGetPaginatedItems, getPageCount} from "../selectors/paginationSelectors";
 import TableActions from "../models/actions";
 
 export const tableOptions = {};
@@ -59,7 +59,6 @@ export function setOptions(namespace, options) {
 
         //Selectors
         getPageCount,
-        getTopIndex,
         getPaginatedItems: makeGetPaginatedItems()
     }
 

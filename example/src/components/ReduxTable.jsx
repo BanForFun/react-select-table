@@ -57,7 +57,7 @@ function ReduxTable() {
     return <div id="redux" onKeyDown={handleKeyDown}>
         <TableCore
             className="table"
-            name={tableNamespace}
+            namespace={tableNamespace}
             columns={columns}
             loadingIndicator="Loading..."
             scrollFactor={0.5}

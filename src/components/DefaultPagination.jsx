@@ -2,8 +2,7 @@ import React from 'react';
 import classNames from "classnames";
 import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
-
-import styles from "./Pagination.module.scss";
+import styles from "../index.scss";
 
 function DefaultPagination(
     {

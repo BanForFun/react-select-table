@@ -7,11 +7,15 @@ export const makeGetPaginatedItems = () => createSelector(
         slice => slice.pageIndex
     ],
     (items, pageSize, pageIndex) => {
-        if (!pageSize) return items;
+        pageSize ||= items.length;
 
-        const start = pageIndex * pageSize;
-        const end = (pageIndex + 1) * pageSize;
-        return items.slice(start, end);
+        const startIndex = pageIndex * pageSize;
+        const endIndex = startIndex + pageSize;
+
+        return {
+            startIndex,
+            rows: items.slice(startIndex, endIndex)
+        };
     }
 )
 
@@ -23,10 +27,5 @@ export function getPageCount(slice) {
     if (!itemCount) return 1;
 
     return Math.ceil(itemCount / pageSize);
-}
-
-export function getTopIndex(slice) {
-    const { pageSize } = slice;
-    return pageSize && (pageSize * slice.pageIndex);
 }
 

@@ -3,7 +3,6 @@ import styles from "../index.scss";
 import React, { useState, useRef, useCallback } from 'react';
 import _ from "lodash";
 import produce from "immer";
-import {connect} from 'react-redux';
 import AngleDownIcon from './AngleDownIcon';
 import useWindowEvent from '../hooks/useWindowEvent';
 import { boolAttrib } from '../utils/attributeUtils';
@@ -91,7 +90,7 @@ function TableHead({
 
                     const handleClick = e => {
                         if (!path) return;
-                        dispatchers.sortItemsBy(path, e.shiftKey);
+                        dispatchers.sortItems(path, e.shiftKey);
                     }
 
                     const addSeparator = options.scrollX ||
@@ -119,10 +118,4 @@ function TableHead({
     );
 }
 
-function mapState(root, props) {
-    const {utils} = props.options;
-    const state = utils.getStateSlice(root);
-    return _.pick(state,"sortBy");
-}
-
-export default connect(mapState)(TableHead);
+export default TableHead;

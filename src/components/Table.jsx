@@ -1,12 +1,12 @@
 import styles from "../index.scss";
 
-import React, {Fragment, useState, useEffect, useCallback, useRef, useMemo, useContext} from 'react';
+import React, {Fragment, useState, useEffect, useCallback, useRef, useMemo} from 'react';
 import _ from "lodash";
 import TableHead from "./Head";
 import TableBody from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
-import {connect, ReactReduxContext} from 'react-redux';
+import {connect} from 'react-redux';
 import Rect from '../models/rect';
 import {bindActionCreators} from 'redux';
 import {tableOptions, defaultEvents} from '../utils/optionUtils';
@@ -35,10 +35,11 @@ function TableCore(props) {
 
         //Redux state
         tableItems: items,
-        rowCount,
+        rows,
+        sortBy,
         pageIndex,
         pageCount,
-        topIndex,
+        startIndex,
         error,
         isLoading,
         selection,
@@ -54,6 +55,7 @@ function TableCore(props) {
 
     const {utils} = options;
     const itemCount = items.length;
+    const rowCount = rows.length;
 
     const dispatchers = useMemo(() =>
         bindActionCreators(utils.actions, dispatch),
@@ -100,8 +102,8 @@ function TableCore(props) {
 
     //#endregion
 
-    const isItemSelected = useCallback(index =>
-        selection.has(items[index][options.valueProperty]),
+    const isIndexSelected = useCallback(itemIndex =>
+        selection.has(items[itemIndex][options.valueProperty]),
         [selection, items, options]
     );
 
@@ -251,45 +253,45 @@ function TableCore(props) {
         const belowItems = originIndex < 0;
         const searchStart = belowItems ? rowCount : originIndex;
 
-        let setActive = belowItems ? null : originIndex + topIndex;
-        const setPivot = (belowItems ? rowCount - 1 : originIndex) + topIndex;
+        let setActive = belowItems ? null : originIndex + startIndex;
+        const setPivot = (belowItems ? rowCount - 1 : originIndex) + startIndex;
 
-        let index;
+        let rowIndex;
         const selectMap = {};
 
         function updateCurrent(select) {
-            const itemIndex = topIndex + index;
-            if (select !== isItemSelected(itemIndex))
+            const itemIndex = startIndex + rowIndex;
+            if (select !== isIndexSelected(itemIndex))
                 selectMap[itemIndex] = select;
             else if (select)
                 setActive = itemIndex;
         }
 
         function getCurrentTop() {
-            const baseHeight = index >= rowCount
+            const baseHeight = rowIndex >= rowCount
                 ? tableHeight
-                : rows[index].offsetTop
+                : rows[rowIndex].offsetTop
 
             return baseHeight + headerHeight;
         }
 
         //Search down
-        index = searchStart + 1;
-        while (index < rowCount) {
+        rowIndex = searchStart + 1;
+        while (rowIndex < rowCount) {
             const top = getCurrentTop();
             if (top > maxMouseY) break;
 
             updateCurrent(top < relMouseY);
-            index++;
+            rowIndex++;
         }
 
         //Search up
-        index = searchStart;
-        while (index > 0) {
+        rowIndex = searchStart;
+        while (rowIndex > 0) {
             const top = getCurrentTop();
             if (top < minMouseY) break;
 
-            index--;
+            rowIndex--;
             updateCurrent(top > relMouseY);
         }
 
@@ -299,19 +301,19 @@ function TableCore(props) {
         if (!_.isEmpty(selectMap))
             dispatchers.setSelected(selectMap);
 
-        if (pivotIndex !== setPivot && isItemSelected(setPivot))
+        if (pivotIndex !== setPivot && isIndexSelected(setPivot))
             dispatchers.setPivot(setPivot);
     }, [
         selOrigin,
         rowCount,
-        topIndex,
+        startIndex,
         activeIndex,
         pivotIndex,
         selection,
         dispatchers,
         scrollFactor,
         findRowIndex,
-        isItemSelected
+        isIndexSelected
     ]);
 
     useWindowEvent("mousemove", useCallback(e => {
@@ -345,12 +347,17 @@ function TableCore(props) {
         onItemsOpen
     ]);
 
-    const scrollToIndex = useCallback(index => {
+    const scheduledScroll = useRef(null);
+    const scrollToIndex = useCallback(itemIndex => {
+        //Check row index
+        const rowIndex = itemIndex - startIndex;
+        if (!_.inRange(rowIndex, rowCount))
+            return scheduledScroll.current = itemIndex;
+
         //Get elements
         const body = bodyContainerRef.current;
         const root = body.offsetParent;
-        const row = tableBodyRef.current.children[index];
-        if (!row) return;
+        const row = tableBodyRef.current.children[rowIndex];
 
         //Scroll up
         const scrollUp = row.offsetTop < root.scrollTop;
@@ -363,7 +370,15 @@ function TableCore(props) {
         const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
         if (scrollDown)
             root.scrollTop = rowBottom - visibleHeight;
-    }, []);
+    }, [startIndex, rowCount]);
+
+    useEffect(() => {
+        const index = scheduledScroll.current;
+        if (index === null) return;
+        scheduledScroll.current = null;
+
+        scrollToIndex(index);
+    }, [scrollToIndex]);
 
     const selectIndex = useCallback((e, index) => {
         if (matchModifiers(e, true))
@@ -377,9 +392,9 @@ function TableCore(props) {
     const selectOffset = useCallback((e, offset) => {
         if (activeIndex == null) return;
 
+        //Check item index
         const index = activeIndex + offset;
-        if (index < 0) return;
-        if (index >= itemCount) return;
+        if (!_.inRange(index, itemCount)) return;
 
         selectIndex(e, index);
     }, [selectIndex, activeIndex, itemCount]);
@@ -438,7 +453,7 @@ function TableCore(props) {
 
         e.preventDefault();
     }, [
-        dispatchers, options, itemCount, rowCount, topIndex,
+        dispatchers, options, itemCount,
         selectOffset, selectIndex, openItems, raiseKeyDown
     ]);
     //#endregion
@@ -455,19 +470,7 @@ function TableCore(props) {
     }
 
     function renderTable() {
-        const commonProps = {
-            name,
-            dispatchers,
-            options,
-            columns: parsedColumns
-        }
-
-        const containerStyle = {
-            width: `${_.sum(columnWidths)}%`
-        };
-
-        const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
-
+        //Placeholder
         let placeholder = null;
         let events = null;
 
@@ -489,7 +492,36 @@ function TableCore(props) {
                         {...events}
             >{placeholder}</div>
 
+        //Head and Body props
+        const commonProps = {
+            name,
+            dispatchers,
+            options,
+            columns: parsedColumns
+        }
 
+        const bodyProps = {
+            ...commonProps,
+            selection,
+            activeIndex,
+            rows,
+            startIndex,
+            tableBodyRef
+        }
+
+        const headProps = {
+            ...commonProps,
+            onResizeEnd: onColumnsResizeEnd,
+            columnWidths,
+            setColumnWidths,
+            sortBy
+        }
+
+        const containerStyle = {
+            width: `${_.sum(columnWidths)}%`
+        };
+
+        const colGroup = <ColumnResizer name={name} columns={parsedColumns} />;
 
         return <Fragment>
             <div className={styles.tableContainer}>
@@ -498,11 +530,7 @@ function TableCore(props) {
                 >
                     <table className={className}>
                         {colGroup}
-                        <TableHead {...commonProps}
-                                   onResizeEnd={onColumnsResizeEnd}
-                                   columnWidths={columnWidths}
-                                   setColumnWidths={setColumnWidths}
-                        />
+                        <TableHead {...headProps} />
                     </table>
                 </div>
                 <div className={styles.bodyContainer}
@@ -516,7 +544,7 @@ function TableCore(props) {
                     {renderSelectionBox()}
                     <table className={className}>
                         {colGroup}
-                        <TableBody {...commonProps} tableBodyRef={tableBodyRef} />
+                        <TableBody {...bodyProps} />
                     </table>
                 </div>
             </div>
@@ -548,11 +576,10 @@ function TableCore(props) {
 }
 
 function mapState(root, props) {
-    const {utils} = props.options;
+    const { utils } = props.options;
     const state = utils.getStateSlice(root);
 
-    const rows = utils.getPaginatedItems(state);
-    const topIndex = utils.getTopIndex(state);
+    const { startIndex, rows } = utils.getPaginatedItems(state);
     const pageCount = utils.getPageCount(state);
 
     return {
@@ -563,28 +590,30 @@ function mapState(root, props) {
             "tableItems",
             "pivotIndex",
             "pageIndex",
-            "error"
+            "error",
+            "sortBy"
         ),
-        rowCount: rows.length,
-        topIndex,
+        rows,
+        startIndex,
         pageCount
     };
 }
 
 const ConnectedTable = connect(mapState)(TableCore);
 
-export default function TableConnector(props) {
-    const ns = props.namespace || props.name;
-    const options = tableOptions[ns];
+export default function TableConnector({ name, namespace, ...rest }) {
+    const options = tableOptions[namespace];
+    const {context} = options;
 
-    if (!options.context)
+    if (!context)
         throw new Error("Please import ReactReduxContext from react-redux and pass it to the context option");
 
-    const contextValue = useContext(options.context);
-
-    return <ReactReduxContext.Provider value={contextValue}>
-        <ConnectedTable {...props} ns={ns} options={options} />
-    </ReactReduxContext.Provider>
+    return <ConnectedTable
+        {...rest}
+        options={options}
+        context={context}
+        name={name ?? namespace}
+    />
 }
 
 export const columnShape = PropTypes.shape({
@@ -596,13 +625,13 @@ export const columnShape = PropTypes.shape({
 });
 
 TableConnector.propTypes = {
+    namespace: PropTypes.string.isRequired,
+    columns: PropTypes.arrayOf(columnShape).isRequired,
     Error: PropTypes.elementType,
     Pagination: PropTypes.elementType,
     loadingIndicator: PropTypes.node,
     emptyPlaceholder: PropTypes.node,
-    namespace: PropTypes.string,
-    name: PropTypes.string.isRequired,
-    columns: PropTypes.arrayOf(columnShape).isRequired,
+    name: PropTypes.string,
     className: PropTypes.string,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),

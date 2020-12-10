@@ -1,7 +1,6 @@
 import _ from "lodash";
 import React, {useCallback} from 'react';
 import styles from "../index.scss";
-import {connect} from "react-redux";
 import classNames from "classnames";
 
 function TableBody({
@@ -9,7 +8,7 @@ function TableBody({
     name,
     options,
     rows,
-    topIndex,
+    startIndex,
     tableBodyRef,
     selection,
     activeIndex,
@@ -40,7 +39,7 @@ function TableBody({
     };
 
     const renderRow = (row, rowIndex) => {
-        const index = rowIndex + topIndex;
+        const index = rowIndex + startIndex;
         const value = row[options.valueProperty];
 
         const classes = {
@@ -63,21 +62,4 @@ function TableBody({
     </tbody>;
 }
 
-function mapState(root, props) {
-    const {utils} = props.options;
-    const state = utils.getStateSlice(root);
-
-    const topIndex = utils.getTopIndex(state);
-    const rows = utils.getPaginatedItems(state);
-
-    return {
-        ..._.pick(state,
-            "selection",
-            "activeIndex"
-        ),
-        rows,
-        topIndex
-    }
-}
-
-export default connect(mapState)(TableBody);
+export default TableBody;

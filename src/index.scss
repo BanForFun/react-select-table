@@ -95,6 +95,7 @@ $text-dark: #333333;
 
         &.selected {
             background-color: $primary;
+            transition: background-color 250ms;
         }
     }
 }

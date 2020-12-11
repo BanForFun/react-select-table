@@ -4,62 +4,97 @@
 
 ## Breaking changes
 
-* Renamed action creators and types
+### Exports
 
-  | Old creator name  | New creator name | Old action type     | New action type   |
-  | ----------------- | ---------------- | ------------------- | ----------------- |
-  | `clearRows`       | `clearItems`     | `CLEAR_ROWS`        | `CLEAR_ITEMS`     |
-  | `setRows`         | `setItems`       | `SET_ROWS`          | `SET_ITEMS`       |
-  | `deleteRows`      | `deleteItems`    | `DELETE_ROWS`       | `DELETE_ITEMS`    |
-  | `setRowValues`    | `setItemValues`  | `SET_ROW_VALUES`    | `SET_ITEM_VALUES` |
-  | `patchRows`       | `patchItems`     | `PATCH_ROWS`        | `PATCH_ITEMS`     |
-  | `sortBy`          | `sortItems`      | `SORT_BY`           | `SORT_ITEMS`      |
-  | `setFilter`       | `setItemFilter`  | `SET_FILTER`        | `SET_ITEM_FILTER` |
-  | `setRowsSelected` | `setSelected`    | `SET_ROWS_SELECTED` | `SET_SELECTED`    |
-  | `selectRow`       | `select`         | `SELECT_ROW`        | `SELECT`          |
-  | `setActiveRow`    | `setActive`      | `SET_ACTIVE_ROW`    | `SET_ACTIVE`      |
+* Removed `Table` component as it was limiting the features
+* Removed `useTable` hook
+* Removed `withTables` HOC
+* Removed `makeGetPageCount` selector factory. See `getPageCount` utility
+* Removed `getTableSlice` selector. See `getStateSlice` utility
 
-* Removed action creator aliases: `setRowValue`, `setRowSelected`, `addRow`, `patchRow`
 
-* The selected values argument passed to event handlers `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when `multiSelect` option is disabled, and a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
 
-* Removed `selectedValues` state property. Replaced with `selection` property
+### Actions
 
-* `clearItems` action now sets `isLoading` state to false instead of true
+* Renamed creators and type constants
 
-* Removed optional `keyed` *boolean* parameter from `setItems` action creator. The rows are assumed to be keyed, if the `items` argument is an object
+  | Old creator name | New creator name | Old type constant | New type constant |
+  | ---------------- | ---------------- | ----------------- | ----------------- |
+  | `clearRows`      | `clearItems`     | `CLEAR_ROWS`      | `CLEAR_ITEMS`     |
+  | `setRows`        | `setItems`       | `SET_ROWS`        | `SET_ITEMS`       |
+  | `deleteRows`     | `deleteItems`    | `DELETE_ROWS`     | `DELETE_ITEMS`    |
+  | `setRowValues`   | `setItemValues`  | `SET_ROW_VALUES`  | `SET_ITEM_VALUES` |
+  | `patchRows`      | `patchItems`     | `PATCH_ROWS`      | `PATCH_ITEMS`     |
+  | `sortBy`         | `sortItems`      | `SORT_BY`         | `SORT_ITEMS`      |
+  | `setFilter`      | `setItemFilter`  | `SET_FILTER`      | `SET_ITEM_FILTER` |
+  
+* Replaced `setRowSelected` with `setSelected`
 
-* Action creator `clearItems` clears the selection even if `listBox` option is enabled
+* Replaced `setActiveRow` with `setActive`
+
+* Replaced `selectRow` with `select`
+
+* Changed `contextMenu` parameters and payload
+
+* Removed aliases `setRowValue`, `addRow` and `patchRow`
+
+* `clearItems` now sets `isLoading` state to false. Use `startLoading` instead
+
+* Removed optional `keyed` *boolean* parameter from `setItems`. The rows are assumed to be keyed, if the `items` argument is an object
+
+* `setItems`, `deleteItems`, `sortItems`, `clearItems` and `setItemFilter`, clear the selection
+
+* Made `goToPage` index parameter zero-based
+
+* `addItems` selects all added items
+
+  
+
+### Events
+
+* The selected values argument passed to `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when `multiSelect` option is disabled, and a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
+
+
+
+### Visuals
 
 * Table header not rendered while there are no visible items
+* Added fade in animation to the selection background color
 
-* `initItems` option accepts keyed items as object
 
-* Removed `Table` component and everything related, as it was limiting the features of `TableCore`
 
-* Actions `setItems`, `deleteItems`, `sortItems` and `setItemFilter` clear the selection
+### Component props
 
-* Removed `activeValue` and `pivotValue`, replaced with `activeIndex` and `pivotIndex`
+* Replaced `renderError` *function* with `Error` *elementType*
+* Removed `context`, must be passed as option instead
+* Made `namespace` required, and `name` optional
 
-* Removed action creator `setActiveValue`, replaced with `setActiveIndex`
 
-* Renamed `currentPage` state property to `pageIndex` and made it zero-based
 
-* `goToPage` parameter is zero-based
+### State
 
-* Action creators `setSelected`, `contextMenu` and `select` take the item index instead of the value
+* Replaced `activeValue` with `activeIndex`
+* Replaced `pivotValue` with `pivotIndex`
+* Replaced `selectedValues` with `selection`
+* Replaced `currentPage` with `pageIndex`
 
-* react-redux context is now passed as an option instead of component prop
 
-* Removed `renderError` prop, replaced with `Error` prop
+
+### Options
+
+* Removed `initItems` option
+* react-redux context is now passed as the `context` option
+
+
 
 ## Non-breaking changes
 
 * Added `startLoading` action creator
-* Added `setRowsSelected` action creator
 * Added `scrollFactor` component prop
-* Added `setPivotIndex` action creator
-* Added `keyedItems` *object* property to `useTable` result
+* Added `setPivot` action creator
+* Added `getUtils` method
+* Added `useTableStoreHooks` hook
+* Added `Pagination` component prop
 * The [classnames](https://www.npmjs.com/package/classnames) library is used to parse the `_className` property of rows, so objects and arrays are accepted as well as strings
 
 

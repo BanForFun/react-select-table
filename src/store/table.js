@@ -12,7 +12,7 @@ enableMapSet();
 const defaultState = {
     selection: new Set(),
     activeIndex: 0,
-    pivotIndex: null,
+    pivotIndex: 0,
     filter: null,
     items: {},
     sortBy: {},
@@ -79,7 +79,11 @@ export default function createTable(namespace, options = {}) {
     //Utilities
     function setActiveIndex(index = 0) {
         draft.activeIndex = draft.tableItems.length ? index : null;
-        draft.pivotIndex = null;
+        resetPivot();
+    }
+
+    function resetPivot() {
+        draft.pivotIndex = draft.activeIndex;
     }
 
     function goToActiveIndex() {
@@ -268,7 +272,6 @@ export default function createTable(namespace, options = {}) {
                         selection.clear();
 
                     if (shiftKey) {
-                        draft.pivotIndex ??= state.activeIndex;
                         const values = getValues(draft);
 
                         if (ctrlKey) {
@@ -283,7 +286,7 @@ export default function createTable(namespace, options = {}) {
                         break;
                     }
 
-                    draft.pivotIndex = null;
+                    resetPivot();
 
                     if (ctrlKey && selection.has(value))
                         selection.delete(value);
@@ -294,7 +297,6 @@ export default function createTable(namespace, options = {}) {
                 }
                 case Actions.CLEAR_SELECTION: {
                     clearSelection();
-                    draft.pivotIndex = null;
                     break;
                 }
                 case Actions.SET_SELECTED: {

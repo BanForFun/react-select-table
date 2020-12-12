@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react'
+import React, {useCallback, useState, useMemo} from 'react'
 import _ from "lodash";
 import { TableCore, TableActions } from 'react-select-table';
 import columns from '../columns';
@@ -15,24 +15,14 @@ function ReduxTable() {
 
     const [clipboard, setClipboard] = useState(null);
 
-    const handleKeyDown = useCallback(e => {
-        if (!e.ctrlKey) return;
-
-        switch(e.keyCode) {
-            case 49: //1
-                dispatch(actions.setItems(todos));
-                break;
-            case 50: //2
-                dispatch(actions.startLoading());
-                break;
-            case 51: //3
-                dispatch(actions.setError("Error"));
-                break;
-            case 52: //4
-                dispatch(actions.clearItems());
-                break;
-        }
-    }, [dispatch]);
+    const buttonActions = useMemo(() => ({
+        "Set items": actions.setItems(todos),
+        "Set error": actions.setError("Error"),
+        "Clear items": actions.clearItems(),
+        "Enable pagination": actions.setPageSize(8),
+        "Disable pagination": actions.setPageSize(0),
+        "Start loading": actions.startLoading()
+    }), [])
 
     const handleTableKeyDown = useCallback((e, selection) => {
         switch(e.keyCode) {
@@ -56,7 +46,16 @@ function ReduxTable() {
         }
     }, [dispatch, clipboard, keyedItems]);
 
-    return <div id="redux" onKeyDown={handleKeyDown}>
+    return <div id="redux">
+        <div className="d-flex pb-1">
+            {_.map(buttonActions, (action, text) => {
+                return <button
+                    key={text}
+                    className="btn btn-sm btn-primary mr-1"
+                    onClick={() => dispatch(action)}
+                >{text}</button>
+            })}
+        </div>
         <TableCore
             className="table"
             namespace={tableNamespace}
@@ -65,13 +64,6 @@ function ReduxTable() {
             scrollFactor={0.5}
             onKeyDown={handleTableKeyDown}
         />
-        <div>
-            <b>Ctrl +</b> |
-            1: Set items |
-            2: Start loading |
-            3: Set error |
-            4: Clear items |
-        </div>
     </div>
 }
 

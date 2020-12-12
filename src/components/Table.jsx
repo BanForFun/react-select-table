@@ -16,6 +16,12 @@ import {sortTuple} from "../utils/mathUtils";
 import DefaultError from "./DefaultError";
 import DefaultPagination from "./DefaultPagination";
 
+const getInitDragSelectionState = index => ({
+    selected: { [index]: true },
+    pivot: index,
+    active: index
+});
+
 function TableCore(props) {
     const {
         name,
@@ -44,7 +50,6 @@ function TableCore(props) {
         isLoading,
         selection,
         activeIndex,
-        pivotIndex,
         dispatch
     } = props;
 
@@ -102,11 +107,6 @@ function TableCore(props) {
 
     //#endregion
 
-    const isIndexSelected = useCallback(itemIndex =>
-        selection.has(items[itemIndex][options.valueProperty]),
-        [selection, items, options]
-    );
-
     const findRowIndex = useCallback(target => {
         const rows = tableBodyRef.current.children;
 
@@ -148,66 +148,56 @@ function TableCore(props) {
         const relMouseX = mouseX + root.scrollLeft - bounds.x - headerWidth;
         const relMouseY = mouseY + root.scrollTop - bounds.y - headerHeight;
 
+        const rowIndex = belowItems ? -1 : findRowIndex(relMouseY);
+        const itemIndex = belowItems ? -1 : rowIndex + startIndex;
+
         lastMousePos.current = mousePos;
         lastRelMouseY.current = relMouseY;
+        dragSelectionState.current = getInitDragSelectionState(itemIndex);
         setSelOrigin({
             x: relMouseX,
             y: relMouseY,
-            index: belowItems ? -1 : findRowIndex(relMouseY)
+            index: rowIndex
         });
-    }, [options, findRowIndex]);
-
-    const dragEnd = useCallback(() => {
-        setSelOrigin(null);
-        setSelRect(null);
-
-        isTouching.current = false;
-    }, []);
+    }, [ options, findRowIndex, startIndex ]);
 
     const lastRelMouseY = useRef();
+    const dragSelectionState = useRef(getInitDragSelectionState(-1));
     const updateDragSelection = useCallback(relMouseY => {
         const {
             offsetHeight: tableHeight,
             children: rows
         } = tableBodyRef.current;
 
+        const latest = dragSelectionState.current;
+
         //Define selection check area
         const [minMouseY, maxMouseY] = sortTuple(relMouseY, lastRelMouseY.current);
         lastRelMouseY.current = relMouseY;
 
         //Set up search
-        const originIndex = selOrigin.index;
-        const belowItems = originIndex < 0;
-        const searchStart = belowItems ? rowCount : originIndex;
-
-        let setActive = belowItems ? null : originIndex + startIndex;
-        const setPivot = (belowItems ? rowCount - 1 : originIndex) + startIndex;
+        const oRowIndex = selOrigin.index;
+        const belowItems = oRowIndex < 0;
+        const oItemIndex = oRowIndex + startIndex;
 
         let rowIndex;
+        let setActive = belowItems ? null : oItemIndex;
         const selectMap = {};
 
         const updateCurrent = select => {
             const itemIndex = startIndex + rowIndex;
-            if (select !== isIndexSelected(itemIndex))
+
+            if (select !== latest.selected[itemIndex])
                 selectMap[itemIndex] = select;
-            else if (select)
+
+            if (select)
                 setActive = itemIndex;
         }
 
         const getCurrentTop = () =>
-            rowIndex >= rowCount
-            ? tableHeight
-            : rows[rowIndex].offsetTop;
+            rowIndex >= rowCount ? tableHeight : rows[rowIndex].offsetTop;
 
-        //Search down
-        rowIndex = searchStart + 1;
-        while (rowIndex < rowCount) {
-            const top = getCurrentTop();
-            if (top > maxMouseY) break;
-
-            updateCurrent(top < relMouseY);
-            rowIndex++;
-        }
+        const searchStart = belowItems ? rowCount : oRowIndex;
 
         //Search up
         rowIndex = searchStart;
@@ -216,26 +206,48 @@ function TableCore(props) {
             if (top < minMouseY) break;
 
             rowIndex--;
-            updateCurrent(top > relMouseY);
+            updateCurrent(top >= relMouseY);
         }
 
-        if (setActive !== null && setActive !== activeIndex)
+        //Search down
+        rowIndex = searchStart + 1;
+        while (rowIndex < rowCount) {
+            const top = getCurrentTop();
+            if (top > maxMouseY) break;
+
+            updateCurrent(top <= relMouseY);
+            rowIndex++;
+        }
+
+        //Set active row
+        if (setActive != null && latest.active !== setActive) {
+            latest.active = setActive;
             selectMap[setActive] = true;
+        }
 
-        if (!_.isEmpty(selectMap))
+        //Modify selection
+        if (!_.isEmpty(selectMap)) {
+            Object.assign(latest.selected, selectMap);
             dispatchers.setSelected(selectMap);
+        }
 
-        if (pivotIndex !== setPivot && isIndexSelected(setPivot))
+        //Set pivot row
+        const lastItemIndex = startIndex + rowCount - 1;
+        const setPivot = belowItems
+            //If origin is below rows, set the pivot to the last row ONLY if it is selected
+            ? (selectMap[lastItemIndex] ? lastItemIndex : null)
+            //Else, set the pivot to the origin row
+            : oItemIndex;
+
+        if (setPivot != null && latest.pivot !== setPivot) {
+            latest.pivot = setPivot;
             dispatchers.setPivot(setPivot);
+        }
     }, [
         selOrigin,
         rowCount,
         startIndex,
-        activeIndex,
-        pivotIndex,
-        selection,
-        dispatchers,
-        isIndexSelected
+        dispatchers
     ]);
 
     //Update selection rectangle
@@ -312,6 +324,12 @@ function TableCore(props) {
         scrollFactor,
         updateDragSelection
     ]);
+
+    const dragEnd = useCallback(() => {
+        setSelOrigin(null);
+        setSelRect(null);
+        isTouching.current = false;
+    }, []);
 
     useWindowEvent("mousemove", useCallback(e => {
         updateSelectionRect([e.clientX, e.clientY])
@@ -585,7 +603,6 @@ function mapState(root, props) {
             "isLoading",
             "activeIndex",
             "tableItems",
-            "pivotIndex",
             "pageIndex",
             "error",
             "sortBy"

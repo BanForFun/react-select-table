@@ -9,13 +9,12 @@ export const makeGetPaginatedItems = () => createSelector(
     (items, pageSize, pageIndex) => {
         pageSize ||= items.length;
 
-        const startIndex = pageIndex * pageSize;
-        const endIndex = startIndex + pageSize;
+        const start = pageIndex * pageSize;
+        const end = start + pageSize;
 
         return {
-            startIndex,
-            endIndex,
-            rows: items.slice(startIndex, endIndex)
+            startIndex: start,
+            rows: items.slice(start, end)
         };
     }
 )

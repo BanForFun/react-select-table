@@ -40,7 +40,7 @@ function TableCore(props) {
         Pagination: TablePagination,
 
         //Redux state
-        tableItems: items,
+        itemCount,
         rows,
         sortBy,
         pageIndex,
@@ -59,7 +59,6 @@ function TableCore(props) {
     const isTouching = useRef(false);
 
     const {utils} = options;
-    const itemCount = items.length;
     const rowCount = rows.length;
 
     const dispatchers = useMemo(() =>
@@ -136,6 +135,9 @@ function TableCore(props) {
     const dragStart = useCallback((mousePos, belowItems) => {
         //Return if multiSelect is disabled
         if (!options.multiSelect) return;
+
+        //Return if below items and multiSelect listBox
+        if (belowItems && options.listBox) return;
 
         const [mouseX, mouseY] = mousePos;
         const {
@@ -602,13 +604,13 @@ function mapState(root, props) {
             "selection",
             "isLoading",
             "activeIndex",
-            "tableItems",
             "pageIndex",
             "error",
             "sortBy"
         ),
-        rows,
+        itemCount: state.tableItems.length,
         startIndex,
+        rows,
         pageCount
     };
 }

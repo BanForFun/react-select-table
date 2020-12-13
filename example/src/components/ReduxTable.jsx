@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useMemo} from 'react'
+import React, {useCallback, useState, useMemo, useEffect} from 'react'
 import _ from "lodash";
 import { TableCore, TableActions } from 'react-select-table';
 import columns from '../columns';
@@ -8,12 +8,20 @@ import todos from "../todos";
 
 const actions = new TableActions(tableNamespace);
 
+function logEvent(type) {
+    return (...args) => console.log(type, ...args);
+}
+
 function ReduxTable() {
     const dispatch = useDispatch();
 
     const keyedItems = useSelector(s => s.items);
 
     const [clipboard, setClipboard] = useState(null);
+
+    useEffect(() => {
+        dispatch(actions.setItems(todos));
+    }, [dispatch]);
 
     const buttonActions = useMemo(() => ({
         "Set items": actions.setItems(todos),
@@ -46,8 +54,8 @@ function ReduxTable() {
         }
     }, [dispatch, clipboard, keyedItems]);
 
-    return <div id="redux">
-        <div className="d-flex pb-1">
+    return <div id="example">
+        <div className="pb-2">
             {_.map(buttonActions, (action, text) => {
                 return <button
                     key={text}
@@ -63,6 +71,7 @@ function ReduxTable() {
             loadingIndicator="Loading..."
             scrollFactor={0.5}
             onKeyDown={handleTableKeyDown}
+            onContextMenu={logEvent("Context Menu")}
         />
     </div>
 }

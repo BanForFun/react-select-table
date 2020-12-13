@@ -48,26 +48,26 @@ An array containing the initial width (in percentage) of every column after [ord
 
 #### `onContextMenu` *function*
 
+Called when the user right-clicks on a row, the table container, or the empty placeholder
+
 Arguments:
 
-| Type             | Description                                                  |
-| ---------------- | ------------------------------------------------------------ |
-| *any[]* \| *any* | If the [list box][listBox] option is enabled, then the [active value][activeValue] will be passed.<br/>Otherwise, the [selected values][selectedValues] will be passed instead. |
-
-Raised when the user right-clicks on a row, the table container, or the empty placeholder
+| Type           | Description                                                  |
+| -------------- | ------------------------------------------------------------ |
+| *Set* \| *any* | If the [list box][listBox] option is enabled, then the value will be passed.<br/>Otherwise, the [selected value(s)][selectedValues] will be passed instead. |
 
 
 
 #### `onItemsOpen` *function*
 
+Called when the user double-clicks on a row or presses the enter key. Will not be called if no rows are selected
+
 Arguments:
 
-| Type             | Description                                                 |
-| ---------------- | ----------------------------------------------------------- |
-| *any[]* \| *any* | The [selected values][selectedValues]                       |
-| *boolean*        | True if caused by enter key press, false if by double click |
-
-Raised when the user double-clicks on a row or presses the enter key. Will not be raised if no rows are selected
+| Type      | Description                                                 |
+| --------- | ----------------------------------------------------------- |
+|    *Set* \| *any*   | The [selected value(s)][selectedValues]                     |
+| *boolean* | True if caused by enter key press, false if by double click |
 
 
 
@@ -77,7 +77,7 @@ Arguments:
 
 | Type | Description                               |
 | ---- | ----------------------------------------- |
-|      | The new [selected values][selectedValues] |
+|   *Set* \| *any*   | The new [selected value(s)][selectedValues] |
 
 Raised when the selection changes
 
@@ -99,10 +99,10 @@ Called when the mouse up event is raised after clicking on a column separator
 
 Arguments:
 
-| Type                                                         | Description                           |
-| ------------------------------------------------------------ | ------------------------------------- |
-| *[KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)* | The javascript keydown event          |
-| *any[]*                                                      | The [selected values][selectedValues] |
+| Type                                                         | Description                             |
+| ------------------------------------------------------------ | --------------------------------------- |
+| *[KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)* | The javascript keydown event            |
+| *Set* \| *any*                                               | The [selected value(s)][selectedValues] |
 
 Raised when the key down event is not handled internally
 

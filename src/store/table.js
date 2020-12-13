@@ -35,9 +35,7 @@ export default function createTable(namespace, options = {}) {
     const initState = {...defaultState, ...options.initState};
     let draft = initState;
 
-    if (options.initItems)
-        draft.items = ensureKeyed(options.initItems);
-
+    //Selectors
     const getParsedItems = createSelector(
         s => s.items,
         items => _.map(items, options.itemParser)
@@ -62,19 +60,12 @@ export default function createTable(namespace, options = {}) {
         items => _.map(items, valueProperty)
     );
 
-    //Updaters
-    function updatePage() {
-        const maxIndex = utils.getPageCount(draft) - 1;
-        draft.pageIndex = Math.min(draft.pageIndex, maxIndex);
-    }
+    //Getters
+    const getPageCount = () =>
+        utils.getPageCount(draft);
 
-    function updateItems() {
-        //Validate items
-        delete draft.items[null];
-
-        //Update items
-        draft.tableItems = getSortedItems(draft);
-    }
+    const getItemValue = index =>
+        utils.getItemValue(draft, index);
 
     //Utilities
     function setActiveIndex(index = 0) {
@@ -95,8 +86,14 @@ export default function createTable(namespace, options = {}) {
             : 0;
     }
 
-    function clearSelection() {
+    function replaceSelection(value) {
         draft.selection.clear();
+        draft.selection.add(value);
+    }
+
+    function safeSelect(value) {
+        if (!multiSelect) draft.selection.clear();
+        draft.selection.add(value);
     }
 
     function restoreValueFormat(value) {
@@ -109,12 +106,29 @@ export default function createTable(namespace, options = {}) {
             : items;
     }
 
-    function patchDraft(patch) {
-        Object.assign(draft, patch);
+    function setItems(items) {
+        draft.selection.clear();
+        Object.assign(draft, {
+            items,
+            tableItems: [],
+            pageIndex: 0,
+            isLoading: false,
+            error: null
+        });
     }
 
-    function getIndexValue(index) {
-        return draft.tableItems[index][valueProperty];
+    //Updaters
+    function updatePage() {
+        const maxIndex = getPageCount() - 1;
+        draft.pageIndex = Math.min(draft.pageIndex, maxIndex);
+    }
+
+    function updateItems() {
+        //Validate items
+        delete draft.items[null];
+
+        //Update items
+        draft.tableItems = getSortedItems(draft);
     }
 
     updateItems();
@@ -130,16 +144,7 @@ export default function createTable(namespace, options = {}) {
             switch (action.type) {
                 //Items
                 case Actions.SET_ITEMS: {
-                    const { items } = payload;
-
-                    clearSelection();
-
-                    patchDraft({
-                        items: ensureKeyed(items),
-                        pageIndex: 0,
-                        isLoading: false,
-                        error: null
-                    });
+                    setItems(ensureKeyed(payload.items));
                     updateItems();
                     break;
                 }
@@ -147,13 +152,11 @@ export default function createTable(namespace, options = {}) {
                     const { items } = payload;
                     if (!items.length) break;
 
-                    clearSelection();
-
-                    //Add items
+                    draft.selection.clear();
                     for (let item of items) {
                         const value = item[valueProperty];
-                        draft.selection.add(value);
                         draft.items[value] = item;
+                        safeSelect(value);
                     }
                     updateItems();
 
@@ -163,7 +166,7 @@ export default function createTable(namespace, options = {}) {
                     const { values } = payload;
                     if (!values.length) break;
 
-                    clearSelection();
+                    draft.selection.clear();
                     deleteKeys(draft.items, values);
                     updateItems();
 
@@ -211,7 +214,7 @@ export default function createTable(namespace, options = {}) {
                 case Actions.SORT_ITEMS: {
                     const { path, shiftKey } = payload;
 
-                    clearSelection();
+                    draft.selection.clear();
 
                     if (!multiSort || !shiftKey)
                         draft.sortBy = {};
@@ -225,20 +228,13 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ITEM_FILTER: {
-                    clearSelection();
+                    draft.selection.clear();
                     draft.filter = payload.filter;
                     updateItems();
                     break;
                 }
                 case Actions.CLEAR_ITEMS: {
-                    clearSelection();
-                    patchDraft({
-                        items: {},
-                        tableItems: [],
-                        pageIndex: 0,
-                        isLoading: false,
-                        error: null
-                    });
+                    setItems({});
                     break;
                 }
                 case Actions.START_LOADING: {
@@ -257,14 +253,13 @@ export default function createTable(namespace, options = {}) {
                 case Actions.SELECT: {
                     const { index, ctrlKey, shiftKey } = payload;
                     const { selection } = draft;
-                    const value = getIndexValue(index);
+                    const value = getItemValue(index);
 
                     draft.activeIndex = index;
                     goToActiveIndex();
 
                     if (!multiSelect) {
-                        selection.clear();
-                        selection.add(value);
+                        replaceSelection(value);
                         break;
                     }
 
@@ -296,7 +291,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_SELECTION: {
-                    clearSelection();
+                    draft.selection.clear();
                     break;
                 }
                 case Actions.SET_SELECTED: {
@@ -304,7 +299,7 @@ export default function createTable(namespace, options = {}) {
                     _.forEach(payload.map, (select, index) => {
                         index = parseInt(index);
 
-                        const value = getIndexValue(index);
+                        const value = getItemValue(index);
                         if (!select)
                             selection.delete(value);
                         else
@@ -330,23 +325,24 @@ export default function createTable(namespace, options = {}) {
                 }
                 case Actions.CONTEXT_MENU: {
                     const { index, ctrlKey } = payload;
-                    const { selection } = draft;
-
                     //Should still be dispatched in order to be handled by eventMiddleware
                     if (ctrlKey) break;
 
+                    const {selection} = draft;
+
                     if (index === null) {
-                        selection.clear();
+                        if (!listBox) selection.clear();
                         break;
                     }
 
+                    //Not null
                     setActiveIndex(index);
 
-                    const value = getIndexValue(index);
-                    if (listBox || selection.has(value)) break;
+                    if (listBox) break;
 
-                    selection.clear();
-                    selection.add(value);
+                    const value = getItemValue(index);
+                    if (!selection.has(value))
+                        replaceSelection(value);
 
                     break;
                 }
@@ -363,7 +359,7 @@ export default function createTable(namespace, options = {}) {
                     const {index} = payload;
                     if (!draft.pageSize) break;
 
-                    const pageCount = utils.getPageCount(draft);
+                    const pageCount = getPageCount();
                     let newIndex = draft.pageIndex;
 
                     switch (index) {

@@ -11,12 +11,7 @@ body {
     height: 100vh;
 }
 
-#pageIndex {
-    box-sizing: content-box;
-    width: 4ch;
-}
-
-#redux, #simple {
+#example {
     padding: 2rem;
     height: 100%;
     display: flex;

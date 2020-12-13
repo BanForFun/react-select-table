@@ -14,8 +14,8 @@ export default function setupStore() {
         tableNamespace,
         {
             valueProperty: "id",
-            initItems: todos,
             scrollX: true,
+            listBox: true,
             initState: {
                 // pageSize: 8
             }

@@ -1,6 +1,6 @@
 import _ from "lodash";
 import {getFirstItem} from "./setUtils";
-import {makeGetPaginatedItems, getPageCount} from "../selectors/paginationSelectors";
+import {makeGetPaginatedItems} from "../selectors/paginationSelectors";
 import TableActions from "../models/actions";
 
 export const tableOptions = {};
@@ -40,26 +40,41 @@ export function setDefaultOptions(options) {
 }
 
 export function setOptions(namespace, options) {
-    const { path, multiSelect } = _.defaults(options, defaultOptions);
+    const {
+        path,
+        multiSelect,
+        valueProperty
+    } = _.defaults(options, defaultOptions);
 
-    function formatSelection(selection) {
+    const formatSelection = selection => {
         if (multiSelect) return selection;
         return getFirstItem(selection) ?? null;
     }
 
-    function getStateSlice(state) {
-        return path ? _.get(state, path) : state;
+    const getStateSlice = state =>
+        path ? _.get(state, path) : state;
+
+    const getPageCount = slice => {
+        const { pageSize } = slice;
+        if (!pageSize) return 0;
+
+        const itemCount = slice.tableItems.length;
+        if (!itemCount) return 1;
+
+        return Math.ceil(itemCount / pageSize);
     }
+
+    const getItemValue = (slice, index) =>
+        index !== null ? slice.tableItems[index][valueProperty] : null;
 
     //Assign utils
     options.utils = {
         actions: new TableActions(namespace),
+        getPaginatedItems: makeGetPaginatedItems(),
         formatSelection,
         getStateSlice,
-
-        //Selectors
         getPageCount,
-        getPaginatedItems: makeGetPaginatedItems()
+        getItemValue
     }
 
     //Assign events

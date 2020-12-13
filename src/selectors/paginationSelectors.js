@@ -19,13 +19,3 @@ export const makeGetPaginatedItems = () => createSelector(
     }
 )
 
-export function getPageCount(slice) {
-    const { pageSize } = slice;
-    if (!pageSize) return 0;
-
-    const itemCount = slice.tableItems.length;
-    if (!itemCount) return 1;
-
-    return Math.ceil(itemCount / pageSize);
-}
-

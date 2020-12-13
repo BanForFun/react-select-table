@@ -38,7 +38,9 @@ const eventMiddleware = store => next => action => {
 
             const prevState = getState();
             const result = next(action);
-            const {selection} = getState();
+            const state = getState();
+
+            const {selection} = state;
 
             //Raise onSelectionChange
             if (!compareSets(prevState.selection, selection))
@@ -46,9 +48,10 @@ const eventMiddleware = store => next => action => {
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                events.onContextMenu(options.listBox
-                    ? payload.value
-                    : utils.formatSelection(selection)
+                events.onContextMenu(
+                    options.listBox
+                        ? utils.getItemValue(state, payload.ctrlKey ? state.activeIndex : payload.index)
+                        : utils.formatSelection(selection)
                 );
 
             return result;

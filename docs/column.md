@@ -1,31 +1,29 @@
 ### Column *object*
 
-#### `title` string
+#### `title` *string*
 
 This text will be displayed in the header.
 
-#### `path` string
+#### `path` *string*
 
-The property value of each row at `path` will be resolved and passed to the [`render`](#render-function) function as the first parameter, followed by the complete row object as the second one. If `path` is not set, the first parameter will be undefined.
+The property value of each row at this property will be resolved (using lodash `get`) and passed to the [`render`](#render-function) function as the first parameter, followed by the complete row object as the second one.
 
-Columns that specify a `path`, are sortable. If that is not desirable (for example on images), you should not specify a `path` and resolve the property inside the `render` method.
+Columns that have this property are sortable. If that is not desirable (ex. for images and buttons), you should not set it and instead resolve the property manually inside the `render` function. In that case though, you should set the [`key`](#key-string) property.
 
-If you don't set the `path` property, you must set the [`key`](#key-string) property instead.
+#### `render`  *function*
 
-#### `render`  function
-
-Called for each cell to return the content to be displayed. For parameters, see [`path`](#path-string).
+Called for each cell to return the content to be displayed. If not set, the property at `path` will be rendered directly.
 
 #### `key` *string*
 
-Used for the generation of the react `key` properties for the cells. Must be unique for each column.
+Used in the generation of the [react key](](https://reactjs.org/docs/lists-and-keys.html#keys)) for the cells, so it must be unique for each column.
 
-If [`path`](#path-string) is set, you needn't set the `key` property, as `path` will be used for the same purpose.
+If [`path`](#path-string) is set, it will be implicitly used as the key. If multiple columns use the same path, then you should their keys to different ones.
 
-#### `isHeader` boolean
+#### `isHeader` *boolean*
 
-If set to true, a **th** element will be used instead of the default **td**.
+If set to true, a `th` element will be used instead of the default `td`.
 
-####  `className` string
+####  `className` *string*
 
-This class name will be applied to the **td** or **th** element
+This class name will be applied to the `td` or `th` element

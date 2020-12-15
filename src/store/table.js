@@ -214,8 +214,6 @@ export default function createTable(namespace, options = {}) {
                 case Actions.SORT_ITEMS: {
                     const { path, shiftKey } = payload;
 
-                    draft.selection.clear();
-
                     if (!multiSort || !shiftKey)
                         draft.sortBy = {};
 

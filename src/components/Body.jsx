@@ -1,7 +1,9 @@
-import _ from "lodash";
-import React, {useCallback} from 'react';
 import styles from "../index.scss";
+
+import _ from "lodash";
+import React, {useCallback, useRef} from 'react';
 import classNames from "classnames";
+import useWindowEvent from "../hooks/useWindowEvent";
 
 function TableBody({
     columns,
@@ -14,28 +16,36 @@ function TableBody({
     activeIndex,
     dispatchers
 }) {
+    const touchingIndex = useRef();
+
     const handleRowSelect = useCallback((e, index) => {
         if (e.button !== 0) return;
         dispatchers.select(index, e.ctrlKey, e.shiftKey);
     }, [dispatchers]);
 
     const handleRowContextMenu = useCallback((e, index) => {
-        dispatchers.contextMenu(index, e.ctrlKey);
+        if (index === touchingIndex.current)
+            dispatchers.select(index, true);
+        else
+            dispatchers.contextMenu(index, e.ctrlKey);
     }, [dispatchers]);
 
+    useWindowEvent("touchend", useCallback(() => {
+        touchingIndex.current = null;
+    }, []));
+
     const renderColumn = (row, column) => {
-        const rowValue = row[options.valueProperty];
         const { _id, path, render, className, isHeader } = column;
 
-        const value = _.get(row, path);
-        const content = render ? render(value, row) : value;
+        const content = _.get(row, path);
+        const rowValue = row[options.valueProperty];
 
-        const props = {
-            key: `body_${name}_${rowValue}_${_id}`,
-            className
-        }
-        if (isHeader) return <th {...props}>{content}</th>;
-        return <td {...props}>{content}</td>
+        const Cell = isHeader ? 'th' : 'td';
+
+        return <Cell
+          key={`cell_${name}_${rowValue}_${_id}`}
+          className={className}
+        >{render(content, row)}</Cell>
     };
 
     const renderRow = (row, rowIndex) => {
@@ -52,6 +62,7 @@ function TableBody({
             className={classNames(classes, row._className)}
             onContextMenu={e => handleRowContextMenu(e, index)}
             onMouseDown={e => handleRowSelect(e, index)}
+            onTouchStart={() => touchingIndex.current = index}
         >
             {columns.map(col => renderColumn(row, col))}
         </tr>

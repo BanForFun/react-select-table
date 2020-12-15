@@ -12,7 +12,8 @@
         "list",
         "redux",
         "drag",
-        "select"
+        "select",
+        "electron"
     ],
     "main": "dist/index.js",
     "module": "dist/index.modern.js",

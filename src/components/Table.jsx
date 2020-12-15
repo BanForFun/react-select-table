@@ -93,12 +93,13 @@ function TableCore(props) {
 
     const parsedColumns = useMemo(() =>
         columnOrder.map((index, order) => {
-            const column = columns[index];
+            const col = columns[index];
 
             return {
-                ...column,
+                render: v => v,
+                ...col,
                 _width: `${columnWidths[order]}%`,
-                _id: column.key || column.path
+                _id: col.key || col.path
             }
         }),
         [columnOrder, columnWidths, columns]
@@ -345,7 +346,7 @@ function TableCore(props) {
         const [touch] = e.touches;
         const pos = [touch.clientX, touch.clientY];
         updateSelectionRect(pos);
-    }, [updateSelectionRect, selOrigin]));
+    }, [updateSelectionRect, selOrigin]), false);
 
     useWindowEvent("touchend", dragEnd);
     //#endregion
@@ -435,11 +436,12 @@ function TableCore(props) {
 
     const handleContextMenu = useCallback(e => {
         const belowItems = e.currentTarget === e.target;
-        if (belowItems)
-            dispatchers.contextMenu(null, e.ctrlKey);
 
         if (isTouching.current)
             dragStart([e.clientX, e.clientY], belowItems);
+        else if (belowItems)
+            dispatchers.contextMenu(null, e.ctrlKey);
+
     }, [dragStart, dispatchers]);
 
     const handleKeyDown = useCallback(e => {

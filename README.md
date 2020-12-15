@@ -12,7 +12,7 @@
 * Windows ListView-like selection behavior
 * Single and multi column sorting modes
 * Single and multi selection modes
-* ListBox mode
+* List box mode
 * Touch support (chrome only)
 * Optionally controlled with redux
 * Events
@@ -28,11 +28,23 @@
 * `Home` to select the first item
 * `End` to select the last item
 
+### Browser compatibility
+
+Note: This package is primarily designed for electron apps. Compatibility and performance with non chromium-based browsers is not guaranteed. 
+
+Known problems:
+
+* Firefox desktop: Drag-selection performance is not great when working with many rows
+* Firefox mobile: Drag selection doesn't work at all
+* Chromium based browsers: Having the developer tools open, makes drag selection very laggy
+
 
 
 ## Version 5.0.0
 
 ### [Developer changes](./docs/changes.md)
+
+This time I tried my hardest to fix all the problems, so fingers-crossed, this is the last major release.
 
 ### End user changes
 

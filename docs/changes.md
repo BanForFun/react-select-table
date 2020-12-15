@@ -1,5 +1,3 @@
-
-
 # 5.0.0
 
 ## Breaking changes
@@ -38,11 +36,11 @@
 
 * Removed aliases `setRowValue`, `addRow` and `patchRow`
 
-* `clearItems` now sets `isLoading` state to false. Use `startLoading` instead
+* `clearItems` now sets loading state to false. Use `startLoading` instead
 
 * Removed optional `keyed` *boolean* parameter from `setItems`. The rows are assumed to be keyed, if the `items` argument is an object
 
-* `setItems`, `deleteItems`, `sortItems`, `clearItems` and `setItemFilter`, clear the selection
+* `setItems`, `deleteItems`, `clearItems` and `setItemFilter`, clear the selection
 
 * Made `goToPage` index parameter zero-based
 
@@ -52,7 +50,8 @@
 
 ### Events
 
-* The selected values argument passed to `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when `multiSelect` option is disabled, and a [Set](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
+* The selected values argument passed to `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when the multi select option is disabled, and a [*Set*](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
+* The selected values argument passed to `onContextMenu` when the list box option is enabled, 
 
 
 

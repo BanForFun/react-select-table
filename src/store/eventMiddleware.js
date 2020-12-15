@@ -48,10 +48,9 @@ const eventMiddleware = store => next => action => {
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
-                events.onContextMenu(
-                    options.listBox
-                        ? utils.getItemValue(state, payload.ctrlKey ? state.activeIndex : payload.index)
-                        : utils.formatSelection(selection)
+                events.onContextMenu(options.listBox
+                    ? utils.getItemValue(state, payload.ctrlKey ? state.activeIndex : payload.index)
+                    : utils.formatSelection(selection)
                 );
 
             return result;

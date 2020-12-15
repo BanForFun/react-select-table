@@ -1,10 +1,12 @@
 import { useEffect } from "react";
 
-const options = { passive: false };
-
-export default function useWindowEvent(event, listener) {
+export default function useWindowEvent(event, listener, passive = true) {
     useEffect(() => {
+        const options = {
+            passive
+        };
+
         window.addEventListener(event, listener, options);
         return () => window.removeEventListener(event, listener, options);
-    }, [event, listener]);
+    }, [event, listener, passive]);
 }

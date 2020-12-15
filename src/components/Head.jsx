@@ -75,7 +75,7 @@ function TableHead({
 
         e.preventDefault();
         updateWidth(e.touches[0].clientX);
-    }, [resizingIndex, updateWidth]));
+    }, [resizingIndex, updateWidth]), false);
 
     useWindowEvent("touchend", dragEnd);
 
@@ -96,7 +96,8 @@ function TableHead({
                     const addSeparator = options.scrollX ||
                         index < columns.length - 1;
 
-                    return <th key={`head_${name}_${_id}`}
+                    return <th
+                        key={`header_${name}_${_id}`}
                         data-sortable={boolAttrib(path)}
                         onClick={handleClick}
                     >

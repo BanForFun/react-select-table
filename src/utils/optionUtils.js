@@ -5,17 +5,6 @@ import TableActions from "../models/actions";
 
 export const tableOptions = {};
 
-function defaultItemFilter(item, filter) {
-    if (!filter) return true;
-
-    for (let key in filter) {
-        if (item[key] !== filter[key])
-            return false;
-    }
-
-    return true;
-}
-
 export const defaultEvents = {
     onContextMenu: () => { },
     onSelectionChange: () => { }
@@ -23,7 +12,7 @@ export const defaultEvents = {
 
 const defaultOptions = {
     itemParser: item => item,
-    itemPredicate: defaultItemFilter,
+    itemPredicate: (item, filter) => filter ? _.isMatch(item, filter) : true,
     multiSelect: true,
     listBox: false,
     minColumnWidth: 3,

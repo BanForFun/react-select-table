@@ -1,4 +1,4 @@
-## Component props 
+# Component props
 
 #### `namespace`  *string*
 
@@ -128,7 +128,7 @@ Otherwise, the single selected value will be passed, or null if no item is selec
 
 [selection]: ./state.md#selection-set
 [activeValue]: ./state.md#activevalue-any
-[ tableItems ]: ./state.md#tableItems-object
+[tableItems ]: ./state.md#tableItems-object
 [isLoading]: ./state.md#isloading-boolean
 
 

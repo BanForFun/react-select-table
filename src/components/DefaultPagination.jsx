@@ -4,13 +4,11 @@ import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
 import styles from "../index.scss";
 
-function DefaultPagination(
-    {
-        pageCount, pageIndex,
-        isFirst, isLast,
-        goToPage, nextPage, previousPage
-    }
-    ) {
+function DefaultPagination({
+    pageCount, pageIndex,
+    isFirst, isLast,
+    goToPage, nextPage, previousPage
+}) {
     if (!pageCount) return null;
 
     const prevClass = classNames({

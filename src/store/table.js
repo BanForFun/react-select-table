@@ -1,5 +1,5 @@
-import produce, {enableMapSet, } from "immer";
 import _ from "lodash";
+import produce, {enableMapSet} from "immer";
 import {pagePositions, sortOrders} from "../constants/enums";
 import {deleteKeys} from "../utils/objectUtils";
 import Actions from "../models/actions";

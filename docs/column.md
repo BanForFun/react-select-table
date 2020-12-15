@@ -1,4 +1,4 @@
-### Column *object*
+# Column
 
 #### `title` *string*
 

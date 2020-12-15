@@ -2,41 +2,39 @@
 
 ## Features
 
-* Item parsing
 * Item filtering
-* Item sorting
+* Single and multi-column sorting
 * Item pagination
-* Re-sizable columns
+* Resizable columns
 * Sticky header
 * Drag selection with automatic scrolling
-* Windows ListView-like selection behavior
-* Single and multi column sorting modes
-* Single and multi selection modes
-* List box mode
+* Selection behavior emulating windows ListView
+* Fully usable with only the keyboard
+* Percentage based column sizing (can be used in resizable containers)
+* Single and multi selection
+* ListBox mode
 * Touch support (chrome only)
-* Optionally controlled with redux
 * Events
 
 ### Shortcuts
 
-* `Shift`+`Click` to select range
-* `Shift`+`Up`/`Down` to expand/shrink selection
-* `Ctrl`+`Click`/`Enter` to toggle selection of the active item
-* `Ctrl`+`Up`/`Down` to set the active item
-* `Up`/`Down` to select the only previous/next item
-* `Ctrl`+`A` to select all items
-* `Home` to select the first item
-* `End` to select the last item
+* **Shift** + **Click** to select range
+* **Shift** + **Up** / **Down** / **Home** / **End** to expand or shrink selection
+* **Ctrl** + **Up** /  **Down** / **Home** / **End** to set the active row
+* **Ctrl** + **Click** / **Enter** to toggle selection of the active row
+* **Up** / **Down** to select the previous/next item relative to the active row
+* **Ctrl** + **A** to select all items
+* **Home** / **End** to select the first/last item
 
 ### Browser compatibility
 
-Note: This package is primarily designed for electron apps. Compatibility and performance with non chromium-based browsers is not guaranteed. 
+Note: This package is primarily designed for electron apps. Compatibility and performance with non chromium-based browsers is not guaranteed. Development is done with Brave on Linux, and Chrome on Android.
 
 Known problems:
 
-* Firefox desktop: Drag-selection performance is not great when working with many rows
-* Firefox mobile: Drag selection doesn't work at all
-* Chromium based browsers: Having the developer tools open, makes drag selection very laggy
+* Chromium based browsers: Having the developer tools open, makes drag-selection unusably laggy
+* Firefox desktop: Drag-selection performance is inversely proportional to the number of rows
+* Firefox mobile: Drag-selection doesn't work at all
 
 
 
@@ -49,9 +47,10 @@ This time I tried my hardest to fix all the problems, so fingers-crossed, this i
 ### End user changes
 
 * Drag selection big performance increase
-* Drag-selecting while holding `Shift` doesn't deselect the already selected items
+* Drag-selecting while holding **Ctrl** doesn't deselect the already selected items
 * Using the table with only the keyboard is now entirely possible
 * Fixed automatic scrolling when navigating with the keyboard
+* Added multi selection touch support (pressing and holding acts like **Ctrl** + **Click**)
 
 
 
@@ -75,14 +74,27 @@ import 'react-select-table/dist/index.css';
 
 ## Introduction
 
-You will see the term 'value' referenced many times. The table rows are given in an array of objects, in which every object must have a property with a unique value (that would be `_id` when using MongoDB for example). That unique value is considered the item's value
+You will see the term 'value' referenced many times. The table rows are given in an array of objects, in which every object must have a property with a unique value (that would be `_id` when using MongoDB for example). That value is considered the item's value.
 
-
-
-Examples:
+Demos:
 
 * [Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
 * [Todo list with pagination](https://codesandbox.io/s/tablecore-v4-pagination-ozgqt)
 
-**[Documentation](/docs/core.md)**
 
+
+## Quick start
+
+I recommend reading the chapters in the listed order:
+
+1. Reducer
+
+2. Component props
+
+   *For basic use, you can stop here*
+
+3. State
+
+4. Actions
+
+5. Utilities

@@ -1,18 +1,20 @@
-### Options
+# Options
 
-The default options can be modified using [`setDefaultOptions`][setDefaultOptions].
+#### `context` *Context*
+
+> **Required**
+
+The react-redux context for your store. You can import the default one using:
+
+```javascript
+import { ReactReduxContext } from "react-redux"
+```
 
 #### `valueProperty` *string*
 
 > Default: `'id'`
 
-Property path that contains a unique value for each item
-
-#### `initItems` *object[]*
-
-> Default: `[]`
-
-Initial items state (before parsing, sorting and filtering)
+Property path that contains a unique value for each item. The path is resolved using the lodash `get` method.
 
 #### `scrollX` *boolean*
 
@@ -20,18 +22,18 @@ Initial items state (before parsing, sorting and filtering)
 
 If set to true:
 
-* Columns are allowed to overflow their container horizontally. A scrollbar will appear if they do.
-* A column resizer will be added to the last column.
+* Columns are allowed to overflow the container horizontally
+* A column resizer will be added to the last column
 
 #### `multiSelect` *boolean*
 
 > Default: `true`
 
-If set to false, the following features are disabled:
+If set to false:
 
-* `Ctrl`/`Shift` + `Click`/`Home`/`End`/`Up`/`Down`
-* `Ctrl` + `A`
-* Drag selection
+* **Ctrl** / **Shift** + **Click** / **Home** / **End** / **Up** / **Down** are disabled
+* **Ctrl** + **A** is disabled
+* Drag selection is disabled
 
 #### `listBox` *boolean*
 
@@ -39,81 +41,80 @@ If set to false, the following features are disabled:
 
 If set to true:
 
-* Clicking on empty space below the items won't clear the selection.
-* Right clicking a row won't select it, it will just be set to active.
-* Drag selection is disabled.
+* Clicking on the empty space below the items won't clear the selection
+* Right clicking a row won't select it, it will just be set to active
 
 #### `multiSort` *boolean*
 
 >  Default: `false`
 
-If set to true, the user can shift-click on column headers to sort the items based on multiple columns.
+If set to true: The user is allowed to shift-click on the headers to sort the items by multiple columns
 
 #### `minColumnWidth` *number*
 
 > Default: `3`
 
-The minimum column width percentage relative to the table width.
+The minimum column width percentage relative to the table width
 
 #### `path` *string*
 
 > Default: `null`
 
-If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using lodash's `_.get` method, meaning that dot notation can be used. If the table reducer is the root, you can leave it set to `null`.
+If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using the lodash `get` method.
 
 #### `initState` *object*
+
+> Default: `{}`
 
 The initial redux state. The available properties and their default values can be found [here][state]
 
 #### `itemParser` _function_
 
-> Returns: *object*
+> Default: 
 >
-> Default: `item => item`
+> ```javascript
+> item => item
+> ```
 
-| Parameter | Type     | Description   |
-| --------- | -------- | ------------- |
-| `item`    | *object* | Item to parse |
+Called for each item before adding it to the table
 
-Called for each row before adding it to the table. Must return a new row. DO **NOT** MUTATE `item`
+Arguments:
+
+1. *object*
+
+   The item to parse
+
+Returns: *object*
+
+Must return a new object. Do NOT mutate the argument
 
 #### `itemPredicate` _function_
 
-> Returns: *boolean*
->
 > Default:
 >
 > ```javascript
-> (item, filter) => {
->    if (!filter) return true;
-> 
->    for (let key in filter) {
->       if (item[key] !== filter[key])
->          return false;
->    }
-> 
->    return true;
-> }
+>(item, filter) => filter ? _.isMatch(item, filter) : true
 > ```
 
-| Parameter | Type     | Description                |
-| --------- | -------- | -------------------------- |
-| `item`    | *object* | Item to filter             |
-| `filter`  | *any*    | The table [filter][filter] |
+Called for each item to decide whether it should be displayed
 
-Called for each row to decide whether it should be displayed. The items are [parsed][parser] before being filtered.
+Arguments:
 
-With the default implementation, the filter can contain key-value pairs of property paths and matching values. For example, the filter:
+1. *object*
 
-```javascript
-{
-    id: "1",
-    title: "react-select-table",
-    author: "BanForFun"
-}
-```
+   The [parsed][parser] item to filter
 
-...will only allow rows that have a `title` property set to `"react-select-table"` and an `author` property set to `"BanForFun"`. Any extra properties (like `id` in this instance) will be ignored.
+2. *any*
+
+   The [item filter][filter]
+
+Returns: *boolean*
+
+
+
+## Customize default options
+
+
 
 
 

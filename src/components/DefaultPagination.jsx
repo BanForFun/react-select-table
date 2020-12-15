@@ -5,20 +5,20 @@ import AngleDownIcon from "./AngleDownIcon";
 import styles from "../index.scss";
 
 function DefaultPagination({
-    pageCount, pageIndex,
-    isFirst, isLast,
-    goToPage, nextPage, previousPage
+    pageCount, pageIndex, goToPage
 }) {
     if (!pageCount) return null;
 
+    const lastIndex = pageCount - 1;
+
     const prevClass = classNames({
         "page-item": true,
-        "disabled": isFirst
+        "disabled": pageIndex === 0
     });
 
     const nextClass = classNames({
         "page-item": true,
-        "disabled": isLast
+        "disabled": pageIndex === lastIndex
     });
 
     return <nav aria-label="pagination">
@@ -27,7 +27,7 @@ function DefaultPagination({
                 <button
                     className="page-link"
                     aria-label="previous"
-                    onClick={() => previousPage()}
+                    onClick={() => goToPage(pageIndex - 1)}
                 >
                     <AngleDownIcon className={styles.prevPage} />
                 </button>
@@ -50,7 +50,7 @@ function DefaultPagination({
                 <button
                     className="page-link"
                     aria-label="next"
-                    onClick={() => nextPage()}
+                    onClick={() => goToPage(pageIndex + 1)}
                 >
                     <AngleDownIcon className={styles.nextPage} />
                 </button>

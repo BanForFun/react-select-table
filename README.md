@@ -1,5 +1,7 @@
 # react-select-table
 
+**Disclaimer: This component can only be controlled using redux**
+
 ## Features
 
 * Item filtering
@@ -64,37 +66,14 @@ npm install react-select-table
 yarn add react-select-table
 ```
 
-In your `App.js` or equivalent import the stylesheet
-
-````javascript
-import 'react-select-table/dist/index.css';
-````
-
 
 
 ## Introduction
 
 You will see the term 'value' referenced many times. The table rows are given in an array of objects, in which every object must have a property with a unique value (that would be `_id` when using MongoDB for example). That value is considered the item's value.
 
-Demos:
+Online demos:
 
 * [Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
 * [Todo list with pagination](https://codesandbox.io/s/tablecore-v4-pagination-ozgqt)
 
-
-
-## Quick start
-
-I recommend reading the chapters in the listed order:
-
-1. Reducer
-
-2. Component props
-
-   *For basic use, you can stop here*
-
-3. State
-
-4. Actions
-
-5. Utilities

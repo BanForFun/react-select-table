@@ -1,6 +1,6 @@
 import _ from "lodash";
 import produce, {enableMapSet} from "immer";
-import {pagePositions, sortOrders} from "../constants/enums";
+import {sortOrders} from "../constants/enums";
 import {deleteKeys} from "../utils/objectUtils";
 import Actions from "../models/actions";
 import {setOptions} from "../utils/optionUtils";
@@ -354,30 +354,11 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.GO_TO_PAGE: {
-                    const {index} = payload;
-                    if (!draft.pageSize) break;
+                    const newIndex = parseInt(payload.index);
+                    if (isNaN(newIndex)) break;
 
                     const pageCount = getPageCount();
-                    let newIndex = draft.pageIndex;
-
-                    switch (index) {
-                        case pagePositions.Last:
-                            newIndex = pageCount - 1;
-                            break;
-                        case pagePositions.Next:
-                            newIndex++;
-                            break;
-                        case pagePositions.Previous:
-                            newIndex--;
-                            break;
-                        default:
-                            newIndex = parseInt(index);
-                            break;
-                    }
-
-                    if (!_.inRange(newIndex, pageCount)) break;
-                    draft.pageIndex = newIndex;
-
+                    draft.pageIndex = _.clamp(newIndex, 0, pageCount - 1);
                     break;
                 }
                 default:
@@ -387,8 +368,6 @@ export default function createTable(namespace, options = {}) {
             if (draft.tableItems.length < state.tableItems.length) {
                 updatePage();
             }
-
-
         });
     }
 }

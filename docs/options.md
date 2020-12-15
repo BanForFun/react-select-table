@@ -112,16 +112,6 @@ Returns: *boolean*
 
 
 
-## Customize default options
-
-
-
-
-
-[setDefaultOptions]: ./utils.md#setdefaultoptions
-
-
-
 [state]: ./state.md
 [filter]: ./state.md#filter-any
 

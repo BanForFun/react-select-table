@@ -536,6 +536,11 @@ function TableCore(props) {
             sortBy
         }
 
+        const paginationProps = {
+            pageCount, pageIndex,
+            goToPage: dispatchers.goToPage
+        }
+
         const containerStyle = {
             width: `${_.sum(columnWidths)}%`
         };
@@ -568,17 +573,7 @@ function TableCore(props) {
                 </div>
             </div>
             <div className={styles.pagination}>
-                <TablePagination
-                    pageCount={pageCount}
-                    pageIndex={pageIndex}
-                    isFirst={pageIndex === 0}
-                    isLast={pageIndex === pageCount - 1}
-                    nextPage={dispatchers.nextPage}
-                    previousPage={dispatchers.previousPage}
-                    goToPage={dispatchers.goToPage}
-                    firstPage={dispatchers.firstPage}
-                    lastPage={dispatchers.lastPage}
-                />
+                <TablePagination {...paginationProps} />
             </div>
         </Fragment>
     }

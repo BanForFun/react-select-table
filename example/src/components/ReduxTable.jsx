@@ -1,6 +1,6 @@
 import React, {useCallback, useState, useMemo, useEffect} from 'react'
 import _ from "lodash";
-import { TableCore, TableActions } from 'react-select-table';
+import { Table, TableActions } from 'react-select-table';
 import columns from '../columns';
 import { useDispatch, useSelector } from 'react-redux';
 import {tableNamespace} from "../store";
@@ -64,7 +64,7 @@ function ReduxTable() {
                 >{text}</button>
             })}
         </div>
-        <TableCore
+        <Table
             className="table"
             namespace={tableNamespace}
             columns={columns}

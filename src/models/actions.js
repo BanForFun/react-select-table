@@ -1,5 +1,3 @@
-import { pagePositions } from "../constants/enums";
-
 export default class TableActions {
     constructor(namespace) {
         this.namespace = namespace;
@@ -92,12 +90,6 @@ export default class TableActions {
 
     startLoading = () =>
         this._getAction(self.START_LOADING);
-
-    //Aliases
-    firstPage = () => this.goToPage(0);
-    lastPage = () => this.goToPage(pagePositions.Last);
-    previousPage = () => this.goToPage(pagePositions.Previous);
-    nextPage = () => this.goToPage(pagePositions.Next);
 }
 
 const self = TableActions;

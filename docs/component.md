@@ -2,7 +2,7 @@
 
 #### `namespace`  *string*
 
->  Required
+**Required**
 
 Used to connect the table component with the redux store.
 
@@ -14,7 +14,7 @@ In rare cases, you may want two tables to be linked. That can be done by giving 
 
 #### `columns` *[Column](./column.md)*[]
 
-> Required
+**Required**
 
 The table columns before [ordering][columnOrder]
 
@@ -28,13 +28,35 @@ Used in the generation of the [react keys](https://reactjs.org/docs/lists-and-ke
 
 Passed through to the `table` elements
 
+#### `scrollFactor` *number*
+
+The speed of the automatic scrolling when drag selecting. By default it is `0.2`
+
 #### `emptyPlaceholder` *node*
 
-Rendered when the [item array][tableItems] is empty
+Rendered instead of the table when the [item array][tableItems] is empty
 
 #### `loadingIndicator` *node*
 
-Rendered when the table is [loading](isLoading)
+Rendered instead of the table when it is [loading](isLoading)
+
+#### `Error` *elementType*
+
+Rendered instead of the table when there is an [error][error]. By default, the error will be rendered directly.
+
+Component props:
+
+* `error` *any*: The error
+
+#### `Pagination` *elementType*
+
+Rendered below the table when the [page size][pageSize] isn't zero. By default, a bootstrap styled pagination will be rendered.
+
+Component props:
+
+* `pageCount` *number*: The total number of pages, or 0 if pagination is disabled
+* `pageIndex` *number*: The current page index
+* `goToPage` *function*: Calls `goToPage` action creator and dispatches result
 
 #### `columnOrder` *number*[]
 
@@ -107,6 +129,8 @@ Arguments:
 2. *[Set][set] \| any*
 
    The [selected value(s)][selectedValues]
+
+
 
 ### Selected values argument
 

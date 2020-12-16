@@ -90,7 +90,6 @@
 
 * Added `startLoading` action creator
 * Added `scrollFactor` component prop
-* Added `setPivot` action creator
 * Added `getUtils` method
 * Added `useTableStoreHooks` hook
 * Added `Pagination` component prop

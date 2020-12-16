@@ -68,27 +68,29 @@ export default function createTable(namespace, options = {}) {
         utils.getItemValue(draft, index);
 
     //Utilities
-    function setActiveIndex(index = 0) {
-        draft.activeIndex = draft.tableItems.length ? index : null;
-        resetPivot();
+    function setActiveIndex(index) {
+        const maxIndex = draft.tableItems.length - 1;
+        draft.activeIndex = Math.min(index, maxIndex);
+
+        const { pageSize } = draft;
+        draft.pageIndex = pageSize
+            ? Math.trunc(draft.activeIndex / pageSize) : 0;
     }
 
     function resetPivot() {
         draft.pivotIndex = draft.activeIndex;
     }
 
-    function goToActiveIndex() {
-        const { pageSize, activeIndex } = draft;
-        if (activeIndex === null) return;
-
-        draft.pageIndex = pageSize
-            ? Math.trunc(activeIndex / pageSize)
-            : 0;
-    }
-
     function replaceSelection(value) {
         draft.selection.clear();
         draft.selection.add(value);
+    }
+
+    function setSelected(value, selected) {
+        if (selected)
+            draft.selection.add(value);
+        else
+            draft.selection.delete(value);
     }
 
     function safeSelect(value) {
@@ -102,8 +104,7 @@ export default function createTable(namespace, options = {}) {
 
     function ensureKeyed(items) {
         return Array.isArray(items)
-            ? _.keyBy(items, valueProperty)
-            : items;
+            ? _.keyBy(items, valueProperty)  : items;
     }
 
     function setItems(items) {
@@ -118,11 +119,6 @@ export default function createTable(namespace, options = {}) {
     }
 
     //Updaters
-    function updatePage() {
-        const maxIndex = getPageCount() - 1;
-        draft.pageIndex = Math.min(draft.pageIndex, maxIndex);
-    }
-
     function updateItems() {
         //Validate items
         delete draft.items[null];
@@ -168,6 +164,7 @@ export default function createTable(namespace, options = {}) {
 
                     draft.selection.clear();
                     deleteKeys(draft.items, values);
+
                     updateItems();
 
                     break;
@@ -228,6 +225,7 @@ export default function createTable(namespace, options = {}) {
                 case Actions.SET_ITEM_FILTER: {
                     draft.selection.clear();
                     draft.filter = payload.filter;
+
                     updateItems();
                     break;
                 }
@@ -253,8 +251,7 @@ export default function createTable(namespace, options = {}) {
                     const { selection } = draft;
                     const value = getItemValue(index);
 
-                    draft.activeIndex = index;
-                    goToActiveIndex();
+                    setActiveIndex(index);
 
                     if (!multiSelect) {
                         replaceSelection(value);
@@ -280,12 +277,7 @@ export default function createTable(namespace, options = {}) {
                     }
 
                     resetPivot();
-
-                    if (ctrlKey && selection.has(value))
-                        selection.delete(value);
-                    else
-                        selection.add(value);
-
+                    setSelected(value, !ctrlKey || !selection.has(value));
                     break;
                 }
                 case Actions.CLEAR_SELECTION: {
@@ -293,18 +285,20 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_SELECTED: {
-                    const {selection} = draft;
-                    _.forEach(payload.map, (select, index) => {
-                        index = parseInt(index);
+                    const { map, active, pivot } = payload;
 
-                        const value = getItemValue(index);
-                        if (!select)
-                            selection.delete(value);
-                        else
-                            selection.add(value);
+                    //Active index
+                    if (active !== null)
+                        draft.activeIndex = active;
 
-                        if (select || !selection.size)
-                            draft.activeIndex = index;
+                    //Pivot index
+                    if (pivot !== null)
+                        draft.pivotIndex = pivot;
+
+                    //Selection
+                    _.forEach(map, (select, index) => {
+                        const value = getItemValue(parseInt(index));
+                        setSelected(value, select);
                     });
                     break;
                 }
@@ -314,28 +308,21 @@ export default function createTable(namespace, options = {}) {
                 }
                 case Actions.SET_ACTIVE: {
                     setActiveIndex(payload.index);
-                    goToActiveIndex();
-                    break;
-                }
-                case Actions.SET_PIVOT: {
-                    draft.pivotIndex = payload.index;
+                    resetPivot();
                     break;
                 }
                 case Actions.CONTEXT_MENU: {
                     const { index, ctrlKey } = payload;
-                    //Should still be dispatched in order to be handled by eventMiddleware
-                    if (ctrlKey) break;
+                    if (ctrlKey) break; //Should still be dispatched in order to be handled by eventMiddleware
 
-                    const {selection} = draft;
-
+                    const { selection } = draft;
                     if (index === null) {
                         if (!listBox) selection.clear();
                         break;
                     }
 
                     //Not null
-                    setActiveIndex(index);
-
+                    draft.activeIndex = index;
                     if (listBox) break;
 
                     const value = getItemValue(index);
@@ -366,7 +353,7 @@ export default function createTable(namespace, options = {}) {
             }
 
             if (draft.tableItems.length < state.tableItems.length) {
-                updatePage();
+                setActiveIndex(draft.activeIndex);
             }
         });
     }

@@ -16,12 +16,6 @@ import {sortTuple} from "../utils/mathUtils";
 import DefaultError from "./DefaultError";
 import DefaultPagination from "./DefaultPagination";
 
-const getInitDragSelectionState = index => ({
-    selected: { [index]: true },
-    pivot: index,
-    active: index
-});
-
 function TableCore(props) {
     const {
         name,
@@ -35,6 +29,7 @@ function TableCore(props) {
         onKeyDown,
         initColumnWidths,
         scrollFactor,
+        selectionRect,
         columnOrder: _columnOrder,
         Error: TableError,
         Pagination: TablePagination,
@@ -154,9 +149,9 @@ function TableCore(props) {
         const rowIndex = belowItems ? -1 : findRowIndex(relMouseY);
         const itemIndex = belowItems ? -1 : rowIndex + startIndex;
 
+        dragSelection.current = { [itemIndex]: true };
         lastMousePos.current = mousePos;
         lastRelMouseY.current = relMouseY;
-        dragSelectionState.current = getInitDragSelectionState(itemIndex);
         setSelOrigin({
             x: relMouseX,
             y: relMouseY,
@@ -165,14 +160,14 @@ function TableCore(props) {
     }, [ options, findRowIndex, startIndex ]);
 
     const lastRelMouseY = useRef();
-    const dragSelectionState = useRef(getInitDragSelectionState(-1));
+    const dragSelection = useRef({});
     const updateDragSelection = useCallback(relMouseY => {
         const {
             offsetHeight: tableHeight,
             children: rows
         } = tableBodyRef.current;
 
-        const latest = dragSelectionState.current;
+        const selected = dragSelection.current;
 
         //Define selection check area
         const [minMouseY, maxMouseY] = sortTuple(relMouseY, lastRelMouseY.current);
@@ -190,7 +185,7 @@ function TableCore(props) {
         const updateCurrent = select => {
             const itemIndex = startIndex + rowIndex;
 
-            if (select !== latest.selected[itemIndex])
+            if (select !== selected[itemIndex])
                 selectMap[itemIndex] = select;
 
             if (select)
@@ -222,18 +217,6 @@ function TableCore(props) {
             rowIndex++;
         }
 
-        //Set active row
-        if (setActive != null && latest.active !== setActive) {
-            latest.active = setActive;
-            selectMap[setActive] = true;
-        }
-
-        //Modify selection
-        if (!_.isEmpty(selectMap)) {
-            Object.assign(latest.selected, selectMap);
-            dispatchers.setSelected(selectMap);
-        }
-
         //Set pivot row
         const lastItemIndex = startIndex + rowCount - 1;
         const setPivot = belowItems
@@ -242,9 +225,10 @@ function TableCore(props) {
             //Else, set the pivot to the origin row
             : oItemIndex;
 
-        if (setPivot != null && latest.pivot !== setPivot) {
-            latest.pivot = setPivot;
-            dispatchers.setPivot(setPivot);
+        //Modify selection
+        if (!_.isEmpty(selectMap)) {
+            Object.assign(selected, selectMap);
+            dispatchers.setSelected(selectMap, setActive, setPivot);
         }
     }, [
         selOrigin,
@@ -315,17 +299,20 @@ function TableCore(props) {
         const relMouseX = _.clamp(scrollX - scrollLeft, 0, scrollWidth);
         const relMouseY = _.clamp(scrollY - scrollUp, 0, scrollHeight);
 
-        //Calculate selection rectangle
+        //Update selection
+        updateDragSelection(relMouseY);
+
+        //Update rectangle
+        if (!selectionRect) return;
         setSelRect(
             Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y)
                 .offsetBy(headerWidth, headerHeight)
         );
-
-        updateDragSelection(relMouseY);
     }, [
         selOrigin,
         scrollFactor,
-        updateDragSelection
+        updateDragSelection,
+        selectionRect
     ]);
 
     const dragEnd = useCallback(() => {
@@ -477,7 +464,7 @@ function TableCore(props) {
     ]);
     //#endregion
 
-    function renderSelectionBox() {
+    function renderSelectionRect() {
         if (!selRect) return null;
 
         const style = _.mapValues(
@@ -565,7 +552,7 @@ function TableCore(props) {
                      onContextMenu={handleContextMenu}
                      onMouseDown={handleMouseDown}
                 >
-                    {renderSelectionBox()}
+                    {renderSelectionRect()}
                     <table className={className}>
                         {colGroup}
                         <TableBody {...bodyProps} />
@@ -648,6 +635,7 @@ TableConnector.propTypes = {
     className: PropTypes.string,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
+    selectionRect: PropTypes.bool,
     scrollFactor: PropTypes.number,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
@@ -667,5 +655,6 @@ TableConnector.defaultProps = {
     Pagination: DefaultPagination,
     loadingIndicator: null,
     emptyPlaceholder: null,
+    selectionRect: true,
     ...defaultEvents
 };

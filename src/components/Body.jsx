@@ -19,7 +19,6 @@ function TableBody({
     const touchingIndex = useRef();
 
     const handleRowSelect = useCallback((e, index) => {
-        if (e.button !== 0) return;
         dispatchers.select(index, e.ctrlKey, e.shiftKey);
     }, [dispatchers]);
 

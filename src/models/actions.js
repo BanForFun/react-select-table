@@ -73,17 +73,14 @@ export default class TableActions {
     setActive = index =>
         this._getAction(self.SET_ACTIVE, { index });
 
-    setPivot = index =>
-        this._getAction(self.SET_PIVOT, { index });
-
     clearSelection = () =>
         this._getAction(self.CLEAR_SELECTION);
 
     selectAll = () =>
         this._getAction(self.SELECT_ALL);
 
-    setSelected = map =>
-        this._getAction(self.SET_SELECTED, { map });
+    setSelected = (map, active = null, pivot = null) =>
+        this._getAction(self.SET_SELECTED, { map, active, pivot });
 
     setError = error =>
         this._getAction(self.SET_ERROR, { error });

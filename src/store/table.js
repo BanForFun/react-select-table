@@ -68,9 +68,9 @@ export default function createTable(namespace, options = {}) {
         utils.getItemValue(draft, index);
 
     //Utilities
-    function setActiveIndex(index) {
-        const maxIndex = draft.tableItems.length - 1;
-        draft.activeIndex = Math.min(index, maxIndex);
+    function setActiveIndex(index, doResetPivot = false) {
+        draft.activeIndex = index;
+        if (doResetPivot) resetPivot();
 
         const { pageSize } = draft;
         draft.pageIndex = pageSize
@@ -79,6 +79,10 @@ export default function createTable(namespace, options = {}) {
 
     function resetPivot() {
         draft.pivotIndex = draft.activeIndex;
+    }
+
+    function resetActive() {
+        setActiveIndex(0, true);
     }
 
     function replaceSelection(value) {
@@ -142,6 +146,7 @@ export default function createTable(namespace, options = {}) {
                 case Actions.SET_ITEMS: {
                     setItems(ensureKeyed(payload.items));
                     updateItems();
+                    resetActive();
                     break;
                 }
                 case Actions.ADD_ITEMS: {
@@ -154,8 +159,8 @@ export default function createTable(namespace, options = {}) {
                         draft.items[value] = item;
                         safeSelect(value);
                     }
-                    updateItems();
 
+                    updateItems();
                     break;
                 }
                 case Actions.DELETE_ITEMS: {
@@ -166,7 +171,6 @@ export default function createTable(namespace, options = {}) {
                     deleteKeys(draft.items, values);
 
                     updateItems();
-
                     break;
                 }
                 case Actions.SET_ITEM_VALUES: {
@@ -220,6 +224,7 @@ export default function createTable(namespace, options = {}) {
                         : sortOrders.Ascending
 
                     updateItems();
+                    resetActive();
                     break;
                 }
                 case Actions.SET_ITEM_FILTER: {
@@ -307,8 +312,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ACTIVE: {
-                    setActiveIndex(payload.index);
-                    resetPivot();
+                    setActiveIndex(payload.index, true);
                     break;
                 }
                 case Actions.CONTEXT_MENU: {
@@ -352,8 +356,10 @@ export default function createTable(namespace, options = {}) {
                     break;
             }
 
-            if (draft.tableItems.length < state.tableItems.length) {
-                setActiveIndex(draft.activeIndex);
+            const itemCount = draft.tableItems.length;
+            if (itemCount < state.tableItems.length) {
+                const newActive = Math.min(draft.activeIndex, itemCount - 1);
+                setActiveIndex(newActive, true);
             }
         });
     }

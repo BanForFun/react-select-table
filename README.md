@@ -35,7 +35,11 @@ Note: This package is primarily designed for electron apps. Compatibility and pe
 Known problems:
 
 * Chromium based browsers: Having the developer tools open, makes drag-selection unusably laggy
-* Firefox desktop: Drag-selection performance is inversely proportional to the number of rows
+
+  Hack: Hide the drag selection rectangle in development environment
+
+* Firefox desktop: Drag-selection performance not as good as chromium
+
 * Firefox mobile: Drag-selection doesn't work at all
 
 

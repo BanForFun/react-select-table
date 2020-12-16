@@ -93,6 +93,7 @@
 * Added `getUtils` method
 * Added `useTableStoreHooks` hook
 * Added `Pagination` component prop
+* Added `showSelectionRect` component prop
 * The [classnames](https://www.npmjs.com/package/classnames) library is used to parse the `_className` property of rows, so objects and arrays are accepted as well as strings
 
 

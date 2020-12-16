@@ -1,6 +1,4 @@
-export function sortTuple(a, b) {
-    return [
-        a > b ? b : a,
-        a > b ? a : b
-    ];
-}
+export const sortTuple = (a, b) => [
+    a < b ? a : b,
+    a > b ? a : b
+]

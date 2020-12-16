@@ -7,7 +7,6 @@ import TableBody from "./Body";
 import ColumnResizer from "./ColumnResizer";
 import PropTypes from "prop-types";
 import {connect} from 'react-redux';
-import Rect from '../models/rect';
 import {bindActionCreators} from 'redux';
 import {tableOptions, defaultEvents} from '../utils/optionUtils';
 import useWindowEvent from '../hooks/useWindowEvent';
@@ -29,7 +28,7 @@ function TableCore(props) {
         onKeyDown,
         initColumnWidths,
         scrollFactor,
-        selectionRect,
+        showSelectionRect,
         columnOrder: _columnOrder,
         Error: TableError,
         Pagination: TablePagination,
@@ -268,18 +267,12 @@ function TableCore(props) {
             scrollTop: scrollY
         } = rootEl;
 
-        //Calculate visible container bounds
+        //Get container bounds
         const bounds = rootEl.getBoundingClientRect();
-        const visibleBounds = new Rect(
-            bounds.left + headerWidth,
-            bounds.top + headerHeight,
-            bounds.right,
-            bounds.bottom
-        );
 
         //Scroll horizontally
-        const scrollRight = mouseX - visibleBounds.right;
-        const scrollLeft = visibleBounds.left - mouseX;
+        const scrollRight = mouseX - bounds.right;
+        const scrollLeft = bounds.left + headerWidth - mouseX;
 
         if (scrollRight > 0)
             rootEl.scrollLeft += scrollRight * scrollFactor;
@@ -287,8 +280,8 @@ function TableCore(props) {
             rootEl.scrollLeft -= scrollLeft * scrollFactor;
 
         //Scroll vertically
-        const scrollDown = mouseY - visibleBounds.bottom;
-        const scrollUp = visibleBounds.top - mouseY;
+        const scrollDown = mouseY - bounds.bottom;
+        const scrollUp = bounds.top + headerHeight - mouseY;
 
         if (scrollDown > 0)
             rootEl.scrollTop += scrollDown * scrollFactor;
@@ -303,16 +296,21 @@ function TableCore(props) {
         updateDragSelection(relMouseY);
 
         //Update rectangle
-        if (!selectionRect) return;
-        setSelRect(
-            Rect.fromPoints(relMouseX, relMouseY, selOrigin.x, selOrigin.y)
-                .offsetBy(headerWidth, headerHeight)
-        );
+        if (!showSelectionRect) return;
+        const [left, right] = sortTuple(relMouseX, selOrigin.x);
+        const [top, bottom] = sortTuple(relMouseY, selOrigin.y);
+
+        setSelRect({
+            top,
+            left,
+            width: right - left,
+            height: bottom - top
+        });
     }, [
         selOrigin,
         scrollFactor,
         updateDragSelection,
-        selectionRect
+        showSelectionRect
     ]);
 
     const dragEnd = useCallback(() => {
@@ -467,10 +465,12 @@ function TableCore(props) {
     function renderSelectionRect() {
         if (!selRect) return null;
 
-        const style = _.mapValues(
-            _.pick(selRect, "left", "top", "width", "height"),
-            n => `${n}px`
-        );
+        const { offsetTop, offsetLeft } = bodyContainerRef.current;
+
+        const style = {
+            ...selRect,
+            transform: `translate(${offsetLeft}px, ${offsetTop}px)`
+        }
 
         return <div className={styles.selection} style={style}/>
     }
@@ -552,7 +552,7 @@ function TableCore(props) {
                      onContextMenu={handleContextMenu}
                      onMouseDown={handleMouseDown}
                 >
-                    {renderSelectionRect()}
+                    {showSelectionRect && renderSelectionRect()}
                     <table className={className}>
                         {colGroup}
                         <TableBody {...bodyProps} />
@@ -635,7 +635,7 @@ TableConnector.propTypes = {
     className: PropTypes.string,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
-    selectionRect: PropTypes.bool,
+    showSelectionRect: PropTypes.bool,
     scrollFactor: PropTypes.number,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
@@ -655,6 +655,6 @@ TableConnector.defaultProps = {
     Pagination: DefaultPagination,
     loadingIndicator: null,
     emptyPlaceholder: null,
-    selectionRect: true,
+    showSelectionRect: true,
     ...defaultEvents
 };

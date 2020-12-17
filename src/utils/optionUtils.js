@@ -1,6 +1,5 @@
 import _ from "lodash";
-import {getFirstItem} from "./setUtils";
-import {makeGetPaginatedItems} from "../selectors/paginationSelectors";
+import * as selectors from "../selectors/tableSelectors";
 import TableActions from "../models/actions";
 
 export const tableOptions = {};
@@ -12,7 +11,7 @@ export const defaultEvents = {
 
 const defaultOptions = {
     itemParser: item => item,
-    itemPredicate: (item, filter) => filter ? _.isMatch(item, filter) : true,
+    itemPredicate: (item, filter) => !filter || _.isMatch(item, filter),
     multiSelect: true,
     listBox: false,
     minColumnWidth: 3,
@@ -29,29 +28,10 @@ export function setDefaultOptions(options) {
 }
 
 export function setOptions(namespace, options) {
-    const {
-        path,
-        multiSelect,
-        valueProperty
-    } = _.defaults(options, defaultOptions);
-
-    const formatSelection = selection => {
-        if (multiSelect) return selection;
-        return getFirstItem(selection) ?? null;
-    }
+    const { path, valueProperty } = _.defaults(options, defaultOptions);
 
     const getStateSlice = state =>
         path ? _.get(state, path) : state;
-
-    const getPageCount = slice => {
-        const { pageSize } = slice;
-        if (!pageSize) return 0;
-
-        const itemCount = slice.tableItems.length;
-        if (!itemCount) return 1;
-
-        return Math.ceil(itemCount / pageSize);
-    }
 
     const getItemValue = (slice, index) =>
         index !== null ? slice.tableItems[index][valueProperty] : null;
@@ -59,10 +39,10 @@ export function setOptions(namespace, options) {
     //Assign utils
     options.utils = {
         actions: new TableActions(namespace),
-        getPaginatedItems: makeGetPaginatedItems(),
-        formatSelection,
+        getPaginatedItems: selectors.makeGetPaginatedItems(),
+        getPageCount: selectors.makeGetPageCount(),
+        getSelectionArg: selectors.makeGetSelectionArg(options),
         getStateSlice,
-        getPageCount,
         getItemValue
     }
 

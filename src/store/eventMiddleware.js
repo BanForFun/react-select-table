@@ -40,17 +40,15 @@ const eventMiddleware = store => next => action => {
             const result = next(action);
             const state = getState();
 
-            const {selection} = state;
-
             //Raise onSelectionChange
-            if (!compareSets(prevState.selection, selection))
-                events.onSelectionChange(utils.formatSelection(selection));
+            if (!compareSets(prevState.selection, state.selection))
+                events.onSelectionChange(utils.getSelectionArg(state));
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
                 events.onContextMenu(options.listBox
                     ? utils.getItemValue(state, payload.ctrlKey ? state.activeIndex : payload.index)
-                    : utils.formatSelection(selection)
+                    : utils.getSelectionArg(state)
                 );
 
             return result;

@@ -21,8 +21,6 @@ function TableHead({
     const header = useRef();
 
     const updateWidth = useCallback(xPos => {
-        if (resizingIndex < 0) return;
-
         const index = resizingIndex;
         const head = header.current;
         const headXPos = head.getBoundingClientRect().x;
@@ -65,8 +63,10 @@ function TableHead({
     }, [resizingIndex, onResizeEnd, columnWidths]);
 
     useWindowEvent("mousemove", useCallback(e => {
+        if (resizingIndex < 0) return;
+
         updateWidth(e.clientX)
-    },[updateWidth]));
+    },[resizingIndex, updateWidth]));
 
     useWindowEvent("mouseup", dragEnd);
 

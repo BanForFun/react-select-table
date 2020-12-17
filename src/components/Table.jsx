@@ -43,6 +43,7 @@ function TableCore(props) {
         error,
         isLoading,
         selection,
+        selectionArg,
         activeIndex,
         dispatch
     } = props;
@@ -216,6 +217,8 @@ function TableCore(props) {
             rowIndex++;
         }
 
+        if (_.isEmpty(selectMap)) return;
+
         //Set pivot row
         const lastItemIndex = startIndex + rowCount - 1;
         const setPivot = belowItems
@@ -225,10 +228,8 @@ function TableCore(props) {
             : oItemIndex;
 
         //Modify selection
-        if (!_.isEmpty(selectMap)) {
-            Object.assign(selected, selectMap);
-            dispatchers.setSelected(selectMap, setActive, setPivot);
-        }
+        Object.assign(selected, selectMap);
+        dispatchers.setSelected(selectMap, setActive, setPivot);
     }, [
         selOrigin,
         rowCount,
@@ -297,14 +298,11 @@ function TableCore(props) {
 
         //Update rectangle
         if (!showSelectionRect) return;
-        const [left, right] = sortTuple(relMouseX, selOrigin.x);
-        const [top, bottom] = sortTuple(relMouseY, selOrigin.y);
-
         setSelRect({
-            top,
-            left,
-            width: right - left,
-            height: bottom - top
+            left: Math.min(relMouseX, selOrigin.x),
+            top: Math.min(relMouseY, selOrigin.y),
+            width: Math.abs(relMouseX - selOrigin.x),
+            height: Math.abs(relMouseY - selOrigin.y)
         });
     }, [
         selOrigin,
@@ -341,13 +339,12 @@ function TableCore(props) {
     const openItems = useCallback((e, byKeyboard) => {
         const openByKeyboard = matchModifiers(e) && selection.size;
         if (!byKeyboard || openByKeyboard)
-            onItemsOpen(utils.formatSelection(selection), byKeyboard);
+            onItemsOpen(selectionArg, byKeyboard);
         else
             dispatchers.select(activeIndex, e.ctrlKey, e.shiftKey);
     }, [
-        selection, activeIndex,
-        dispatchers, utils,
-        onItemsOpen
+        selection, selectionArg, activeIndex,
+        dispatchers, onItemsOpen
     ]);
 
     const scheduledScroll = useRef(null);
@@ -403,8 +400,8 @@ function TableCore(props) {
     }, [selectIndex, activeIndex, itemCount]);
 
     const raiseKeyDown = useCallback(e => {
-        onKeyDown(e, utils.formatSelection(selection));
-    }, [selection, utils, onKeyDown])
+        onKeyDown(e, selectionArg);
+    }, [selectionArg, onKeyDown])
 
     //#endregion
 
@@ -552,7 +549,7 @@ function TableCore(props) {
                      onContextMenu={handleContextMenu}
                      onMouseDown={handleMouseDown}
                 >
-                    {showSelectionRect && renderSelectionRect()}
+                    {renderSelectionRect()}
                     <table className={className}>
                         {colGroup}
                         <TableBody {...bodyProps} />
@@ -580,8 +577,7 @@ function mapState(root, props) {
     const { utils } = props.options;
     const state = utils.getStateSlice(root);
 
-    const { startIndex, rows } = utils.getPaginatedItems(state);
-    const pageCount = utils.getPageCount(state);
+    const pagination = utils.getPaginatedItems(state)
 
     return {
         ..._.pick(state,
@@ -593,9 +589,10 @@ function mapState(root, props) {
             "sortBy"
         ),
         itemCount: state.tableItems.length,
-        startIndex,
-        rows,
-        pageCount
+        startIndex: pagination.startIndex,
+        rows: pagination.rows,
+        pageCount: utils.getPageCount(state),
+        selectionArg: utils.getSelectionArg(state)
     };
 }
 

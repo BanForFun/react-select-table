@@ -16,7 +16,7 @@ In rare cases, you may want two tables to be linked. That can be done by giving 
 
 **Required**
 
-The table columns before [ordering][columnOrder]
+The table columns before [ordering][columnOrder].
 
 #### `name`  *string*
 
@@ -34,11 +34,15 @@ The speed of the automatic scrolling when drag selecting. By default it is `0.2`
 
 #### `emptyPlaceholder` *node*
 
-Rendered instead of the table when the [item array][tableItems] is empty
+Rendered instead of the table when the [item array][tableItems] is empty.
 
 #### `loadingIndicator` *node*
 
-Rendered instead of the table when it is [loading](isLoading)
+Rendered instead of the table when it is [loading][isLoading]
+
+#### `showSelectionRect` *bool*
+
+Sets whether the drag-selection rectangle will be calculated and rendered. Is true by default, but setting it to false can improve performance.
 
 #### `Error` *elementType*
 
@@ -72,7 +76,7 @@ Called when the user right-clicks on a row, the table container, or the empty pl
 
 Arguments:
 
-1. *[Set][set] \| any*
+1. *[Set][set] | any*
 
    If the [list box][listBox] option is enabled, the value of the row which the user right-clicked will be passed (or null if below items)
 
@@ -86,7 +90,7 @@ Called when the user double-clicks on a row or presses the enter key. Will not b
 
 Arguments:
 
-1. *[Set][set] \| any*
+1. *[Set][set] | any*
 
    The [selected value(s)][selectedValues]
 
@@ -94,7 +98,7 @@ Arguments:
 
    True if caused by enter key press
 
-   False if caused by double click
+   False if caused by double-click
 
 #### `onSelectionChanged` *function*
 
@@ -102,7 +106,7 @@ Called when the selection changes
 
 Arguments:
 
-1. *[Set][set] \| any*
+1. *[Set][set] | any*
 
    The new [selected value(s)][selectedValues]
 
@@ -126,11 +130,9 @@ Arguments:
 
    The original keydown event
 
-2. *[Set][set] \| any*
+2. *[Set][set] | any*
 
    The [selected value(s)][selectedValues]
-
-
 
 ### Selected values argument
 
@@ -138,24 +140,24 @@ If the [multi select][multiSelect] option is enabled, then the whole [selection]
 
 Otherwise, the single selected value will be passed, or null if no item is selected.
 
-
-
 [set]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
+[columns]: #columns-column
 
+[columnOrder]: #columnorder-number
 
-[ columns ]: #columns-column
-[ columnOrder ]: #columnorder-number
 [selectedValues]: #selected-values-argument
 
-
-
 [selection]: ./state.md#selection-set
+
 [activeValue]: ./state.md#activevalue-any
-[tableItems ]: ./state.md#tableItems-object
+
+[tableItems]: ./state.md#tableItems-object
+
 [isLoading]: ./state.md#isloading-boolean
 
+[error]: ./state.md#error-any
 
+[listBox]: ./options.md#listbox-boolean
 
-[ listBox ]: ./options.md#listbox-boolean
-[ multiSelect ]: ./options.md#multiselect-boolean
+[multiSelect]: ./options.md#multiselect-boolean

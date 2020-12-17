@@ -93,7 +93,7 @@ Must return a new object. Do NOT mutate the argument
 > Default:
 >
 > ```javascript
->(item, filter) => filter ? _.isMatch(item, filter) : true
+>(item, filter) => !filter || _.isMatch(item, filter)
 > ```
 
 Called for each item to decide whether it should be displayed

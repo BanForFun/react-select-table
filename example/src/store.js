@@ -12,7 +12,6 @@ const compose = composeWithDevTools({
 const options = {
     valueProperty: "id",
     scrollX: true,
-    listBox: true,
     multiSelect: true
 }
 

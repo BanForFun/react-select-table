@@ -25,7 +25,7 @@
   | `patchRows`      | `patchItems`     | `PATCH_ROWS`      | `PATCH_ITEMS`     |
   | `sortBy`         | `sortItems`      | `SORT_BY`         | `SORT_ITEMS`      |
   | `setFilter`      | `setItemFilter`  | `SET_FILTER`      | `SET_ITEM_FILTER` |
-  
+
 * Replaced `setRowSelected` with `setSelected`
 
 * Replaced `setActiveRow` with `setActive`
@@ -46,12 +46,12 @@
 
 * `addItems` selects all added items
 
-  
+
 
 ### Events
 
 * The selected values argument passed to `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when the multi select option is disabled, and a [*Set*](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
-* The selected values argument passed to `onContextMenu` when the list box option is enabled, 
+* The selected values argument passed to `onContextMenu` when the list box option is enabled,
 
 
 
@@ -198,7 +198,7 @@
 
 * Swapped position of `createTable` parameters: `initState` and `options`
 
-* State properties `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` are now constant and must be passed as properties of the `options` object (second parameter of `createTable`) 
+* State properties `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` are now constant and must be passed as properties of the `options` object (second parameter of `createTable`)
 
 * Removed `setMultiselect`, `setListboxMode`, `setMinColumnWidth` and `setValueProperty` action creators
-* Removed component props `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty` 
+* Removed component props `isMultiselect`, `isListbox`, `minColumnWidth` and `valueProperty`

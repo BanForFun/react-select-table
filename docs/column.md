@@ -16,7 +16,7 @@ Called for each cell to return the content to be displayed. If not set, the prop
 
 #### `key` *string*
 
-Used in the generation of the [react key](](https://reactjs.org/docs/lists-and-keys.html#keys)) for the cells, so it must be unique for each column.
+Used in the generation of the [react key](https://reactjs.org/docs/lists-and-keys.html#keys) for the cells, so it must be unique for each column.
 
 If [`path`](#path-string) is set, it will be implicitly used as the key. If multiple columns use the same path, then you should their keys to different ones.
 

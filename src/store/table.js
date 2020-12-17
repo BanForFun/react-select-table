@@ -77,6 +77,11 @@ export default function createTable(namespace, options = {}) {
             ? Math.trunc(draft.activeIndex / pageSize) : 0;
     }
 
+    function isValidIndex(index) {
+        return Number.isInteger(index) &&
+            _.inRange(index, 0, draft.tableItems.length);
+    }
+
     function resetPivot() {
         draft.pivotIndex = draft.activeIndex;
     }
@@ -253,15 +258,17 @@ export default function createTable(namespace, options = {}) {
                 //Selection
                 case Actions.SELECT: {
                     const { index, ctrlKey, shiftKey } = payload;
-                    const { selection } = draft;
-                    const value = getItemValue(index);
+                    if (!isValidIndex(index)) break;
 
                     setActiveIndex(index);
+                    const value = getItemValue(index);
 
                     if (!multiSelect) {
                         replaceSelection(value);
                         break;
                     }
+
+                    const { selection } = draft;
 
                     if (!ctrlKey)
                         selection.clear();
@@ -302,8 +309,10 @@ export default function createTable(namespace, options = {}) {
 
                     //Selection
                     _.forEach(map, (select, index) => {
-                        const value = getItemValue(parseInt(index));
-                        setSelected(value, select);
+                        index = parseInt(index);
+                        if (!isValidIndex(index)) return;
+
+                        setSelected(getItemValue(index), select);
                     });
                     break;
                 }
@@ -324,6 +333,8 @@ export default function createTable(namespace, options = {}) {
                         if (!listBox) selection.clear();
                         break;
                     }
+
+                    if (!isValidIndex(index)) break;
 
                     //Not null
                     draft.activeIndex = index;

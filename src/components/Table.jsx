@@ -53,9 +53,9 @@ function TableCore(props) {
 
     const isTouching = useRef(false);
 
-    const {utils} = options;
     const rowCount = rows.length;
 
+    const { utils } = options;
     const dispatchers = useMemo(() =>
         bindActionCreators(utils.actions, dispatch),
         [utils, dispatch]

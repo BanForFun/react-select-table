@@ -25,6 +25,7 @@
   | `patchRows`      | `patchItems`     | `PATCH_ROWS`      | `PATCH_ITEMS`     |
   | `sortBy`         | `sortItems`      | `SORT_BY`         | `SORT_ITEMS`      |
   | `setFilter`      | `setItemFilter`  | `SET_FILTER`      | `SET_ITEM_FILTER` |
+  | `addRows`        | `addItems`       | `ADD_ROWS`        | `ADD_ITEMS`       |
 
 * Replaced `setRowSelected` with `setSelected`
 

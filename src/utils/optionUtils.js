@@ -1,6 +1,7 @@
 import _ from "lodash";
 import * as selectors from "../selectors/tableSelectors";
 import TableActions from "../models/actions";
+import {createSelectorHook} from "react-redux";
 
 export const tableOptions = {};
 
@@ -23,28 +24,37 @@ const defaultOptions = {
     context: null
 };
 
-export function setDefaultOptions(options) {
+export function setDefaultTableOptions(options) {
     Object.assign(defaultOptions, options);
 }
 
-export function setOptions(namespace, options) {
-    const { path, valueProperty } = _.defaults(options, defaultOptions);
-
+function getUtils(namespace, options) {
     const getStateSlice = state =>
-        path ? _.get(state, path) : state;
+        options.path ? _.get(state, options.path) : state;
 
     const getItemValue = (slice, index) =>
-        index !== null ? slice.tableItems[index][valueProperty] : null;
+        index === null ? null : slice.tableItems[index][options.valueProperty]
 
-    //Assign utils
-    options.utils = {
+    const useRootSelector = createSelectorHook(options.context);
+    const useSelector = selector =>
+        useRootSelector(state => selector(getStateSlice(state)));
+
+    return {
         actions: new TableActions(namespace),
         getPaginatedItems: selectors.makeGetPaginatedItems(),
         getPageCount: selectors.makeGetPageCount(),
         getSelectionArg: selectors.makeGetSelectionArg(options),
         getStateSlice,
-        getItemValue
+        getItemValue,
+        useSelector
     }
+}
+
+export function setOptions(namespace, options) {
+    _.defaults(options, defaultOptions);
+
+    //Assign utils
+    options.utils = getUtils(namespace, options);
 
     //Assign events
     options.events = {...defaultEvents};
@@ -53,6 +63,6 @@ export function setOptions(namespace, options) {
     return options; //Object.freeze mutates object
 }
 
-export function getUtils(namespace) {
+export function getTableUtils(namespace) {
     return tableOptions[namespace].utils;
 }

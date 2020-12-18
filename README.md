@@ -36,7 +36,7 @@ Known problems:
 
 * Chromium based browsers: Having the developer tools open, makes drag-selection unusably laggy
 
-  Hack: Hide the drag selection rectangle in development environment
+  Hack: [Hide the drag selection rectangle](./docs/component.md#showselectionrect-bool) in development environment
 
 * Firefox desktop: Drag-selection performance not as good as chromium
 
@@ -76,7 +76,7 @@ yarn add react-select-table
 
 You will see the term 'value' referenced many times. The table rows are given in an array of objects, in which every object must have a property with a unique value (that would be `_id` when using MongoDB for example). That value is considered the item's value.
 
-Online demos:
+Demos:
 
 * [Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
 * [Todo list with pagination](https://codesandbox.io/s/tablecore-v4-pagination-ozgqt)

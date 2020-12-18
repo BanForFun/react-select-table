@@ -39,20 +39,21 @@
 
 * `clearItems` now sets loading state to false. Use `startLoading` instead
 
-* Removed optional `keyed` *boolean* parameter from `setItems`. The rows are assumed to be keyed, if the `items` argument is an object
+* Removed optional `keyed` *boolean* parameter from `setItems`. The rows must always be passed as array.
 
-* `setItems`, `deleteItems`, `clearItems` and `setItemFilter`, clear the selection
+* `setItems`, `deleteItems`, `clearItems` and `setItemFilter` now clear the selection
 
 * Made `goToPage` index parameter zero-based
 
 * `addItems` selects all added items
 
+* `patchItems` doesn't create a row, if one does not exist with the given value
+
 
 
 ### Events
 
-* The selected values argument passed to `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown`, is a single value when the multi select option is disabled, and a [*Set*](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set) of values when it is enabled
-* The selected values argument passed to `onContextMenu` when the list box option is enabled,
+* The selected values argument passed to `onContextMenu`, `onItemsOpen`, `onSelectionChange` and `onKeyDown` has changed
 
 
 

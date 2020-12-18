@@ -9,82 +9,60 @@ To create a table reducer, import and call the `createTable` function. It takes 
 
 Here are some examples of store setups (`store.js`):
 
-Single table
+**Single table**
 
 ```javascript
 import {applyMiddleware, createStore} from "redux";
+import {ReactReduxContext} from "react-redux";
 import {createTable, eventMiddleware} from "react-select-table";
 
 export const tableNamespace = "todos";
 
-export default function setupStore() {
-    const reducer = createTable(tableNamespace, {
-		multiSelect: false
-    });
+const reducer = createTable(tableNamespace, {
+    multiSelect: false,
+    context: ReactReduxContext
+});
 
-    return createStore(reducer, applyMiddleware(eventMiddleware));
-}
+export default createStore(reducer, applyMiddleware(eventMiddleware));
 ```
 
-Single table with devtools
-
-```javascript
-import {applyMiddleware, createStore} from "redux";
-import {createTable, eventMiddleware} from "react-select-table";
-import {composeWithDevTools} from "redux-devtools-extension";
-
-export const tableNamespace = "todos";
-
-//In order to correctly display the selection property, serialize should be set to true
-const compose = composeWithDevTools({ serialize: true });
-
-export default function setupStore() {
-    const reducer = createTable(tableNamespace, {
-        multiSelect: false
-    });
-
-    return createStore(reducer, compose(applyMiddleware(eventMiddleware)));
-}
-```
-
-Multiple nested tables
+**Multiple tables with default options and redux devtools**
 
 ```javascript
 import {applyMiddleware, createStore, combineReducers} from "redux";
-import {createTable, eventMiddleware} from "react-select-table";
+import {ReactReduxContext} from "react-redux";
+import {createTable, eventMiddleware, setDefaultTableOptions} from "react-select-table";
+import {composeWithDevTools} from "redux-devtools-extension";
 
-export const todoNamespace = "todos";
-export const categoryNamespace = "categories";
+//To avoid having to pass the context to each table seperatly, you can set it as default.
+//This must be done before any call to createTable
+setDefaultTableOptions({
+    context: ReactReduxContext
+});
 
-export default function setupStore() {
-    const todoReducer = createTable(todoNamespace, {
-        multiSelect: false,
-        path: "tables.todos"
-    });
+export const todosNamespace = "todos";
+export const categoriesNamespace = "categories";
 
-    const categoryReducer = createTable(categoryNamespace, {
-       	listBox: true,
-        path: "tables.categories"
-    });
+const reducer = combineReducers({
+    tables: {
+        todos: createTable(todosNamespace, {
+            multiSelect: false,
+            path: "tables.todos" //You must pass a path, if the table reducer isn't the root
+        }),
+        categories: createTable(categoriesNamespace, {
+            listBox: true,
+            path: "tables.categories"
+        })
+    }
+});
 
-    const reducer = combineReducers({
-        tables: {
-            todos: todoReducer,
-            categories: categoryReducer
-        }
-    });
+//Set serialize to true to properly display selection Set
+const compose = composeWithDevTools({ serialize: true });
 
-    return createStore(reducer, applyMiddleware(eventMiddleware));
-}
+export default createStore(reducer, compose(applyMiddleware(eventMiddleware));
 ```
 
-If you read the documentation for the options object, you will notice that in none of the examples above did we provide the required context option. You may also be wondering why we are exporting a function that returns the store and not the store directly. There is a reason for both of these, which we'll see in the provider setup below.
-
 ## Provider
-
-To change the default options, you can import the `setDefaultOptions` function and call it BEFORE any call to `createTable`. It takes an *object* as an argument which will be `Object.assign`-ed to the internal default options object.
-
-A good reason to do that, is to set the default context option, which in most apps will be the the same for all tables. Of course, you can set other default options while you're at it. Don't worry if you don't know what the redux context does, just import `ReactReduxContext` and pass it to `setDefaultOptions` like shown below.
 
 Example index file (normally `index.js`)
 
@@ -93,17 +71,9 @@ import './index.css'
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Provider, ReactReduxContext } from 'react-redux'
-import { setDefaultOptions } from 'react-select-table'
+import { Provider } from 'react-redux'
+import store from './store' //Import the store before the App component, so that you can use getTableUtils
 import App from './App'
-import setupStore from './store'
-
-//Call setDefaultOptions BEFORE setupStore
-setDefaultOptions({
-    context: ReactReduxContext
-});
-
-const store = setupStore();
 
 ReactDOM.render(
     <Provider store={store}>
@@ -122,10 +92,11 @@ To set the items, we will use the `setItems` action creator. See all the action 
 Be sure to import the stylesheet. We are also going to use the `table` class from bootstrap.
 
 ```javascript
-import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-select-table/dist/index.css';
 import './App.css';
 
+import 'bootstrap';
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { Table, TableActions } from 'react-select-table';

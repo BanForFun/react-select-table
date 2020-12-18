@@ -20,7 +20,9 @@ const eventMiddleware = store => next => action => {
 
     switch (type) {
         case actions.SET_ITEMS:
+        case actions.ADD_ITEMS:
         case actions.DELETE_ITEMS:
+        case actions.PATCH_ITEMS:
         case actions.SET_ITEM_VALUES:
         case actions.CLEAR_ITEMS:
         case actions.SET_ITEM_FILTER:
@@ -31,24 +33,25 @@ const eventMiddleware = store => next => action => {
         case actions.SET_ERROR:
         case actions.START_LOADING:
         case actions.CONTEXT_MENU:
+            //Get table options, events and utils
             const options = tableOptions[namespace];
             const { events, utils } = options;
+            const getSlice = () => utils.getStateSlice(store.getState());
 
-            const getState = () => utils.getStateSlice(store.getState());
-
-            const prevState = getState();
+            //Get previous and current state
+            const prevSlice = getSlice();
             const result = next(action);
-            const state = getState();
+            const slice = getSlice();
 
             //Raise onSelectionChange
-            if (!compareSets(prevState.selection, state.selection))
-                events.onSelectionChange(utils.getSelectionArg(state));
+            if (!compareSets(prevSlice.selection, slice.selection))
+                events.onSelectionChange(utils.getSelectionArg(slice));
 
             //Raise onContextMenu
             if (type === actions.CONTEXT_MENU)
                 events.onContextMenu(options.listBox
-                    ? utils.getItemValue(state, payload.ctrlKey ? state.activeIndex : payload.index)
-                    : utils.getSelectionArg(state)
+                    ? utils.getItemValue(slice, payload.ctrlKey ? slice.activeIndex : payload.index)
+                    : utils.getSelectionArg(slice)
                 );
 
             return result;

@@ -1,6 +1,5 @@
 import _ from "lodash";
 import produce, {enableMapSet} from "immer";
-import {sortOrders} from "../constants/enums";
 import {deleteKeys} from "../utils/objectUtils";
 import Actions from "../models/actions";
 import {setOptions} from "../utils/optionUtils";
@@ -8,6 +7,22 @@ import {createSelector} from "reselect";
 import {forRange} from "../utils/loopUtils";
 
 enableMapSet();
+
+const sortOrders = Object.freeze({
+    Ascending: "asc",
+    Descending: "desc"
+});
+
+function getNextSortOrder(order) {
+    switch (order) {
+        case sortOrders.Ascending:
+            return sortOrders.Descending;
+        case sortOrders.Descending:
+            return null;
+        default:
+            return sortOrders.Ascending;
+    }
+}
 
 const defaultState = {
     selection: new Set(),
@@ -44,8 +59,8 @@ export default function createTable(namespace, options = {}) {
     const getFilteredItems = createSelector(
         getParsedItems,
         s => s.filter,
-        (items, filter) => _.filter(items, item =>
-            options.itemPredicate(item, filter))
+        (items, filter) =>
+            _.filter(items, item => options.itemPredicate(item, filter))
     );
 
     const getSortedItems = createSelector(
@@ -86,10 +101,6 @@ export default function createTable(namespace, options = {}) {
         draft.pivotIndex = draft.activeIndex;
     }
 
-    function resetActive() {
-        setActiveIndex(0, true);
-    }
-
     function replaceSelection(value) {
         draft.selection.clear();
         draft.selection.add(value);
@@ -111,15 +122,10 @@ export default function createTable(namespace, options = {}) {
         return draft.items[value][valueProperty];
     }
 
-    function ensureKeyed(items) {
-        return Array.isArray(items)
-            ? _.keyBy(items, valueProperty)  : items;
-    }
-
-    function setItems(items) {
+    function setItems(array) {
         draft.selection.clear();
         Object.assign(draft, {
-            items,
+            items: _.keyBy(array, valueProperty),
             tableItems: [],
             pageIndex: 0,
             isLoading: false,
@@ -149,9 +155,9 @@ export default function createTable(namespace, options = {}) {
             switch (action.type) {
                 //Items
                 case Actions.SET_ITEMS: {
-                    setItems(ensureKeyed(payload.items));
+                    setItems(payload.items);
                     updateItems();
-                    resetActive();
+                    setActiveIndex(0, true);
                     break;
                 }
                 case Actions.ADD_ITEMS: {
@@ -179,8 +185,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ITEM_VALUES: {
-                    const { map } = payload;
-                    _.forEach(map, (newValue, oldValue) => {
+                    _.forEach(payload.map, (newValue, oldValue) => {
                         oldValue = restoreValueFormat(oldValue);
 
                         //Update selection
@@ -189,29 +194,24 @@ export default function createTable(namespace, options = {}) {
                             selection.add(newValue)
 
                         //Create new item
-                        draft.items[newValue] = {
-                            ...draft.items[oldValue],
-                            [valueProperty]: newValue
-                        };
+                        const newItem = draft.items[oldValue];
+                        newItem[valueProperty] = newValue;
+                        draft.items[newValue] = newItem;
 
                         //Delete old item
                         delete draft.items[oldValue];
                     });
-                    updateItems();
 
+                    updateItems();
                     break;
                 }
                 case Actions.PATCH_ITEMS: {
-                    const {items} = draft;
+                    // draft.selection.clear();
                     for (let patch of payload.patches) {
-                        const value = patch[valueProperty];
+                        const item = draft.items[patch[valueProperty]];
+                        if (!item) continue;
 
-                        if (items[value])
-                            //If item already exists, patch
-                            Object.assign(items[value], patch);
-                        else
-                            //Otherwise, create
-                            items[value] = patch;
+                        Object.assign(item, patch);
                     }
 
                     updateItems();
@@ -223,13 +223,10 @@ export default function createTable(namespace, options = {}) {
                     if (!multiSort || !shiftKey)
                         draft.sortBy = {};
 
-                    draft.sortBy[path] =
-                        state.sortBy[path] === sortOrders.Ascending
-                        ? sortOrders.Descending
-                        : sortOrders.Ascending
+                    draft.sortBy[path] = getNextSortOrder(state.sortBy[path]);
 
                     updateItems();
-                    resetActive();
+                    setActiveIndex(0, true);
                     break;
                 }
                 case Actions.SET_ITEM_FILTER: {
@@ -240,7 +237,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.CLEAR_ITEMS: {
-                    setItems({});
+                    setItems([]);
                     break;
                 }
                 case Actions.START_LOADING: {

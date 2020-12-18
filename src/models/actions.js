@@ -8,31 +8,31 @@ export default class TableActions {
     }
 
     //Items
-    static SET_ITEMS = "TABLE_SET_ITEMS";
-    static ADD_ITEMS = "TABLE_ADD_ITEMS";
-    static DELETE_ITEMS = "TABLE_DELETE_ITEMS";
-    static SET_ITEM_VALUES = "TABLE_SET_ITEM_VALUES";
-    static PATCH_ITEMS = "TABLE_PATCH_ITEMS";
-    static CLEAR_ITEMS = "TABLE_CLEAR_ITEMS";
-    static SORT_ITEMS = "TABLE_SORT_ITEMS";
-    static SET_ITEM_FILTER = "TABLE_SET_ITEM_FILTER";
+    static SET_ITEMS = "RST_SET_ITEMS";
+    static ADD_ITEMS = "RST_ADD_ITEMS";
+    static DELETE_ITEMS = "RST_DELETE_ITEMS";
+    static SET_ITEM_VALUES = "RST_SET_ITEM_VALUES";
+    static PATCH_ITEMS = "RST_PATCH_ITEMS";
+    static CLEAR_ITEMS = "RST_CLEAR_ITEMS";
+    static SORT_ITEMS = "RST_SORT_ITEMS";
+    static SET_ITEM_FILTER = "RST_SET_ITEM_FILTER";
 
     //Displaying
-    static SET_ERROR = "TABLE_SET_ERROR";
-    static START_LOADING = "TABLE_START_LOADING";
+    static SET_ERROR = "RST_SET_ERROR";
+    static START_LOADING = "RST_START_LOADING";
 
     //Selection
-    static SET_SELECTED = "TABLE_SET_SELECTED";
-    static SELECT = "TABLE_SELECT";
-    static CLEAR_SELECTION = "TABLE_CLEAR_SELECTION";
-    static SELECT_ALL = "TABLE_SELECT_ALL";
-    static SET_ACTIVE = "TABLE_SET_ACTIVE";
-    static SET_PIVOT = "TABLE_SET_PIVOT";
-    static CONTEXT_MENU = "TABLE_CONTEXT_MENU";
+    static SET_SELECTED = "RST_SET_SELECTED";
+    static SELECT = "RST_SELECT";
+    static CLEAR_SELECTION = "RST_CLEAR_SELECTION";
+    static SELECT_ALL = "RST_SELECT_ALL";
+    static SET_ACTIVE = "RST_SET_ACTIVE";
+    static SET_PIVOT = "RST_SET_PIVOT";
+    static CONTEXT_MENU = "RST_CONTEXT_MENU";
 
     //Pagination
-    static GO_TO_PAGE = "TABLE_GO_TO_PAGE";
-    static SET_PAGE_SIZE = "TABLE_SET_PAGE_SIZE";
+    static GO_TO_PAGE = "RST_GO_TO_PAGE";
+    static SET_PAGE_SIZE = "RST_SET_PAGE_SIZE";
 
     goToPage = index =>
         this._getAction(self.GO_TO_PAGE, { index });

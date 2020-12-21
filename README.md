@@ -9,7 +9,7 @@
 * Item pagination
 * Resizable columns
 * Sticky header
-* Drag selection with automatic scrolling
+* Drag selection with automatic scrolling (even with uneven in height rows)
 * Selection behavior emulating windows ListView
 * Fully usable with only the keyboard
 * Percentage based column sizing (can be used in resizable containers)
@@ -30,17 +30,10 @@
 
 ### Browser compatibility
 
-Note: This package is primarily designed for electron apps. Compatibility and performance with non chromium-based browsers is not guaranteed. Development is done with Brave on Linux, and Chrome on Android.
-
 Known problems:
 
-* Chromium based browsers: Having the developer tools open, makes drag-selection unusably laggy
-
-  Hack: [Hide the drag selection rectangle](./docs/component.md#showselectionrect-bool) in development environment
-
-* Firefox desktop: Drag-selection performance not as good as chromium
-
-* Firefox mobile: Drag-selection doesn't work at all
+* Firefox mobile: Drag-selection and column resizing doesn't work at all
+* Chromium based: Column resizing performance is very bad while the developer tools are open
 
 
 

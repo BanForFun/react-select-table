@@ -7,8 +7,6 @@ import styles from "../index.scss";
 function DefaultPagination({
     pageCount, pageIndex, goToPage
 }) {
-    if (!pageCount) return null;
-
     const lastIndex = pageCount - 1;
 
     const prevClass = classNames({

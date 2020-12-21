@@ -60,7 +60,6 @@
 ### Visuals
 
 * Table header not rendered while there are no visible items
-* Added fade in animation to the selection background color
 
 
 

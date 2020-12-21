@@ -71,7 +71,8 @@ function ReduxTable() {
             loadingIndicator="Loading..."
             scrollFactor={0.5}
             onKeyDown={handleTableKeyDown}
-            showSelectionRect={false}
+            showSelectionRect={true}
+            liveColumnResize={true}
             onContextMenu={logEvent("Context Menu")}
         />
     </div>

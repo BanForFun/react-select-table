@@ -33,6 +33,13 @@ $text-dark: #333333;
         overflow: hidden;
         white-space: nowrap;
     }
+}
+
+.scrollingContainer {
+    position: relative;
+    flex: auto;
+    overflow: auto;
+    outline: none;
 
     &:not(:focus-within) tr {
         &.active {
@@ -43,14 +50,25 @@ $text-dark: #333333;
             background-color: $primary-light;
         }
     }
+
+    tr {
+        &:hover {
+            background-color: $bg-dark;
+        }
+
+        &.active {
+            @include activeShadow($primary-dark);
+        }
+
+        &.selected {
+            background-color: $primary;
+        }
+    }
 }
 
-.tableContainer {
+.resizingContainer {
     display: flex;
     flex-direction: column;
-    position: relative;
-    flex: auto;
-    overflow: auto;
 }
 
 .headContainer {
@@ -58,14 +76,14 @@ $text-dark: #333333;
     position: sticky;
     top: 0;
     z-index: 1;
-    outline: none;
     background-color: $bg;
 
     th {
+        z-index: 1;
         white-space: nowrap;
         position: relative;
 
-        &[data-sortable] {
+        &[data-path] {
             cursor: pointer;
         }
     }
@@ -80,31 +98,16 @@ $text-dark: #333333;
     outline: none;
     z-index: 0;
 
-    tr {
-        &:first-child > * {
-            border-top: none;
-        }
-
-        &:hover {
-            background-color: $bg-dark;
-        }
-
-        &.active {
-            @include activeShadow($primary-dark);
-        }
-
-        &.selected {
-            background-color: $primary;
-            transition: background-color 250ms;
-        }
+    tr:first-child > * {
+        border-top: none;
     }
 }
 
 .separator {
+    width: 10px;
     position: absolute;
     top: 0;
     right: 0;
-    width: 6px;
     height: 100%;
     cursor: col-resize;
 
@@ -140,7 +143,7 @@ $text-dark: #333333;
     height: 100%;
 }
 
-.pagination {
+.paginationContainer {
     flex: none;
 
     ul {

@@ -9,13 +9,14 @@ function TableBody({
     columns,
     name,
     options,
-    rows,
-    startIndex,
-    tableBodyRef,
-    selection,
-    activeIndex,
+    options: {utils},
+    tbodyRef,
     dispatchers
 }) {
+    const {rows, startIndex} = utils.useSelector(utils.getPaginatedItems);
+    const selection = utils.useSelector(s => s.selection);
+    const activeIndex = utils.useSelector(s => s.activeIndex);
+
     const touchingIndex = useRef();
 
     const handleRowSelect = useCallback((e, index) => {
@@ -67,7 +68,7 @@ function TableBody({
         </tr>
     };
 
-    return <tbody ref={tableBodyRef}>
+    return <tbody ref={tbodyRef}>
         {rows.map(renderRow)}
     </tbody>;
 }

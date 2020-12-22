@@ -64,22 +64,20 @@ function TableBody(props, ref) {
         element: tbodyRef.current
     }));
 
-    Object.assign(rowCommonProps, {
-        touchingIndex
-    });
-
     const renderRow = (item, rowIndex) => {
         const index = rowIndex + startIndex;
         const value = item[options.valueProperty];
 
         const rowProps = {
+            ...rowCommonProps,
+            touchingIndex,
             key: `row_${props.name}_${value}`,
             item, index, value,
             selected: selection.has(value),
             active: activeIndex === index
         };
 
-        return <TableRow {...rowCommonProps} {...rowProps} />;
+        return <TableRow {...rowProps} />;
     };
 
     return <tbody ref={tbodyRef}>

@@ -1,16 +1,13 @@
-import styles from "../index.scss";
-
 import React, {useState, useCallback} from 'react';
-import AngleDownIcon from './AngleDownIcon';
 import useEvent from "../hooks/useEvent";
+import TableHeader from "./TableHeader";
 
 function TableHead({
     columns,
     name,
-    dispatchers,
     options,
     options: {utils},
-    columnResizeStart
+    ...commonHeaderProps
 }) {
     //Redux state
     const sortBy = utils.useSelector(s => s.sortBy);
@@ -23,42 +20,20 @@ function TableHead({
     const renderHeader = (column, index) => {
         const { _id, path, title } = column;
 
-        const dragStart = e => {
-            e.stopPropagation();
-            const bounds = e.currentTarget.getBoundingClientRect();
-            columnResizeStart(index, bounds.left, bounds.right);
-            setResizing(index);
+        const headerProps = {
+            ...commonHeaderProps,
+            setResizing,
+            key: `header_${name}_${_id}`,
+            addSeparator: options.scrollX || index < columns.length - 1,
+            path, title, index,
+            sortOrder: sortBy[path]
         }
 
-        const handleHeaderMouseDown = e => {
-            if (!path) return;
-            dispatchers.sortItems(path, e.shiftKey);
-        }
-
-        const addSeparator = options.scrollX || index < columns.length - 1;
-
-        return <th
-            key={`header_${name}_${_id}`}
-            data-path={path}
-            onMouseDown={handleHeaderMouseDown}
-        >
-            {title}
-            <AngleDownIcon
-                className={styles.sortIcon}
-                data-order={sortBy[path]}
-            />
-            {addSeparator && <div
-                className={styles.separator}
-                onMouseDown={dragStart}
-                onTouchStart={dragStart}
-            />}
-        </th>
+        return <TableHeader {...headerProps} />
     }
 
     return <thead data-resizing={resizing}>
-        <tr>
-            {columns.map(renderHeader)}
-        </tr>
+        <tr>{columns.map(renderHeader)}</tr>
     </thead>
 }
 

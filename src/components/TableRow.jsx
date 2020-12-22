@@ -36,13 +36,13 @@ function TableRow({
         const { _id, path, render, className, isHeader } = column;
         const content = _.get(item, path);
 
-        const props = {
+        const cellProps = {
             content,
             key: `cell_${name}_${value}_${_id}`,
             className, isHeader, render
         }
 
-        return <TableCell {...props} />
+        return <TableCell {...cellProps} />
     };
 
     const classes = {

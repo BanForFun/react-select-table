@@ -17,4 +17,4 @@ function SelectionRect({ bodyContainerRef }) {
     return <div className={styles.selection} style={style} />;
 }
 
-export default SelectionRect;
+export default React.memo(SelectionRect);

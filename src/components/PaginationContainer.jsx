@@ -21,4 +21,4 @@ function PaginationContainer({
     </div>
 }
 
-export default PaginationContainer;
+export default React.memo(PaginationContainer);

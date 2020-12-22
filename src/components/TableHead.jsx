@@ -20,44 +20,46 @@ function TableHead({
     useEvent(document, "mouseup", useCallback(() =>
         setResizing(null), []));
 
+    const renderHeader = (column, index) => {
+        const { _id, path, title } = column;
+
+        const dragStart = e => {
+            e.stopPropagation();
+            const bounds = e.currentTarget.getBoundingClientRect();
+            columnResizeStart(index, bounds.left, bounds.right);
+            setResizing(index);
+        }
+
+        const handleHeaderMouseDown = e => {
+            if (!path) return;
+            dispatchers.sortItems(path, e.shiftKey);
+        }
+
+        const addSeparator = options.scrollX || index < columns.length - 1;
+
+        return <th
+            key={`header_${name}_${_id}`}
+            data-path={path}
+            onMouseDown={handleHeaderMouseDown}
+        >
+            {title}
+            <AngleDownIcon
+                className={styles.sortIcon}
+                data-order={sortBy[path]}
+            />
+            {addSeparator && <div
+                className={styles.separator}
+                onMouseDown={dragStart}
+                onTouchStart={dragStart}
+            />}
+        </th>
+    }
+
     return <thead data-resizing={resizing}>
         <tr>
-            {columns.map((col, index) => {
-                const { _id, path, title } = col;
-
-                const dragStart = e => {
-                    e.stopPropagation();
-                    const bounds = e.currentTarget.getBoundingClientRect();
-                    columnResizeStart(index, bounds.left, bounds.right);
-                    setResizing(index);
-                }
-
-                const handleHeaderMouseDown = e => {
-                    if (!path) return;
-                    dispatchers.sortItems(path, e.shiftKey);
-                }
-
-                const addSeparator = options.scrollX || index < columns.length - 1;
-
-                return <th
-                    key={`header_${name}_${_id}`}
-                    data-path={path}
-                    onMouseDown={handleHeaderMouseDown}
-                >
-                    {title}
-                    <AngleDownIcon
-                        className={styles.sortIcon}
-                        data-order={sortBy[path]}
-                    />
-                    {addSeparator && <div
-                        className={styles.separator}
-                        onMouseDown={dragStart}
-                        onTouchStart={dragStart}
-                    />}
-                </th>
-            })}
+            {columns.map(renderHeader)}
         </tr>
     </thead>
 }
 
-export default TableHead;
+export default React.memo(TableHead);

@@ -1,12 +1,11 @@
 import _ from "lodash";
 import React, {useCallback, useRef, useEffect, useImperativeHandle} from 'react';
 import useEvent from "../hooks/useEvent";
-import BodyRow from "./TableRow";
+import TableRow from "./TableRow";
 
 function TableBody(props, ref) {
     const {
         bodyContainerRef,
-        dispatchers,
         options,
         options: {utils},
 
@@ -23,21 +22,6 @@ function TableBody(props, ref) {
 
     const touchingIndex = useRef();
     const scheduledScroll = useRef(null);
-
-    const handleMouseDown = useCallback((e, index) => {
-        dispatchers.select(index, e.ctrlKey, e.shiftKey);
-    }, [dispatchers]);
-
-    const handleContextMenu = useCallback((e, index) => {
-        if (index === touchingIndex.current)
-            dispatchers.select(index, true);
-        else
-            dispatchers.contextMenu(index, e.ctrlKey);
-    }, [dispatchers]);
-
-    const handleTouchStart = useCallback((e, index) => {
-        touchingIndex.current = index;
-    }, []);
 
     useEvent(document.body,"touchend", useCallback(() => {
         touchingIndex.current = null;
@@ -80,22 +64,22 @@ function TableBody(props, ref) {
         element: tbodyRef.current
     }));
 
-    const renderRow = (row, rowIndex) => {
-        const itemIndex = rowIndex + startIndex;
-        const itemValue = row[options.valueProperty];
+    Object.assign(rowCommonProps, {
+        touchingIndex
+    });
 
-        return <BodyRow
-            {...rowCommonProps}
-            key={`row_${props.name}_${itemValue}`}
-            onMouseDown={handleMouseDown}
-            onTouchStart={handleTouchStart}
-            onContextMenu={handleContextMenu}
-            item={row}
-            index={itemIndex}
-            value={itemValue}
-            selected={selection.has(itemValue)}
-            active={activeIndex === itemIndex}
-        />;
+    const renderRow = (item, rowIndex) => {
+        const index = rowIndex + startIndex;
+        const value = item[options.valueProperty];
+
+        const rowProps = {
+            key: `row_${props.name}_${value}`,
+            item, index, value,
+            selected: selection.has(value),
+            active: activeIndex === index
+        };
+
+        return <TableRow {...rowCommonProps} {...rowProps} />;
     };
 
     return <tbody ref={tbodyRef}>
@@ -103,4 +87,4 @@ function TableBody(props, ref) {
     </tbody>;
 }
 
-export default React.forwardRef(TableBody);
+export default React.memo(React.forwardRef(TableBody));

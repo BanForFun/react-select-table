@@ -3,21 +3,35 @@ import styles from "../index.scss";
 import React, {useCallback} from 'react';
 import classNames from "classnames";
 import _ from "lodash";
-import BodyCell from "./TableCell";
+import TableCell from "./TableCell";
 
 function TableRow({
     columns,
     name,
-    onContextMenu,
-    onMouseDown,
-    onTouchStart,
-
+    dispatchers,
+    touchingIndex,
     selected,
     active,
     item,
     value,
     index
 }) {
+
+    const handleContextMenu = useCallback(e => {
+        if (index === touchingIndex.current)
+            dispatchers.select(index, true);
+        else
+            dispatchers.contextMenu(index, e.ctrlKey);
+    }, [index, dispatchers, touchingIndex]);
+
+    const handleMouseDown = useCallback(e => {
+        dispatchers.select(index, e.ctrlKey, e.shiftKey);
+    }, [index, dispatchers]);
+
+    const handleTouchStart = useCallback(() => {
+        touchingIndex.current = index;
+    }, [index, touchingIndex]);
+
     const renderColumn = column => {
         const { _id, path, render, className, isHeader } = column;
         const content = _.get(item, path);
@@ -28,11 +42,8 @@ function TableRow({
             className, isHeader, render
         }
 
-        return <BodyCell {...props} />
+        return <TableCell {...props} />
     };
-
-    const getEventHandler = handler =>
-        useCallback(e => handler(e, index), [index]);
 
     const classes = {
         [styles.selected]: selected,
@@ -41,9 +52,9 @@ function TableRow({
 
     return <tr
         className={classNames(classes, item._className)}
-        onContextMenu={getEventHandler(onContextMenu)}
-        onMouseDown={getEventHandler(onMouseDown)}
-        onTouchStart={getEventHandler(onTouchStart)}
+        onContextMenu={handleContextMenu}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
     >
         {columns.map(renderColumn)}
     </tr>;

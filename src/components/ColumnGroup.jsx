@@ -16,4 +16,4 @@ function ColumnGroup({ columns, name }) {
     </colgroup>;
 }
 
-export default ColumnGroup;
+export default React.memo(ColumnGroup);

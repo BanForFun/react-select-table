@@ -67,6 +67,7 @@ $text-dark: #333333;
 }
 
 .resizingContainer {
+    box-sizing: content-box;
     display: flex;
     flex-direction: column;
     min-height: 100%;
@@ -111,7 +112,7 @@ $text-dark: #333333;
     right: 0;
     height: 100%;
     cursor: col-resize;
-    background-color: red;
+    background-color: gainsboro;
 
     &:active {
         border-right: 1px dotted black;

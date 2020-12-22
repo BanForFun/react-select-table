@@ -9,7 +9,8 @@ function TableRow({
     columns,
     name,
     dispatchers,
-    touchingIndex,
+    isTouching,
+    dragSelectStart,
     selected,
     active,
     item,
@@ -18,19 +19,24 @@ function TableRow({
 }) {
 
     const handleContextMenu = useCallback(e => {
-        if (index === touchingIndex.current)
+        e.stopPropagation();
+        if (isTouching.current) {
+            //Touch
             dispatchers.select(index, true);
-        else
-            dispatchers.contextMenu(index, e.ctrlKey);
-    }, [index, dispatchers, touchingIndex]);
+            dragSelectStart([e.clientX, e.clientY], index);
+            return;
+        }
+
+        //Mouse
+        dispatchers.contextMenu(index, e.ctrlKey);
+    }, [index, dispatchers, isTouching]);
 
     const handleMouseDown = useCallback(e => {
-        dispatchers.select(index, e.ctrlKey, e.shiftKey);
-    }, [index, dispatchers]);
+        e.stopPropagation();
 
-    const handleTouchStart = useCallback(() => {
-        touchingIndex.current = index;
-    }, [index, touchingIndex]);
+        dispatchers.select(index, e.ctrlKey, e.shiftKey);
+        dragSelectStart([e.clientX, e.clientY], index);
+    }, [index, dispatchers]);
 
     const renderColumn = column => {
         const { _id, path, render, className, isHeader } = column;
@@ -54,7 +60,6 @@ function TableRow({
         className={classNames(classes, item._className)}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
-        onTouchStart={handleTouchStart}
     >
         {columns.map(renderColumn)}
     </tr>;

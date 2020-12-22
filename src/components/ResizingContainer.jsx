@@ -13,7 +13,6 @@ function ResizingContainer(props) {
         columnOrder: _order,
         initColumnWidths: initWidths,
         onColumnsResizeEnd,
-        liveColumnResize,
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
@@ -37,6 +36,8 @@ function ResizingContainer(props) {
             : _.times(count, _.constant(100 / count));
     });
 
+    const width = useMemo(() => _.sum(widths), [widths]);
+
     const { current: resizing } = useRef({
         index: null,
         left: 0,
@@ -46,9 +47,7 @@ function ResizingContainer(props) {
     });
 
     const refreshWidths = useCallback(() => {
-        const newWidths = [...resizing.widths];
-        setWidths(newWidths);
-        return newWidths
+        setWidths([...resizing.widths]);
     }, []);
 
     const columnResizeStart = useCallback((index, left, right) => {
@@ -81,13 +80,10 @@ function ResizingContainer(props) {
             widths[index + 1] = available - limited;
         }
 
-        if (liveColumnResize)
-            refreshWidths();
-
+        refreshWidths();
     }, [
         options,
-        refreshWidths,
-        liveColumnResize
+        refreshWidths
     ]);
 
     const handleDragEnd = useCallback(() => {
@@ -95,8 +91,8 @@ function ResizingContainer(props) {
         resizing.index = null;
 
         if (resizing.started)
-            onColumnsResizeEnd(refreshWidths());
-    }, [onColumnsResizeEnd, refreshWidths]);
+            onColumnsResizeEnd(resizing.widths);
+    }, [onColumnsResizeEnd]);
 
     //#region Window events
 
@@ -119,8 +115,6 @@ function ResizingContainer(props) {
     useEvent(document.body, "touchend", handleDragEnd);
 
     //#endregion
-
-    const width = useMemo(() => _.sum(widths), [widths]);
 
     commonProps.columns = useMemo(() => order.map(index => {
         const column = _columns[index];
@@ -146,7 +140,10 @@ function ResizingContainer(props) {
 
     return <div
         className={styles.resizingContainer}
-        style={{ width: `${width}%` }}
+        style={{
+            width: `${width}%`,
+            paddingRight: `${maxWidth - width}%`
+        }}
     >
         <ColumnWidthsContext.Provider value={widths}>
             <HeadContainer {...headProps} />

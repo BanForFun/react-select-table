@@ -33,42 +33,24 @@ function ScrollingContainer(props) {
     const tableBodyRef = useRef();
 
     //Variables refs
-    const dragSelection = useRef({});
-    const lastMousePos = useRef();
-    const lastRelMouseY = useRef();
-    const origin = useRef();
+    const {current: dragSelection} = useRef({
+        selected: null,
+        lastMousePos: null,
+        lastRelMouseY: null,
+        originPos: null,
+        originRow: null,
+        originItem: null
+    });
 
     //State
     const [rect, setRect] = useState(null);
 
-    const findRowIndex = useCallback(target => {
-        const rows = tableBodyRef.current.element.children;
-
-        let start = 0;
-        let end = rows.length - 1;
-
-        //Binary search
-        while (start <= end) {
-            const middle = Math.floor((start + end) / 2);
-            const value = rows[middle].offsetTop;
-
-            if (value < target)
-                start = middle + 1;
-            else if (value > target)
-                end = middle - 1;
-            else
-                return middle;
-        }
-
-        return start - 1;
-    }, []);
-
-    const dragStart = useCallback((mousePos, belowItems) => {
+    const dragStart = useCallback((mousePos, rowIndex = null) => {
         //Return if multiSelect is disabled
         if (!options.multiSelect) return;
 
         //Return if below items and multiSelect listBox
-        if (belowItems && options.listBox) return;
+        if (rowIndex === null && options.listBox) return;
 
         const [mouseX, mouseY] = mousePos;
         const {
@@ -81,18 +63,21 @@ function ScrollingContainer(props) {
         const relMouseX = mouseX + root.scrollLeft - bounds.x - headerWidth;
         const relMouseY = mouseY + root.scrollTop - bounds.y - headerHeight;
 
-        const rowIndex = belowItems ? -1 : findRowIndex(relMouseY);
-        const itemIndex = belowItems ? -1 : rowIndex + startIndex;
+        const state = Object.assign(dragSelection, {
+            selected: {},
+            lastMousePos: mousePos,
+            lastRelMouseY: relMouseY,
+            originPos: [relMouseX, relMouseY],
+            originRow: rowIndex,
+            originItem: null
+        });
 
-        dragSelection.current = { [itemIndex]: true };
-        lastMousePos.current = mousePos;
-        lastRelMouseY.current = relMouseY;
-        origin.current = {
-            x: relMouseX,
-            y: relMouseY,
-            index: rowIndex
-        };
-    }, [options, findRowIndex, startIndex]);
+        if (rowIndex !== null) {
+            const itemIndex = rowIndex + startIndex;
+            state.selected[itemIndex] = true;
+            state.originItem = itemIndex;
+        }
+    }, [options, startIndex]);
 
     const updateDragSelection = useCallback(relMouseY => {
         const {
@@ -100,25 +85,21 @@ function ScrollingContainer(props) {
             children: rows
         } = tableBodyRef.current.element;
 
-        const selected = dragSelection.current;
-
         //Define selection check area
-        const [minMouseY, maxMouseY] = sortTuple(relMouseY, lastRelMouseY.current);
-        lastRelMouseY.current = relMouseY;
+        const [minMouseY, maxMouseY] = sortTuple(relMouseY, dragSelection.lastRelMouseY);
+        dragSelection.lastRelMouseY = relMouseY;
 
         //Set up search
-        const {index: originRow} = origin.current;
-        const belowItems = originRow < 0;
-        const originItem = originRow + startIndex;
+        const { originRow, originItem } = dragSelection;
 
         let rowIndex;
-        let setActive = belowItems ? null : originItem;
+        let setActive = originItem;
         const selectMap = {};
 
         const updateCurrent = select => {
             const itemIndex = startIndex + rowIndex;
 
-            if (select !== selected[itemIndex])
+            if (select !== dragSelection.selected[itemIndex])
                 selectMap[itemIndex] = select;
 
             if (select)
@@ -128,7 +109,7 @@ function ScrollingContainer(props) {
         const getCurrentTop = () =>
             rowIndex >= rowCount ? tableHeight : rows[rowIndex].offsetTop;
 
-        const searchStart = belowItems ? rowCount : originRow;
+        const searchStart = originRow ?? rowCount;
 
         //Search up
         rowIndex = searchStart;
@@ -152,16 +133,12 @@ function ScrollingContainer(props) {
 
         if (_.isEmpty(selectMap)) return;
 
-        //Set pivot row
+        //If origin is below rows, set the pivot to the last row ONLY if it is selected
         const lastItemIndex = startIndex + rowCount - 1;
-        const setPivot = belowItems
-            //If origin is below rows, set the pivot to the last row ONLY if it is selected
-            ? (selectMap[lastItemIndex] ? lastItemIndex : null)
-            //Else, set the pivot to the origin row
-            : originItem;
+        const setPivot = originItem ?? (selectMap[lastItemIndex] ? lastItemIndex : null)
 
         //Modify selection
-        Object.assign(selected, selectMap);
+        Object.assign(dragSelection.selected, selectMap);
         dispatchers.setSelected(selectMap, setActive, setPivot);
     }, [
         rowCount,
@@ -171,7 +148,7 @@ function ScrollingContainer(props) {
 
     const updateSelectionRect = useCallback(mousePos => {
         //Cache last position
-        lastMousePos.current = mousePos;
+        dragSelection.lastMousePos = mousePos;
 
         //Deconstruct positions
         const [mouseX, mouseY] = mousePos;
@@ -222,7 +199,7 @@ function ScrollingContainer(props) {
         //Update rectangle
         if (!showSelectionRect) return;
 
-        const {x: originX, y: originY} = origin.current;
+        const [originX, originY] = dragSelection.originPos;
         setRect({
             left: Math.min(relMouseX, originX),
             top: Math.min(relMouseY, originY),
@@ -238,27 +215,26 @@ function ScrollingContainer(props) {
     //Event handlers
 
     const handleScroll = useCallback(() => {
-        if (!origin.current) return;
-        updateSelectionRect(lastMousePos.current);
+        if (!dragSelection.originPos) return;
+        updateSelectionRect(dragSelection.lastMousePos);
     }, [updateSelectionRect]);
 
     const handleDragEnd = useCallback(() => {
-        if (!origin.current) return;
-        origin.current = null;
-
+        if (!dragSelection.originPos) return;
+        dragSelection.originPos = null;
         setRect(null);
     }, []);
 
     //Window events
     useEvent(document,"mousemove", useCallback(e => {
-        if (!origin.current) return;
+        if (!dragSelection.originPos) return;
         updateSelectionRect([e.clientX, e.clientY])
     }, [updateSelectionRect]));
 
     useEvent(document.body,"touchmove", useCallback(e => {
         e.stopPropagation();
 
-        if (!origin.current) return;
+        if (!dragSelection.originPos) return;
         e.preventDefault();
 
         const touch = e.touches[0];

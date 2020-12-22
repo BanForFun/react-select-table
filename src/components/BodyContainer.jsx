@@ -9,7 +9,6 @@ import {useStore} from "react-redux";
 function BodyContainer(props) {
     const {
         className,
-        dragSelectStart,
         onItemsOpen,
         tableBodyRef,
         ...bodyProps
@@ -17,6 +16,7 @@ function BodyContainer(props) {
 
     const {
         dispatchers,
+        dragSelectStart,
         options,
         bodyContainerRef,
         options: {utils}
@@ -27,28 +27,22 @@ function BodyContainer(props) {
     const store = useStore();
 
     const handleMouseDown = useCallback(e => {
-        if (e.button !== 0) return;
-
-        const belowItems = e.currentTarget === e.target;
-        if (belowItems && !e.ctrlKey && !options.listBox)
+        if (!e.ctrlKey && !options.listBox)
             dispatchers.clearSelection();
 
-        dragSelectStart([e.clientX, e.clientY], belowItems);
+        dragSelectStart([e.clientX, e.clientY]);
     }, [dragSelectStart, dispatchers, options]);
 
     const handleContextMenu = useCallback(e => {
-        const belowItems = e.currentTarget === e.target;
+        dispatchers.contextMenu(null, e.ctrlKey);
 
-        if (isTouching.current)
-            dragSelectStart([e.clientX, e.clientY], belowItems);
-        else if (belowItems)
-            dispatchers.contextMenu(null, e.ctrlKey);
+        if (!isTouching.current) return;
+        dragSelectStart([e.clientX, e.clientY]);
     }, [dragSelectStart, dispatchers]);
 
     const handleDoubleClick = useCallback(() => {
         const slice = utils.getStateSlice(store.getState());
-        const selectionArg = utils.getSelectionArg(slice);
-        onItemsOpen(selectionArg, false);
+        onItemsOpen(utils.getSelectionArg(slice), false);
     }, [onItemsOpen, store, utils]);
 
     useEvent(document.body, "touchend", useCallback(() => {
@@ -56,7 +50,8 @@ function BodyContainer(props) {
     }, []));
 
     Object.assign(bodyProps, {
-        ref: tableBodyRef
+        ref: tableBodyRef,
+        isTouching
     });
 
     return <div

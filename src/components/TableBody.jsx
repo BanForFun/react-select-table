@@ -1,6 +1,5 @@
 import _ from "lodash";
 import React, {useCallback, useRef, useEffect, useImperativeHandle} from 'react';
-import useEvent from "../hooks/useEvent";
 import TableRow from "./TableRow";
 
 function TableBody(props, ref) {
@@ -20,12 +19,7 @@ function TableBody(props, ref) {
 
     const tbodyRef = useRef();
 
-    const touchingIndex = useRef();
     const scheduledScroll = useRef(null);
-
-    useEvent(document.body,"touchend", useCallback(() => {
-        touchingIndex.current = null;
-    }, []));
 
     const scrollToIndex = useCallback(itemIndex => {
         //Check row index
@@ -70,7 +64,6 @@ function TableBody(props, ref) {
 
         const rowProps = {
             ...rowCommonProps,
-            touchingIndex,
             key: `row_${props.name}_${value}`,
             item, index, value,
             selected: selection.has(value),

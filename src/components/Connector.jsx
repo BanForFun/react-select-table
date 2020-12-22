@@ -49,7 +49,6 @@ Connector.propTypes = {
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     showSelectionRect: PropTypes.bool,
-    liveColumnResize: PropTypes.bool,
     scrollFactor: PropTypes.number,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
@@ -69,6 +68,5 @@ Connector.defaultProps = {
     loadingIndicator: null,
     emptyPlaceholder: null,
     showSelectionRect: true,
-    liveColumnResize: true,
     ...defaultEvents
 };

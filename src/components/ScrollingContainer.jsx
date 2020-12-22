@@ -1,15 +1,17 @@
 import styles from "../index.scss";
 
 import React, {useCallback, useRef, useState} from 'react';
-import useWindowEvent from "../hooks/useWindowEvent";
+import useEvent from "../hooks/useEvent";
 import ResizingContainer from "./ResizingContainer";
 import {sortTuple} from "../utils/mathUtils";
 import {SelectionRectContext} from "./SelectionRect";
+import {matchModifiers} from "../utils/eventUtils";
 
 function ScrollingContainer(props) {
     const {
         showSelectionRect,
         scrollFactor,
+        onKeyDown,
         ...resizingProps
     } = props;
 
@@ -20,11 +22,15 @@ function ScrollingContainer(props) {
     } = props;
 
     const { startIndex, rows } = utils.useSelector(utils.getPaginatedItems);
+    const activeIndex = utils.useSelector(t => t.activeIndex);
+    const itemCount = utils.useSelector(t => t.tableItems.length);
     const rowCount = rows.length;
+
+    //#region Drag selection
 
     //Component refs
     const bodyContainerRef = useRef();
-    const tbodyRef = useRef();
+    const tableBodyRef = useRef();
 
     //Variables refs
     const dragSelection = useRef({});
@@ -35,9 +41,8 @@ function ScrollingContainer(props) {
     //State
     const [rect, setRect] = useState(null);
 
-    //#region Helpers
     const findRowIndex = useCallback(target => {
-        const rows = tbodyRef.current.children;
+        const rows = tableBodyRef.current.element.children;
 
         let start = 0;
         let end = rows.length - 1;
@@ -93,7 +98,7 @@ function ScrollingContainer(props) {
         const {
             offsetHeight: tableHeight,
             children: rows
-        } = tbodyRef.current;
+        } = tableBodyRef.current.element;
 
         const selected = dragSelection.current;
 
@@ -230,6 +235,8 @@ function ScrollingContainer(props) {
         showSelectionRect
     ]);
 
+    //Event handlers
+
     const handleScroll = useCallback(() => {
         if (!origin.current) return;
         updateSelectionRect(lastMousePos.current);
@@ -242,32 +249,55 @@ function ScrollingContainer(props) {
         setRect(null);
     }, []);
 
-    //#endregion
-
-    //#region Window events
-
-    useWindowEvent("mousemove", useCallback(e => {
+    //Window events
+    useEvent(document,"mousemove", useCallback(e => {
         if (!origin.current) return;
         updateSelectionRect([e.clientX, e.clientY])
     }, [updateSelectionRect]));
 
-    useWindowEvent("touchmove", useCallback(e => {
+    useEvent(document.body,"touchmove", useCallback(e => {
+        e.stopPropagation();
+
         if (!origin.current) return;
         e.preventDefault();
 
-        const [touch] = e.touches;
+        const touch = e.touches[0];
         updateSelectionRect([touch.clientX, touch.clientY]);
     }, [updateSelectionRect]), false);
 
-    useWindowEvent("mouseup", handleDragEnd);
-    useWindowEvent("touchend", handleDragEnd);
+    useEvent(document,"mouseup", handleDragEnd);
+    useEvent(document.body,"touchend", handleDragEnd);
 
     //#endregion
+
+    //#region Keyboard selection
+
+    const selectIndex = useCallback((e, index) => {
+        if (matchModifiers(e, true))
+            dispatchers.setActive(index);
+        else
+            dispatchers.select(index, e.ctrlKey, e.shiftKey);
+
+        tableBodyRef.current.scrollToIndex(index);
+    }, [dispatchers]);
+
+    const selectOffset = useCallback((e, offset) => {
+        if (activeIndex == null) return;
+
+        //Check item index
+        const index = activeIndex + offset;
+        if (!_.inRange(index, itemCount)) return;
+
+        selectIndex(e, index);
+    }, [selectIndex, activeIndex, itemCount]);
+
+    //#endregion
+
 
     //Set props
     Object.assign(resizingProps,{
         bodyContainerRef,
-        tbodyRef,
+        tableBodyRef,
         dragSelectStart: dragStart
     });
 
@@ -283,4 +313,4 @@ function ScrollingContainer(props) {
     </div>
 }
 
-export default ScrollingContainer;
+export default React.memo(ScrollingContainer);

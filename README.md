@@ -32,7 +32,7 @@
 
 Known problems:
 
-* Firefox mobile: Drag-selection and column resizing doesn't work at all
+* Firefox mobile: Drag-selection and column resizing requires two fingers
 * Chromium based: Column resizing performance is very bad while the developer tools are open
 
 

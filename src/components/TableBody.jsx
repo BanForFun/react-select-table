@@ -1,71 +1,101 @@
-import styles from "../index.scss";
-
 import _ from "lodash";
-import React, {useCallback, useRef} from 'react';
-import classNames from "classnames";
-import useWindowEvent from "../hooks/useWindowEvent";
+import React, {useCallback, useRef, useEffect, useImperativeHandle} from 'react';
+import useEvent from "../hooks/useEvent";
+import BodyRow from "./TableRow";
 
-function TableBody({
-    columns,
-    name,
-    options,
-    options: {utils},
-    tbodyRef,
-    dispatchers
-}) {
+function TableBody(props, ref) {
+    const {
+        bodyContainerRef,
+        dispatchers,
+        options,
+        options: {utils},
+
+        ...rowCommonProps
+    } = props;
+
     const {rows, startIndex} = utils.useSelector(utils.getPaginatedItems);
     const selection = utils.useSelector(s => s.selection);
     const activeIndex = utils.useSelector(s => s.activeIndex);
 
-    const touchingIndex = useRef();
+    const rowCount = rows.length;
 
-    const handleRowSelect = useCallback((e, index) => {
+    const tbodyRef = useRef();
+
+    const touchingIndex = useRef();
+    const scheduledScroll = useRef(null);
+
+    const handleMouseDown = useCallback((e, index) => {
         dispatchers.select(index, e.ctrlKey, e.shiftKey);
     }, [dispatchers]);
 
-    const handleRowContextMenu = useCallback((e, index) => {
+    const handleContextMenu = useCallback((e, index) => {
         if (index === touchingIndex.current)
             dispatchers.select(index, true);
         else
             dispatchers.contextMenu(index, e.ctrlKey);
     }, [dispatchers]);
 
-    useWindowEvent("touchend", useCallback(() => {
+    const handleTouchStart = useCallback((e, index) => {
+        touchingIndex.current = index;
+    }, []);
+
+    useEvent(document.body,"touchend", useCallback(() => {
         touchingIndex.current = null;
     }, []));
 
-    const renderColumn = (row, column) => {
-        const { _id, path, render, className, isHeader } = column;
+    const scrollToIndex = useCallback(itemIndex => {
+        //Check row index
+        const rowIndex = itemIndex - startIndex;
+        if (!_.inRange(rowIndex, rowCount))
+            return scheduledScroll.current = itemIndex;
 
-        const content = _.get(row, path);
-        const rowValue = row[options.valueProperty];
+        //Get elements
+        const body = bodyContainerRef.current;
+        const root = body.offsetParent;
+        const row = tbodyRef.current.children[rowIndex];
 
-        const Cell = isHeader ? 'th' : 'td';
+        //Scroll up
+        const scrollUp = row.offsetTop < root.scrollTop;
+        if (scrollUp)
+            root.scrollTop = row.offsetTop;
 
-        return <Cell
-          key={`cell_${name}_${rowValue}_${_id}`}
-          className={className}
-        >{render(content, row)}</Cell>
-    };
+        //Scroll down
+        const visibleHeight = root.offsetHeight - body.offsetTop;
+        const rowBottom = row.offsetTop + row.offsetHeight;
+        const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
+        if (scrollDown)
+            root.scrollTop = rowBottom - visibleHeight;
+    }, [startIndex, rowCount]);
+
+    useEffect(() => {
+        const index = scheduledScroll.current;
+        if (index === null) return;
+        scheduledScroll.current = null;
+
+        scrollToIndex(index);
+    }, [scrollToIndex]);
+
+    useImperativeHandle(ref, () => ({
+        scrollToIndex,
+        element: tbodyRef.current
+    }));
 
     const renderRow = (row, rowIndex) => {
-        const index = rowIndex + startIndex;
-        const value = row[options.valueProperty];
+        const itemIndex = rowIndex + startIndex;
+        const itemValue = row[options.valueProperty];
 
-        const classes = {
-            [styles.selected]: selection.has(value),
-            [styles.active]: activeIndex === index
-        };
-
-        return <tr
-            key={`row_${name}_${value}`}
-            className={classNames(classes, row._className)}
-            onContextMenu={e => handleRowContextMenu(e, index)}
-            onMouseDown={e => handleRowSelect(e, index)}
-            onTouchStart={() => touchingIndex.current = index}
-        >
-            {columns.map(col => renderColumn(row, col))}
-        </tr>
+        return <BodyRow
+            {...rowCommonProps}
+            key={`row_${props.name}_${itemValue}`}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onContextMenu={handleContextMenu}
+            item={row}
+            index={itemIndex}
+            value={itemValue}
+            selected={selection.has(itemValue)}
+            active={activeIndex === itemIndex}
+        />;
     };
 
     return <tbody ref={tbodyRef}>
@@ -73,4 +103,4 @@ function TableBody({
     </tbody>;
 }
 
-export default TableBody;
+export default React.forwardRef(TableBody);

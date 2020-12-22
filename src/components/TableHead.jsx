@@ -2,7 +2,7 @@ import styles from "../index.scss";
 
 import React, {useState, useCallback} from 'react';
 import AngleDownIcon from './AngleDownIcon';
-import useWindowEvent from "../hooks/useWindowEvent";
+import useEvent from "../hooks/useEvent";
 
 function TableHead({
     columns,
@@ -17,7 +17,7 @@ function TableHead({
 
     const [resizing, setResizing] = useState(null);
 
-    useWindowEvent("mouseup", useCallback(() =>
+    useEvent(document, "mouseup", useCallback(() =>
         setResizing(null), []));
 
     return <thead data-resizing={resizing}>

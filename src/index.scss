@@ -69,6 +69,7 @@ $text-dark: #333333;
 .resizingContainer {
     display: flex;
     flex-direction: column;
+    min-height: 100%;
 }
 
 .headContainer {
@@ -110,6 +111,7 @@ $text-dark: #333333;
     right: 0;
     height: 100%;
     cursor: col-resize;
+    background-color: red;
 
     &:active {
         border-right: 1px dotted black;

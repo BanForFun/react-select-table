@@ -55,11 +55,11 @@ function ReduxTable() {
     }, [dispatch, clipboard, keyedItems]);
 
     return <div id="example">
-        <div className="pb-2">
+        <div>
             {_.map(buttonActions, (action, text) => {
                 return <button
                     key={text}
-                    className="btn btn-sm btn-primary mr-1"
+                    className="btn btn-sm btn-primary mr-1 mb-2"
                     onClick={() => dispatch(action)}
                 >{text}</button>
             })}

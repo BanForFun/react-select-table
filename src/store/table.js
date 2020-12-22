@@ -60,7 +60,7 @@ export default function createTable(namespace, options = {}) {
         getParsedItems,
         s => s.filter,
         (items, filter) =>
-            _.filter(items, item => options.itemPredicate(item, filter))
+            filter ? _.filter(items, item => options.itemPredicate(item, filter)) : items
     );
 
     const getSortedItems = createSelector(

@@ -4,7 +4,7 @@ import _ from "lodash";
 import React, {useState, useMemo, useRef, useCallback} from 'react';
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
-import useWindowEvent from "../hooks/useWindowEvent";
+import useEvent from "../hooks/useEvent";
 import {ColumnWidthsContext} from "./ColumnGroup";
 
 function ResizingContainer(props) {
@@ -16,7 +16,6 @@ function ResizingContainer(props) {
         liveColumnResize,
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
-        onKeyDown, //BodyContainer
         dragSelectStart, //BodyContainer
         bodyContainerRef, //BodyContainer
 
@@ -101,21 +100,23 @@ function ResizingContainer(props) {
 
     //#region Window events
 
-    useWindowEvent("mousemove", useCallback(e => {
+    useEvent(document,"mousemove", useCallback(e => {
         if (resizing.index === null) return;
         updateWidth(e.clientX)
     },[updateWidth]));
 
-    useWindowEvent("touchmove", useCallback(e => {
+    useEvent(document.body,"touchmove", useCallback(e => {
+        e.stopPropagation();
+
         if (resizing.index === null) return;
         e.preventDefault();
 
-        const [touch] = e.touches;
+        const touch = e.touches[0];
         updateWidth(touch.clientX);
     }, [updateWidth]), false);
 
-    useWindowEvent("mouseup", handleDragEnd);
-    useWindowEvent("touchend", handleDragEnd);
+    useEvent(document, "mouseup", handleDragEnd);
+    useEvent(document.body, "touchend", handleDragEnd);
 
     //#endregion
 
@@ -139,7 +140,6 @@ function ResizingContainer(props) {
         ...commonProps,
         tableBodyRef,
         onItemsOpen,
-        onKeyDown,
         dragSelectStart,
         bodyContainerRef
     }

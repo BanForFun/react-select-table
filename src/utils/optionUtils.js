@@ -12,7 +12,7 @@ export const defaultEvents = {
 
 const defaultOptions = {
     itemParser: item => item,
-    itemPredicate: (item, filter) => !filter || _.isMatch(item, filter),
+    itemPredicate: (item, filter) => _.isMatch(item, filter),
     multiSelect: true,
     listBox: false,
     minColumnWidth: 3,

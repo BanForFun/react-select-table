@@ -1,7 +1,7 @@
 import styles from "../index.scss";
 
 import _ from "lodash";
-import React, {useState, useMemo, useRef, useCallback} from 'react';
+import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
@@ -38,6 +38,12 @@ function ResizingContainer(props) {
 
     const width = useMemo(() => _.sum(widths), [widths]);
 
+    const [maxWidth, setMaxWidth] = useState(0);
+    useEffect(() => {
+        if (width <= maxWidth) return;
+        setMaxWidth(width);
+    }, [width, maxWidth]);
+
     const { current: resizing } = useRef({
         index: null,
         left: 0,
@@ -60,6 +66,8 @@ function ResizingContainer(props) {
     const updateWidth = useCallback(x => {
         if (!resizing.started && _.inRange(x, resizing.left, resizing.right))
             return;
+
+        resizing.started = true;
 
         const { index, widths } = resizing;
         const minWidth = options.minColumnWidth;
@@ -90,8 +98,10 @@ function ResizingContainer(props) {
         if (resizing.index === null) return;
         resizing.index = null;
 
-        if (resizing.started)
+        if (resizing.started) {
             onColumnsResizeEnd(resizing.widths);
+            setMaxWidth(0);
+        }
     }, [onColumnsResizeEnd]);
 
     //#region Window events

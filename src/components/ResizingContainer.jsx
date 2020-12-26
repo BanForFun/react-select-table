@@ -13,6 +13,8 @@ function ResizingContainer(props) {
         columnOrder: _order,
         initColumnWidths: initWidths,
         onColumnsResizeEnd,
+        scrollToPos,
+        setResizing,
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
@@ -37,8 +39,8 @@ function ResizingContainer(props) {
     });
 
     const width = useMemo(() => _.sum(widths), [widths]);
-
     const [maxWidth, setMaxWidth] = useState(0);
+
     useEffect(() => {
         if (width <= maxWidth) return;
         setMaxWidth(width);
@@ -49,32 +51,34 @@ function ResizingContainer(props) {
         left: 0,
         right: 0,
         widths,
-        started: false
+        started: false,
+        lastMouseX: null
     });
 
     const refreshWidths = useCallback(() => {
         setWidths([...resizing.widths]);
     }, []);
 
-    const columnResizeStart = useCallback((index, left, right) => {
+    const columnResizeStart = useCallback((index, mouseX, left, right) => {
+        setResizing(index);
         Object.assign(resizing, {
             index, left, right,
-            started: false
+            mouseX,
+            started: false,
         });
-    }, []);
+    }, [setResizing]);
 
-    const updateWidth = useCallback(x => {
-        if (!resizing.started && _.inRange(x, resizing.left, resizing.right))
+    const updateWidth = useCallback(() => {
+        const { mouseX, index, widths } = resizing;
+        if (!resizing.started && _.inRange(mouseX, resizing.left, resizing.right))
             return;
 
         resizing.started = true;
 
-        const { index, widths } = resizing;
         const minWidth = options.minColumnWidth;
+        const root = bodyContainerRef.current.offsetParent;
 
-        const { offsetParent: root, offsetLeft } = bodyContainerRef.current;
-        const bounds = root.getBoundingClientRect();
-        const distancePx = x - bounds.x - offsetLeft + root.scrollLeft;
+        const [distancePx] = scrollToPos(mouseX, null);
         const distancePercent = 100 / root.clientWidth * distancePx;
         const offsetPercent = _.sum(_.take(widths, index));
         const widthPercent = Math.max(distancePercent - offsetPercent, minWidth);
@@ -91,34 +95,41 @@ function ResizingContainer(props) {
         refreshWidths();
     }, [
         options,
+        scrollToPos,
         refreshWidths
     ]);
 
     const handleDragEnd = useCallback(() => {
         if (resizing.index === null) return;
-        resizing.index = null;
 
-        if (resizing.started) {
+        resizing.index = null;
+        setResizing(null);
+        setMaxWidth(0);
+
+        if (resizing.started)
             onColumnsResizeEnd(resizing.widths);
-            setMaxWidth(0);
-        }
-    }, [onColumnsResizeEnd]);
+    }, [onColumnsResizeEnd, setResizing]);
 
     //#region Window events
 
+    useEvent(bodyContainerRef.current?.offsetParent, "scroll", useCallback(() => {
+        if (resizing.index === null) return;
+        updateWidth();
+    }, [updateWidth]));
+
     useEvent(document,"mousemove", useCallback(e => {
         if (resizing.index === null) return;
-        updateWidth(e.clientX)
+        resizing.mouseX = e.clientX;
+        updateWidth()
     },[updateWidth]));
 
     useEvent(document.body,"touchmove", useCallback(e => {
         e.stopPropagation();
-
         if (resizing.index === null) return;
         e.preventDefault();
 
-        const touch = e.touches[0];
-        updateWidth(touch.clientX);
+        resizing.mouseX = e.touches[0].clientX;
+        updateWidth();
     }, [updateWidth]), false);
 
     useEvent(document, "mouseup", handleDragEnd);

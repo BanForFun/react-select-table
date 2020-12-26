@@ -64,6 +64,10 @@ $text-dark: #333333;
             background-color: $primary;
         }
     }
+
+    &[data-resizing] * {
+        cursor: col-resize !important;
+    }
 }
 
 .resizingContainer {
@@ -88,10 +92,6 @@ $text-dark: #333333;
         &[data-path] {
             cursor: pointer;
         }
-    }
-
-    thead[data-resizing] th {
-        cursor: col-resize !important;
     }
 }
 

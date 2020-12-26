@@ -8,7 +8,6 @@ function TableHeader({
     title,
     index,
     columnResizeStart,
-    setResizing,
     dispatchers,
     addSeparator,
     sortOrder
@@ -22,9 +21,8 @@ function TableHeader({
         e.stopPropagation();
 
         const bounds = e.currentTarget.getBoundingClientRect();
-        columnResizeStart(index, bounds.left, bounds.right);
-        setResizing(index);
-    }, [columnResizeStart, setResizing, index]);
+        columnResizeStart(index, e.clientX, bounds.left, bounds.right);
+    }, [columnResizeStart, index]);
 
     return <th data-path={path} onMouseDown={handleMouseDown}>
         {title}

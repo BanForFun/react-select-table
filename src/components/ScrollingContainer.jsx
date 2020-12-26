@@ -35,7 +35,7 @@ function ScrollingContainer(props) {
     //Variables refs
     const {current: dragSelection} = useRef({
         selected: null,
-        lastMousePos: null,
+        mousePos: null,
         lastRelMouseY: null,
         originPos: null,
         originRow: null,
@@ -65,7 +65,7 @@ function ScrollingContainer(props) {
 
         const state = Object.assign(dragSelection, {
             selected: {},
-            lastMousePos: mousePos,
+            mousePos,
             lastRelMouseY: relMouseY,
             originPos: [relMouseX, relMouseY],
             originRow: rowIndex,
@@ -146,52 +146,55 @@ function ScrollingContainer(props) {
         dispatchers
     ]);
 
-    const updateSelectionRect = useCallback(mousePos => {
-        //Cache last position
-        dragSelection.lastMousePos = mousePos;
+    const scrollToPos = useCallback((x, y) => {
+        function calculate(scroll, target, start, size, margin) {
+            const add = target - start - size;
+            const sub = start + margin - target;
 
-        //Deconstruct positions
-        const [mouseX, mouseY] = mousePos;
+            if (add > 0)
+                scroll += add * scrollFactor;
+            else if (sub > 0)
+                scroll -= sub * scrollFactor;
+
+            const safeScroll = Math.max(scroll, 0);
+            const relative = target + safeScroll - start - margin;
+            return { scroll, relative };
+        }
+
+        const body = bodyContainerRef.current;
+        const root = body.offsetParent;
+        const bounds = root.getBoundingClientRect();
+
+        const relative = [];
+
+        if (x !== null) {
+            const result = calculate(root.scrollLeft, x, bounds.left, root.clientWidth, body.offsetLeft);
+            root.scrollLeft = result.scroll;
+            relative[0] = result.relative;
+        }
+
+        if (y !== null) {
+            const result = calculate(root.scrollTop, y, bounds.top, root.clientHeight, body.offsetTop);
+            root.scrollTop = result.scroll;
+            relative[1] = result.relative;
+        }
+
+        return relative;
+    }, [scrollFactor])
+
+    const updateSelectionRect = useCallback(() => {
+        const [mouseX, mouseY] = dragSelection.mousePos;
 
         //Get body values
         const {
-            offsetParent: rootEl,
-            offsetTop: headerHeight,
-            offsetLeft: headerWidth,
             scrollWidth,
             scrollHeight
         } = bodyContainerRef.current;
 
-        //Get scroll position
-        const {
-            scrollLeft: scrollX,
-            scrollTop: scrollY
-        } = rootEl;
-
-        //Get container bounds
-        const bounds = rootEl.getBoundingClientRect();
-
-        //Scroll horizontally
-        const scrollRight = mouseX - bounds.right;
-        const scrollLeft = bounds.left + headerWidth - mouseX;
-
-        if (scrollRight > 0)
-            rootEl.scrollLeft += scrollRight * scrollFactor;
-        else if (scrollLeft > 0)
-            rootEl.scrollLeft -= scrollLeft * scrollFactor;
-
-        //Scroll vertically
-        const scrollDown = mouseY - bounds.bottom;
-        const scrollUp = bounds.top + headerHeight - mouseY;
-
-        if (scrollDown > 0)
-            rootEl.scrollTop += scrollDown * scrollFactor;
-        else if (scrollUp > 0)
-            rootEl.scrollTop -= scrollUp * scrollFactor;
-
         //Calculate relative mouse position
-        const relMouseX = _.clamp(scrollX - scrollLeft, 0, scrollWidth);
-        const relMouseY = _.clamp(scrollY - scrollUp, 0, scrollHeight);
+        let [relMouseX, relMouseY] = scrollToPos(mouseX, mouseY);
+        relMouseX = _.clamp(relMouseX, 0, scrollWidth);
+        relMouseY = _.clamp(relMouseY, 0, scrollHeight);
 
         //Update selection
         updateDragSelection(relMouseY);
@@ -207,16 +210,17 @@ function ScrollingContainer(props) {
             height: Math.abs(relMouseY - originY)
         });
     }, [
-        scrollFactor,
         updateDragSelection,
-        showSelectionRect
+        showSelectionRect,
+        scrollToPos,
+        scrollFactor
     ]);
 
     //Event handlers
 
     const handleScroll = useCallback(() => {
         if (!dragSelection.originPos) return;
-        updateSelectionRect(dragSelection.lastMousePos);
+        updateSelectionRect();
     }, [updateSelectionRect]);
 
     const handleDragEnd = useCallback(() => {
@@ -228,7 +232,8 @@ function ScrollingContainer(props) {
     //Window events
     useEvent(document,"mousemove", useCallback(e => {
         if (!dragSelection.originPos) return;
-        updateSelectionRect([e.clientX, e.clientY])
+        dragSelection.mousePos = [e.clientX, e.clientY];
+        updateSelectionRect()
     }, [updateSelectionRect]));
 
     useEvent(document.body,"touchmove", useCallback(e => {
@@ -269,16 +274,20 @@ function ScrollingContainer(props) {
 
     //#endregion
 
+    const [resizing, setResizing] = useState();
 
     //Set props
     Object.assign(resizingProps,{
         bodyContainerRef,
         tableBodyRef,
-        dragSelectStart: dragStart
+        dragSelectStart: dragStart,
+        scrollToPos,
+        setResizing
     });
 
     //Render container
     return <div
+        data-resizing={resizing}
         className={styles.scrollingContainer}
         onScroll={handleScroll}
         tabIndex="0"

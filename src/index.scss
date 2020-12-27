@@ -65,7 +65,7 @@ $text-dark: #333333;
         }
     }
 
-    &[data-resizing] * {
+    &[data-resizingcolumn] * {
         cursor: col-resize !important;
     }
 }

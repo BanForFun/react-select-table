@@ -4,7 +4,7 @@ import TableBody from "./TableBody";
 import ColumnGroup from "./ColumnGroup";
 import SelectionRect from "./SelectionRect";
 import useEvent from "../hooks/useEvent";
-import {useStore} from "react-redux";
+import useGetSelectionArg from "../hooks/useGetSelectionArg";
 
 function BodyContainer(props) {
     const {
@@ -18,15 +18,16 @@ function BodyContainer(props) {
         dispatchers,
         dragSelectStart,
         options,
-        bodyContainerRef,
-        options: {utils}
+        bodyContainerRef
     } = props;
 
     const isTouching = useRef(false);
 
-    const store = useStore();
+    const getSelectionArg = useGetSelectionArg(options.utils);
 
     const handleMouseDown = useCallback(e => {
+        if (e.button !== 0) return;
+
         if (!e.ctrlKey && !options.listBox)
             dispatchers.clearSelection();
 
@@ -41,9 +42,8 @@ function BodyContainer(props) {
     }, [dragSelectStart, dispatchers]);
 
     const handleDoubleClick = useCallback(() => {
-        const slice = utils.getStateSlice(store.getState());
-        onItemsOpen(utils.getSelectionArg(slice), false);
-    }, [onItemsOpen, store, utils]);
+        onItemsOpen(getSelectionArg(), false);
+    }, [onItemsOpen, getSelectionArg]);
 
     useEvent(document.body, "touchend", useCallback(() => {
         isTouching.current = false;

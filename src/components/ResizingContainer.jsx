@@ -14,7 +14,7 @@ function ResizingContainer(props) {
         initColumnWidths: initWidths,
         onColumnsResizeEnd,
         scrollToPos,
-        setResizing,
+        setResizingColumn,
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
@@ -60,13 +60,13 @@ function ResizingContainer(props) {
     }, []);
 
     const columnResizeStart = useCallback((index, mouseX, left, right) => {
-        setResizing(index);
+        setResizingColumn(index);
         Object.assign(resizing, {
             index, left, right,
             mouseX,
             started: false,
         });
-    }, [setResizing]);
+    }, [setResizingColumn]);
 
     const updateWidth = useCallback(() => {
         const { mouseX, index, widths } = resizing;
@@ -103,12 +103,12 @@ function ResizingContainer(props) {
         if (resizing.index === null) return;
 
         resizing.index = null;
-        setResizing(null);
+        setResizingColumn(null);
         setMaxWidth(0);
 
         if (resizing.started)
             onColumnsResizeEnd(resizing.widths);
-    }, [onColumnsResizeEnd, setResizing]);
+    }, [onColumnsResizeEnd, setResizingColumn]);
 
     //#region Window events
 
@@ -159,11 +159,13 @@ function ResizingContainer(props) {
         bodyContainerRef
     }
 
+    const padding = Math.max(maxWidth - width, 0);
+
     return <div
         className={styles.resizingContainer}
         style={{
             width: `${width}%`,
-            paddingRight: `${maxWidth - width}%`
+            paddingRight: `${padding}%`
         }}
     >
         <ColumnWidthsContext.Provider value={widths}>

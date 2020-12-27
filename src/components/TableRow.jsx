@@ -32,6 +32,7 @@ function TableRow({
     }, [index, dispatchers, isTouching]);
 
     const handleMouseDown = useCallback(e => {
+        if (e.button !== 0) return;
         e.stopPropagation();
 
         dispatchers.select(index, e.ctrlKey, e.shiftKey);

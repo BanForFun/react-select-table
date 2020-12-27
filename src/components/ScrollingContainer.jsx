@@ -6,6 +6,7 @@ import ResizingContainer from "./ResizingContainer";
 import {sortTuple} from "../utils/mathUtils";
 import {SelectionRectContext} from "./SelectionRect";
 import {matchModifiers} from "../utils/eventUtils";
+import useGetSelectionArg from "../hooks/useGetSelectionArg";
 
 function ScrollingContainer(props) {
     const {
@@ -18,12 +19,14 @@ function ScrollingContainer(props) {
     const {
         options,
         options: { utils },
+        onItemsOpen,
         dispatchers
     } = props;
 
     const { startIndex, rows } = utils.useSelector(utils.getPaginatedItems);
     const activeIndex = utils.useSelector(t => t.activeIndex);
     const itemCount = utils.useSelector(t => t.tableItems.length);
+    const selectedCount = utils.useSelector(t => t.selection.size);
     const rowCount = rows.length;
 
     //#region Drag selection
@@ -243,7 +246,8 @@ function ScrollingContainer(props) {
         e.preventDefault();
 
         const touch = e.touches[0];
-        updateSelectionRect([touch.clientX, touch.clientY]);
+        dragSelection.mousePos = [touch.clientX, touch.clientY];
+        updateSelectionRect();
     }, [updateSelectionRect]), false);
 
     useEvent(document,"mouseup", handleDragEnd);
@@ -254,7 +258,7 @@ function ScrollingContainer(props) {
     //#region Keyboard selection
 
     const selectIndex = useCallback((e, index) => {
-        if (matchModifiers(e, true))
+        if (matchModifiers(e, true, false))
             dispatchers.setActive(index);
         else
             dispatchers.select(index, e.ctrlKey, e.shiftKey);
@@ -272,9 +276,53 @@ function ScrollingContainer(props) {
         selectIndex(e, index);
     }, [selectIndex, activeIndex, itemCount]);
 
+
+    //Event handlers
+
+    const getSelectionArg = useGetSelectionArg(utils);
+
+    const handleKeyDown = useCallback(e => {
+        switch (e.keyCode) {
+            case 65: //A
+                if (matchModifiers(e, true, false) && options.multiSelect)
+                    dispatchers.selectAll();
+
+                break;
+            case 38: //Up
+                selectOffset(e, -1);
+                break;
+            case 40: //Down
+                selectOffset(e, 1);
+                break;
+            case 36: //Home
+                selectIndex(e, 0);
+                break;
+            case 35: //End
+                selectIndex(e, itemCount - 1);
+                break;
+            case 13: //Enter
+                if (matchModifiers(e, false, false) && selectedCount)
+                    onItemsOpen(getSelectionArg(), true);
+                else
+                    dispatchers.select(activeIndex, e.ctrlKey, e.shiftKey);
+
+                break;
+            default:
+                onKeyDown(e, getSelectionArg());
+                return;
+        }
+
+        e.preventDefault();
+    }, [
+        dispatchers, options,
+        itemCount, activeIndex, selectedCount,
+        selectOffset, selectIndex, getSelectionArg,
+        onKeyDown, onItemsOpen
+    ]);
+
     //#endregion
 
-    const [resizing, setResizing] = useState();
+    const [resizingColumn, setResizingColumn] = useState();
 
     //Set props
     Object.assign(resizingProps,{
@@ -282,14 +330,15 @@ function ScrollingContainer(props) {
         tableBodyRef,
         dragSelectStart: dragStart,
         scrollToPos,
-        setResizing
+        setResizingColumn
     });
 
     //Render container
     return <div
-        data-resizing={resizing}
+        data-resizingcolumn={resizingColumn}
         className={styles.scrollingContainer}
         onScroll={handleScroll}
+        onKeyDown={handleKeyDown}
         tabIndex="0"
     >
         <SelectionRectContext.Provider value={rect}>

@@ -48,12 +48,12 @@ function ScrollingContainer(props) {
     //State
     const [rect, setRect] = useState(null);
 
-    const dragStart = useCallback((mousePos, rowIndex = null) => {
+    const dragStart = useCallback((mousePos, itemIndex = null) => {
         //Return if multiSelect is disabled
         if (!options.multiSelect) return;
 
         //Return if below items and multiSelect listBox
-        if (rowIndex === null && options.listBox) return;
+        if (itemIndex === null && options.listBox) return;
 
         const [mouseX, mouseY] = mousePos;
         const {
@@ -71,14 +71,13 @@ function ScrollingContainer(props) {
             mousePos,
             lastRelMouseY: relMouseY,
             originPos: [relMouseX, relMouseY],
-            originRow: rowIndex,
-            originItem: null
+            originItem: itemIndex,
+            originRow: null
         });
 
-        if (rowIndex !== null) {
-            const itemIndex = rowIndex + startIndex;
+        if (itemIndex !== null) {
             state.selected[itemIndex] = true;
-            state.originItem = itemIndex;
+            state.originRow = itemIndex - startIndex;
         }
     }, [options, startIndex]);
 

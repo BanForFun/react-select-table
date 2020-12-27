@@ -72,7 +72,6 @@ function ReduxTable() {
             scrollFactor={0.5}
             onKeyDown={handleTableKeyDown}
             showSelectionRect={true}
-            liveColumnResize={true}
             onContextMenu={logEvent("ContextMenu")}
             onSelectionChange={logEvent("Selection")}
             onItemsOpen={logEvent("Open")}

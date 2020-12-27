@@ -10,7 +10,7 @@
 * Resizable columns
 * Sticky header
 * Drag selection with automatic scrolling (even with uneven in height rows)
-* Selection behavior emulating windows ListView
+* Selection behavior emulating windows ListView (with some improvements)
 * Fully usable with only the keyboard
 * Percentage based column sizing (can be used in resizable containers)
 * Single and multi selection

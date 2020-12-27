@@ -49,6 +49,8 @@
 
 * `patchItems` doesn't create a row, if one does not exist with the given value
 
+* `sortBy` disables sorting by the given path, if previously sorting in descending order and the shift key is held
+
 
 
 ### Events
@@ -84,6 +86,7 @@
 
 * Removed `initItems` option
 * react-redux context is now passed as the `context` option
+* When `filter` state is falsy,  `itemPredicate` is not called and all items are rendered
 
 
 

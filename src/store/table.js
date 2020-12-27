@@ -125,6 +125,7 @@ export default function createTable(namespace, options = {}) {
     function updateItems() {
         //Validate items
         delete draft.items[null];
+        delete draft.items[undefined];
 
         //Update items
         draft.tableItems = getSortedItems(draft);
@@ -195,12 +196,8 @@ export default function createTable(namespace, options = {}) {
                 }
                 case Actions.PATCH_ITEMS: {
                     // draft.selection.clear();
-                    for (let patch of payload.patches) {
-                        const item = draft.items[patch[valueProperty]];
-                        if (!item) continue;
-
-                        Object.assign(item, patch);
-                    }
+                    for (let patch of payload.patches)
+                        Object.assign(draft.items[patch[valueProperty]], patch);
 
                     updateItems();
                     break;
@@ -276,8 +273,8 @@ export default function createTable(namespace, options = {}) {
                         const values = getValues(draft);
 
                         if (ctrlKey) {
-                            //Clear old selection
-                            forRange(draft.pivotIndex, draft.activeIndex, i =>
+                            //Clear previous selection
+                            forRange(draft.pivotIndex, state.activeIndex,i =>
                                 selection.delete(values[i]));
                         }
 

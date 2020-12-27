@@ -112,8 +112,9 @@ Returns: *boolean*
 
 
 
+[parser]: #itemparser-function
+
+
+
 [state]: ./state.md
 [filter]: ./state.md#filter-any
-
-
-[parser]: #itemparser-function

@@ -14,7 +14,7 @@ Below each action creator, the action type static variable is listed. The actual
 
 **SET_ITEMS**
 
-Replaces the items inside the [items object][items]. Clears the [selection][selection]. Sets the [page][page] to 0. Sets [loading][loading] to false. Sets [error][error] to null. Sets the first row as [active][active] and [pivot][pivot].
+Replaces the items inside the [items object][items]. Clears the [selection][selection]. Sets the [page][page] to 0. Sets [loading][loading] to false. Clears the [error][error]. Sets the first row as [active][active] and [pivot][pivot].
 
 Parameters:
 
@@ -26,7 +26,7 @@ Parameters:
 
 **ADD_ITEMS**
 
-Adds the items to the [items object][items]. Clears the previous [selection][selection] and selects the newly added items (**even those that may not be shown**).
+Adds the items to the [items object][items]. Clears the previous [selection][selection] and selects the newly added items, **even those that may not be shown**.
 
 Parameters:
 
@@ -38,7 +38,7 @@ Parameters:
 
 **DELETE_ITEMS**
 
-Deletes the items from the [items object][items]. Clears the [selection][selection].
+Deletes items from the [items object][items]. Clears the [selection][selection].
 
 Parameters:
 
@@ -68,19 +68,25 @@ Parameters:
 
 1. `patches` ...*object*
 
-   Each patch is assigned to the destination item, found by the patch's value property
+   Each patch is `Object.assign`-ed to the destination item, found by the patch's value property
 
 #### `sortItems`
 
 **SORT_ITEMS**
 
+If the [multi select][multiSelect] option is enabled and `shiftKey` is true, the previous sorting state is kept and modified, otherwise it is cleared before the next step:
 
+If already sorting by `path` in ascending order, the order is set to descending<br/>If already sorting by `path` in descending order, the order is set to ascending if `shitKey` is true, and cleared if it is false<br/>Otherwise the items are sorted by `path` in ascending order
 
 Parameters:
 
-1. `patches` ...*object*
+1. `path` *string*
 
-   Each patch is assigned to the destination item, found by the patch's value property
+   The path of the property to sort the items by
+   
+2. `shiftKey` *boolean*
+
+   Well...
 
 
 ### Display
@@ -104,3 +110,9 @@ Parameters:
 [error]: ./state.md#error-any
 [active]: ./state.md#activeIndex-number
 [pivot]: ./state.md#pivotIndex-number
+
+
+
+[listBox]: ./options.md#listbox-boolean
+
+[multiSelect]: ./options.md#multiselect-boolean

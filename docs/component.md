@@ -136,17 +136,23 @@ Arguments:
 
 ### Selected values argument
 
-If the [multi select][multiSelect] option is enabled, then the whole [selection][selection] will be passed.
+If the [multi select][multiSelect] option is enabled, then the [selection][selection] will be passed.
 
 Otherwise, the single selected value will be passed, or null if no item is selected.
 
+
+
 [set]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+
+
 
 [columns]: #columns-column
 
 [columnOrder]: #columnorder-number
 
 [selectedValues]: #selected-values-argument
+
+
 
 [selection]: ./state.md#selection-set
 
@@ -157,6 +163,8 @@ Otherwise, the single selected value will be passed, or null if no item is selec
 [isLoading]: ./state.md#isloading-boolean
 
 [error]: ./state.md#error-any
+
+
 
 [listBox]: ./options.md#listbox-boolean
 

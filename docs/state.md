@@ -22,7 +22,7 @@ The index of the pivot row in the items array. The pivot row is used to calculat
 
 > Default: `null`
 
-Passed to `itemPredicate` to decide which rows to show to the user.
+If truthy, it is passed to `itemPredicate` to decide which rows to show to the user. Otherwise, all items are shown.
 
 #### `items` *object*
 

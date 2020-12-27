@@ -13,31 +13,6 @@ const sortOrders = Object.freeze({
     Descending: "desc"
 });
 
-function getNextSortOrder(order) {
-    switch (order) {
-        case sortOrders.Ascending:
-            return sortOrders.Descending;
-        case sortOrders.Descending:
-            return null;
-        default:
-            return sortOrders.Ascending;
-    }
-}
-
-const defaultState = {
-    selection: new Set(),
-    activeIndex: 0,
-    pivotIndex: 0,
-    filter: null,
-    items: {},
-    sortBy: {},
-    tableItems: [],
-    isLoading: false,
-    pageSize: 0,
-    pageIndex: 0,
-    error: null
-};
-
 export default function createTable(namespace, options = {}) {
     const {
         valueProperty,
@@ -47,7 +22,20 @@ export default function createTable(namespace, options = {}) {
         utils
     } = setOptions(namespace, options);
 
-    const initState = {...defaultState, ...options.initState};
+    const initState = {
+        selection: new Set(),
+        activeIndex: 0,
+        pivotIndex: 0,
+        filter: null,
+        items: {},
+        sortBy: {},
+        tableItems: [],
+        isLoading: false,
+        pageSize: 0,
+        pageIndex: 0,
+        error: null,
+        ...options.initState
+    };
     let draft = initState;
 
     //Selectors
@@ -223,7 +211,21 @@ export default function createTable(namespace, options = {}) {
                     if (!multiSort || !shiftKey)
                         draft.sortBy = {};
 
-                    draft.sortBy[path] = getNextSortOrder(state.sortBy[path]);
+                    const { sortBy } = draft;
+                    switch(state.sortBy[path]) {
+                        case sortOrders.Ascending:
+                            sortBy[path] = sortOrders.Descending;
+                            break;
+                        case sortOrders.Descending:
+                            if (shiftKey)
+                                delete sortBy[path];
+                            else
+                                sortBy[path] = sortOrders.Ascending;
+                            break;
+                        default:
+                            sortBy[path] = sortOrders.Ascending;
+                            break;
+                    }
 
                     updateItems();
                     setActiveIndex(0, true);

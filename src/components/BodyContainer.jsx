@@ -11,6 +11,7 @@ function BodyContainer(props) {
         className,
         onItemsOpen,
         tableBodyRef,
+        emptyPlaceholder,
         ...bodyProps
     } = props;
 
@@ -18,12 +19,15 @@ function BodyContainer(props) {
         dispatchers,
         dragSelectStart,
         options,
+        options: {utils},
         bodyContainerRef
     } = props;
 
     const isTouching = useRef(false);
 
-    const getSelectionArg = useGetSelectionArg(options.utils);
+    const getSelectionArg = useGetSelectionArg(utils);
+
+    const noItems = utils.useSelector(t => !t.tableItems.length);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
@@ -35,10 +39,10 @@ function BodyContainer(props) {
     }, [dragSelectStart, dispatchers, options]);
 
     const handleContextMenu = useCallback(e => {
-        dispatchers.contextMenu(null, e.ctrlKey);
-
-        if (!isTouching.current) return;
-        dragSelectStart([e.clientX, e.clientY]);
+        if (isTouching.current)
+            dragSelectStart([e.clientX, e.clientY]);
+        else
+            dispatchers.contextMenu(null, e.ctrlKey);
     }, [dragSelectStart, dispatchers]);
 
     const handleDoubleClick = useCallback(() => {
@@ -63,10 +67,12 @@ function BodyContainer(props) {
         onTouchStart={() => isTouching.current = true}
     >
         <SelectionRect bodyContainerRef={bodyContainerRef} />
-        <table className={className}>
-            <ColumnGroup columns={props.columns} name={props.name} />
-            <TableBody {...bodyProps} />
-        </table>
+        {noItems ? emptyPlaceholder :
+            <table className={className}>
+                <ColumnGroup columns={props.columns} name={props.name} />
+                <TableBody {...bodyProps} />
+            </table>
+        }
     </div>
 }
 

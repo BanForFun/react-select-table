@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useMemo, useEffect} from 'react'
+import React, {useCallback, useState, useMemo, useEffect, useRef} from 'react'
 import _ from "lodash";
 import { Table, TableActions } from 'react-select-table';
 import columns from '../columns';
@@ -19,6 +19,8 @@ function ReduxTable() {
 
     const [clipboard, setClipboard] = useState(null);
 
+    const itemContainerRef = useRef();
+
     useEffect(() => {
         dispatch(actions.setItems(todos));
     }, [dispatch]);
@@ -26,6 +28,7 @@ function ReduxTable() {
     const buttonActions = useMemo(() => ({
         "Set items": actions.setItems(todos),
         "Set error": actions.setError("Error"),
+        "Clear error": actions.setError(null),
         "Clear items": actions.clearItems(),
         "Enable pagination": actions.setPageSize(8),
         "Disable pagination": actions.setPageSize(0),
@@ -57,14 +60,21 @@ function ReduxTable() {
     return <div id="example">
         <div>
             {_.map(buttonActions, (action, text) => {
+                function handleClick() {
+                    dispatch(action);
+                    itemContainerRef.current.focus();
+                }
+
                 return <button
                     key={text}
                     className="btn btn-sm btn-primary mr-1 mb-2"
-                    onClick={() => dispatch(action)}
+                    onClick={handleClick}
                 >{text}</button>
             })}
         </div>
         <Table
+            itemContainerRef={itemContainerRef}
+            emptyPlaceholder="No items"
             className="table"
             namespace={tableNamespace}
             columns={columns}

@@ -14,7 +14,7 @@ function ResizingContainer(props) {
         initColumnWidths: initWidths,
         onColumnsResizeEnd,
         scrollToPos,
-        setResizingColumn,
+        setCursorClass,
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
@@ -60,13 +60,13 @@ function ResizingContainer(props) {
     }, []);
 
     const columnResizeStart = useCallback((index, mouseX, left, right) => {
-        setResizingColumn(index);
+        setCursorClass(styles.resizing);
         Object.assign(resizing, {
             index, left, right,
             mouseX,
             started: false,
         });
-    }, [setResizingColumn]);
+    }, [setCursorClass]);
 
     const updateWidth = useCallback(() => {
         const { mouseX, index, widths } = resizing;
@@ -103,12 +103,11 @@ function ResizingContainer(props) {
         if (resizing.index === null) return;
 
         resizing.index = null;
-        setResizingColumn(null);
         setMaxWidth(0);
 
         if (resizing.started)
             onColumnsResizeEnd(resizing.widths);
-    }, [onColumnsResizeEnd, setResizingColumn]);
+    }, [onColumnsResizeEnd]);
 
     //#region Window events
 

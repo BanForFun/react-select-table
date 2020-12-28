@@ -1,5 +1,3 @@
-import styles from "../index.scss";
-
 import React, {Fragment, useEffect, useMemo} from 'react';
 import {bindActionCreators} from "redux";
 import {defaultEvents} from "../utils/optionUtils";
@@ -10,7 +8,6 @@ import PaginationContainer from "./PaginationContainer";
 function Root(props) {
     const {
         loadingIndicator,
-        emptyPlaceholder,
         Error,
         Pagination, //PaginationContainer
         onContextMenu,
@@ -22,7 +19,6 @@ function Root(props) {
 
     const isLoading = utils.useSelector(s => s.isLoading);
     const error = utils.useSelector(s => s.error);
-    const noItems = utils.useSelector(s => !s.tableItems.length);
 
     const dispatch = useDispatch();
 
@@ -42,30 +38,22 @@ function Root(props) {
     }
 
     //Render placeholder
-    let placeholder;
-    let placeholderEvents = null;
+    function renderPlaceholder() {
+        if (isLoading)
+            return loadingIndicator;
+        else if (error)
+            return <Error error={error}/>;
 
-    if (isLoading)
-        placeholder = loadingIndicator;
-    else if (error)
-        placeholder = <Error error={error}/>;
-    else if (noItems) {
-        placeholder = emptyPlaceholder;
-        placeholderEvents = {
-            onContextMenu: () => dispatchers.contextMenu(null),
-            onKeyDown: e => props.onKeyDown(e, utils.getEmptySelectionArg())
-        }
+        return null;
     }
 
-    if (placeholder !== undefined)
-        return <div className={styles.placeholder}
-                    tabIndex="0"
-                    {...placeholderEvents}
-        >{placeholder}</div>
-
+    const placeholder = renderPlaceholder();
 
     //Set props
-    scrollingProps.dispatchers = dispatchers;
+    Object.assign(scrollingProps, {
+        dispatchers,
+        placeholder
+    });
 
     const paginationProps = {
         dispatchers,
@@ -76,7 +64,7 @@ function Root(props) {
     //Render table
     return <Fragment>
         <ScrollingContainer {...scrollingProps} />
-        <PaginationContainer {...paginationProps} />
+        {!placeholder && <PaginationContainer {...paginationProps} />}
     </Fragment>
 }
 

@@ -12,7 +12,7 @@ export const defaultEvents = {
 
 const defaultOptions = {
     itemParser: item => item,
-    itemPredicate: (item, filter) => _.isMatch(item, filter),
+    itemPredicate: _.isMatch,
     multiSelect: true,
     listBox: false,
     minColumnWidth: 3,
@@ -35,9 +35,6 @@ function getUtils(namespace, options) {
     const getItemValue = (slice, index) =>
         index === null ? null : slice.tableItems[index][options.valueProperty]
 
-    const getEmptySelectionArg = () =>
-        options.multiSelect ? new Set() : null;
-
     const useRootSelector = createSelectorHook(options.context);
     const useSelector = selector =>
         useRootSelector(state => selector(getStateSlice(state)));
@@ -47,7 +44,6 @@ function getUtils(namespace, options) {
         getPaginatedItems: selectors.makeGetPaginatedItems(),
         getPageCount: selectors.makeGetPageCount(),
         getSelectionArg: selectors.makeGetSelectionArg(options),
-        getEmptySelectionArg,
         getStateSlice,
         getItemValue,
         useSelector

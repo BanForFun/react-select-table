@@ -8,7 +8,7 @@ import DefaultPagination from "./DefaultPagination";
 import {tableOptions, defaultEvents} from '../utils/optionUtils';
 import Root from "./Root";
 
-function Connector({ name, namespace, ...rootProps }) {
+function Connector({ name, namespace, id, ...rootProps }) {
     const options = tableOptions[namespace];
     const {context} = options;
 
@@ -21,13 +21,18 @@ function Connector({ name, namespace, ...rootProps }) {
     rootProps.name ??= namespace;
 
     return <ReactReduxContext.Provider value={contextValue}>
-        <div className={styles.container}>
+        <div className={styles.container} id={id}>
             <Root {...rootProps} />
         </div>
     </ReactReduxContext.Provider>
 }
 
 export default Connector;
+
+const refType = PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.instanceOf(Element) })
+]);
 
 const columnShape = PropTypes.shape({
     title: PropTypes.string,
@@ -45,7 +50,9 @@ Connector.propTypes = {
     loadingIndicator: PropTypes.node,
     emptyPlaceholder: PropTypes.node,
     name: PropTypes.string,
+    id: PropTypes.string,
     className: PropTypes.string,
+    itemContainerRef: refType,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     showSelectionRect: PropTypes.bool,

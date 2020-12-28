@@ -1,6 +1,7 @@
 import styles from "../index.scss";
 
 import React, {useCallback, useRef, useState} from 'react';
+import classNames from "classnames";
 import useEvent from "../hooks/useEvent";
 import ResizingContainer from "./ResizingContainer";
 import {sortTuple} from "../utils/mathUtils";
@@ -13,6 +14,8 @@ function ScrollingContainer(props) {
         showSelectionRect,
         scrollFactor,
         onKeyDown,
+        itemContainerRef,
+        placeholder,
         ...resizingProps
     } = props;
 
@@ -28,6 +31,8 @@ function ScrollingContainer(props) {
     const itemCount = utils.useSelector(t => t.tableItems.length);
     const selectedCount = utils.useSelector(t => t.selection.size);
     const rowCount = rows.length;
+
+    const [cursorClass, setCursorClass] = useState(null);
 
     //#region Drag selection
 
@@ -79,13 +84,18 @@ function ScrollingContainer(props) {
             state.selected[itemIndex] = true;
             state.originRow = itemIndex - startIndex;
         }
+
+        setCursorClass(styles.selecting);
     }, [options, startIndex]);
 
     const updateDragSelection = useCallback(relMouseY => {
+        const tableBody = tableBodyRef.current;
+        if (!tableBody) return;
+
         const {
             offsetHeight: tableHeight,
             children: rows
-        } = tableBodyRef.current.element;
+        } = tableBody.element;
 
         //Define selection check area
         const [minMouseY, maxMouseY] = sortTuple(relMouseY, dragSelection.lastRelMouseY);
@@ -226,6 +236,8 @@ function ScrollingContainer(props) {
     }, [updateSelectionRect]);
 
     const handleDragEnd = useCallback(() => {
+        setCursorClass(null);
+
         if (!dragSelection.originPos) return;
         dragSelection.originPos = null;
         setRect(null);
@@ -281,6 +293,8 @@ function ScrollingContainer(props) {
     const getSelectionArg = useGetSelectionArg(utils);
 
     const handleKeyDown = useCallback(e => {
+        if (placeholder) return;
+
         switch (e.keyCode) {
             case 65: //A
                 if (matchModifiers(e, true, false) && options.multiSelect)
@@ -313,7 +327,7 @@ function ScrollingContainer(props) {
 
         e.preventDefault();
     }, [
-        dispatchers, options,
+        dispatchers, options, placeholder,
         itemCount, activeIndex, selectedCount,
         selectOffset, selectIndex, getSelectionArg,
         onKeyDown, onItemsOpen
@@ -321,28 +335,33 @@ function ScrollingContainer(props) {
 
     //#endregion
 
-    const [resizingColumn, setResizingColumn] = useState();
-
     //Set props
     Object.assign(resizingProps,{
         bodyContainerRef,
         tableBodyRef,
         dragSelectStart: dragStart,
         scrollToPos,
-        setResizingColumn
+        setCursorClass
     });
 
     //Render container
+    const className = classNames(
+        styles.scrollingContainer,
+        cursorClass
+    )
+
     return <div
-        data-resizingcolumn={resizingColumn}
-        className={styles.scrollingContainer}
+        ref={itemContainerRef}
+        className={className}
         onScroll={handleScroll}
         onKeyDown={handleKeyDown}
         tabIndex="0"
     >
-        <SelectionRectContext.Provider value={rect}>
-            <ResizingContainer {...resizingProps} />
-        </SelectionRectContext.Provider>
+        {placeholder ??
+            <SelectionRectContext.Provider value={rect}>
+                <ResizingContainer {...resizingProps} />
+            </SelectionRectContext.Provider>
+        }
     </div>
 }
 

@@ -13,7 +13,7 @@ function TableHeader({
     sortOrder
 }) {
     const handleMouseDown = useCallback(e => {
-        if (!path) return;
+        if (e.button !== 0 || !path) return;
         dispatchers.sortItems(path, e.shiftKey);
     }, [path, dispatchers]);
 
@@ -24,12 +24,17 @@ function TableHeader({
         columnResizeStart(index, e.clientX, bounds.left, bounds.right);
     }, [columnResizeStart, index]);
 
+    const handleSeparatorMouseDown = useCallback(e => {
+        if (e.button !== 0) return;
+        handleResizeStart(e);
+    }, [handleResizeStart]);
+
     return <th data-path={path} onMouseDown={handleMouseDown}>
         {title}
         <AngleDownIcon className={styles.sortIcon} data-order={sortOrder} />
         {addSeparator && <div
             className={styles.separator}
-            onMouseDown={handleResizeStart}
+            onMouseDown={handleSeparatorMouseDown}
             onTouchStart={handleResizeStart}
         />}
     </th>;

@@ -61,7 +61,7 @@
 
 ### Visuals
 
-* Table header not rendered while there are no visible items
+* Column separator fades in when hovering
 
 
 

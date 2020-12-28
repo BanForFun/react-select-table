@@ -1,0 +1,156 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    outline: none;
+    user-select: none;
+
+    table {
+        width: 100%;
+        table-layout: fixed;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        user-select: none;
+    }
+
+    td, th {
+        overflow: hidden;
+        white-space: nowrap;
+    }
+}
+
+.scrollingContainer {
+    position: relative;
+    flex: auto;
+    overflow: auto;
+    outline: none;
+
+    &:not(:focus-within) tr {
+        &.active {
+            @include activeShadow($active-shadow-unfocused);
+        }
+
+        &.selected {
+            background-color: $selected-bg-unfocused;
+        }
+    }
+}
+
+.resizingContainer {
+    box-sizing: content-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.headContainer {
+    flex: none;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: $header-bg;
+
+    th {
+        z-index: 1;
+        white-space: nowrap;
+        position: relative;
+
+        &[data-path] {
+            cursor: pointer;
+        }
+    }
+}
+
+.resizing {
+    @include cursorOverride(col-resize);
+}
+
+.selecting {
+    @include cursorOverride(default);
+}
+
+.bodyContainer {
+    flex: auto;
+    z-index: 0;
+
+    tr {
+        &:first-child > * {
+            border-top: none;
+        }
+
+        &:hover {
+            background-color: $hover-bg;
+        }
+
+        &.active {
+            @include activeShadow($active-shadow);
+        }
+
+        &.selected {
+            background-color: $selected-bg;
+        }
+    }
+}
+
+.separator {
+    width: 10px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    cursor: col-resize;
+    transition: background-color 150ms;
+
+    &:hover, &:active {
+        background-color: $separator-bg;
+    }
+}
+
+.selection {
+    position: absolute;
+    border: 1px solid $selection-border;
+    background-color: $selection-bg;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.sortIcon {
+    height: 1.25em;
+    vertical-align: text-top;
+    margin-left: 0.25rem;
+    fill: currentColor;
+    display: none;
+
+    &[data-order] {
+        display: inline-block;
+    }
+
+    &[data-order=desc] {
+        transform: rotate(180deg);
+    }
+}
+
+.paginationContainer {
+    flex: none;
+
+    ul {
+        margin: 1rem 0 0 0;
+    }
+}
+
+%pageNavButton {
+    height: 1.25em;
+    vertical-align: top;
+    fill: currentColor;
+}
+
+.nextPage {
+    @extend %pageNavButton;
+    transform: rotate(90deg);
+}
+
+.prevPage {
+    @extend %pageNavButton;
+    transform: rotate(-90deg);
+}

@@ -20,15 +20,13 @@ function TableRow({
 
     const handleContextMenu = useCallback(e => {
         e.stopPropagation();
+
         if (isTouching.current) {
-            //Touch
             dispatchers.select(index, true);
             dragSelectStart([e.clientX, e.clientY], index);
-            return;
+        } else {
+            dispatchers.contextMenu(index, e.ctrlKey);
         }
-
-        //Mouse
-        dispatchers.contextMenu(index, e.ctrlKey);
     }, [index, dispatchers, isTouching]);
 
     const handleMouseDown = useCallback(e => {
@@ -46,7 +44,7 @@ function TableRow({
         const cellProps = {
             content,
             key: `cell_${name}_${value}_${_id}`,
-            className, isHeader, render
+            className, isHeader, render, item
         }
 
         return <TableCell {...cellProps} />

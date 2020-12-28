@@ -75,7 +75,6 @@ function ReduxTable() {
         <Table
             itemContainerRef={itemContainerRef}
             emptyPlaceholder="No items"
-            className="table"
             namespace={tableNamespace}
             columns={columns}
             loadingIndicator="Loading..."

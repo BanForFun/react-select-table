@@ -8,7 +8,6 @@ import useGetSelectionArg from "../hooks/useGetSelectionArg";
 
 function BodyContainer(props) {
     const {
-        className,
         onItemsOpen,
         tableBodyRef,
         emptyPlaceholder,
@@ -68,7 +67,7 @@ function BodyContainer(props) {
     >
         <SelectionRect bodyContainerRef={bodyContainerRef} />
         {noItems ? emptyPlaceholder :
-            <table className={className}>
+            <table>
                 <ColumnGroup columns={props.columns} name={props.name} />
                 <TableBody {...bodyProps} />
             </table>

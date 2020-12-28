@@ -1,0 +1,66 @@
+%common {
+    td, th {
+        padding: 0.75rem;
+    }
+}
+
+%head {
+    .headContainer {
+        background-color: getColor("head-bg");
+        color: getColor("head-text");
+        border-bottom: 2px solid getColor("head-border");
+    }
+}
+
+%body {
+    .bodyContainer {
+        background-color: getColor("body-bg");
+        color: getColor("body-text");
+    }
+}
+
+%rows {
+    .bodyContainer tr {
+        border-bottom: 1px solid getColor("row-border");
+
+        &:hover {
+            background-color: getColor("row-hover-bg");
+        }
+
+        &.active {
+            @include activeShadow(getColor("row-active-shadow"));
+        }
+
+        &.selected {
+            background-color: getColor("row-selected-bg");
+        }
+    }
+
+    .scrollingContainer:not(:focus-within) tr {
+        &.active {
+            @include activeShadow(getColor("row-active-shadow-light"));
+        }
+
+        &.selected {
+            background-color: getColor("row-selected-bg-light");
+        }
+    }
+}
+
+%separator {
+    .separator {
+        transition: background-color 150ms;
+
+        &:hover, &:active {
+            background-color: getColor("separator");
+        }
+    }
+}
+
+%selection {
+    .selection {
+        border: 1px solid getColor("selection-border");
+        background-color: getColor("selection-bg");
+        opacity: 0.5;
+    }
+}

@@ -8,10 +8,8 @@
     table {
         width: 100%;
         table-layout: fixed;
-        margin-bottom: 0;
-        border-collapse: separate;
-        border-spacing: 0;
         user-select: none;
+        margin: 0;
     }
 
     td, th {
@@ -25,16 +23,6 @@
     flex: auto;
     overflow: auto;
     outline: none;
-
-    &:not(:focus-within) tr {
-        &.active {
-            @include activeShadow($active-shadow-unfocused);
-        }
-
-        &.selected {
-            background-color: $selected-bg-unfocused;
-        }
-    }
 }
 
 .resizingContainer {
@@ -49,7 +37,6 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: $header-bg;
 
     th {
         z-index: 1;
@@ -73,24 +60,6 @@
 .bodyContainer {
     flex: auto;
     z-index: 0;
-
-    tr {
-        &:first-child > * {
-            border-top: none;
-        }
-
-        &:hover {
-            background-color: $hover-bg;
-        }
-
-        &.active {
-            @include activeShadow($active-shadow);
-        }
-
-        &.selected {
-            background-color: $selected-bg;
-        }
-    }
 }
 
 .separator {
@@ -100,18 +69,10 @@
     right: 0;
     height: 100%;
     cursor: col-resize;
-    transition: background-color 150ms;
-
-    &:hover, &:active {
-        background-color: $separator-bg;
-    }
 }
 
 .selection {
     position: absolute;
-    border: 1px solid $selection-border;
-    background-color: $selection-bg;
-    opacity: 0.5;
     pointer-events: none;
 }
 
@@ -133,10 +94,6 @@
 
 .paginationContainer {
     flex: none;
-
-    ul {
-        margin: 1rem 0 0 0;
-    }
 }
 
 %pageNavButton {
@@ -153,4 +110,23 @@
 .prevPage {
     @extend %pageNavButton;
     transform: rotate(-90deg);
+}
+
+.pagination {
+
+}
+
+.error {
+    padding-top: 1rem;
+    width: 100%;
+    text-align: center;
+}
+
+.table {
+    @extend %common;
+    @extend %head;
+    @extend %body;
+    @extend %rows;
+    @extend %separator;
+    @extend %selection;
 }

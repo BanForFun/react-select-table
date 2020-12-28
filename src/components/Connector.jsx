@@ -1,6 +1,7 @@
 import styles from "../index.scss";
 
 import React, {useContext} from 'react';
+import classNames from "classnames";
 import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultError from "./DefaultError";
@@ -8,7 +9,7 @@ import DefaultPagination from "./DefaultPagination";
 import {tableOptions, defaultEvents} from '../utils/optionUtils';
 import Root from "./Root";
 
-function Connector({ name, namespace, id, ...rootProps }) {
+function Connector({ name, namespace, id, className, ...rootProps }) {
     const options = tableOptions[namespace];
     const {context} = options;
 
@@ -21,7 +22,7 @@ function Connector({ name, namespace, id, ...rootProps }) {
     rootProps.name ??= namespace;
 
     return <ReactReduxContext.Provider value={contextValue}>
-        <div className={styles.container} id={id}>
+        <div id={id} className={classNames(styles.container, className)}>
             <Root {...rootProps} />
         </div>
     </ReactReduxContext.Provider>
@@ -68,6 +69,7 @@ Connector.defaultProps = {
     onItemsOpen: () => { },
     onColumnsResizeEnd: () => { },
     onKeyDown: () => { },
+    className: styles.table,
     initColumnWidths: [],
     scrollFactor: 0.2,
     Error: DefaultError,

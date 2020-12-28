@@ -1,18 +1,29 @@
-//Rows
-$selected-bg-unfocused: #d3dbcd;
-$active-shadow-unfocused: #c4d9b1;
+$table-colors: () !default;
 
-$selected-bg: #c4d9b1;
-$active-shadow: #b1cc97;
+$table-colors: map-merge((
+    //Rows
+    "row-selected-bg": #c4d9b1,
+    "row-active-shadow": #b1cc97,
+    "row-selected-bg-light": #d3dbcd,
+    "row-active-shadow-light": #c4d9b1,
 
-$hover-bg: #F2F2F2;
+    "row-hover-bg": #F2F2F2,
+    "row-border": #dee2e6,
 
-//Header
-$header-bg: #F5F5F5;
+    //Body
+    "body-bg": white,
+    "body-text": #333333,
 
-//Separator
-$separator-bg: gainsboro;
+    //Head
+    "head-bg": #F5F5F5,
+    "head-text": #616161,
+    "head-border": #dee2e6,
 
-//Selection
-$selection-border: blue;
-$selection-bg: lightskyblue;
+    //Separator
+    "separator": #dee2e6,
+
+    //Selection box
+    "selection-border": blue,
+    "selection-bg": lightskyblue
+
+), $table-colors);

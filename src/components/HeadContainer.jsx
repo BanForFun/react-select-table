@@ -5,15 +5,10 @@ import TableHead from "./TableHead";
 import ColumnGroup from "./ColumnGroup";
 
 function HeadContainer(props) {
-    const {
-        className,
-        ...headProps
-    } = props;
-
     return <div className={styles.headContainer}>
-        <table className={className}>
+        <table>
             <ColumnGroup columns={props.columns} name={props.name} />
-            <TableHead {...headProps} />
+            <TableHead {...props} />
         </table>
     </div>
 }

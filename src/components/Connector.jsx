@@ -1,5 +1,3 @@
-import styles from "../index.scss";
-
 import React, {useContext} from 'react';
 import classNames from "classnames";
 import {ReactReduxContext} from "react-redux";
@@ -22,7 +20,7 @@ function Connector({ name, namespace, id, className, ...rootProps }) {
     rootProps.name ??= namespace;
 
     return <ReactReduxContext.Provider value={contextValue}>
-        <div id={id} className={classNames(styles.container, className)}>
+        <div id={id} className={classNames("rst-container", className)}>
             <Root {...rootProps} />
         </div>
     </ReactReduxContext.Provider>
@@ -69,7 +67,7 @@ Connector.defaultProps = {
     onItemsOpen: () => { },
     onColumnsResizeEnd: () => { },
     onKeyDown: () => { },
-    className: styles.table,
+    className: "rst-table",
     initColumnWidths: [],
     scrollFactor: 0.2,
     Error: DefaultError,

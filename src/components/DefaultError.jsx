@@ -1,8 +1,7 @@
-import styles from "../index.scss";
 import React from 'react';
 
 function DefaultError({ error }) {
-    return <div className={styles.error}>{error}</div>;
+    return <div className="rst-error">{error}</div>;
 }
 
 export default DefaultError;

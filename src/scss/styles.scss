@@ -1,4 +1,4 @@
-.container {
+.rst-container {
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -18,21 +18,21 @@
     }
 }
 
-.scrollingContainer {
+.rst-scrollingContainer {
     position: relative;
     flex: auto;
     overflow: auto;
     outline: none;
 }
 
-.resizingContainer {
+.rst-resizingContainer {
     box-sizing: content-box;
     display: flex;
     flex-direction: column;
     min-height: 100%;
 }
 
-.headContainer {
+.rst-headContainer {
     flex: none;
     position: sticky;
     top: 0;
@@ -49,20 +49,20 @@
     }
 }
 
-.resizing {
+.rst-resizing {
     @include cursorOverride(col-resize);
 }
 
-.selecting {
+.rst-selecting {
     @include cursorOverride(default);
 }
 
-.bodyContainer {
+.rst-bodyContainer {
     flex: auto;
     z-index: 0;
 }
 
-.separator {
+.rst-separator {
     width: 10px;
     position: absolute;
     top: 0;
@@ -71,12 +71,12 @@
     cursor: col-resize;
 }
 
-.selection {
+.rst-selection {
     position: absolute;
     pointer-events: none;
 }
 
-.sortIcon {
+.rst-sortIcon {
     height: 1.25em;
     vertical-align: text-top;
     margin-left: 0.25rem;
@@ -92,7 +92,7 @@
     }
 }
 
-.paginationContainer {
+.rst-paginationContainer {
     flex: none;
 }
 
@@ -102,27 +102,27 @@
     fill: currentColor;
 }
 
-.nextPage {
+.rst-nextPage {
     @extend %pageNavButton;
     transform: rotate(90deg);
 }
 
-.prevPage {
+.rst-prevPage {
     @extend %pageNavButton;
     transform: rotate(-90deg);
 }
 
-.pagination {
+.rst-pagination {
 
 }
 
-.error {
+.rst-error {
     padding-top: 1rem;
     width: 100%;
     text-align: center;
 }
 
-.table {
+.rst-table {
     @extend %common;
     @extend %head;
     @extend %body;

@@ -5,7 +5,7 @@
 }
 
 %head {
-    .headContainer {
+    .rst-headContainer {
         background-color: getColor("head-bg");
         color: getColor("head-text");
         border-bottom: 2px solid getColor("head-border");
@@ -13,42 +13,42 @@
 }
 
 %body {
-    .bodyContainer {
+    .rst-bodyContainer {
         background-color: getColor("body-bg");
         color: getColor("body-text");
     }
 }
 
 %rows {
-    .bodyContainer tr {
+    .rst-bodyContainer tr {
         border-bottom: 1px solid getColor("row-border");
 
         &:hover {
             background-color: getColor("row-hover-bg");
         }
 
-        &.active {
+        &.rst-active {
             @include activeShadow(getColor("row-active-shadow"));
         }
 
-        &.selected {
+        &.rst-selected {
             background-color: getColor("row-selected-bg");
         }
     }
 
-    .scrollingContainer:not(:focus-within) tr {
-        &.active {
+    .rst-scrollingContainer:not(:focus-within) tr {
+        &.rst-active {
             @include activeShadow(getColor("row-active-shadow-light"));
         }
 
-        &.selected {
+        &.rst-selected {
             background-color: getColor("row-selected-bg-light");
         }
     }
 }
 
 %separator {
-    .separator {
+    .rst-separator {
         transition: background-color 150ms;
 
         &:hover, &:active {
@@ -58,7 +58,7 @@
 }
 
 %selection {
-    .selection {
+    .rst-selection {
         border: 1px solid getColor("selection-border");
         background-color: getColor("selection-bg");
         opacity: 0.5;

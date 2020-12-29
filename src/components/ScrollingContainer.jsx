@@ -1,5 +1,3 @@
-import styles from "../index.scss";
-
 import React, {useCallback, useRef, useState} from 'react';
 import classNames from "classnames";
 import useEvent from "../hooks/useEvent";
@@ -85,7 +83,7 @@ function ScrollingContainer(props) {
             state.originRow = itemIndex - startIndex;
         }
 
-        setCursorClass(styles.selecting);
+        setCursorClass("rst-selecting");
     }, [options, startIndex]);
 
     const updateDragSelection = useCallback(relMouseY => {
@@ -346,7 +344,7 @@ function ScrollingContainer(props) {
 
     //Render container
     const className = classNames(
-        styles.scrollingContainer,
+        "rst-scrollingContainer",
         cursorClass
     )
 

@@ -2,7 +2,6 @@ import React from 'react';
 import classNames from "classnames";
 import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
-import styles from "../index.scss";
 
 function DefaultPagination({
     pageCount, pageIndex, goToPage
@@ -27,7 +26,7 @@ function DefaultPagination({
                     aria-label="previous"
                     onClick={() => goToPage(pageIndex - 1)}
                 >
-                    <AngleDownIcon className={styles.prevPage} />
+                    <AngleDownIcon className="rst-prevPage" />
                 </button>
             </li>
             {
@@ -50,7 +49,7 @@ function DefaultPagination({
                     aria-label="next"
                     onClick={() => goToPage(pageIndex + 1)}
                 >
-                    <AngleDownIcon className={styles.nextPage} />
+                    <AngleDownIcon className="rst-nextPage" />
                 </button>
             </li>
         </ul>

@@ -1,5 +1,3 @@
-import styles from "../index.scss";
-
 import React, {useCallback} from 'react';
 import AngleDownIcon from "./AngleDownIcon";
 
@@ -31,9 +29,9 @@ function TableHeader({
 
     return <th data-path={path} onMouseDown={handleMouseDown}>
         {title}
-        <AngleDownIcon className={styles.sortIcon} data-order={sortOrder} />
+        <AngleDownIcon className="rst-sortIcon" data-order={sortOrder} />
         {addSeparator && <div
-            className={styles.separator}
+            className="rst-separator"
             onMouseDown={handleSeparatorMouseDown}
             onTouchStart={handleResizeStart}
         />}

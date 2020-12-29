@@ -1,5 +1,3 @@
-import styles from "../index.scss";
-
 import React, {useCallback} from 'react';
 import classNames from "classnames";
 import _ from "lodash";
@@ -51,8 +49,8 @@ function TableRow({
     };
 
     const classes = {
-        [styles.selected]: selected,
-        [styles.active]: active
+        "rst-selected": selected,
+        "rst-active": active
     };
 
     return <tr

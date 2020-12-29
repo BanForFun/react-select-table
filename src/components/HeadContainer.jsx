@@ -1,11 +1,9 @@
-import styles from "../index.scss";
-
 import React from 'react';
 import TableHead from "./TableHead";
 import ColumnGroup from "./ColumnGroup";
 
 function HeadContainer(props) {
-    return <div className={styles.headContainer}>
+    return <div className="rst-headContainer">
         <table>
             <ColumnGroup columns={props.columns} name={props.name} />
             <TableHead {...props} />

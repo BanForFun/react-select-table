@@ -1,4 +1,3 @@
-import styles from "../index.scss";
 import React, {useContext} from 'react';
 
 export const SelectionRectContext = React.createContext(null);
@@ -14,7 +13,7 @@ function SelectionRect({ bodyContainerRef }) {
         transform: `translate(${offsetLeft}px, ${offsetTop}px)`,
     }
 
-    return <div className={styles.selection} style={style} />;
+    return <div className="rst-selection" style={style} />;
 }
 
 export default React.memo(SelectionRect);

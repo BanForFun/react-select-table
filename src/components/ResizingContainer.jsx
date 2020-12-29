@@ -1,5 +1,3 @@
-import styles from "../index.scss";
-
 import _ from "lodash";
 import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
 import HeadContainer from "./HeadContainer";
@@ -60,7 +58,7 @@ function ResizingContainer(props) {
     }, []);
 
     const columnResizeStart = useCallback((index, mouseX, left, right) => {
-        setCursorClass(styles.resizing);
+        setCursorClass("rst-resizing");
         Object.assign(resizing, {
             index, left, right,
             mouseX,
@@ -161,7 +159,7 @@ function ResizingContainer(props) {
     const padding = Math.max(maxWidth - width, 0);
 
     return <div
-        className={styles.resizingContainer}
+        className="rst-resizingContainer"
         style={{
             width: `${width}%`,
             paddingRight: `${padding}%`

@@ -1,5 +1,4 @@
 import React, {useCallback, useRef} from 'react';
-import styles from "../index.scss";
 import TableBody from "./TableBody";
 import ColumnGroup from "./ColumnGroup";
 import SelectionRect from "./SelectionRect";
@@ -58,7 +57,7 @@ function BodyContainer(props) {
     });
 
     return <div
-        className={styles.bodyContainer}
+        className="rst-bodyContainer"
         ref={bodyContainerRef}
         onDoubleClick={handleDoubleClick}
         onMouseDown={handleMouseDown}

@@ -1,5 +1,3 @@
-import styles from "../index.scss";
-
 import React from 'react';
 
 function PaginationContainer({
@@ -12,7 +10,7 @@ function PaginationContainer({
 
     if (!pageCount) return null;
 
-    return <div className={styles.paginationContainer}>
+    return <div className="rst-paginationContainer">
         <Pagination
             pageIndex={pageIndex}
             pageCount={pageCount}

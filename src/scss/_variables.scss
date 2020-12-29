@@ -12,6 +12,7 @@ $colors: map-merge((
     //Body
     "body-bg": transparent,
     "body-text": #333333,
+    "body-border": #dee2e6,
 
     //Rows
     "row-selected-bg": #c4d9b1,
@@ -27,10 +28,8 @@ $colors: map-merge((
     "row-hover-bg": #F2F2F2,
     "row-hover-text": inherit,
 
-    "row-border": #dee2e6,
-
     //Separator
-    "separator": #dee2e6,
+    "separator-bg": #dee2e6,
 
     //Selection box
     "selection-border": blue,

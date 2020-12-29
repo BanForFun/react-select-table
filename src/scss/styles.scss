@@ -1,3 +1,5 @@
+@use "mixins" as *;
+
 .rst-container {
     display: flex;
     flex-direction: column;
@@ -63,7 +65,6 @@
 }
 
 .rst-separator {
-    width: 10px;
     position: absolute;
     top: 0;
     right: 0;
@@ -123,10 +124,13 @@
 }
 
 .rst-table {
-    @extend %common;
-    @extend %head;
-    @extend %body;
-    @extend %rows;
-    @extend %separator;
-    @extend %selection;
+    @include cell;
+    @include head;
+    @include body;
+    @include row;
+    @include row-active;
+    @include row-selected;
+    @include row-hover;
+    @include separator;
+    @include selection;
 }

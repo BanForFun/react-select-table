@@ -1,3 +1,0 @@
-@function getColor($name) {
-    @return map-get($table-colors, $name);
-}

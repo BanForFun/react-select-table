@@ -1,5 +1,4 @@
-import 'bootstrap/dist/css/bootstrap.css';
-import 'react-select-table/dist/index.css';
+import "./App.scss";
 
 import React from 'react';
 import { Switch, Route, Redirect } from "react-router-dom";

@@ -1,9 +1,0 @@
-@mixin activeShadow($color) {
-    box-shadow: inset 0 -2px 0 0 $color;
-}
-
-@mixin cursorOverride($cursor) {
-    &, & * {
-        cursor: $cursor !important;
-    }
-}

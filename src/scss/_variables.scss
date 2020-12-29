@@ -1,0 +1,39 @@
+$cell-padding: 0.75rem  !default;
+$separator-width: 10px  !default;
+$selection-opacity: 0.5 !default;
+$colors: ()             !default;
+
+$colors: map-merge((
+    //Head
+    "head-bg": #F5F5F5,
+    "head-text": #616161,
+    "head-border": #dee2e6,
+
+    //Body
+    "body-bg": transparent,
+    "body-text": #333333,
+
+    //Rows
+    "row-selected-bg": #c4d9b1,
+    "row-selected-bg-unfocused": #d3dbcd,
+    "row-selected-text": inherit,
+    "row-selected-text-unfocused": inherit,
+
+    "row-active-shadow": #b1cc97,
+    "row-active-shadow-unfocused": #c4d9b1,
+    "row-active-text": inherit,
+    "row-active-text-unfocused": inherit,
+
+    "row-hover-bg": #F2F2F2,
+    "row-hover-text": inherit,
+
+    "row-border": #dee2e6,
+
+    //Separator
+    "separator": #dee2e6,
+
+    //Selection box
+    "selection-border": blue,
+    "selection-bg": lightskyblue
+
+), $colors);

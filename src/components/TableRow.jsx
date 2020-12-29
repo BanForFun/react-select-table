@@ -54,7 +54,7 @@ function TableRow({
     };
 
     return <tr
-        className={classNames(classes, item._className)}
+        className={classNames(item._className, classes)}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
     >

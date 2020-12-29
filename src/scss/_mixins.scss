@@ -1,0 +1,123 @@
+@use "variables" as *;
+@use "functions" as *;
+
+@mixin activeRow($shadow, $text) {
+    .rst-active {
+        box-shadow: inset 0 -2px 0 0 $shadow !important;
+        color: $text !important;
+    }
+}
+
+@mixin selectedRow($bg, $text) {
+    .rst-selected {
+        background-color: $bg !important;
+        color: $text !important;
+    }
+}
+
+@mixin cursorOverride($cursor) {
+    &, & * {
+        cursor: $cursor !important;
+    }
+}
+
+@mixin cell(
+    $padding: $cell-padding
+) {
+    td, th {
+        padding: $padding;
+    }
+}
+
+@mixin head(
+    $bg: getColor("head-bg"),
+    $text: getColor("head-text"),
+    $border: getColor("head-border")
+) {
+    .rst-headContainer {
+        background-color: $bg;
+        color: $text;
+
+        border-bottom: 2px solid $border;
+    }
+}
+
+@mixin body(
+    $bg: getColor("body-bg"),
+    $text: getColor("body-text")
+) {
+    .rst-bodyContainer {
+        background-color: $bg;
+        color: $text;
+    }
+}
+
+@mixin row(
+    $border: getColor("row-border")
+) {
+    tbody tr {
+        border-bottom: 1px solid $border;
+    }
+}
+
+@mixin row-hover(
+    $bg: getColor("row-hover-bg"),
+    $text: getColor("row-hover-text")
+) {
+    tbody tr:hover {
+        background-color: $bg;
+        color: $text;
+    }
+}
+
+@mixin row-active(
+    $shadow: getColor("row-active-shadow"),
+    $text: getColor("row-active-text"),
+    $shadow-unfocused: getColor("row-active-shadow-unfocused"),
+    $text-unfocused: getColor("row-active-text-unfocused")
+) {
+    @include activeRow($shadow, $text);
+
+    .rst-scrollingContainer:not(:focus-within) {
+        @include activeRow($shadow-unfocused, $text-unfocused);
+    }
+}
+
+@mixin row-selected(
+    $bg: getColor("row-selected-bg"),
+    $text: getColor("row-selected-text"),
+    $bg-unfocused: getColor("row-selected-bg-unfocused"),
+    $text-unfocused: getColor("row-selected-text-unfocused")
+) {
+    @include selectedRow($bg, $text);
+
+    .rst-scrollingContainer:not(:focus-within) {
+        @include selectedRow($bg-unfocused, $text-unfocused);
+    }
+}
+
+@mixin separator(
+    $bg: getColor("separator-bg"),
+    $width: $separator-width
+) {
+    .rst-separator {
+        transition: background-color 150ms;
+        width: $width;
+
+        &:hover, &:active {
+            background-color: $bg;
+        }
+    }
+}
+
+@mixin selection(
+    $bg: getColor("selection-bg"),
+    $border: getColor("selection-border"),
+    $opacity: $selection-opacity
+) {
+    .rst-selection {
+        border: 1px solid $border;
+        background-color: $bg;
+        opacity: $opacity;
+    }
+}

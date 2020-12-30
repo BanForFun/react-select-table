@@ -34,8 +34,8 @@ export default class TableActions {
     static GO_TO_PAGE = "RST_GO_TO_PAGE";
     static SET_PAGE_SIZE = "RST_SET_PAGE_SIZE";
 
-    goToPage = index =>
-        this._getAction(self.GO_TO_PAGE, { index });
+    goToPage = page =>
+        this._getAction(self.GO_TO_PAGE, { page });
 
     setPageSize = size =>
         this._getAction(self.SET_PAGE_SIZE, { size });

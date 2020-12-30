@@ -1,20 +1,6 @@
 @use "variables" as *;
 @use "functions" as *;
 
-@mixin _activeRow($shadow, $text) {
-    .rst-active {
-        box-shadow: inset 0 -2px 0 0 $shadow !important;
-        color: $text !important;
-    }
-}
-
-@mixin _selectedRow($bg, $text) {
-    .rst-selected {
-        background-color: $bg !important;
-        color: $text !important;
-    }
-}
-
 @mixin cursorOverride($cursor) {
     &, & * {
         cursor: $cursor !important;
@@ -69,6 +55,13 @@
     }
 }
 
+@mixin _activeRow($shadow, $text) {
+    tr.rst-active {
+        box-shadow: inset 0 -2px 0 0 $shadow !important;
+        color: $text !important;
+    }
+}
+
 @mixin row-active(
     $shadow: getColor("row-active-shadow"),
     $text: getColor("row-active-text"),
@@ -79,6 +72,13 @@
 
     .rst-scrollingContainer:not(:focus-within) {
         @include _activeRow($shadow-unfocused, $text-unfocused);
+    }
+}
+
+@mixin _selectedRow($bg, $text) {
+    tr.rst-selected {
+        background-color: $bg !important;
+        color: $text !important;
     }
 }
 
@@ -118,5 +118,38 @@
         border: 1px solid $border;
         background-color: $bg;
         opacity: $opacity;
+    }
+}
+
+@mixin pagination(
+    $text: getColor("pagination-text"),
+    $text-disabled: getColor("pagination-text-disabled")
+) {
+    .rst-pagination {
+        color: $text;
+
+        :disabled {
+            color: $text-disabled;
+        }
+    }
+}
+
+@mixin pagination-hover(
+    $bg: getColor("pagination-hover-bg"),
+    $text: getColor("pagination-hover-text")
+) {
+    .rst-pagination button:hover {
+        background-color: $bg;
+        color: $text;
+    }
+}
+
+@mixin pagination-active(
+    $bg: getColor("pagination-active-bg"),
+    $text: getColor("pagination-active-text")
+) {
+    .rst-pagination button.rst-active {
+        background-color: $bg !important;
+        color: $text !important;
     }
 }

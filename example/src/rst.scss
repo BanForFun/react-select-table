@@ -1,5 +1,7 @@
-@import "~react-select-table/src/scss/styles";
+@use "~react-select-table/src/scss/mixins";
+
+@use "~react-select-table/src/scss/styles";
 
 .custom-table-dark {
-
+    //@extend .rst-table;
 }

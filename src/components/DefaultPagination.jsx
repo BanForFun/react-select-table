@@ -1,59 +1,60 @@
 import React from 'react';
-import classNames from "classnames";
 import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
 
-function DefaultPagination({
-    pageCount, pageIndex, goToPage
-}) {
-    const lastIndex = pageCount - 1;
+function DefaultPagination({ pageCount: totalPages, page: currentPage, goToPage }) {
+    const PaginationButton = ({ page, children, ...rest }) => {
+        return <button
+            onClick={() => goToPage(page)}
+            className={currentPage === page ? "rst-active" : null}
+            {...rest}
+        >{children ?? page}</button>
+    }
 
-    const prevClass = classNames({
-        "page-item": true,
-        "disabled": pageIndex === 0
-    });
+    function getPages() {
+        const neighbours = 1;
+        const totalNumbers = neighbours * 2 + 3;
+        const blockCount = totalNumbers + 2;
 
-    const nextClass = classNames({
-        "page-item": true,
-        "disabled": pageIndex === lastIndex
-    });
+        if (totalPages <= blockCount)
+            return _.range(1, totalPages);
 
-    return <nav aria-label="pagination">
-        <ul className="pagination">
-            <li className={prevClass}>
-                <button
-                    className="page-link"
-                    aria-label="previous"
-                    onClick={() => goToPage(pageIndex - 1)}
-                >
-                    <AngleDownIcon className="rst-prevPage" />
-                </button>
-            </li>
-            {
-                _.range(pageCount).map(i => {
-                    const itemClass = classNames({
-                        "page-item": true,
-                        "active": pageIndex === i
-                    });
-                    return <li className={itemClass} key={i}>
-                        <button
-                            className="page-link"
-                            onClick={() => goToPage(i)}
-                        >{i + 1}</button>
-                    </li>
-                })
-            }
-            <li className={nextClass}>
-                <button
-                    className="page-link"
-                    aria-label="next"
-                    onClick={() => goToPage(pageIndex + 1)}
-                >
-                    <AngleDownIcon className="rst-nextPage" />
-                </button>
-            </li>
-        </ul>
-    </nav>
+        const startPage = Math.max(currentPage - neighbours, 2);
+        const endPage = Math.min(currentPage + neighbours + 1, totalPages);
+        let pages = _.range(startPage, endPage);
+
+        const hasLeftAbbr = startPage > 2;
+        const hasRightAbbr = totalPages - endPage > 0;
+        const abbrCount = totalNumbers - 1 - pages.length;
+
+        if (hasLeftAbbr && !hasRightAbbr) {
+            const extraPages = _.range(startPage - abbrCount, startPage);
+            pages = [null, ...extraPages, ...pages];
+        } else if (!hasLeftAbbr && hasRightAbbr) {
+            const extraPages = _.range(endPage, endPage + abbrCount);
+            pages = [...pages, ...extraPages, null];
+        } else {
+            pages = [null, ...pages, null];
+        }
+
+        return [1, ...pages, totalPages];
+    }
+
+    return <div className="rst-pagination">
+        <PaginationButton page={currentPage - 1} disabled={currentPage === 1}>
+            <AngleDownIcon className="rst-prevPage" />
+        </PaginationButton>
+
+        {getPages().map((page, index) =>
+            page === null
+                ? <div key={`ellipsis-${index}`}>...</div>
+                : <PaginationButton key={`page-${page}`} page={page}/>
+        )}
+
+        <PaginationButton page={currentPage + 1} disabled={currentPage === totalPages}>
+            <AngleDownIcon className="rst-nextPage" />
+        </PaginationButton>
+    </div>
 }
 
 export default DefaultPagination;

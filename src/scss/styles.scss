@@ -4,7 +4,6 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    outline: none;
     user-select: none;
 
     table {
@@ -99,7 +98,7 @@
 
 %pageNavButton {
     height: 1.25em;
-    vertical-align: top;
+    vertical-align: text-bottom;
     fill: currentColor;
 }
 
@@ -114,7 +113,27 @@
 }
 
 .rst-pagination {
+    padding-top: 1rem;
 
+    button, div {
+        display: inline-block;
+        text-align: center;
+        width: 2ch;
+        box-sizing: content-box;
+        padding: 0.25rem 0.5rem;
+    }
+
+    button {
+        background: none;
+        border: none;
+        outline: none;
+        color: inherit;
+        border-radius: 2px;
+
+        &:disabled {
+            pointer-events: none;
+        }
+    }
 }
 
 .rst-error {
@@ -124,12 +143,15 @@
 }
 
 .rst-table {
-    @include cell;
-    @include head;
-    @include body;
-    @include row-active;
-    @include row-selected;
-    @include row-hover;
-    @include separator;
-    @include selection;
+    @include cell();
+    @include head();
+    @include body();
+    @include row-active();
+    @include row-selected();
+    @include row-hover();
+    @include separator();
+    @include selection();
+    @include pagination();
+    @include pagination-active();
+    @include pagination-hover();
 }

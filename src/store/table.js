@@ -32,7 +32,7 @@ export default function createTable(namespace, options = {}) {
         tableItems: [],
         isLoading: false,
         pageSize: 0,
-        pageIndex: 0,
+        page: 1,
         error: null,
         ...options.initState
     };
@@ -76,8 +76,8 @@ export default function createTable(namespace, options = {}) {
         if (doResetPivot) resetPivot();
 
         const { pageSize } = draft;
-        draft.pageIndex = pageSize
-            ? Math.trunc(draft.activeIndex / pageSize) : 0;
+        const pageIndex = pageSize ? Math.trunc(draft.activeIndex / pageSize) : 0;
+        draft.page = pageIndex + 1;
     }
 
     function isValidIndex(index) {
@@ -115,7 +115,7 @@ export default function createTable(namespace, options = {}) {
         Object.assign(draft, {
             items: _.keyBy(array, valueProperty),
             tableItems: [],
-            pageIndex: 0,
+            page: 1,
             isLoading: false,
             error: null
         });
@@ -352,11 +352,11 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.GO_TO_PAGE: {
-                    const newIndex = parseInt(payload.index);
-                    if (isNaN(newIndex)) break;
+                    const newPage = parseInt(payload.page);
+                    if (isNaN(newPage)) break;
 
                     const pageCount = getPageCount();
-                    draft.pageIndex = _.clamp(newIndex, 0, pageCount - 1);
+                    draft.page = _.clamp(newPage, 1, pageCount);
                     break;
                 }
                 default:

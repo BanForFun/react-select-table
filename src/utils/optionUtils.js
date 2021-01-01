@@ -33,7 +33,7 @@ function getUtils(namespace, options) {
         options.path ? _.get(state, options.path) : state;
 
     const getItemValue = (slice, index) =>
-        index === null ? null : slice.tableItems[index][options.valueProperty]
+        slice.tableItems[index][options.valueProperty];
 
     const useRootSelector = createSelectorHook(options.context);
     const useSelector = selector =>

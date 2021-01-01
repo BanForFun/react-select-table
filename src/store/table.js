@@ -80,11 +80,6 @@ export default function createTable(namespace, options = {}) {
         draft.page = pageIndex + 1;
     }
 
-    function isValidIndex(index) {
-        return Number.isInteger(index) &&
-            _.inRange(index, 0, draft.tableItems.length);
-    }
-
     function resetPivot() {
         draft.pivotIndex = draft.activeIndex;
     }
@@ -119,6 +114,14 @@ export default function createTable(namespace, options = {}) {
             isLoading: false,
             error: null
         });
+    }
+
+    function parseItemIndex(index) {
+        index = parseInt(index);
+        if (!_.inRange(index, draft.tableItems.length))
+            return null;
+
+        return index;
     }
 
     //Updaters
@@ -253,8 +256,10 @@ export default function createTable(namespace, options = {}) {
 
                 //Selection
                 case Actions.SELECT: {
-                    const { index, ctrlKey, shiftKey } = payload;
-                    if (!isValidIndex(index)) break;
+                    const { ctrlKey, shiftKey } = payload;
+
+                    const index = parseItemIndex(payload.index);
+                    if (index === null) break;
 
                     setActiveIndex(index);
                     const value = getItemValue(index);
@@ -293,20 +298,20 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_SELECTED: {
-                    const { map, active, pivot } = payload;
-
                     //Active index
-                    if (active !== null)
-                        draft.activeIndex = active;
+                    const setActive = parseItemIndex(payload.active);
+                    if (setActive !== null)
+                        draft.activeIndex = setActive;
 
                     //Pivot index
-                    if (pivot !== null)
-                        draft.pivotIndex = pivot;
+                    const setPivot = parseItemIndex(payload.pivot);
+                    if (setPivot !== null)
+                        draft.pivotIndex = setPivot;
 
                     //Selection
-                    _.forEach(map, (select, index) => {
-                        index = parseInt(index);
-                        if (!isValidIndex(index)) return;
+                    _.forEach(payload.map, (select, index) => {
+                        index = parseItemIndex(index);
+                        if (index === null) return;
 
                         setSelected(getItemValue(index), select);
                     });
@@ -317,22 +322,25 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case Actions.SET_ACTIVE: {
-                    setActiveIndex(payload.index, true);
+                    const index = parseItemIndex(payload.index);
+                    if (index === null) break;
+
+                    setActiveIndex(index, true);
                     break;
                 }
                 case Actions.CONTEXT_MENU: {
-                    const { index, ctrlKey } = payload;
-                    if (ctrlKey) break; //Should still be dispatched in order to be handled by eventMiddleware
+                    if (payload.ctrlKey) break; //Should still be dispatched in order to be handled by eventMiddleware
 
                     const { selection } = draft;
+                    const index = parseItemIndex(payload.index);
+
+                    //Invalid index
                     if (index === null) {
                         if (!listBox) selection.clear();
                         break;
                     }
 
-                    if (!isValidIndex(index)) break;
-
-                    //Not null
+                    //Valid index
                     draft.activeIndex = index;
                     if (listBox) break;
 
@@ -345,18 +353,18 @@ export default function createTable(namespace, options = {}) {
 
                 //Pagination
                 case Actions.SET_PAGE_SIZE: {
-                    const {size} = payload;
-                    if (size < 0) break;
+                    const newSize = parseInt(payload.size);
+                    //NaN > x is always false so doing the comparison in this way avoids an isNaN check
+                    if (!(newSize > 0)) break;
 
-                    draft.pageSize = size;
+                    draft.pageSize = newSize;
                     break;
                 }
                 case Actions.GO_TO_PAGE: {
                     const newPage = parseInt(payload.page);
-                    if (isNaN(newPage)) break;
+                    if (!_.inRange(newPage - 1, getPageCount())) break;
 
-                    const pageCount = getPageCount();
-                    draft.page = _.clamp(newPage, 1, pageCount);
+                    draft.page = newPage;
                     break;
                 }
                 default:

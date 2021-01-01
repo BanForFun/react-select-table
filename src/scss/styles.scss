@@ -97,8 +97,9 @@
 }
 
 %pageNavButton {
-    height: 1.25em;
-    vertical-align: text-bottom;
+    height: 1.5rem;
+    padding: 0.1rem 0;
+    vertical-align: top;
     fill: currentColor;
 }
 
@@ -132,6 +133,10 @@
 
         &:disabled {
             pointer-events: none;
+        }
+
+        &:first-child, &:last-child {
+            width: auto;
         }
     }
 }

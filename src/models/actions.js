@@ -43,7 +43,7 @@ export default class TableActions {
     clearItems = () =>
         this._getAction(self.CLEAR_ITEMS);
 
-    contextMenu = (index, ctrlKey) =>
+    contextMenu = (index, ctrlKey = false) =>
         this._getAction(self.CONTEXT_MENU, { index, ctrlKey });
 
     setItemFilter = filter =>

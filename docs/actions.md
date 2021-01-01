@@ -1,29 +1,27 @@
-# Actions
+# Action creators
+
+**Read the [state properties](./state.md), [options](./options.md) and [component props](./component.md) first**
 
 The action creators are accessible from a `TableActions` instance. The constructor takes the table [namespace][namespace] as the parameter.
 
-The action types are static variables of the `TableActions` class.
+The action types are static variables of the `TableActions` class. The name of these variables is listed below each action creator's name in **bold**.
 
-## Action creators
+## Items
 
-Below each action creator, the exported action type static variable name is listed. The actual value is different.
-
-### Items
-
-#### `setItems`
+### `setItems`
 
 **SET_ITEMS**
 
-Replaces the items<br/>Clears the selection<br/>Goes to the first page<br/>Sets loading to false<br/>Clears the error<br/>Sets the active index to 0<br/>Sets the pivot index to 0
+Replaces the items<br/>Clears the selection<br/>Goes to the first page<br/>Sets loading to false<br/>Clears the error<br/>Sets the first row as active and pivot
 
 Parameters:
 
 1. `items` *object*[]
 
    The new items
-   
 
-#### `addItems`
+
+### `addItems`
 
 **ADD_ITEMS**
 
@@ -35,7 +33,7 @@ Parameters:
 
    The items to add
 
-#### `deleteItems`
+### `deleteItems`
 
 **DELETE_ITEMS**
 
@@ -47,11 +45,11 @@ Parameters:
 
    The values of the items to delete
 
-#### `setItemValues`
+### `setItemValues`
 
 **SET_ITEM_VALUES**
 
-Updates the value property and key of each given item<br/>Updates the selection to keep the same rows selected
+Updates the value property of each given item<br/>Updates the selection to keep the same rows selected
 
 Parameters:
 
@@ -59,7 +57,7 @@ Parameters:
 
    The keys should be the old item values, and the values should be the new ones
 
-#### `patchItems`
+### `patchItems`
 
 **PATCH_ITEMS**
 
@@ -71,7 +69,7 @@ Parameters:
 
    Will be `Object.assign`-ed to the destination item
 
-#### `sortItems`
+### `sortItems`
 
 **SORT_ITEMS**
 
@@ -82,16 +80,16 @@ Parameters:
 1. `path` *string*
 
    The path of the property to sort the items by
-   
-2. `shiftKey` *boolean* **false**
 
-   Well...
+2. `shiftKey` *boolean*
 
-#### `setItemFilter`
+   **Default:** `false`<br/>Whether the previous sorting paths will be kept (if allowed)
+
+### `setItemFilter`
 
 **SET_ITEM_FILTER**
 
-Clears the selection<br/>Sets the [item filter][filter] to `filter`
+Clears the selection<br/>Sets the item filter
 
 Parameters:
 
@@ -99,31 +97,31 @@ Parameters:
 
    The new item filter
 
-#### `clearItems`
+### `clearItems`
 
 **CLEAR_ITEMS**
 
-Clears the [items object][items]<br/>Clears the [selection][]<br/>Sets the [page index][page] to 0<br/>Sets [loading][] to false<br/>Sets [error][] to null<br/>
+Clears the items and the selection<br/>Goes to the first page<br/>Sets loading to false<br/>Clears the error<br/>
 
 Parameters: none
 
 
 
-### Display
+## Display
 
-#### `startLoading`
+### `startLoading`
 
 **START_LOADING**
 
-Sets [loading][] to true<br/>
+Sets loading to true<br/>
 
 Parameters: none
 
-#### `setError`
+### `setError`
 
 **SET_ERROR**
 
-Sets [loading][] to true<br/>Sets [error][] to `error`
+Sets the error<br/>Sets loading to false<br/>
 
 Parameters:
 
@@ -133,83 +131,120 @@ Parameters:
 
 
 
-### Selection
+## Selection
 
-#### `select`
+### `select`
 
 **SELECT**
 
-Sets the [active index][active] to `index`<br/>Updates the [selection][] and [pivot index][pivot]
+Goes to the page where the given index is<br/>Updates the selection, active row, and pivot row
 
 Parameters:
 
 1. `index` *number*
 
-   The index of the row to select in the [items array][tableItems]
+   The index of the row in the [item array][] to select
 
-2. `ctrlKey` *boolean* **false**
+2. `ctrlKey` *boolean*
 
-   Well...
+   **Default:** `false`<br/>Whether the previous selection will be kept (if allowed)
 
-3. `shiftKey` *boolean* **false**
+3. `shiftKey` *boolean*
 
-   Well...
+   **Default:** `false`<br/>Whether a range will be selected (if allowed)
 
-#### `clearSelection`
+### `clearSelection`
 
 **CLEAR_SELECTION**
 
-Clears the [selection][]
+Clears the selection
 
 Parameters: none
 
-#### `setSelected`
+### `setSelected`
 
 **SET_SELECTED**
 
-Adds or removes the given values from the [selection][]<br/>Optionally sets the [active index][active] to `active`<br/>Optionally sets the [pivot index][] to `pivot`
+Adds or removes the given values from the selection (if allowed)<br/>Optionally sets the active row and the pivot row
 
 Parameters:
 
 1. `map` *object*
 
-   The keys should be the item values, and the values should be a boolean indicating whether to select or deselect the items
+   The keys should be the item values, and the values: true to select, and false to deselect
 
-2. `active` *number* **null**
+2. `active` *number*
 
-   The new active index (has no effect when null)
+   **Default:** `null`<br/>The index of the row in the [item array][] to be set as active (has no effect when null)
 
-3. `pivot` *number* **null**
+3. `pivot` *number*
 
-   The new pivot index (has no effect when null)
+   **Default:** `null`<br/>The index of the row in the [item array][] to be set as pivot (has no effect when null)
 
-#### `selectAll`
+### `selectAll`
 
 **SELECT_ALL**
 
-Selects add items
+Selects all visible items
 
-### Pagination
+Parameters: none
+
+### `setActive`
+
+**SET_ACTIVE**
+
+Sets the active and pivot row<br/>Goes to the page where the given index is
+
+Parameters:
+
+1. `index` *number*
+
+   The index of the row in the [item array][] to set as active and pivot
+
+### `contextMenu`
+
+**CONTEXT_MENU**
+
+Updates the selection and active row
+
+Parameters:
+
+1. `index` *number*
+
+   The index of the row in the [item array][] that was right-clicked on
+
+2. `ctrlKey` *boolean*
+
+   **Default:** `false`<br/>Whether the selection and active row will be left alone
 
 
 
+## Pagination
+
+### `setPageSize`
+
+**SET_PAGE_SIZE**
+
+Sets the page size
+
+Parameters:
+
+* `size` *number*
+
+  The maximum number of rows allowed in a page
+
+### `goToPage`
+
+**GO_TO_PAGE**
+
+Goes to the given page
+
+Parameters:
+
+* `page` *number*
+
+  The new page number
 
 
-[items]: ./state.md#items-object
-[tableItems]: ./state.md#tableitems-object
-[sortBy]: ./state.md#sortby-object
-[selection]: ./state.md#selection-set
-[page]: ./state.md#pageIndex-number
-[loading]: ./state.md#isLoading-boolean
-[error]: ./state.md#error-any
-[active]: ./state.md#activeIndex-number
-[pivot]: ./state.md#pivotIndex-number
-[filter]: ./state.md#filter-any
 
-
-
-
-
-[listBox]: ./options.md#listbox-boolean
-
-[multiSelect]: ./options.md#multiselect-boolean
+[item array]: ./state.md#tableitems-object

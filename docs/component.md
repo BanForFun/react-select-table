@@ -1,6 +1,6 @@
 # Component props
 
-#### `namespace`  *string*
+### `namespace`  *string*
 
 **Required**
 
@@ -10,139 +10,161 @@ In rare cases, you may want two tables to be linked. That can be done by giving 
 
 * The column widths
 * The column order
-* The selection <u>rectangle</u> (the selection itself will be linked)
+* The drag selection rectangle (the selection itself will be linked)
 
-#### `columns` *[Column](./column.md)*[]
+### `columns` *[column](./column.md)[]*
 
 **Required**
 
 The table columns before [ordering][columnOrder].
 
-#### `name`  *string*
+### `name`  *string*
 
-Used in the generation of the [react keys](https://reactjs.org/docs/lists-and-keys.html#keys) for the rows and columns, so it must be unique between rendered tables.
+**Default:** Copied from [`namespace`](#namespace-string)
 
-[`namespace`](#namespace-string) will be implicitly used as the name. If multiple table share a namespace, then you should set their names to different ones.
+If multiple table share a namespace, then they must have unique names.
 
-#### `className` *string*
+### `className` *string*
 
-Passed through to the `table` elements
+**Default**: `rst-table`
 
-#### `scrollFactor` *number*
+Applied to the root element (of class `rst-container`)
 
-The speed of the automatic scrolling when drag selecting. By default it is `0.2`
+### `id` *string*
 
-#### `emptyPlaceholder` *node*
+Applied to the root element (of class `rst-container`)
 
-Rendered instead of the table when the [item array][tableItems] is empty.
+### `itemContainerRef` [*react ref*](https://reactjs.org/docs/refs-and-the-dom.html#creating-refs)
 
-#### `loadingIndicator` *node*
+A reference to the item container (of class `rst-scrollingContainer`). This element handles the keystrokes but should be given focus to do so. 
 
-Rendered instead of the table when it is [loading][isLoading]
+### `scrollFactor` *number*
 
-#### `showSelectionRect` *bool*
+**Default:** `0.2`
 
-Sets whether the drag-selection rectangle will be calculated and rendered. Is true by default, but setting it to false can improve performance.
+The speed of the automatic scrolling when drag selecting or resizing columns.
 
-#### `Error` *elementType*
+### `emptyPlaceholder` *node*
 
-Rendered instead of the table when there is an [error][error]. By default, the error will be rendered directly.
+**Default:** `null`
+
+Rendered instead of the table body when the [item array][] is empty.
+
+### `loadingIndicator` *node*
+
+**Default:** `null`
+
+Rendered instead of the table when [loading][] is truthy.
+
+### `showSelectionRect` *boolean*
+
+**Default:** `true`
+
+Whether the drag-selection rectangle will be calculated and rendered.
+
+### `Error` *elementType*
+
+**Default:** [`DefaultError`](../src/components/DefaultError.jsx)
+
+Rendered instead of the table when [error][] is truthy.
 
 Component props:
 
-* `error` *any*: The error
+* `error` *any* 
 
-#### `Pagination` *elementType*
+  The error
 
-Rendered below the table when the [page size][pageSize] isn't zero. By default, a bootstrap styled pagination will be rendered.
+### `Pagination` *elementType*
+
+**Default:** [`DefaultPagination`](../src/components/DefaultPagination.jsx)
+
+Rendered below the table when the [page size][] isn't zero.
 
 Component props:
 
-* `pageCount` *number*: The total number of pages, or 0 if pagination is disabled
-* `pageIndex` *number*: The current page index
-* `goToPage` *function*: Calls `goToPage` action creator and dispatches result
+* `pageCount` *number*
 
-#### `columnOrder` *number*[]
+  The total number of pages, or 0 if pagination is disabled
 
-An array of indexes corresponding to items in the [`columns`][columns] prop. Specifies which and in what order the columns will be displayed.
+* `page` *number*
 
-#### `initColumnWidths` *number*[]
+  The current page number
 
-An array containing the initial width (in percentage) of every column after [ordering][columnOrder]. If the length of the array doesn't match the number of visible columns, the available width will be distributed equally to all columns.
+* `goToPage` *function*
 
-#### `onContextMenu` *function*
+  Calls `goToPage` action creator and dispatches result
+
+### `columnOrder` *number[]*
+
+An array with indexes of the [columns][] array. Specifies which and in what order the columns will be displayed.
+
+If not specified, the columns will be rendered in the normal order.
+
+### `initColumnWidths` *number[]*
+
+**Default**: `[]`
+
+An array containing the initial width (in percentage) of every column after [ordering][columnOrder]. 
+
+If the length of the array doesn't match the number of visible columns, the available width will be distributed equally to all columns.
+
+### `onContextMenu` *function*
 
 Called when the user right-clicks on a row, the table container, or the empty placeholder
 
 Arguments:
 
-1. *[Set][set] | any*
+1. If the [list box][] option is enabled, the value of the row that was right-clicked on will be passed (null if below items)
 
-   If the [list box][listBox] option is enabled, the value of the row which the user right-clicked will be passed (or null if below items)
-
-   If the [list box][listBox] option is enabled, and the Ctrl key is pressed, the value of the active (underlined) row will be passed
+   If the [list box][] option is enabled, and the Ctrl key is pressed, the value of the [active row][] will be passed
 
    Otherwise, the [selected value(s)][selectedValues] will be passed
 
-#### `onItemsOpen` *function*
+### `onItemsOpen` *function*
 
 Called when the user double-clicks on a row or presses the enter key. Will not be called if no rows are selected
 
 Arguments:
 
-1. *[Set][set] | any*
+1. The [selected value(s)][selectedValues]
 
-   The [selected value(s)][selectedValues]
-
-2. *boolean*
-
-   True if caused by enter key press
+2. True if caused by enter key press
 
    False if caused by double-click
 
-#### `onSelectionChanged` *function*
+### `onSelectionChanged` *function*
 
 Called when the selection changes
 
 Arguments:
 
-1. *[Set][set] | any*
+1. The new [selected value(s)][selectedValues]
 
-   The new [selected value(s)][selectedValues]
-
-#### `onColumnsResizeEnd` *function*
+### `onColumnsResizeEnd` *function*
 
 Called when the mouse up event is raised after clicking on a column separator
 
 Arguments:
 
-1. *number*[]
+1. The new column widths as an array of percentages
 
-   The new column widths
-
-#### `onKeyDown` *function*
+### `onKeyDown` *function*
 
 Called when the key down event is not handled internally
 
 Arguments:
 
-1. *[KeyboardEvent](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent)*
+1. The javascript keydown event argument
 
-   The original keydown event
-
-2. *[Set][set] | any*
-
-   The [selected value(s)][selectedValues]
-
-### Selected values argument
-
-If the [multi select][multiSelect] option is enabled, then the [selection][selection] will be passed.
-
-Otherwise, the single selected value will be passed, or null if no item is selected.
+2. The [selected value(s)][selectedValues]
 
 
 
-[set]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+## Selected values argument
+
+If the [multi select][] option is disabled, the single selected value will be passed, or null if no item is selected. 
+
+Otherwise, the entire [selection][] will be passed instead.
 
 
 
@@ -156,16 +178,16 @@ Otherwise, the single selected value will be passed, or null if no item is selec
 
 [selection]: ./state.md#selection-set
 
-[activeValue]: ./state.md#activevalue-any
+[active row]: ./state.md#activeindex-number
 
-[tableItems]: ./state.md#tableItems-object
+[item array]: ./state.md#tableItems-object
 
-[isLoading]: ./state.md#isloading-boolean
+[loading]: ./state.md#isloading-boolean
 
 [error]: ./state.md#error-any
 
 
 
-[listBox]: ./options.md#listbox-boolean
+[list box]: ./options.md#listbox-boolean
 
-[multiSelect]: ./options.md#multiselect-boolean
+[multi select]: ./options.md#multiselect-boolean

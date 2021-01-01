@@ -1,67 +1,76 @@
 # State
 
-#### `selection` *Set*
+### `selection` [*Set*](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)
 
-> Default: `new Set()`
+**Default:** `new Set()`
 
-Contains the values of the selected rows. The selected rows have a green background by default.
+The values of the selected rows. With the default theme, the selected rows have a green background.
 
-#### `activeIndex` *number*
+### `activeIndex` *number*
 
-> Default: `0`
+**Default:** `0`
 
-The index of the active row in the items array. The active row has a green underline by default and is mainly used as a cursor for keyboard navigation.
+The index of the active row in the [item array][]. The active row is used as a cursor for keyboard navigation. With the default theme, it has a green underline.
 
-#### `pivotIndex` *number*
+### `pivotIndex` *number*
 
-> Default: `0`
+**Default:** `0`
 
-The index of the pivot row in the items array. The pivot row is used to calculate the selection when using **Shift** + **Click** / **Up** / **Down** / **Home** / **End**.
+The index of the pivot row in the [item array][]. The pivot row is used to calculate the selection when using **Shift** + **Click** / **Up** / **Down** / **Home** / **End**.
 
-#### `filter` *any*
+### `filter` *any*
 
-> Default: `null`
+**Default:** `null`
 
-If truthy, it is passed to `itemPredicate` to decide which rows to show to the user. Otherwise, all items are shown.
+If truthy, it is passed to the [item predicate](./options.md#itempredicate-function) to decide which rows to show to the user. Otherwise, all items are shown.
 
-#### `items` *object*
+### `items` *object*
 
-> Default: `{}`
+**Default:** `{}`
 
-The items keyed by `valueProperty`, before parsing, sorting, filtering and pagination.
+The items keyed by [value][], before parsing, sorting, filtering and pagination.
 
-#### `sortBy` *object*
+### `sortBy` *object*
 
-> Default: `{}`
+**Default:** `{}`
 
 The keys are the property paths based on which the items will be sorted. The values are either `asc` for ascending or `desc` for descending order.
 
-#### `tableItems` *object*[]
+### `tableItems` *object[]*
 
-> Default: `[]`
+**Default:** `[]`
 
 The items after parsing, sorting and filtering, but before pagination.
 
-#### `isLoading` *boolean*
+When empty, a [placeholder](./component.md#emptyPlaceholder-node) is rendered instead of the table items.
 
-> Default: `false`
+### `isLoading` *boolean*
 
-When true, the `loadingIndicator` is rendered instead of the table.
+**Default:** `false`
 
-#### `pageSize` *number*
+When truthy, a [loading indicator](./component.md#loadingIndicator-node) is rendered instead of the table.
 
-> Default: `0`
+### `pageSize` *number*
 
-The maximum number of rows a page can contain. When set to 0 pagination is disabled.
+**Default:** `0`
 
-#### `pageIndex` *number*
+The maximum number of rows a page can contain. When set to zero pagination is disabled.
 
-> Default: `0`
+When not zero, a [pagination component](./component.md#pagination-elementType) is rendered below the table.
 
-The index of the current page. Has no effect if the page size is 0.
+### `page` *number*
 
-#### `error` *any*
+**Default:** `1`
 
-> Default: `null`
+The current page. Has no effect if the [page size](#pagesize-number) is 0.
 
-When truthy, it is passed as a prop to the `Error` component, which will be rendered instead of the table.
+### `error` *any*
+
+**Default:** `null`
+
+When truthy, an [error message](./component.md#error-elementType) is rendered instead of the table.
+
+
+
+[value]: ./options.md#valueproperty-string
+[item array]: #tableitems-object

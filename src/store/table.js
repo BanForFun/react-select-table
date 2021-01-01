@@ -290,7 +290,7 @@ export default function createTable(namespace, options = {}) {
                     }
 
                     resetPivot();
-                    setSelected(value, !ctrlKey || !selection.has(value));
+                    setSelected(value, !(ctrlKey && selection.has(value)));
                     break;
                 }
                 case Actions.CLEAR_SELECTION: {
@@ -354,8 +354,8 @@ export default function createTable(namespace, options = {}) {
                 //Pagination
                 case Actions.SET_PAGE_SIZE: {
                     const newSize = parseInt(payload.size);
-                    //NaN > x is always false so doing the comparison in this way avoids an isNaN check
-                    if (!(newSize > 0)) break;
+                    //NaN >= x is always false so doing the comparison in this way avoids an isNaN check
+                    if (!(newSize >= 0)) break;
 
                     draft.pageSize = newSize;
                     break;

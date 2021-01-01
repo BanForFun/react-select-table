@@ -1,8 +1,8 @@
 # Options
 
-#### `context` *Context*
+### `context` *Context*
 
-> **Required**
+**Required**
 
 The react-redux context for your store. You can import the default one using:
 
@@ -10,24 +10,24 @@ The react-redux context for your store. You can import the default one using:
 import { ReactReduxContext } from "react-redux"
 ```
 
-#### `valueProperty` *string*
+### `valueProperty` *string*
 
-> Default: `'id'`
+**Default:** `'id'`
 
-Property path that contains a unique value for each item. The path is resolved using the lodash `get` method.
+Property path that contains a unique value for each item. The path is resolved using lodash's [`get`][get] method.
 
-#### `scrollX` *boolean*
+### `scrollX` *boolean*
 
-> Default: `false`
+**Default:** `false`
 
 If set to true:
 
 * Columns are allowed to overflow the container horizontally
 * A column resizer will be added to the last column
 
-#### `multiSelect` *boolean*
+### `multiSelect` *boolean*
 
-> Default: `true`
+**Default:** `true`
 
 If set to false:
 
@@ -35,80 +35,72 @@ If set to false:
 * **Ctrl** + **A** is disabled
 * Drag selection is disabled
 
-#### `listBox` *boolean*
+### `listBox` *boolean*
 
-> Default: `false`
+**Default:** `false`
 
 If set to true:
 
 * Clicking on the empty space below the items won't clear the selection
-* Right clicking a row won't select it, it will just be set to active
+* Right clicking a row won't select it, it will just become active
 
-#### `multiSort` *boolean*
+### `multiSort` *boolean*
 
->  Default: `false`
+**Default:** `false`
 
-If set to true: The user is allowed to shift-click on the headers to sort the items by multiple columns
+If set to true: 
 
-#### `minColumnWidth` *number*
+* Shift-clicking on multiple headers will sort the items by multiple columns
 
-> Default: `3`
+### `minColumnWidth` *number*
 
-The minimum column width percentage relative to the table width
+**Default:** `3`
 
-#### `path` *string*
+The minimum column width percentage relative to the table width.
 
-> Default: `null`
+### `path` *string*
 
-If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using the lodash `get` method.
+**Default:** `null`
 
-#### `initState` *object*
+If the table reducer isn't the root, you can set the path where the table reducer is located. The path is resolved using lodash's [`get`][get] method.
 
-> Default: `{}`
+### `initState` *object*
 
-The initial redux state. The available properties and their default values can be found [here][state]
+**Default:** `{}`
 
-#### `itemParser` _function_
+The initial redux state. See all available properties and their default values [here](./state.md).
 
-> Default: 
->
-> ```javascript
-> item => item
-> ```
+### `itemParser` _function_
 
-Called for each item before adding it to the table
+**Default:** `item => item`
+
+Called for each item before adding it to the table.
 
 Arguments:
 
-1. *object*
+1. The item to parse
 
-   The item to parse
+Must return a new item object. Do NOT mutate the argument
 
-Returns: *object*
+### `itemPredicate` _function_
 
-Must return a new object. Do NOT mutate the argument
+**Default:**  Lodash's [`isMatch`](https://lodash.com/docs/4.17.15#isMatch) method
 
-#### `itemPredicate` _function_
+Called for each item to decide whether it will be shown.
 
-> Default:
->
-> ```javascript
->(item, filter) => !filter || _.isMatch(item, filter)
-> ```
-
-Called for each item to decide whether it should be displayed
+Will only be called if [filter][] is truthy, otherwise all items will be shown.
 
 Arguments:
 
-1. *object*
+1. The [parsed][parser] item to filter
 
-   The [parsed][parser] item to filter
+2. The [item filter][filter]
 
-2. *any*
+Must return true for the item to be shown, and false for it to be hidden.
 
-   The [item filter][filter]
 
-Returns: *boolean*
+
+[get]: https://lodash.com/docs/4.17.15#get
 
 
 
@@ -116,5 +108,4 @@ Returns: *boolean*
 
 
 
-[state]: ./state.md
 [filter]: ./state.md#filter-any

@@ -4,8 +4,11 @@
 
 To create a table reducer, import and call the `createTable` function. It takes two parameters:
 
-1. The table namespace, which is a string you will later use to connect the component to the redux store. It must be different for every reducer.
-2. An [options *object*](./options.md)
+1. The table namespace
+
+   A string you will later use to connect the component to the redux store. It must be different for every reducer. I recommend storing it in an exported variable to avoid typos, as you will use it in many places
+
+2. [Options](./options.md)
 
 Here are some examples of store setups (`store.js`):
 
@@ -59,7 +62,7 @@ const reducer = combineReducers({
 //Set serialize to true to properly display selection Set
 const compose = composeWithDevTools({ serialize: true });
 
-export default createStore(reducer, compose(applyMiddleware(eventMiddleware));
+export default createStore(reducer, compose(applyMiddleware(eventMiddleware)));
 ```
 
 ## Provider
@@ -72,7 +75,9 @@ import './index.css'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-import store from './store' //Import the store before the App component, so that you can use getTableUtils
+
+//Import the store before the App component, so that you can use getTableUtils
+import store from './store'
 import App from './App'
 
 ReactDOM.render(

@@ -43,8 +43,6 @@
 
 * `setItems`, `deleteItems`, `clearItems` and `setItemFilter` now clear the selection
 
-* Made `goToPage` index parameter zero-based
-
 * `addItems` selects all added items
 
 * `patchItems` doesn't create a row, if one does not exist with the given value
@@ -70,6 +68,7 @@
 * Replaced `renderError` *function* with `Error` *elementType*
 * Removed `context`, must be passed as option instead
 * Made `namespace` required, and `name` optional
+* `className` is not passed through to the tables, it is instead applied to the root div element. See [theming](./theming.md)
 
 
 
@@ -78,7 +77,7 @@
 * Replaced `activeValue` with `activeIndex`
 * Replaced `pivotValue` with `pivotIndex`
 * Replaced `selectedValues` with `selection`
-* Replaced `currentPage` with `pageIndex`
+* Renamed `currentPage` to `page`
 
 
 
@@ -98,6 +97,8 @@
 * Added `useTableStoreHooks` hook
 * Added `Pagination` component prop
 * Added `showSelectionRect` component prop
+* Added `itemContainerRef` component prop
+* Added `id` component prop
 * The [classnames](https://www.npmjs.com/package/classnames) library is used to parse the `_className` property of rows, so objects and arrays are accepted as well as strings
 
 

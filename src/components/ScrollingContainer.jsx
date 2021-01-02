@@ -13,7 +13,8 @@ function ScrollingContainer(props) {
         scrollFactor,
         onKeyDown,
         itemContainerRef,
-        placeholder,
+        loadingIndicator,
+        Error,
         ...resizingProps
     } = props;
 
@@ -27,9 +28,25 @@ function ScrollingContainer(props) {
     const activeIndex = utils.useSelector(t => t.activeIndex);
     const itemCount = utils.useSelector(t => t.tableItems.length);
     const selectedCount = utils.useSelector(t => t.selection.size);
+    const isLoading = utils.useSelector(t => t.isLoading);
+    const error = utils.useSelector(t => t.error);
     const rowCount = rows.length;
 
     const [cursorClass, setCursorClass] = useState(null);
+
+    //Placeholder
+    const placeholder = function() {
+        let content;
+
+        if (isLoading)
+            content = loadingIndicator;
+        else if (error)
+            content = <Error error={error}/>;
+        else
+            return null;
+
+        return <div className="rst-tablePlaceholder">{content}</div>;
+    }();
 
     //#region Drag selection
 

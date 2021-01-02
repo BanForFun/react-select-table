@@ -5,8 +5,6 @@ import PaginationContainer from "./PaginationContainer";
 
 function Root(props) {
     const {
-        loadingIndicator,
-        Error,
         Pagination, //PaginationContainer
         onContextMenu,
         onSelectionChange,
@@ -17,10 +15,9 @@ function Root(props) {
         storage: { utils, events }
     } = props;
 
-    const isLoading = utils.useSelector(s => s.isLoading);
-    const error = utils.useSelector(s => s.error);
-
     const actions = utils.useActions();
+
+    const showPagination = utils.useSelector(s => !s.isLoading && !s.error);
 
     //Register redux event handlers
     for (let event in defaultEvents) {
@@ -31,22 +28,9 @@ function Root(props) {
         }, [handler, events]);
     }
 
-    //Render placeholder
-    function renderPlaceholder() {
-        if (isLoading)
-            return loadingIndicator;
-        else if (error)
-            return <Error error={error}/>;
-
-        return null;
-    }
-
-    const placeholder = renderPlaceholder();
-
     //Set props
     Object.assign(scrollingProps, {
-        actions,
-        placeholder
+        actions
     });
 
     const paginationProps = {
@@ -58,7 +42,7 @@ function Root(props) {
     //Render table
     return <Fragment>
         <ScrollingContainer {...scrollingProps} />
-        {!placeholder && <PaginationContainer {...paginationProps} />}
+        {showPagination && <PaginationContainer {...paginationProps} />}
     </Fragment>
 }
 

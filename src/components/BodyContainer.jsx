@@ -50,6 +50,17 @@ function BodyContainer(props) {
         isTouching.current = false;
     }, []));
 
+    const placeholder = function() {
+        let content;
+
+        if (noItems)
+            content = emptyPlaceholder;
+        else
+            return null;
+
+        return <div className="rst-bodyPlaceholder">{content}</div>
+    }();
+
     Object.assign(bodyProps, {
         ref: tableBodyRef,
         isTouching
@@ -64,7 +75,7 @@ function BodyContainer(props) {
         onTouchStart={() => isTouching.current = true}
     >
         <SelectionRect bodyContainerRef={bodyContainerRef} />
-        {noItems ? emptyPlaceholder :
+        {placeholder ??
             <table>
                 <ColumnGroup columns={props.columns} name={props.name} />
                 <TableBody {...bodyProps} />

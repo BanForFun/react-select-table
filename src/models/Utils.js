@@ -22,8 +22,10 @@ export default function Utils(namespace, options) {
         getPageCount: selectors.makeGetPageCount(),
         getSelectionArg: selectors.makeGetSelectionArg(options),
 
-        getItemValue: (slice, index) =>
-            slice.tableItems[index][options.valueProperty],
+        getItemValue: (slice, index) => {
+            const item = slice.tableItems[index];
+            return item ? item[options.valueProperty] : null;
+        },
 
         useSelector: selector =>
             useSelector(state => selector(getStateSlice(state))),

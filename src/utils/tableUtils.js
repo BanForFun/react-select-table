@@ -27,13 +27,10 @@ export function setDefaultTableOptions(options) {
 }
 
 export function setOptions(namespace, options) {
-    _.defaults(options, defaultOptions);
-    Object.freeze(options);
-
     const storage = {
-        options,
+        options: _.defaults(options, defaultOptions),
         utils: Utils(namespace, options),
-        events: _.clone(defaultEvents)
+        events: {...defaultEvents}
     }
 
     tableStorage[namespace] = storage;

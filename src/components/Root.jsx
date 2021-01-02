@@ -1,7 +1,5 @@
-import React, {Fragment, useEffect, useMemo} from 'react';
-import {bindActionCreators} from "redux";
-import {defaultEvents} from "../utils/storageUtils";
-import {useDispatch} from "react-redux";
+import React, {Fragment, useEffect} from 'react';
+import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
 
@@ -22,13 +20,7 @@ function Root(props) {
     const isLoading = utils.useSelector(s => s.isLoading);
     const error = utils.useSelector(s => s.error);
 
-    const dispatch = useDispatch();
-
-    //Create action dispatchers
-    const dispatchers = useMemo(() =>
-        bindActionCreators(utils.actions, dispatch),
-        [utils, dispatch]
-    );
+    const actions = utils.useActions();
 
     //Register redux event handlers
     for (let event in defaultEvents) {
@@ -53,12 +45,12 @@ function Root(props) {
 
     //Set props
     Object.assign(scrollingProps, {
-        dispatchers,
+        actions,
         placeholder
     });
 
     const paginationProps = {
-        dispatchers,
+        actions,
         Pagination,
         storage: props.storage
     }

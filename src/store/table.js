@@ -2,7 +2,7 @@ import _ from "lodash";
 import produce, {enableMapSet} from "immer";
 import {deleteKeys} from "../utils/objectUtils";
 import {types} from "../models/Actions";
-import {setOptions} from "../utils/storageUtils";
+import {setOptions} from "../utils/tableUtils";
 import {createSelector} from "reselect";
 import {forRange} from "../utils/loopUtils";
 

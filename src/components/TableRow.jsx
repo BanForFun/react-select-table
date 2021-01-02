@@ -6,7 +6,7 @@ import TableCell from "./TableCell";
 function TableRow({
     columns,
     name,
-    dispatchers,
+    actions,
     isTouching,
     dragSelectStart,
     selected,
@@ -20,20 +20,20 @@ function TableRow({
         e.stopPropagation();
 
         if (isTouching.current) {
-            dispatchers.select(index, true);
+            actions.select(index, true);
             dragSelectStart([e.clientX, e.clientY], index);
         } else {
-            dispatchers.contextMenu(index, e.ctrlKey);
+            actions.contextMenu(index, e.ctrlKey);
         }
-    }, [index, dispatchers, isTouching]);
+    }, [index, actions, isTouching]);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
         e.stopPropagation();
 
-        dispatchers.select(index, e.ctrlKey, e.shiftKey);
+        actions.select(index, e.ctrlKey, e.shiftKey);
         dragSelectStart([e.clientX, e.clientY], index);
-    }, [index, dispatchers]);
+    }, [index, actions]);
 
     const renderColumn = column => {
         const { _id, path, render, className, isHeader } = column;

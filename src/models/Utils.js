@@ -1,25 +1,36 @@
 import _ from "lodash";
-import TableActions from "./Actions";
-import {createSelectorHook} from "react-redux";
+import {useMemo} from "react";
+import {createSelectorHook, createDispatchHook} from "react-redux";
+import {bindActionCreators} from "redux";
+import Actions from "./Actions";
 import * as selectors from "../selectors/tableSelectors";
 
 export default function Utils(namespace, options) {
     const getStateSlice = state =>
         options.path ? _.get(state, options.path) : state;
 
-    const useRootSelector = createSelectorHook(options.context);
+    const useSelector = createSelectorHook(options.context);
+    const useDispatch = createDispatchHook(options.context);
+
+    const actions = new Actions(namespace);
 
     return {
-        actions: new TableActions(namespace),
+        actions,
+        getStateSlice,
+
         getPaginatedItems: selectors.makeGetPaginatedItems(),
         getPageCount: selectors.makeGetPageCount(),
         getSelectionArg: selectors.makeGetSelectionArg(options),
-        getStateSlice,
 
         getItemValue: (slice, index) =>
             slice.tableItems[index][options.valueProperty],
 
         useSelector: selector =>
-            useRootSelector(state => selector(getStateSlice(state)))
+            useSelector(state => selector(getStateSlice(state))),
+
+        useActions: () => {
+            const dispatch = useDispatch();
+            return useMemo(() => bindActionCreators(actions, dispatch), [dispatch]);
+        }
     }
 }

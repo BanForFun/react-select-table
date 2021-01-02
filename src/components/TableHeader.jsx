@@ -6,14 +6,14 @@ function TableHeader({
     title,
     index,
     columnResizeStart,
-    dispatchers,
+    actions,
     addSeparator,
     sortOrder
 }) {
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0 || !path) return;
-        dispatchers.sortItems(path, e.shiftKey);
-    }, [path, dispatchers]);
+        actions.sortItems(path, e.shiftKey);
+    }, [path, actions]);
 
     const handleResizeStart = useCallback(e => {
         e.stopPropagation();

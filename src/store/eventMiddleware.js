@@ -1,5 +1,5 @@
 import {types} from "../models/Actions";
-import {tableStorage} from "../utils/storageUtils";
+import {tableStorage} from "../utils/tableUtils";
 
 function compareSets(a, b) {
     //Compare references
@@ -34,8 +34,7 @@ const eventMiddleware = store => next => action => {
         case types.START_LOADING:
         case types.CONTEXT_MENU:
             //Get table options, events and utils
-            const options = tableStorage[namespace];
-            const { events, utils } = options;
+            const { events, utils, options } = tableStorage[namespace];
             const getSlice = () => utils.getStateSlice(store.getState());
 
             //Get previous and current state

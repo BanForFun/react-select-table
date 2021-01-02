@@ -15,7 +15,7 @@ function BodyContainer(props) {
 
     const {
         storage: { options, utils },
-        dispatchers,
+        actions,
         dragSelectStart,
         bodyContainerRef
     } = props;
@@ -30,17 +30,17 @@ function BodyContainer(props) {
         if (e.button !== 0) return;
 
         if (!e.ctrlKey && !options.listBox)
-            dispatchers.clearSelection();
+            actions.clearSelection();
 
         dragSelectStart([e.clientX, e.clientY]);
-    }, [dragSelectStart, dispatchers, options]);
+    }, [dragSelectStart, actions, options]);
 
     const handleContextMenu = useCallback(e => {
         if (isTouching.current)
             dragSelectStart([e.clientX, e.clientY]);
         else
-            dispatchers.contextMenu(null, e.ctrlKey);
-    }, [dragSelectStart, dispatchers]);
+            actions.contextMenu(null, e.ctrlKey);
+    }, [dragSelectStart, actions]);
 
     const handleDoubleClick = useCallback(() => {
         onItemsOpen(getSelectionArg(), false);

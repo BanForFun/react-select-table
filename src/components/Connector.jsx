@@ -4,7 +4,7 @@ import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultError from "./DefaultError";
 import DefaultPagination from "./DefaultPagination";
-import {tableStorage, defaultEvents} from '../utils/storageUtils';
+import {tableStorage, defaultEvents} from '../utils/tableUtils';
 import Root from "./Root";
 
 function Connector({ name, namespace, id, className, ...rootProps }) {

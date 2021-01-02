@@ -20,7 +20,7 @@ function ScrollingContainer(props) {
     const {
         storage: { options, utils },
         onItemsOpen,
-        dispatchers
+        actions
     } = props;
 
     const { startIndex, rows } = utils.useSelector(utils.getPaginatedItems);
@@ -148,11 +148,11 @@ function ScrollingContainer(props) {
 
         //Modify selection
         Object.assign(dragSelection.selected, selectMap);
-        dispatchers.setSelected(selectMap, setActive, setPivot);
+        actions.setSelected(selectMap, setActive, setPivot);
     }, [
         rowCount,
         startIndex,
-        dispatchers
+        actions
     ]);
 
     const scrollToPos = useCallback((x, y) => {
@@ -267,12 +267,12 @@ function ScrollingContainer(props) {
 
     const selectIndex = useCallback((e, index) => {
         if (matchModifiers(e, true, false))
-            dispatchers.setActive(index);
+            actions.setActive(index);
         else
-            dispatchers.select(index, e.ctrlKey, e.shiftKey);
+            actions.select(index, e.ctrlKey, e.shiftKey);
 
         tableBodyRef.current.scrollToIndex(index);
-    }, [dispatchers]);
+    }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
         if (activeIndex == null) return;
@@ -295,7 +295,7 @@ function ScrollingContainer(props) {
         switch (e.keyCode) {
             case 65: //A
                 if (matchModifiers(e, true, false) && options.multiSelect)
-                    dispatchers.selectAll();
+                    actions.selectAll();
 
                 break;
             case 38: //Up
@@ -314,7 +314,7 @@ function ScrollingContainer(props) {
                 if (matchModifiers(e, false, false) && selectedCount)
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    dispatchers.select(activeIndex, e.ctrlKey, e.shiftKey);
+                    actions.select(activeIndex, e.ctrlKey, e.shiftKey);
 
                 break;
             default:
@@ -324,7 +324,7 @@ function ScrollingContainer(props) {
 
         e.preventDefault();
     }, [
-        dispatchers, options, placeholder,
+        actions, options, placeholder,
         itemCount, activeIndex, selectedCount,
         selectOffset, selectIndex, getSelectionArg,
         onKeyDown, onItemsOpen

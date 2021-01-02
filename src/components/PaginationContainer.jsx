@@ -2,7 +2,7 @@ import React from 'react';
 
 function PaginationContainer({
     Pagination,
-    dispatchers,
+    actions,
     storage: { utils }
 }) {
     const page = utils.useSelector(s => s.page);
@@ -14,7 +14,7 @@ function PaginationContainer({
         <Pagination
             page={page}
             pageCount={pageCount}
-            goToPage={dispatchers.goToPage}
+            goToPage={actions.goToPage}
         />
     </div>
 }

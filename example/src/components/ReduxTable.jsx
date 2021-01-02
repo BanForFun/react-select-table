@@ -1,12 +1,12 @@
 import React, {useCallback, useState, useMemo, useEffect, useRef} from 'react'
 import _ from "lodash";
-import { Table, TableActions } from 'react-select-table';
+import { Table } from 'react-select-table';
 import columns from '../columns';
 import { useDispatch, useSelector } from 'react-redux';
-import {tableNamespace} from "../store";
+import { tableUtils, tableNamespace } from "../store";
 import todos from "../todos";
 
-const actions = new TableActions(tableNamespace);
+const { actions } = tableUtils;
 
 function logEvent(type) {
     return (...args) => console.log(type, ...args);

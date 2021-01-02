@@ -1,13 +1,14 @@
 import React from 'react';
 import TableHeader from "./TableHeader";
 
-function TableHead({
-    columns,
-    name,
-    options,
-    options: {utils},
-    ...commonHeaderProps
-}) {
+function TableHead(props) {
+    const {
+        storage: { options, utils },
+        columns,
+        name,
+        ...commonHeaderProps
+    } = props;
+
     //Redux state
     const sortBy = utils.useSelector(s => s.sortBy);
 

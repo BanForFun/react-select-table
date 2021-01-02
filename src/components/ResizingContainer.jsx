@@ -21,7 +21,9 @@ function ResizingContainer(props) {
         ...commonProps
     } = props;
 
-    const { options } = props;
+    const {
+        storage: { options }
+    } = props;
 
     const order = useMemo(() =>
         _order ?? _.range(_columns.length),

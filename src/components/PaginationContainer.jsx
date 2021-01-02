@@ -3,7 +3,7 @@ import React from 'react';
 function PaginationContainer({
     Pagination,
     dispatchers,
-    options: {utils}
+    storage: { utils }
 }) {
     const page = utils.useSelector(s => s.page);
     const pageCount = utils.useSelector(utils.getPageCount);

@@ -14,10 +14,9 @@ function BodyContainer(props) {
     } = props;
 
     const {
+        storage: { options, utils },
         dispatchers,
         dragSelectStart,
-        options,
-        options: {utils},
         bodyContainerRef
     } = props;
 

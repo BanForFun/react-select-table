@@ -1,5 +1,5 @@
 import {applyMiddleware, createStore} from "redux";
-import {createTable, eventMiddleware, setDefaultTableOptions} from "react-select-table";
+import {createTable, eventMiddleware, setDefaultTableOptions, getTableUtils} from "react-select-table";
 import {composeWithDevTools} from "redux-devtools-extension";
 import {ReactReduxContext} from "react-redux";
 
@@ -25,3 +25,5 @@ const reducer = createTable(tableNamespace, {
 
 
 export default createStore(reducer, compose(applyMiddleware(eventMiddleware)));
+
+export const tableUtils = getTableUtils(tableNamespace);

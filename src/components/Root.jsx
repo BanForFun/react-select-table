@@ -1,6 +1,6 @@
 import React, {Fragment, useEffect, useMemo} from 'react';
 import {bindActionCreators} from "redux";
-import {defaultEvents} from "../utils/optionUtils";
+import {defaultEvents} from "../utils/storageUtils";
 import {useDispatch} from "react-redux";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
@@ -15,7 +15,9 @@ function Root(props) {
         ...scrollingProps
     } = props;
 
-    const { utils, events } = props.options;
+    const {
+        storage: { utils, events }
+    } = props;
 
     const isLoading = utils.useSelector(s => s.isLoading);
     const error = utils.useSelector(s => s.error);
@@ -58,7 +60,7 @@ function Root(props) {
     const paginationProps = {
         dispatchers,
         Pagination,
-        options: props.options
+        storage: props.storage
     }
 
     //Render table

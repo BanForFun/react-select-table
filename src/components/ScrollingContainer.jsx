@@ -18,8 +18,7 @@ function ScrollingContainer(props) {
     } = props;
 
     const {
-        options,
-        options: { utils },
+        storage: { options, utils },
         onItemsOpen,
         dispatchers
     } = props;

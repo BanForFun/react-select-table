@@ -4,9 +4,8 @@ import TableRow from "./TableRow";
 
 function TableBody(props, ref) {
     const {
+        storage: { options, utils },
         bodyContainerRef,
-        options,
-        options: {utils},
 
         ...rowCommonProps
     } = props;

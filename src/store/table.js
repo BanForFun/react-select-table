@@ -1,8 +1,8 @@
 import _ from "lodash";
 import produce, {enableMapSet} from "immer";
 import {deleteKeys} from "../utils/objectUtils";
-import Actions from "../models/actions";
-import {setOptions} from "../utils/optionUtils";
+import {types} from "../models/Actions";
+import {setOptions} from "../utils/storageUtils";
 import {createSelector} from "reselect";
 import {forRange} from "../utils/loopUtils";
 
@@ -14,13 +14,7 @@ const sortOrders = Object.freeze({
 });
 
 export default function createTable(namespace, options = {}) {
-    const {
-        valueProperty,
-        listBox,
-        multiSelect,
-        multiSort,
-        utils
-    } = setOptions(namespace, options);
+    const { utils } = setOptions(namespace, options);
 
     const initState = {
         selection: new Set(),
@@ -36,7 +30,15 @@ export default function createTable(namespace, options = {}) {
         error: null,
         ...options.initState
     };
+
     let draft = initState;
+
+    const {
+        valueProperty,
+        listBox,
+        multiSelect,
+        multiSort
+    } = options;
 
     //Selectors
     const getParsedItems = createSelector(
@@ -146,13 +148,13 @@ export default function createTable(namespace, options = {}) {
             const { payload } = action;
             switch (action.type) {
                 //Items
-                case Actions.SET_ITEMS: {
+                case types.SET_ITEMS: {
                     setItems(payload.items);
                     updateItems();
                     setActiveIndex(0, true);
                     break;
                 }
-                case Actions.ADD_ITEMS: {
+                case types.ADD_ITEMS: {
                     const { items } = payload;
                     if (!items.length) break;
 
@@ -166,7 +168,7 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case Actions.DELETE_ITEMS: {
+                case types.DELETE_ITEMS: {
                     const { values } = payload;
                     if (!values.length) break;
 
@@ -176,7 +178,7 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case Actions.SET_ITEM_VALUES: {
+                case types.SET_ITEM_VALUES: {
                     _.forEach(payload.map, (newValue, oldValue) => {
                         oldValue = restoreValueFormat(oldValue);
 
@@ -197,7 +199,7 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case Actions.PATCH_ITEMS: {
+                case types.PATCH_ITEMS: {
                     // draft.selection.clear();
                     for (let patch of payload.patches)
                         Object.assign(draft.items[patch[valueProperty]], patch);
@@ -205,7 +207,7 @@ export default function createTable(namespace, options = {}) {
                     updateItems();
                     break;
                 }
-                case Actions.SORT_ITEMS: {
+                case types.SORT_ITEMS: {
                     const { path, shiftKey } = payload;
 
                     if (!multiSort || !shiftKey)
@@ -231,22 +233,22 @@ export default function createTable(namespace, options = {}) {
                     setActiveIndex(0, true);
                     break;
                 }
-                case Actions.SET_ITEM_FILTER: {
+                case types.SET_ITEM_FILTER: {
                     draft.selection.clear();
                     draft.filter = payload.filter;
 
                     updateItems();
                     break;
                 }
-                case Actions.CLEAR_ITEMS: {
+                case types.CLEAR_ITEMS: {
                     setItems([]);
                     break;
                 }
-                case Actions.START_LOADING: {
+                case types.START_LOADING: {
                     draft.isLoading = true;
                     break;
                 }
-                case Actions.SET_ERROR: {
+                case types.SET_ERROR: {
                     Object.assign(draft, {
                         isLoading: false,
                         error: payload.error
@@ -255,7 +257,7 @@ export default function createTable(namespace, options = {}) {
                 }
 
                 //Selection
-                case Actions.SELECT: {
+                case types.SELECT: {
                     const { ctrlKey, shiftKey } = payload;
 
                     const index = parseItemIndex(payload.index);
@@ -293,11 +295,11 @@ export default function createTable(namespace, options = {}) {
                     setSelected(value, !(ctrlKey && selection.has(value)));
                     break;
                 }
-                case Actions.CLEAR_SELECTION: {
+                case types.CLEAR_SELECTION: {
                     draft.selection.clear();
                     break;
                 }
-                case Actions.SET_SELECTED: {
+                case types.SET_SELECTED: {
                     //Active index
                     const setActive = parseItemIndex(payload.active);
                     if (setActive !== null)
@@ -317,18 +319,18 @@ export default function createTable(namespace, options = {}) {
                     });
                     break;
                 }
-                case Actions.SELECT_ALL: {
+                case types.SELECT_ALL: {
                     draft.selection = new Set(getValues(draft));
                     break;
                 }
-                case Actions.SET_ACTIVE: {
+                case types.SET_ACTIVE: {
                     const index = parseItemIndex(payload.index);
                     if (index === null) break;
 
                     setActiveIndex(index, true);
                     break;
                 }
-                case Actions.CONTEXT_MENU: {
+                case types.CONTEXT_MENU: {
                     if (payload.ctrlKey) break; //Should still be dispatched in order to be handled by eventMiddleware
 
                     const { selection } = draft;
@@ -352,7 +354,7 @@ export default function createTable(namespace, options = {}) {
                 }
 
                 //Pagination
-                case Actions.SET_PAGE_SIZE: {
+                case types.SET_PAGE_SIZE: {
                     const newSize = parseInt(payload.size);
                     //NaN >= x is always false so doing the comparison in this way avoids an isNaN check
                     if (!(newSize >= 0)) break;
@@ -360,7 +362,7 @@ export default function createTable(namespace, options = {}) {
                     draft.pageSize = newSize;
                     break;
                 }
-                case Actions.GO_TO_PAGE: {
+                case types.GO_TO_PAGE: {
                     const newPage = parseInt(payload.page);
                     if (!_.inRange(newPage - 1, getPageCount())) break;
 

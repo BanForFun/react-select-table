@@ -4,19 +4,19 @@ import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultError from "./DefaultError";
 import DefaultPagination from "./DefaultPagination";
-import {tableOptions, defaultEvents} from '../utils/optionUtils';
+import {tableStorage, defaultEvents} from '../utils/storageUtils';
 import Root from "./Root";
 
 function Connector({ name, namespace, id, className, ...rootProps }) {
-    const options = tableOptions[namespace];
-    const {context} = options;
+    const storage = tableStorage[namespace];
 
+    const { context } = storage.options;
     if (!context)
         throw new Error("Please import ReactReduxContext from react-redux and pass it to the context option");
 
     const contextValue = useContext(context);
 
-    rootProps.options = options;
+    rootProps.storage = storage;
     rootProps.name ??= namespace;
 
     return <ReactReduxContext.Provider value={contextValue}>

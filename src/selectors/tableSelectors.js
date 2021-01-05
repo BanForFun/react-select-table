@@ -23,7 +23,7 @@ export const makeGetPageCount = () => createSelector(
     slice => slice.tableItems.length,
 
     (pageSize, itemCount) => {
-        if (!pageSize) return 0;
+        if (pageSize <= 0) return 0;
         if (!itemCount) return 1;
 
         return Math.ceil(itemCount / pageSize);

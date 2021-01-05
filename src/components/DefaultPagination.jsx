@@ -1,10 +1,13 @@
 import React from 'react';
 import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
+import {eatEvent} from "../utils/eventUtils";
 
 function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
     const PaginationButton = ({ page, children, ...rest }) => (
         <button
+            tabIndex="-1"
+            onMouseDown={eatEvent}
             onClick={() => goToPage(page)}
             className={currentPage === page ? "rst-active" : null}
             {...rest}
@@ -43,7 +46,10 @@ function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
     }
 
     return <div className="rst-pagination">
-        <PaginationButton page={currentPage - 1} disabled={currentPage === 1}>
+        <PaginationButton
+            page={currentPage - 1}
+            disabled={currentPage === 1}
+        >
             <AngleDownIcon className="rst-prevPage" />
         </PaginationButton>
 
@@ -53,7 +59,10 @@ function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
                 : <PaginationButton key={`page-${page}`} page={page}/>
         )}
 
-        <PaginationButton page={currentPage + 1} disabled={currentPage === pageCount}>
+        <PaginationButton
+            page={currentPage + 1}
+            disabled={currentPage === pageCount}
+        >
             <AngleDownIcon className="rst-nextPage" />
         </PaginationButton>
     </div>

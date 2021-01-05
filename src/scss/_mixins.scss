@@ -7,14 +7,6 @@
     }
 }
 
-@mixin cell(
-    $padding: $cell-padding
-) {
-    td, th {
-        padding: $padding;
-    }
-}
-
 @mixin head(
     $bg: getColor("head-bg"),
     $text: getColor("head-text"),
@@ -70,7 +62,7 @@
 ) {
     @include _activeRow($shadow, $text);
 
-    .rst-scrollingContainer:not(:focus-within) {
+    .rst-container:not(:focus-within) {
         @include _activeRow($shadow-unfocused, $text-unfocused);
     }
 }
@@ -90,7 +82,7 @@
 ) {
     @include _selectedRow($bg, $text);
 
-    .rst-scrollingContainer:not(:focus-within) {
+    .rst-container:not(:focus-within) {
         @include _selectedRow($bg-unfocused, $text-unfocused);
     }
 }
@@ -111,13 +103,11 @@
 
 @mixin selection(
     $bg: getColor("selection-bg"),
-    $border: getColor("selection-border"),
-    $opacity: $selection-opacity
+    $border: getColor("selection-border")
 ) {
     .rst-selection {
         border: 1px solid $border;
         background-color: $bg;
-        opacity: $opacity;
     }
 }
 

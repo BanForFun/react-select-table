@@ -19,7 +19,7 @@ function ReduxTable() {
 
     const [clipboard, setClipboard] = useState(null);
 
-    const itemContainerRef = useRef();
+    const containerRef = useRef();
 
     useEffect(() => {
         dispatch(actions.setItems(todos));
@@ -62,7 +62,7 @@ function ReduxTable() {
             {_.map(buttonActions, (action, text) => {
                 function handleClick() {
                     dispatch(action);
-                    itemContainerRef.current.focus();
+                    containerRef.current.focus();
                 }
 
                 return <button
@@ -73,7 +73,7 @@ function ReduxTable() {
             })}
         </div>
         <Table
-            itemContainerRef={itemContainerRef}
+            containerRef={containerRef}
             emptyPlaceholder="No items"
             namespace={tableNamespace}
             columns={columns}

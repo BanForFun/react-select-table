@@ -3,12 +3,13 @@ import React from 'react';
 function PaginationContainer({
     Pagination,
     actions,
+    showPlaceholder,
     storage: { utils }
 }) {
     const page = utils.useSelector(s => s.page);
     const pageCount = utils.useSelector(utils.getPageCount);
 
-    if (!pageCount) return null;
+    if (showPlaceholder || !pageCount) return null;
 
     return <div className="rst-paginationContainer">
         <Pagination

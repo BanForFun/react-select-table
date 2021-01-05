@@ -1,5 +1,4 @@
-import React, {useContext} from 'react';
-import classNames from "classnames";
+import React, {useContext, useCallback} from 'react';
 import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultError from "./DefaultError";
@@ -7,7 +6,7 @@ import DefaultPagination from "./DefaultPagination";
 import {tableStorage, defaultEvents} from '../utils/tableUtils';
 import Root from "./Root";
 
-function Connector({ name, namespace, id, className, ...rootProps }) {
+function Connector({ name, namespace, onItemsOpen, ...rootProps }) {
     const storage = tableStorage[namespace];
 
     const { context } = storage.options;
@@ -19,10 +18,14 @@ function Connector({ name, namespace, id, className, ...rootProps }) {
     rootProps.storage = storage;
     rootProps.name ??= namespace;
 
+    rootProps.onItemsOpen = useCallback((...params) => {
+        //Don't raise if selection is empty
+        if (!params[0]?.size) return;
+        onItemsOpen(...params);
+    }, [onItemsOpen]);
+
     return <ReactReduxContext.Provider value={contextValue}>
-        <div id={id} className={classNames("rst-container", className)}>
-            <Root {...rootProps} />
-        </div>
+        <Root {...rootProps} />
     </ReactReduxContext.Provider>
 }
 
@@ -51,7 +54,7 @@ Connector.propTypes = {
     name: PropTypes.string,
     id: PropTypes.string,
     className: PropTypes.string,
-    itemContainerRef: refType,
+    containerRef: refType,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     showSelectionRect: PropTypes.bool,

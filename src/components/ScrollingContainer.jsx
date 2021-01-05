@@ -4,55 +4,34 @@ import useEvent from "../hooks/useEvent";
 import ResizingContainer from "./ResizingContainer";
 import {sortTuple} from "../utils/mathUtils";
 import {SelectionRectContext} from "./SelectionRect";
-import {matchModifiers} from "../utils/eventUtils";
-import useGetSelectionArg from "../hooks/useGetSelectionArg";
 
 function ScrollingContainer(props) {
     const {
         showSelectionRect,
         scrollFactor,
-        onKeyDown,
-        itemContainerRef,
         loadingIndicator,
         Error,
+        showPlaceholder,
         ...resizingProps
     } = props;
 
     const {
         storage: { options, utils },
-        onItemsOpen,
-        actions
+        actions,
+        tableBodyRef
     } = props;
 
     const { startIndex, rows } = utils.useSelector(utils.getPaginatedItems);
-    const activeIndex = utils.useSelector(t => t.activeIndex);
-    const itemCount = utils.useSelector(t => t.tableItems.length);
-    const selectedCount = utils.useSelector(t => t.selection.size);
     const isLoading = utils.useSelector(t => t.isLoading);
     const error = utils.useSelector(t => t.error);
     const rowCount = rows.length;
 
     const [cursorClass, setCursorClass] = useState(null);
 
-    //Placeholder
-    const placeholder = function() {
-        let content;
-
-        if (isLoading)
-            content = loadingIndicator;
-        else if (error)
-            content = <Error error={error}/>;
-        else
-            return null;
-
-        return <div className="rst-tablePlaceholder">{content}</div>;
-    }();
-
     //#region Drag selection
 
     //Component refs
     const bodyContainerRef = useRef();
-    const tableBodyRef = useRef();
 
     //Variables refs
     const {current: dragSelection} = useRef({
@@ -280,74 +259,16 @@ function ScrollingContainer(props) {
 
     //#endregion
 
-    //#region Keyboard selection
+    //Placeholder
+    const renderPlaceholder = useCallback(() => {
+        if (isLoading)
+            return loadingIndicator;
 
-    const selectIndex = useCallback((e, index) => {
-        if (matchModifiers(e, true, false))
-            actions.setActive(index);
-        else
-            actions.select(index, e.ctrlKey, e.shiftKey);
+        if (error)
+            return <Error error={error}/>;
 
-        tableBodyRef.current.scrollToIndex(index);
-    }, [actions]);
-
-    const selectOffset = useCallback((e, offset) => {
-        if (activeIndex == null) return;
-
-        //Check item index
-        const index = activeIndex + offset;
-        if (!_.inRange(index, itemCount)) return;
-
-        selectIndex(e, index);
-    }, [selectIndex, activeIndex, itemCount]);
-
-
-    //Event handlers
-
-    const getSelectionArg = useGetSelectionArg(utils);
-
-    const handleKeyDown = useCallback(e => {
-        if (placeholder) return;
-
-        switch (e.keyCode) {
-            case 65: //A
-                if (matchModifiers(e, true, false) && options.multiSelect)
-                    actions.selectAll();
-
-                break;
-            case 38: //Up
-                selectOffset(e, -1);
-                break;
-            case 40: //Down
-                selectOffset(e, 1);
-                break;
-            case 36: //Home
-                selectIndex(e, 0);
-                break;
-            case 35: //End
-                selectIndex(e, itemCount - 1);
-                break;
-            case 13: //Enter
-                if (matchModifiers(e, false, false) && selectedCount)
-                    onItemsOpen(getSelectionArg(), true);
-                else
-                    actions.select(activeIndex, e.ctrlKey, e.shiftKey);
-
-                break;
-            default:
-                onKeyDown(e, getSelectionArg());
-                return;
-        }
-
-        e.preventDefault();
-    }, [
-        actions, options, placeholder,
-        itemCount, activeIndex, selectedCount,
-        selectOffset, selectIndex, getSelectionArg,
-        onKeyDown, onItemsOpen
-    ]);
-
-    //#endregion
+        return null;
+    }, [isLoading, error, loadingIndicator]);
 
     //Set props
     Object.assign(resizingProps,{
@@ -358,24 +279,16 @@ function ScrollingContainer(props) {
         setCursorClass
     });
 
-    //Render container
-    const className = classNames(
-        "rst-scrollingContainer",
-        cursorClass
-    )
-
     return <div
-        ref={itemContainerRef}
-        className={className}
+        className={classNames("rst-scrollingContainer", cursorClass)}
         onScroll={handleScroll}
-        onKeyDown={handleKeyDown}
-        tabIndex="0"
     >
-        {placeholder ??
-            <SelectionRectContext.Provider value={rect}>
-                <ResizingContainer {...resizingProps} />
-            </SelectionRectContext.Provider>
-        }
+        <SelectionRectContext.Provider value={rect}>
+            {showPlaceholder
+                ? <div className="rst-tablePlaceholder">{renderPlaceholder()}</div>
+                : <ResizingContainer {...resizingProps} />
+            }
+        </SelectionRectContext.Provider>
     </div>
 }
 

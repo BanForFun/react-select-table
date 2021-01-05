@@ -8,3 +8,5 @@ export function matchModifiers(e, ctrl = null, shift = null, alt = null) {
         match(e.shiftKey, shift) &&
         match(e.altKey, alt);
 }
+
+export const eatEvent = e => e.preventDefault();

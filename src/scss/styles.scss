@@ -22,7 +22,6 @@
     position: relative;
     flex: auto;
     overflow: auto;
-    outline: none;
 }
 
 .rst-resizingContainer {
@@ -69,6 +68,7 @@
 }
 
 .rst-separator {
+    width: 10px;
     position: absolute;
     top: 0;
     right: 0;
@@ -81,11 +81,17 @@
     pointer-events: none;
 }
 
-.rst-sortIcon {
-    height: 1.25em;
-    vertical-align: text-top;
-    margin-left: 0.25rem;
+%rst-centeredIcon {
+    height: 1.5rem;
+    padding: 0.1rem 0;
+    vertical-align: top;
     fill: currentColor;
+}
+
+.rst-sortIcon {
+    @extend %rst-centeredIcon;
+
+    margin-left: 0.25rem;
     display: none;
 
     &[data-order] {
@@ -98,28 +104,23 @@
 }
 
 .rst-paginationContainer {
+    padding-top: 1rem;
     flex: none;
 }
 
-%pageNavButton {
-    height: 1.5rem;
-    padding: 0.1rem 0;
-    vertical-align: top;
-    fill: currentColor;
-}
-
-.rst-nextPage {
-    @extend %pageNavButton;
-    transform: rotate(90deg);
-}
-
-.rst-prevPage {
-    @extend %pageNavButton;
-    transform: rotate(-90deg);
-}
-
 .rst-pagination {
-    padding-top: 1rem;
+    @mixin pageNavigation($rotation) {
+        @extend %rst-centeredIcon;
+        transform: rotate($rotation);
+    }
+
+    .rst-nextPage {
+        @include pageNavigation(90deg);
+    }
+
+    .rst-prevPage {
+        @include pageNavigation(-90deg);
+    }
 
     button, div {
         display: inline-block;
@@ -132,7 +133,6 @@
     button {
         background: none;
         border: none;
-        outline: none;
         color: inherit;
         border-radius: 2px;
 
@@ -147,7 +147,18 @@
 }
 
 .rst-table {
-    @include cell();
+    td, th {
+        padding: 0.75rem;
+    }
+
+    .rst-separator {
+        width: 10px;
+    }
+
+    .rst-selection {
+        opacity: 0.5;
+    }
+
     @include head();
     @include body();
     @include row-active();

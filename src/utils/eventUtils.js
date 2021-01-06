@@ -9,4 +9,7 @@ export function matchModifiers(e, ctrl = null, shift = null, alt = null) {
         match(e.altKey, alt);
 }
 
-export const eatEvent = e => e.preventDefault();
+export const unFocusable = {
+    tabIndex: -1,
+    onMouseDown: e => e.preventDefault()
+}

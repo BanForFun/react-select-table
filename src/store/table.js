@@ -73,16 +73,24 @@ export default function createTable(namespace, options = {}) {
         utils.getItemValue(draft, index);
 
     //Utilities
-    function setActiveIndex(index, doResetPivot = false) {
+    function setActiveIndex(index, setPivot = true) {
         draft.activeIndex = index;
-        if (doResetPivot) resetPivot();
+
+        if (setPivot)
+            draft.pivotIndex = index;
 
         const { pageSize } = draft;
         const pageIndex = pageSize ? Math.trunc(draft.activeIndex / pageSize) : 0;
         draft.page = pageIndex + 1;
     }
 
-    function resetPivot() {
+    function clearSelection(resetActive = false) {
+        if (resetActive) {
+            draft.activeIndex = 0;
+            draft.page = 1;
+        }
+
+        draft.selection.clear();
         draft.pivotIndex = draft.activeIndex;
     }
 
@@ -98,21 +106,15 @@ export default function createTable(namespace, options = {}) {
             draft.selection.delete(value);
     }
 
-    function safeSelect(value) {
-        if (!multiSelect) draft.selection.clear();
-        draft.selection.add(value);
-    }
-
     function restoreValueFormat(value) {
         return draft.items[value][valueProperty];
     }
 
     function setItems(array) {
-        draft.selection.clear();
+        clearSelection(true);
         Object.assign(draft, {
             items: _.keyBy(array, valueProperty),
             tableItems: [],
-            page: 1,
             isLoading: false,
             error: null
         });
@@ -151,18 +153,19 @@ export default function createTable(namespace, options = {}) {
                 case types.SET_ITEMS: {
                     setItems(payload.items);
                     updateItems();
-                    setActiveIndex(0, true);
                     break;
                 }
                 case types.ADD_ITEMS: {
                     const { items } = payload;
                     if (!items.length) break;
 
-                    draft.selection.clear();
+                    clearSelection();
                     for (let item of items) {
                         const value = item[valueProperty];
                         draft.items[value] = item;
-                        safeSelect(value);
+
+                        if (!multiSelect) continue;
+                        draft.selection.add(value);
                     }
 
                     updateItems();
@@ -172,7 +175,7 @@ export default function createTable(namespace, options = {}) {
                     const { values } = payload;
                     if (!values.length) break;
 
-                    draft.selection.clear();
+                    clearSelection();
                     deleteKeys(draft.items, values);
 
                     updateItems();
@@ -200,7 +203,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.PATCH_ITEMS: {
-                    // draft.selection.clear();
+                    clearSelection();
                     for (let patch of payload.patches)
                         Object.assign(draft.items[patch[valueProperty]], patch);
 
@@ -230,13 +233,12 @@ export default function createTable(namespace, options = {}) {
                     }
 
                     updateItems();
-                    setActiveIndex(0, true);
+                    clearSelection(true);
                     break;
                 }
                 case types.SET_ITEM_FILTER: {
-                    draft.selection.clear();
                     draft.filter = payload.filter;
-
+                    clearSelection(true);
                     updateItems();
                     break;
                 }
@@ -258,12 +260,12 @@ export default function createTable(namespace, options = {}) {
 
                 //Selection
                 case types.SELECT: {
-                    const { ctrlKey, shiftKey } = payload;
+                    const {shiftKey, ctrlKey} = payload;
 
                     const index = parseItemIndex(payload.index);
                     if (index === null) break;
 
-                    setActiveIndex(index);
+                    setActiveIndex(index, false);
                     const value = getItemValue(index);
 
                     if (!multiSelect) {
@@ -281,7 +283,7 @@ export default function createTable(namespace, options = {}) {
 
                         if (ctrlKey) {
                             //Clear previous selection
-                            forRange(draft.pivotIndex, state.activeIndex,i =>
+                            forRange(draft.pivotIndex, state.activeIndex, i =>
                                 selection.delete(values[i]));
                         }
 
@@ -291,19 +293,39 @@ export default function createTable(namespace, options = {}) {
                         break;
                     }
 
-                    resetPivot();
+                    draft.pivotIndex = index;
                     setSelected(value, !(ctrlKey && selection.has(value)));
                     break;
                 }
+                case types.CONTEXT_MENU: {
+                    //Should still be dispatched for middleware
+                    if (payload.ctrlKey) break;
+
+                    const index = parseItemIndex(payload.index);
+                    if (index === null) {
+                        if (!listBox) clearSelection();
+                        break;
+                    }
+
+                    setActiveIndex(index, false);
+
+                    if (listBox) break;
+
+                    const value = getItemValue(index);
+                    if (draft.selection.has(value)) break;
+
+                    replaceSelection(value);
+                    break;
+                }
                 case types.CLEAR_SELECTION: {
-                    draft.selection.clear();
+                    clearSelection();
                     break;
                 }
                 case types.SET_SELECTED: {
                     //Active index
                     const setActive = parseItemIndex(payload.active);
                     if (setActive !== null)
-                        draft.activeIndex = setActive;
+                        setActiveIndex(setActive, false);
 
                     //Pivot index
                     const setPivot = parseItemIndex(payload.pivot);
@@ -327,29 +349,7 @@ export default function createTable(namespace, options = {}) {
                     const index = parseItemIndex(payload.index);
                     if (index === null) break;
 
-                    setActiveIndex(index, true);
-                    break;
-                }
-                case types.CONTEXT_MENU: {
-                    if (payload.ctrlKey) break; //Should still be dispatched in order to be handled by eventMiddleware
-
-                    const { selection } = draft;
-                    const index = parseItemIndex(payload.index);
-
-                    //Invalid index
-                    if (index === null) {
-                        if (!listBox) selection.clear();
-                        break;
-                    }
-
-                    //Valid index
-                    draft.activeIndex = index;
-                    if (listBox) break;
-
-                    const value = getItemValue(index);
-                    if (!selection.has(value))
-                        replaceSelection(value);
-
+                    setActiveIndex(index);
                     break;
                 }
 
@@ -360,6 +360,7 @@ export default function createTable(namespace, options = {}) {
                     if (!(newSize >= 0)) break;
 
                     draft.pageSize = newSize;
+                    setActiveIndex(draft.activeIndex, false);
                     break;
                 }
                 case types.GO_TO_PAGE: {
@@ -374,10 +375,14 @@ export default function createTable(namespace, options = {}) {
             }
 
             const itemCount = draft.tableItems.length;
-            if (itemCount < state.tableItems.length) {
-                const newActive = Math.min(draft.activeIndex, itemCount - 1);
-                setActiveIndex(newActive, true);
-            }
+            const prevItemCount = state.tableItems.length;
+
+            if (itemCount >= prevItemCount) return;
+            const maxIndex = itemCount - 1;
+
+            draft.activeIndex = Math.min(draft.activeIndex, maxIndex);
+            draft.pivotIndex = Math.min(draft.pivotIndex, maxIndex);
+            draft.page = Math.min(draft.page, getPageCount() ?? 1);
         });
     }
 }

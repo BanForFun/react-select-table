@@ -30,7 +30,8 @@ function ReduxTable() {
         "Set error": actions.setError("Error"),
         "Clear error": actions.setError(null),
         "Clear items": actions.clearItems(),
-        "Enable pagination": actions.setPageSize(8),
+        "Page size 8": actions.setPageSize(8),
+        "Page size 10": actions.setPageSize(10),
         "Disable pagination": actions.setPageSize(0),
         "Start loading": actions.startLoading()
     }), [])

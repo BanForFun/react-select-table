@@ -42,9 +42,6 @@ export default function Actions(namespace) {
         clearItems: () =>
             Action(types.CLEAR_ITEMS),
 
-        contextMenu: (index, ctrlKey = false) =>
-            Action(types.CONTEXT_MENU, { index, ctrlKey }),
-
         setItemFilter: (filter) =>
             Action(types.SET_ITEM_FILTER, { filter }),
 
@@ -68,6 +65,9 @@ export default function Actions(namespace) {
 
         select: (index, ctrlKey = false, shiftKey = false) =>
             Action(types.SELECT, { index, ctrlKey, shiftKey }),
+
+        contextMenu: (index, ctrlKey = false) =>
+            Action(types.CONTEXT_MENU, { index, ctrlKey }),
 
         setActive: (index) =>
             Action(types.SET_ACTIVE, { index }),

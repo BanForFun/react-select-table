@@ -1,15 +1,14 @@
 import React from 'react';
 import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
-import {eatEvent} from "../utils/eventUtils";
+import {unFocusable} from "../utils/eventUtils";
 
 function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
     const PaginationButton = ({ page, children, ...rest }) => (
         <button
-            tabIndex="-1"
-            onMouseDown={eatEvent}
-            onClick={() => goToPage(page)}
+            onClick={e => goToPage(page, e.ctrlKey)}
             className={currentPage === page ? "rst-active" : null}
+            {...unFocusable}
             {...rest}
         >{children ?? page}</button>
     );

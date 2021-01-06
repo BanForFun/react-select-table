@@ -63,7 +63,7 @@ function Root(props) {
         selectIndex(e, newIndex);
     }, [selectIndex, activeIndex, itemCount]);
 
-    const goToPage = useCallback(offset => {
+    const offsetPage = useCallback((e, offset) => {
         if (!pageCount) return;
 
         const newPage = page + offset;
@@ -104,10 +104,10 @@ function Root(props) {
                 onItemsOpen(getSelectionArg(), true);
                 break;
             case 37: //Left
-                goToPage(-1);
+                offsetPage(e, -1);
                 break;
             case 39: //Right
-                goToPage(1);
+                offsetPage(e, 1);
                 break;
             default:
                 onKeyDown(e, getSelectionArg());
@@ -118,7 +118,7 @@ function Root(props) {
     }, [
         actions, options, showPlaceholder,
         itemCount, activeIndex,
-        selectOffset, selectIndex, getSelectionArg, goToPage,
+        selectOffset, selectIndex, getSelectionArg, offsetPage,
         onKeyDown, onItemsOpen
     ]);
 

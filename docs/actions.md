@@ -215,7 +215,7 @@ Parameters:
 
 2. `ctrlKey` *boolean*
 
-   **Default:** `false`<br/>Whether the selection and active row will be left alone
+   **Default:** `false`<br/>Whether the current selection and active row will be left alone
 
 
 
@@ -229,21 +229,25 @@ Sets the page size
 
 Parameters:
 
-* `size` *number*
+1. `size` *number*
 
-  The maximum number of rows allowed in a page
+   The maximum number of rows allowed in a page
 
 ### `goToPage`
 
 **GO_TO_PAGE**
 
-Goes to the given page
+Goes to the given page<br/>Optionally sets the active index to the first visible row of the new page
 
 Parameters:
 
-* `page` *number*
+1. `page` *number*
 
-  The new page number
+   The new page number
+
+2. `ctrlKey` *boolean*
+
+   **Default:** `false`<br/>Whether the current active row will be kept
 
 
 

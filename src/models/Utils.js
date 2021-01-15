@@ -1,9 +1,10 @@
 import _ from "lodash";
 import {useMemo} from "react";
-import {createSelectorHook, createDispatchHook} from "react-redux";
+import {createDispatchHook, createSelectorHook} from "react-redux";
 import {bindActionCreators} from "redux";
 import Actions from "./Actions";
-import * as selectors from "../selectors/tableSelectors";
+import {makeGetSelectionArg} from "../selectors/selectionSelectors";
+import {makeGetPageCount, makeGetPaginatedItems} from "../selectors/paginationSelectors";
 
 export default function Utils(namespace, options) {
     const getStateSlice = state =>
@@ -18,9 +19,9 @@ export default function Utils(namespace, options) {
         actions,
         getStateSlice,
 
-        getPaginatedItems: selectors.makeGetPaginatedItems(),
-        getPageCount: selectors.makeGetPageCount(),
-        getSelectionArg: selectors.makeGetSelectionArg(options),
+        getPaginatedItems: makeGetPaginatedItems(),
+        getPageCount: makeGetPageCount(),
+        getSelectionArg: makeGetSelectionArg(options),
 
         getItemValue: (slice, index) => {
             const item = slice.tableItems[index];

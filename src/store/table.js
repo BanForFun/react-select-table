@@ -16,6 +16,8 @@ const sortOrders = Object.freeze({
 export default function createTable(namespace, options = {}) {
     const { utils } = setOptions(namespace, options);
 
+    let draft;
+
     const initState = {
         selection: new Set(),
         activeIndex: 0,
@@ -30,8 +32,6 @@ export default function createTable(namespace, options = {}) {
         error: null,
         ...options.initState
     };
-
-    let draft = initState;
 
     const {
         valueProperty,
@@ -79,9 +79,7 @@ export default function createTable(namespace, options = {}) {
         if (setPivot)
             draft.pivotIndex = index;
 
-        const { pageSize } = draft;
-        const pageIndex = pageSize ? Math.trunc(draft.activeIndex / pageSize) : 0;
-        draft.page = pageIndex + 1;
+        draft.page = (draft.pageSize && Math.trunc(index / draft.pageSize)) + 1;
     }
 
     function clearSelection(resetActive = false) {
@@ -128,7 +126,6 @@ export default function createTable(namespace, options = {}) {
         return index;
     }
 
-    //Updaters
     function updateItems() {
         //Validate items
         delete draft.items[null];
@@ -137,8 +134,6 @@ export default function createTable(namespace, options = {}) {
         //Update items
         draft.tableItems = getSortedItems(draft);
     }
-
-    updateItems();
 
     return (state = initState, action) => {
         if (action.namespace !== namespace)

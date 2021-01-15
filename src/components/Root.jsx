@@ -15,6 +15,7 @@ function Root(props) {
         containerRef,
         id,
         className,
+        autoFocus,
         ...scrollingProps
     } = props;
 
@@ -26,6 +27,11 @@ function Root(props) {
     const actions = utils.useActions();
 
     const tableBodyRef = useRef();
+
+    useEffect(() => {
+        if (!autoFocus) return;
+        containerRef.current.focus();
+    }, []);
 
     //Register redux event handlers
     for (let event in defaultEvents) {
@@ -39,6 +45,8 @@ function Root(props) {
     //Keyboard selection
     const activeIndex = utils.useSelector(t => t.activeIndex);
     const itemCount = utils.useSelector(t => t.tableItems.length);
+    const selectionSize = utils.useSelector(t => t.selection.size);
+    const {startIndex, endIndex} = utils.useSelector(utils.getPaginatedItems);
 
     const page = utils.useSelector(t => t.page);
     const pageCount = utils.useSelector(utils.getPageCount);
@@ -55,13 +63,18 @@ function Root(props) {
     }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
-        if (activeIndex == null) return;
+        const index = _.inRange(activeIndex, startIndex, endIndex)
+            ? activeIndex + offset
+            : startIndex;
 
-        const newIndex = activeIndex + offset;
-        if (!_.inRange(newIndex, itemCount)) return;
+        if (!_.inRange(index, itemCount)) return;
 
-        selectIndex(e, newIndex);
-    }, [selectIndex, activeIndex, itemCount]);
+        selectIndex(e, index);
+    }, [
+        selectIndex,
+        activeIndex, itemCount,
+        startIndex, endIndex
+    ]);
 
     const offsetPage = useCallback((e, offset) => {
         if (!pageCount) return;
@@ -96,12 +109,11 @@ function Root(props) {
                 selectIndex(e, itemCount - 1);
                 break;
             case 13: //Enter
-                if (!matchModifiers(e, false, false)) {
+                if (matchModifiers(e, false, false) && selectionSize)
+                    onItemsOpen(getSelectionArg(), true);
+                else
                     actions.select(activeIndex, e.ctrlKey, e.shiftKey);
-                    break;
-                }
 
-                onItemsOpen(getSelectionArg(), true);
                 break;
             case 37: //Left
                 offsetPage(e, -1);
@@ -110,14 +122,13 @@ function Root(props) {
                 offsetPage(e, 1);
                 break;
             default:
-                onKeyDown(e, getSelectionArg());
-                return;
+                return onKeyDown(e, getSelectionArg());
         }
 
         e.preventDefault();
     }, [
         actions, options, showPlaceholder,
-        itemCount, activeIndex,
+        itemCount, activeIndex, selectionSize,
         selectOffset, selectIndex, getSelectionArg, offsetPage,
         onKeyDown, onItemsOpen
     ]);

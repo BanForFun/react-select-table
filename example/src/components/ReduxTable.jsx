@@ -80,6 +80,7 @@ function ReduxTable() {
             columns={columns}
             loadingIndicator="Loading..."
             scrollFactor={0.5}
+            autoFocus={true}
             onKeyDown={handleTableKeyDown}
             showSelectionRect={true}
             onContextMenu={logEvent("ContextMenu")}

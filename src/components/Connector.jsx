@@ -6,7 +6,7 @@ import DefaultPagination from "./DefaultPagination";
 import {tableStorage, defaultEvents} from '../utils/tableUtils';
 import Root from "./Root";
 
-function Connector({ name, namespace, onItemsOpen, ...rootProps }) {
+function Connector({ name, namespace, ...rootProps }) {
     const storage = tableStorage[namespace];
 
     const { context } = storage.options;
@@ -17,12 +17,6 @@ function Connector({ name, namespace, onItemsOpen, ...rootProps }) {
 
     rootProps.storage = storage;
     rootProps.name ??= namespace;
-
-    rootProps.onItemsOpen = useCallback((...params) => {
-        //Don't raise if selection is empty
-        if (!params[0]?.size) return;
-        onItemsOpen(...params);
-    }, [onItemsOpen]);
 
     return <ReactReduxContext.Provider value={contextValue}>
         <Root {...rootProps} />
@@ -57,6 +51,7 @@ Connector.propTypes = {
     containerRef: refType,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
+    autoFocus: PropTypes.bool,
     showSelectionRect: PropTypes.bool,
     scrollFactor: PropTypes.number,
     onContextMenu: PropTypes.func,
@@ -78,5 +73,6 @@ Connector.defaultProps = {
     loadingIndicator: null,
     emptyPlaceholder: null,
     showSelectionRect: true,
+    autoFocus: false,
     ...defaultEvents
 };

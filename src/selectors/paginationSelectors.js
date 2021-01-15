@@ -1,4 +1,4 @@
-import { createSelector } from "reselect";
+import {createSelector} from "reselect";
 
 export const makeGetPaginatedItems = () => createSelector(
     slice => slice.tableItems,
@@ -13,6 +13,7 @@ export const makeGetPaginatedItems = () => createSelector(
 
         return {
             startIndex: start,
+            endIndex: end,
             rows: items.slice(start, end)
         };
     }
@@ -23,17 +24,10 @@ export const makeGetPageCount = () => createSelector(
     slice => slice.tableItems.length,
 
     (pageSize, itemCount) => {
-        if (pageSize <= 0) return null;
+        if (!pageSize) return null;
         if (!itemCount) return 1;
 
         return Math.ceil(itemCount / pageSize);
     }
 );
-
-export const makeGetSelectionArg = options => createSelector(
-    slice => slice.selection,
-    selection => options.multiSelect
-        ? selection
-        : selection.values().next().value ?? null
-)
 

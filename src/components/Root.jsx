@@ -63,10 +63,8 @@ function Root(props) {
     }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
-        const index = _.inRange(activeIndex, startIndex, endIndex)
-            ? activeIndex + offset
-            : startIndex;
-
+        const origin = _.inRange(activeIndex, startIndex, endIndex) ? activeIndex : startIndex;
+        const index = origin + offset;
         if (!_.inRange(index, itemCount)) return;
 
         selectIndex(e, index);

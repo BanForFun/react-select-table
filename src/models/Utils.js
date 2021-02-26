@@ -1,39 +1,59 @@
 import _ from "lodash";
-import {useMemo} from "react";
-import {createDispatchHook, createSelectorHook} from "react-redux";
+import {useMemo, useCallback} from "react";
+import {createDispatchHook, createSelectorHook, createStoreHook} from "react-redux";
 import {bindActionCreators} from "redux";
 import Actions from "./Actions";
-import {makeGetSelectionArg} from "../selectors/selectionSelectors";
-import {makeGetPageCount, makeGetPaginatedItems} from "../selectors/paginationSelectors";
+import * as selSelectors from "../selectors/selectionSelectors";
+import * as pgSelectors from "../selectors/paginationSelectors";
 
 export default function Utils(namespace, options) {
-    const getStateSlice = state =>
-        options.path ? _.get(state, options.path) : state;
+    const { context, path } = options;
 
-    const useSelector = createSelectorHook(options.context);
-    const useDispatch = createDispatchHook(options.context);
+    //Create redux hooks
+    const useSelector = createSelectorHook(context);
+    const useDispatch = createDispatchHook(context);
+    const useStore = createStoreHook(context);
 
     const actions = new Actions(namespace);
 
+    const getStateSlice = state =>
+        path ? _.get(state, path) : state;
+
     return {
         actions,
-        getStateSlice,
 
-        getPaginatedItems: makeGetPaginatedItems(),
-        getPageCount: makeGetPageCount(),
-        getSelectionArg: makeGetSelectionArg(options),
+        //Selectors
+        getPaginatedItems: pgSelectors.makeGetPaginatedItems(),
+        getPageCount: pgSelectors.makeGetPageCount(),
+        getIsActiveRowVisible: pgSelectors.makeGetIsActiveRowVisible(),
+        getSelectionArg: selSelectors.makeGetSelectionArg(options),
+
+        //Getters
+        getStateSlice,
 
         getItemValue: (slice, index) => {
             const item = slice.tableItems[index];
             return item ? item[options.valueProperty] : null;
         },
 
+        //Hooks
         useSelector: selector =>
             useSelector(state => selector(getStateSlice(state))),
 
+        useSelectorGetter: selector => {
+            const store = useStore();
+            return useCallback(() =>
+                selector(getStateSlice(store.getState())),
+            [selector, store]
+            );
+        },
+
         useActions: () => {
             const dispatch = useDispatch();
-            return useMemo(() => bindActionCreators(actions, dispatch), [dispatch]);
+            return useMemo(() =>
+                bindActionCreators(actions, dispatch),
+                [dispatch]
+            );
         }
     }
 }

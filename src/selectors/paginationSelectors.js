@@ -1,33 +1,29 @@
 import _ from "lodash";
 import {createSelector} from "reselect";
 
-function getVisibleRange(pageSize, page) {
-    if (!pageSize) return null;
+const makeGetVisibleRange = () => createSelector(
+    s => s.pageSize,
+    s => s.page,
 
-    return {
-        start: (page - 1) * pageSize,
-        end: page * pageSize
-    }
-}
+    (pageSize, page) => pageSize ? {
+        from: (page - 1) * pageSize,
+        to: page * pageSize
+    } : null
+)
 
 export const makeGetPaginatedItems = () => createSelector(
-    slice => slice.tableItems,
-    slice => slice.pageSize,
-    slice => slice.page,
+    s => s.tableItems,
+    makeGetVisibleRange(),
 
-    (items, pageSize, page) => {
-        const range = getVisibleRange(pageSize, page);
-
-        return {
-            startIndex: range?.start ?? 0,
-            rows: range ? items.slice(range.start, range.end) : items
-        }
-    }
+    (items, range) => ({
+        startIndex: range?.from ?? 0,
+        rows: range ? items.slice(range.from, range.to) : items
+    })
 )
 
 export const makeGetPageCount = () => createSelector(
-    slice => slice.pageSize,
-    slice => slice.tableItems.length,
+    s => s.pageSize,
+    s => s.tableItems.length,
 
     (pageSize, itemCount) => {
         if (!pageSize) return null;
@@ -37,14 +33,11 @@ export const makeGetPageCount = () => createSelector(
     }
 )
 
-export const makeIsActiveRowVisible = () => createSelector(
-    slice => slice.activeIndex,
-    slice => slice.pageSize,
-    slice => slice.page,
+export const makeGetIsActiveRowVisible = () => createSelector(
+    s => s.activeIndex,
+    makeGetVisibleRange(),
 
-    (active, pageSize, page) => {
-        const range = getVisibleRange(pageSize, page);
-        return !range || _.inRange(active, range.start, range.end);
-    }
+    (active, range) =>
+        !range || _.inRange(active, range.from, range.to)
 )
 

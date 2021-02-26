@@ -3,7 +3,6 @@ import TableBody from "./TableBody";
 import ColumnGroup from "./ColumnGroup";
 import SelectionRect from "./SelectionRect";
 import useEvent from "../hooks/useEvent";
-import useGetSelectionArg from "../hooks/useGetSelectionArg";
 
 function BodyContainer(props) {
     const {
@@ -22,7 +21,7 @@ function BodyContainer(props) {
 
     const isTouching = useRef(false);
 
-    const getSelectionArg = useGetSelectionArg(utils);
+    const getSelectionArg = utils.useSelectorGetter(utils.getSelectionArg);
 
     const noItems = utils.useSelector(t => !t.tableItems.length);
     const selectionSize = utils.useSelector(t => t.selection.size);

@@ -3,7 +3,6 @@ import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
 import classNames from "classnames";
-import useGetSelectionArg from "../hooks/useGetSelectionArg";
 import {matchModifiers} from "../utils/eventUtils";
 
 function Root(props) {
@@ -46,7 +45,7 @@ function Root(props) {
     const activeIndex = utils.useSelector(t => t.activeIndex);
     const itemCount = utils.useSelector(t => t.tableItems.length);
     const selectionSize = utils.useSelector(t => t.selection.size);
-    const {startIndex, endIndex} = utils.useSelector(utils.getPaginatedItems);
+    const isActiveRowVisible = utils.useSelector(utils.getIsActiveRowVisible);
 
     const page = utils.useSelector(t => t.page);
     const pageCount = utils.useSelector(utils.getPageCount);
@@ -63,15 +62,14 @@ function Root(props) {
     }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
-        const origin = _.inRange(activeIndex, startIndex, endIndex) ? activeIndex : startIndex;
-        const index = origin + offset;
-        if (!_.inRange(index, itemCount)) return;
+        const index = (isActiveRowVisible ? activeIndex : 0) + offset;
+        if (isActiveRowVisible && !_.inRange(index, itemCount)) return;
 
         selectIndex(e, index);
     }, [
         selectIndex,
         activeIndex, itemCount,
-        startIndex, endIndex
+        isActiveRowVisible
     ]);
 
     const offsetPage = useCallback((e, offset) => {
@@ -83,7 +81,7 @@ function Root(props) {
         actions.goToPage(newPage);
     }, [page, pageCount, actions]);
 
-    const getSelectionArg = useGetSelectionArg(utils);
+    const getSelectionArg = utils.useSelectorGetter(utils.getSelectionArg);
 
     const handleKeyDown = useCallback(e => {
         if (showPlaceholder) return;

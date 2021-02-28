@@ -147,18 +147,6 @@
 }
 
 .rst-table {
-    td, th {
-        padding: 0.75rem;
-    }
-
-    .rst-separator {
-        width: 10px;
-    }
-
-    .rst-selection {
-        opacity: 0.5;
-    }
-
     @include head();
     @include body();
     @include row-active();
@@ -169,4 +157,8 @@
     @include pagination();
     @include pagination-active();
     @include pagination-hover();
+
+    td, th {
+        padding: 0.75rem;
+    }
 }

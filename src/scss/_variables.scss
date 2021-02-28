@@ -32,8 +32,8 @@ $colors: map-merge((
     "separator-bg": #dee2e6,
 
     //Selection box
-    "selection-border": blue,
-    "selection-bg": lightskyblue,
+    "selection-border": rgba(blue, .25),
+    "selection-bg": rgba(lightskyblue, .5),
 
     //Pagination
     "pagination-text": #333333,
@@ -44,5 +44,4 @@ $colors: map-merge((
 
     "pagination-active-bg": #c4d9b1,
     "pagination-active-text": inherit
-
 ), $colors);

@@ -47,6 +47,8 @@ function Root(props) {
     const selectionSize = utils.useSelector(t => t.selection.size);
     const visibleRange = utils.useSelector(utils.getVisibleRange);
 
+    const getSelectionArg = utils.useSelectorGetter(utils.getSelectionArg);
+
     const page = utils.useSelector(t => t.page);
     const pageCount = utils.useSelector(utils.getPageCount);
 
@@ -81,7 +83,6 @@ function Root(props) {
         actions.goToPage(newPage);
     }, [page, pageCount, actions]);
 
-    const getSelectionArg = utils.useSelectorGetter(utils.getSelectionArg);
 
     const handleKeyDown = useCallback(e => {
         if (showPlaceholder) return;

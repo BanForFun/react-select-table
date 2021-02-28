@@ -1,5 +1,5 @@
 import _ from "lodash";
-import React, {useCallback, useRef, useEffect, useImperativeHandle} from 'react';
+import React, {useCallback, useRef, useEffect, useImperativeHandle, useMemo} from 'react';
 import TableRow from "./TableRow";
 
 function TableBody(props, ref) {
@@ -11,7 +11,7 @@ function TableBody(props, ref) {
     } = props;
 
     const rows = utils.useSelector(utils.getPaginatedItems);
-    const { start: startIndex } = utils.useSelector(utils.getVisibleRange);
+    const visibleRange = utils.useSelector(utils.getVisibleRange);
     const selection = utils.useSelector(s => s.selection);
     const activeIndex = utils.useSelector(s => s.activeIndex);
 
@@ -23,7 +23,7 @@ function TableBody(props, ref) {
 
     const scrollToIndex = useCallback(itemIndex => {
         //Check row index
-        const rowIndex = itemIndex - startIndex;
+        const rowIndex = itemIndex - visibleRange.start;
         if (!_.inRange(rowIndex, rowCount))
             return scheduledScroll.current = itemIndex;
 
@@ -43,7 +43,7 @@ function TableBody(props, ref) {
         const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
         if (scrollDown)
             root.scrollTop = rowBottom - visibleHeight;
-    }, [startIndex, rowCount]);
+    }, [visibleRange, rowCount]);
 
     useEffect(() => {
         const index = scheduledScroll.current;
@@ -58,8 +58,13 @@ function TableBody(props, ref) {
         element: tbodyRef.current
     }));
 
+    const noneActive = useMemo(() =>
+        !visibleRange.includes(activeIndex),
+        [visibleRange, activeIndex]
+    );
+
     const renderRow = (item, rowIndex) => {
-        const index = rowIndex + startIndex;
+        const index = rowIndex + visibleRange.start;
         const value = item[options.valueProperty];
 
         const rowProps = {
@@ -67,13 +72,13 @@ function TableBody(props, ref) {
             key: `row_${props.name}_${value}`,
             item, index, value,
             selected: selection.has(value),
-            active: activeIndex === index
+            active: activeIndex === index || noneActive && !rowIndex
         };
 
         return <TableRow {...rowProps} />;
     };
 
-    return <tbody ref={tbodyRef}>
+    return <tbody ref={tbodyRef} className={noneActive ? "rst-noneActive" : null}>
         {rows.map(renderRow)}
     </tbody>;
 }

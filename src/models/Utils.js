@@ -31,7 +31,7 @@ export default function Utils(namespace, options) {
         const store = _useStore();
         return useCallback(() =>
             selector(getStateSlice(store.getState())),
-        [selector, store]
+            [selector, store]
         );
     }
 
@@ -39,7 +39,7 @@ export default function Utils(namespace, options) {
         const dispatch = _useDispatch();
         return useMemo(() =>
             bindActionCreators(actions, dispatch),
-        [dispatch]
+            [dispatch]
         );
     }
 

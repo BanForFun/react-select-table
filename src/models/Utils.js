@@ -10,50 +10,57 @@ export default function Utils(namespace, options) {
     const { context, path } = options;
 
     //Create redux hooks
-    const useSelector = createSelectorHook(context);
-    const useDispatch = createDispatchHook(context);
-    const useStore = createStoreHook(context);
+    const _useSelector = createSelectorHook(context);
+    const _useDispatch = createDispatchHook(context);
+    const _useStore = createStoreHook(context);
 
     const actions = new Actions(namespace);
 
     const getStateSlice = state =>
         path ? _.get(state, path) : state;
 
+    const getItemValue = (slice, index) => {
+        const item = slice.tableItems[index];
+        return item ? item[options.valueProperty] : null;
+    };
+
+    const useSelector = selector =>
+        _useSelector(state => selector(getStateSlice(state)))
+
+    const useSelectorGetter = selector => {
+        const store = _useStore();
+        return useCallback(() =>
+            selector(getStateSlice(store.getState())),
+        [selector, store]
+        );
+    }
+
+    const useActions = () => {
+        const dispatch = _useDispatch();
+        return useMemo(() =>
+            bindActionCreators(actions, dispatch),
+        [dispatch]
+        );
+    }
+
+    const getVisibleRange = pgSelectors.makeGetVisibleRange();
+    const getPaginatedItems = pgSelectors.makeGetPaginatedItems(getVisibleRange);
+    const getPageCount = pgSelectors.makeGetPageCount();
+    const getSelectionArg = selSelectors.makeGetSelectionArg(options);
+
     return {
         actions,
 
-        //Selectors
-        getPaginatedItems: pgSelectors.makeGetPaginatedItems(),
-        getPageCount: pgSelectors.makeGetPageCount(),
-        getIsActiveRowVisible: pgSelectors.makeGetIsActiveRowVisible(),
-        getSelectionArg: selSelectors.makeGetSelectionArg(options),
-
-        //Getters
         getStateSlice,
+        getItemValue,
 
-        getItemValue: (slice, index) => {
-            const item = slice.tableItems[index];
-            return item ? item[options.valueProperty] : null;
-        },
+        useSelector,
+        useSelectorGetter,
+        useActions,
 
-        //Hooks
-        useSelector: selector =>
-            useSelector(state => selector(getStateSlice(state))),
-
-        useSelectorGetter: selector => {
-            const store = useStore();
-            return useCallback(() =>
-                selector(getStateSlice(store.getState())),
-            [selector, store]
-            );
-        },
-
-        useActions: () => {
-            const dispatch = useDispatch();
-            return useMemo(() =>
-                bindActionCreators(actions, dispatch),
-                [dispatch]
-            );
-        }
+        getVisibleRange,
+        getPaginatedItems,
+        getPageCount,
+        getSelectionArg
     }
 }

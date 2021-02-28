@@ -45,7 +45,7 @@ function Root(props) {
     const activeIndex = utils.useSelector(t => t.activeIndex);
     const itemCount = utils.useSelector(t => t.tableItems.length);
     const selectionSize = utils.useSelector(t => t.selection.size);
-    const isActiveRowVisible = utils.useSelector(utils.getIsActiveRowVisible);
+    const visibleRange = utils.useSelector(utils.getVisibleRange);
 
     const page = utils.useSelector(t => t.page);
     const pageCount = utils.useSelector(utils.getPageCount);
@@ -62,14 +62,14 @@ function Root(props) {
     }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
-        const index = (isActiveRowVisible ? activeIndex : 0) + offset;
-        if (isActiveRowVisible && !_.inRange(index, itemCount)) return;
+        const origin = visibleRange.includes(activeIndex) ? activeIndex : visibleRange.start;
+        const index = origin + offset;
+        if (!_.inRange(index, itemCount)) return;
 
         selectIndex(e, index);
     }, [
         selectIndex,
-        activeIndex, itemCount,
-        isActiveRowVisible
+        activeIndex, itemCount, visibleRange
     ]);
 
     const offsetPage = useCallback((e, offset) => {

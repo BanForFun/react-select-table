@@ -10,7 +10,8 @@ function TableBody(props, ref) {
         ...rowCommonProps
     } = props;
 
-    const {rows, startIndex} = utils.useSelector(utils.getPaginatedItems);
+    const rows = utils.useSelector(utils.getPaginatedItems);
+    const { start: startIndex } = utils.useSelector(utils.getVisibleRange);
     const selection = utils.useSelector(s => s.selection);
     const activeIndex = utils.useSelector(s => s.activeIndex);
 

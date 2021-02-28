@@ -21,7 +21,8 @@ function ScrollingContainer(props) {
         tableBodyRef
     } = props;
 
-    const { startIndex, rows } = utils.useSelector(utils.getPaginatedItems);
+    const rows = utils.useSelector(utils.getPaginatedItems);
+    const { start: startIndex } = utils.useSelector(utils.getVisibleRange);
     const isLoading = utils.useSelector(t => t.isLoading);
     const error = utils.useSelector(t => t.error);
     const rowCount = rows.length;

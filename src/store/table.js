@@ -66,11 +66,14 @@ export default function createTable(namespace, options = {}) {
     );
 
     //Getters
+    const getItemValue = index =>
+        utils.getItemValue(draft, index);
+
     const getPageCount = () =>
         utils.getPageCount(draft);
 
-    const getItemValue = index =>
-        utils.getItemValue(draft, index);
+    const getVisibleRange = () =>
+        utils.getVisibleRange(draft);
 
     //Utilities
     function setActiveIndex(index, setPivot = true) {
@@ -257,10 +260,15 @@ export default function createTable(namespace, options = {}) {
                 case types.SELECT: {
                     const {shiftKey, ctrlKey} = payload;
 
-                    const index = parseItemIndex(payload.index);
+                    let index = parseItemIndex(payload.index);
                     if (index === null) break;
 
+                    const visibleRange = getVisibleRange();
+                    if (!visibleRange.includes(draft.activeIndex))
+                        draft.pivotIndex = visibleRange.start;
+
                     setActiveIndex(index, false);
+
                     const value = getItemValue(index);
 
                     if (!multiSelect) {

@@ -1,24 +1,33 @@
 import _ from "lodash";
 import {createSelector} from "reselect";
 
-const makeGetVisibleRange = () => createSelector(
+export const makeGetVisibleRange = () => createSelector(
     s => s.pageSize,
     s => s.page,
+    s => s.tableItems.length,
 
-    (pageSize, page) => pageSize ? {
-        from: (page - 1) * pageSize,
-        to: page * pageSize
-    } : null
+    (pageSize, page, itemCount) => {
+        const range = pageSize ? {
+            start: (page - 1) * pageSize,
+            end: Math.min(page * pageSize, itemCount)
+        } : {
+            start: 0,
+            end: itemCount
+        }
+
+        range.includes = index =>
+            _.inRange(index, range.start, range.end);
+
+        return range;
+    }
 )
 
-export const makeGetPaginatedItems = () => createSelector(
+export const makeGetPaginatedItems = getVisibleRange => createSelector(
     s => s.tableItems,
-    makeGetVisibleRange(),
+    getVisibleRange,
 
-    (items, range) => ({
-        startIndex: range?.from ?? 0,
-        rows: range ? items.slice(range.from, range.to) : items
-    })
+    (items, range) =>
+        items.slice(range.start, range.end)
 )
 
 export const makeGetPageCount = () => createSelector(
@@ -32,12 +41,3 @@ export const makeGetPageCount = () => createSelector(
         return Math.ceil(itemCount / pageSize);
     }
 )
-
-export const makeGetIsActiveRowVisible = () => createSelector(
-    s => s.activeIndex,
-    makeGetVisibleRange(),
-
-    (active, range) =>
-        !range || _.inRange(active, range.from, range.to)
-)
-

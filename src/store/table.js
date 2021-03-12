@@ -263,9 +263,9 @@ export default function createTable(namespace, options = {}) {
                     let index = parseItemIndex(payload.index);
                     if (index === null) break;
 
-                    const visibleRange = getVisibleRange();
-                    if (!visibleRange.includes(draft.activeIndex))
-                        draft.pivotIndex = visibleRange.start;
+                    // const visibleRange = getVisibleRange();
+                    // if (!visibleRange.includes(draft.activeIndex))
+                    //     draft.pivotIndex = visibleRange.start;
 
                     setActiveIndex(index, false);
 

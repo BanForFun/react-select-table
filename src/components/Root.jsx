@@ -45,11 +45,11 @@ function Root(props) {
     const activeIndex = utils.useSelector(t => t.activeIndex);
     const itemCount = utils.useSelector(t => t.tableItems.length);
     const selectionSize = utils.useSelector(t => t.selection.size);
-    const visibleRange = utils.useSelector(utils.getVisibleRange);
 
     const getSelectionArg = utils.useSelectorGetter(utils.getSelectionArg);
 
     const page = utils.useSelector(t => t.page);
+    const pageSize = utils.useSelector(t => t.pageSize);
     const pageCount = utils.useSelector(utils.getPageCount);
 
     const showPlaceholder = utils.useSelector(t => t.isLoading || !!t.error);
@@ -64,14 +64,13 @@ function Root(props) {
     }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
-        const origin = visibleRange.includes(activeIndex) ? activeIndex : visibleRange.start;
-        const index = origin + offset;
+        const index = activeIndex + offset;
         if (!_.inRange(index, itemCount)) return;
 
         selectIndex(e, index);
     }, [
         selectIndex,
-        activeIndex, itemCount, visibleRange
+        activeIndex, itemCount
     ]);
 
     const offsetPage = useCallback((e, offset) => {
@@ -80,9 +79,15 @@ function Root(props) {
         const newPage = page + offset;
         if (!_.inRange(newPage - 1, pageCount)) return;
 
-        actions.goToPage(newPage);
-    }, [page, pageCount, actions]);
+        const firstIndex = (newPage - 1) * pageSize;
 
+        if (e.shiftKey)
+            actions.select(firstIndex, e.ctrlKey, e.shiftKey);
+        else if (e.ctrlKey)
+            actions.goToPage(newPage);
+        else
+            actions.setActive(firstIndex);
+    }, [page, pageCount, pageSize, actions]);
 
     const handleKeyDown = useCallback(e => {
         if (showPlaceholder) return;

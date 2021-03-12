@@ -58,10 +58,10 @@ function TableBody(props, ref) {
         element: tbodyRef.current
     }));
 
-    const noneActive = useMemo(() =>
-        !visibleRange.includes(activeIndex),
-        [visibleRange, activeIndex]
-    );
+    // const noneActive = useMemo(() =>
+    //     !visibleRange.includes(activeIndex),
+    //     [visibleRange, activeIndex]
+    // );
 
     const renderRow = (item, rowIndex) => {
         const index = rowIndex + visibleRange.start;
@@ -72,13 +72,13 @@ function TableBody(props, ref) {
             key: `row_${props.name}_${value}`,
             item, index, value,
             selected: selection.has(value),
-            active: activeIndex === index || noneActive && !rowIndex
+            active: activeIndex === index
         };
 
         return <TableRow {...rowProps} />;
     };
 
-    return <tbody ref={tbodyRef} className={noneActive ? "rst-noneActive" : null}>
+    return <tbody ref={tbodyRef}>
         {rows.map(renderRow)}
     </tbody>;
 }

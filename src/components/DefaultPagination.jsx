@@ -3,6 +3,14 @@ import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
 import {unFocusable} from "../utils/eventUtils";
 
+const neighbourNumbers = 1;
+
+//Neighbour numbers + Ellipsis / number (for one side)
+const neighbourBlocks = neighbourNumbers + 1;
+
+//Neighbour numbers + Ellipsis / number + Edge number (for both sides)
+const totalBlocks = (neighbourBlocks + 1) * 2;
+
 //Child of PaginationContainer
 function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
     const PaginationButton = ({ page, children, ...rest }) => (
@@ -15,34 +23,28 @@ function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
     );
 
     const getPages = () => {
-        const neighbours = 1;
-        const totalNumbers = neighbours * 2 + 3;
-        const blockCount = totalNumbers + 2;
-
-        if (pageCount <= blockCount)
+        if (pageCount <= totalBlocks)
             return _.range(1, pageCount);
 
-        const startPage = Math.max(currentPage - neighbours, 2);
-        const endPage = Math.min(currentPage + neighbours + 1, pageCount);
-        const pages = _.range(startPage, endPage);
+        const start = currentPage - neighbourBlocks
+        const end = currentPage + neighbourBlocks
 
-        const hasLeftAbbr = startPage > 2;
-        const hasRightAbbr = pageCount - endPage > 0;
-        const abbrCount = totalNumbers - 1 - pages.length;
+        const startMargin = start - 1;
+        const endMargin = pageCount - end;
+        const offset = Math.min(endMargin, 1) - Math.min(startMargin, 1);
 
-        const getPages = (...middle) => [1, ...middle, pageCount];
+        const pages = _.range(start + offset, end + offset + 1);
 
-        if (hasLeftAbbr && !hasRightAbbr) {
-            const extra = _.range(startPage - abbrCount, startPage);
-            return getPages(null, ...extra, ...pages);
-        }
+        if (startMargin >= 2)
+            pages[0] = null;
 
-        if (!hasLeftAbbr && hasRightAbbr) {
-            const extra = _.range(endPage, endPage + abbrCount);
-            return getPages(...pages, ...extra, null);
-        }
+        if (endMargin >= 2)
+            pages[pages.length - 1] = null;
 
-        return getPages(null, ...pages, null);
+        pages.unshift(1);
+        pages.push(pageCount);
+
+        return pages;
     }
 
     return <div className="rst-pagination">

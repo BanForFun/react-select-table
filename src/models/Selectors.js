@@ -19,6 +19,7 @@ export default function Selectors(namespace, options) {
     return {
         getItemValue,
         getItemPage,
+
         getVisibleRange,
         getPaginatedItems,
         getPageCount,

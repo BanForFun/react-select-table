@@ -3,22 +3,17 @@ import {createSelector} from "reselect";
 
 export const makeGetVisibleRange = () => createSelector(
     s => s.pageSize,
-    s => s.page,
+    s => s.pageIndex,
     s => s.tableItems.length,
 
-    (pageSize, page, itemCount) => {
-        const range = pageSize ? {
-            start: (page - 1) * pageSize,
-            end: Math.min(page * pageSize, itemCount)
-        } : {
-            start: 0,
-            end: itemCount
-        }
+    (pageSize, pageIndex, itemCount) => {
+        const start = pageSize * pageIndex;
+        const end = start + (pageSize || itemCount);
 
-        range.includes = index =>
-            _.inRange(index, range.start, range.end);
-
-        return range;
+        return {
+            start, end,
+            includes: index => _.inRange(index, start, end)
+        };
     }
 )
 
@@ -40,4 +35,13 @@ export const makeGetPageCount = () => createSelector(
 
         return Math.ceil(itemCount / pageSize);
     }
+)
+
+export const makeGetVirtualActiveIndex = getVisibleRange => createSelector(
+    s => s.activeIndex,
+    s => s.virtualActiveIndex,
+    getVisibleRange,
+
+    (active, virtualActive, range) =>
+        range.includes(active) ? active : virtualActive
 )

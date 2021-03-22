@@ -5,6 +5,7 @@ import ResizingContainer from "./ResizingContainer";
 import {sortTuple} from "../utils/mathUtils";
 import {SelectionRectContext} from "./SelectionRect";
 
+//Child of Root
 function ScrollingContainer(props) {
     const {
         showSelectionRect,
@@ -16,13 +17,13 @@ function ScrollingContainer(props) {
     } = props;
 
     const {
-        storage: { options, utils },
+        storage: { options, utils, selectors },
         actions,
         tableBodyRef
     } = props;
 
-    const rows = utils.useSelector(utils.getPaginatedItems);
-    const { start: startIndex } = utils.useSelector(utils.getVisibleRange);
+    const rows = utils.useSelector(selectors.getPaginatedItems);
+    const { start: startIndex } = utils.useSelector(selectors.getVisibleRange);
     const isLoading = utils.useSelector(t => t.isLoading);
     const error = utils.useSelector(t => t.error);
     const rowCount = rows.length;
@@ -89,7 +90,7 @@ function ScrollingContainer(props) {
         const {
             offsetHeight: tableHeight,
             children: rows
-        } = tableBody.element;
+        } = tableBody.elementRef;
 
         //Define selection check area
         const [minMouseY, maxMouseY] = sortTuple(relMouseY, dragSelection.lastRelMouseY);

@@ -1,19 +1,20 @@
 import _ from "lodash";
-import React, {useCallback, useRef, useEffect, useImperativeHandle, useMemo} from 'react';
+import React, {useCallback, useRef, useEffect, useImperativeHandle} from 'react';
 import TableRow from "./TableRow";
 
+//Child of BodyContainer
 function TableBody(props, ref) {
     const {
-        storage: { options, utils },
+        storage: { options, utils, selectors },
         bodyContainerRef,
 
         ...rowCommonProps
     } = props;
 
-    const rows = utils.useSelector(utils.getPaginatedItems);
-    const visibleRange = utils.useSelector(utils.getVisibleRange);
+    const rows = utils.useSelector(selectors.getPaginatedItems);
+    const visibleRange = utils.useSelector(selectors.getVisibleRange);
     const selection = utils.useSelector(s => s.selection);
-    const activeIndex = utils.useSelector(s => s.activeIndex);
+    const virtualActiveIndex = utils.useSelector(selectors.getVirtualActiveIndex);
 
     const rowCount = rows.length;
 
@@ -55,13 +56,8 @@ function TableBody(props, ref) {
 
     useImperativeHandle(ref, () => ({
         scrollToIndex,
-        element: tbodyRef.current
+        elementRef: tbodyRef.current
     }));
-
-    // const noneActive = useMemo(() =>
-    //     !visibleRange.includes(activeIndex),
-    //     [visibleRange, activeIndex]
-    // );
 
     const renderRow = (item, rowIndex) => {
         const index = rowIndex + visibleRange.start;
@@ -72,7 +68,7 @@ function TableBody(props, ref) {
             key: `row_${props.name}_${value}`,
             item, index, value,
             selected: selection.has(value),
-            active: activeIndex === index
+            active: virtualActiveIndex === index
         };
 
         return <TableRow {...rowProps} />;

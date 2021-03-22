@@ -33,8 +33,8 @@ export default function Actions(namespace) {
     }
 
     return {
-        goToPage: (page) =>
-            Action(types.GO_TO_PAGE, { page }),
+        goToPage: (index) =>
+            Action(types.GO_TO_PAGE, { index }),
 
         setPageSize: (size) =>
             Action(types.SET_PAGE_SIZE, { size }),

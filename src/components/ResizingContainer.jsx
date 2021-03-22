@@ -5,6 +5,7 @@ import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
 import {ColumnWidthsContext} from "./ColumnGroup";
 
+//Child of ScrollingContainer
 function ResizingContainer(props) {
     const {
         columns: _columns,

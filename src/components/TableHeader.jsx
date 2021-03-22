@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import AngleDownIcon from "./AngleDownIcon";
 
+//Child of TableHead
 function TableHeader({
     path,
     title,

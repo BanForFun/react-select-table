@@ -1,4 +1,4 @@
-import React, {useContext, useCallback} from 'react';
+import React, {useContext} from 'react';
 import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultError from "./DefaultError";
@@ -11,7 +11,7 @@ function Connector({ name, namespace, ...rootProps }) {
 
     const { context } = storage.options;
     if (!context)
-        throw new Error("Please import ReactReduxContext from react-redux and pass it to the context option");
+        throw new Error("Please import 'ReactReduxContext' from 'react-redux' and pass it to the 'context' option");
 
     const contextValue = useContext(context);
 

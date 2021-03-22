@@ -1,5 +1,7 @@
 import _ from "lodash";
 import Utils from "../models/Utils";
+import Selectors from "../models/Selectors";
+import Actions from "../models/Actions";
 
 export const tableStorage = {};
 
@@ -27,16 +29,31 @@ export function setDefaultTableOptions(options) {
 }
 
 export function setOptions(namespace, options) {
-    const storage = {
-        options: _.defaults(options, defaultOptions),
-        utils: Utils(namespace, options),
-        events: {...defaultEvents}
-    }
+    _.defaults(options, defaultOptions);
+    const actions = Actions(namespace);
+    const utils = Utils(namespace, options, actions);
+    const selectors = Selectors(namespace, options);
+    const events = _.clone(defaultEvents);
 
-    tableStorage[namespace] = storage;
-    return storage;
+    tableStorage[namespace] = {
+        options,
+        actions,
+        utils,
+        selectors,
+        events
+    };
+
+    return selectors;
 }
 
 export function getTableUtils(namespace) {
     return tableStorage[namespace].utils;
+}
+
+export function getTableActions(namespace) {
+    return tableStorage[namespace].actions;
+}
+
+export function getTableSelectors(namespace) {
+    return tableStorage[namespace].selectors;
 }

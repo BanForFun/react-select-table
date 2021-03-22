@@ -1,5 +1,6 @@
 import React from 'react';
 
+//Child of TableRow
 function TableCell({
     isHeader,
     item,

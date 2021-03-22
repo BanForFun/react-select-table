@@ -14,21 +14,33 @@ const sortOrders = Object.freeze({
 });
 
 export default function createTable(namespace, options = {}) {
-    const { utils } = setOptions(namespace, options);
+    const _selectors = setOptions(namespace, options);
 
     let draft;
+
+    const selectors = new Proxy(_selectors, {
+        get: function() {
+            const value = Reflect.get(...arguments);
+            if (typeof value !== "function") return value;
+
+            return function() {
+                return value(draft, ...arguments)
+            }
+        }
+    })
 
     const initState = {
         selection: new Set(),
         activeIndex: 0,
         pivotIndex: 0,
+        virtualActiveIndex: 0,
         filter: null,
         items: {},
         sortBy: {},
         tableItems: [],
         isLoading: false,
         pageSize: 0,
-        page: 1,
+        pageIndex: 0,
         error: null,
         ...options.initState
     };
@@ -65,31 +77,20 @@ export default function createTable(namespace, options = {}) {
         items => _.map(items, valueProperty)
     );
 
-    //Getters
-    const getItemValue = index =>
-        utils.getItemValue(draft, index);
-
-    const getPageCount = () =>
-        utils.getPageCount(draft);
-
-    const getVisibleRange = () =>
-        utils.getVisibleRange(draft);
-
     //Utilities
     function setActiveIndex(index, setPivot = true) {
         draft.activeIndex = index;
+        draft.virtualActiveIndex = index;
 
         if (setPivot)
             draft.pivotIndex = index;
 
-        draft.page = (draft.pageSize && Math.trunc(index / draft.pageSize)) + 1;
+        draft.pageIndex = (draft.pageSize && Math.trunc(index / draft.pageSize));
     }
 
     function clearSelection(resetActive = false) {
-        if (resetActive) {
-            draft.activeIndex = 0;
-            draft.page = 1;
-        }
+        if (resetActive)
+            setActiveIndex(0, false);
 
         draft.selection.clear();
         draft.pivotIndex = draft.activeIndex;
@@ -263,13 +264,12 @@ export default function createTable(namespace, options = {}) {
                     let index = parseItemIndex(payload.index);
                     if (index === null) break;
 
-                    // const visibleRange = getVisibleRange();
-                    // if (!visibleRange.includes(draft.activeIndex))
-                    //     draft.pivotIndex = visibleRange.start;
+                    if (!selectors.getVisibleRange().includes(draft.activeIndex))
+                        draft.pivotIndex = draft.virtualActiveIndex;
 
                     setActiveIndex(index, false);
 
-                    const value = getItemValue(index);
+                    const value = selectors.getItemValue(index);
 
                     if (!multiSelect) {
                         replaceSelection(value);
@@ -314,7 +314,7 @@ export default function createTable(namespace, options = {}) {
 
                     if (listBox) break;
 
-                    const value = getItemValue(index);
+                    const value = selectors.getItemValue(index);
                     if (draft.selection.has(value)) break;
 
                     replaceSelection(value);
@@ -340,7 +340,7 @@ export default function createTable(namespace, options = {}) {
                         index = parseItemIndex(index);
                         if (index === null) return;
 
-                        setSelected(getItemValue(index), select);
+                        setSelected(selectors.getItemValue(index), select);
                     });
                     break;
                 }
@@ -367,10 +367,11 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.GO_TO_PAGE: {
-                    const newPage = parseInt(payload.page);
-                    if (!_.inRange(newPage - 1, getPageCount())) break;
+                    const index = parseInt(payload.index);
+                    if (!_.inRange(index, selectors.getPageCount())) break;
 
-                    draft.page = newPage;
+                    draft.pageIndex = index;
+                    draft.virtualActiveIndex = selectors.getVisibleRange().start;
                     break;
                 }
                 default:
@@ -379,13 +380,15 @@ export default function createTable(namespace, options = {}) {
 
             const itemCount = draft.tableItems.length;
             const prevItemCount = state.tableItems.length;
-
             if (itemCount >= prevItemCount) return;
-            const maxIndex = itemCount - 1;
 
-            draft.activeIndex = Math.min(draft.activeIndex, maxIndex);
-            draft.pivotIndex = Math.min(draft.pivotIndex, maxIndex);
-            draft.page = Math.min(draft.page, getPageCount() ?? 1);
+            const maxItem = Math.max(itemCount - 1, 0);
+            const maxPage = Math.max(selectors.getPageCount() - 1, 0);
+
+            draft.activeIndex = Math.min(draft.activeIndex, maxItem);
+            draft.virtualActiveIndex = Math.min(draft.virtualActiveIndex, maxItem);
+            draft.pivotIndex = Math.min(draft.pivotIndex, maxItem);
+            draft.pageIndex = Math.min(draft.pageIndex, maxPage);
         });
     }
 }

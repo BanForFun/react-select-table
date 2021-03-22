@@ -34,7 +34,7 @@ const eventMiddleware = store => next => action => {
         case types.START_LOADING:
         case types.CONTEXT_MENU:
             //Get table options, events and utils
-            const { events, utils, options } = tableStorage[namespace];
+            const { events, utils, options, selectors } = tableStorage[namespace];
             const getSlice = () => utils.getStateSlice(store.getState());
 
             //Get previous and current state
@@ -44,13 +44,13 @@ const eventMiddleware = store => next => action => {
 
             //Raise onSelectionChange
             if (!compareSets(prevSlice.selection, slice.selection))
-                events.onSelectionChange(utils.getSelectionArg(slice));
+                events.onSelectionChange(selectors.getSelectionArg(slice));
 
             //Raise onContextMenu
             if (type === types.CONTEXT_MENU)
                 events.onContextMenu(options.listBox
-                    ? utils.getItemValue(slice, payload.ctrlKey ? slice.activeIndex : payload.index)
-                    : utils.getSelectionArg(slice)
+                    ? selectors.getItemValue(slice, payload.ctrlKey ? slice.activeIndex : payload.index)
+                    : selectors.getSelectionArg(slice)
                 );
 
             return result;

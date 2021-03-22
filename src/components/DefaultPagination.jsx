@@ -3,10 +3,11 @@ import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
 import {unFocusable} from "../utils/eventUtils";
 
+//Child of PaginationContainer
 function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
     const PaginationButton = ({ page, children, ...rest }) => (
         <button
-            onClick={e => goToPage(page, e.ctrlKey)}
+            onClick={() => goToPage(page)}
             className={currentPage === page ? "rst-active" : null}
             {...unFocusable}
             {...rest}

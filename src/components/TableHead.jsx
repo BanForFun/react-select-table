@@ -1,6 +1,7 @@
 import React from 'react';
 import TableHeader from "./TableHeader";
 
+//Child of HeadContainer
 function TableHead(props) {
     const {
         storage: { options, utils },

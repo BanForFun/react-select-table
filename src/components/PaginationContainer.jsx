@@ -1,13 +1,17 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 
+//Child of Root
 function PaginationContainer({
     Pagination,
     actions,
     showPlaceholder,
-    storage: { utils }
+    storage: { utils, selectors }
 }) {
-    const page = utils.useSelector(s => s.page);
-    const pageCount = utils.useSelector(utils.getPageCount);
+    const page = utils.useSelector(s => s.pageIndex + 1);
+    const pageCount = utils.useSelector(selectors.getPageCount);
+
+    const goToPage = useCallback(page =>
+        actions.goToPage(page - 1), [actions]);
 
     if (showPlaceholder || !pageCount) return null;
 
@@ -15,7 +19,7 @@ function PaginationContainer({
         <Pagination
             page={page}
             pageCount={pageCount}
-            goToPage={actions.goToPage}
+            goToPage={goToPage}
         />
     </div>
 }

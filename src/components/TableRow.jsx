@@ -3,6 +3,7 @@ import classNames from "classnames";
 import _ from "lodash";
 import TableCell from "./TableCell";
 
+//Child of TableBody
 function TableRow({
     columns,
     name,

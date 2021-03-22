@@ -5,6 +5,7 @@ import PaginationContainer from "./PaginationContainer";
 import classNames from "classnames";
 import {matchModifiers} from "../utils/eventUtils";
 
+//Child of Connector
 function Root(props) {
     const {
         Pagination, //PaginationContainer
@@ -19,7 +20,7 @@ function Root(props) {
     } = props;
 
     const {
-        storage: { utils, events, options },
+        storage: { utils, events, options, selectors },
         onItemsOpen
     } = props;
 
@@ -41,18 +42,15 @@ function Root(props) {
         }, [handler, events]);
     }
 
-    //Keyboard selection
-    const activeIndex = utils.useSelector(t => t.activeIndex);
+    const virtualActiveIndex = utils.useSelector(selectors.getVirtualActiveIndex);
     const itemCount = utils.useSelector(t => t.tableItems.length);
-    const selectionSize = utils.useSelector(t => t.selection.size);
-
-    const getSelectionArg = utils.useSelectorGetter(utils.getSelectionArg);
-
-    const page = utils.useSelector(t => t.page);
+    const selection = utils.useSelector(t => t.selection);
+    const pageIndex = utils.useSelector(t => t.pageIndex);
     const pageSize = utils.useSelector(t => t.pageSize);
-    const pageCount = utils.useSelector(utils.getPageCount);
-
+    const pageCount = utils.useSelector(selectors.getPageCount);
     const showPlaceholder = utils.useSelector(t => t.isLoading || !!t.error);
+
+    const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
     const selectIndex = useCallback((e, index) => {
         if (matchModifiers(e, true, false))
@@ -64,30 +62,28 @@ function Root(props) {
     }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
-        const index = activeIndex + offset;
+        const index = virtualActiveIndex + offset;
         if (!_.inRange(index, itemCount)) return;
 
         selectIndex(e, index);
     }, [
         selectIndex,
-        activeIndex, itemCount
+        virtualActiveIndex, itemCount
     ]);
 
     const offsetPage = useCallback((e, offset) => {
         if (!pageCount) return;
 
-        const newPage = page + offset;
-        if (!_.inRange(newPage - 1, pageCount)) return;
+        const newIndex = pageIndex + offset;
+        if (!_.inRange(newIndex, pageCount)) return;
 
-        const firstIndex = (newPage - 1) * pageSize;
+        const firstIndex = newIndex * pageSize;
 
         if (e.shiftKey)
             actions.select(firstIndex, e.ctrlKey, e.shiftKey);
-        else if (e.ctrlKey)
-            actions.goToPage(newPage);
         else
-            actions.setActive(firstIndex);
-    }, [page, pageCount, pageSize, actions]);
+            actions.goToPage(newIndex);
+    }, [pageIndex, pageCount, pageSize, actions]);
 
     const handleKeyDown = useCallback(e => {
         if (showPlaceholder) return;
@@ -111,10 +107,10 @@ function Root(props) {
                 selectIndex(e, itemCount - 1);
                 break;
             case 13: //Enter
-                if (matchModifiers(e, false, false) && selectionSize)
+                if (matchModifiers(e, false, false) && selection.has(virtualActiveIndex))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(activeIndex, e.ctrlKey, e.shiftKey);
+                    actions.select(virtualActiveIndex, e.ctrlKey, e.shiftKey);
 
                 break;
             case 37: //Left
@@ -130,7 +126,7 @@ function Root(props) {
         e.preventDefault();
     }, [
         actions, options, showPlaceholder,
-        itemCount, activeIndex, selectionSize,
+        itemCount, virtualActiveIndex, selection,
         selectOffset, selectIndex, getSelectionArg, offsetPage,
         onKeyDown, onItemsOpen
     ]);

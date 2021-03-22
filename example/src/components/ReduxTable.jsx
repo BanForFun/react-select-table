@@ -3,10 +3,8 @@ import _ from "lodash";
 import { Table } from 'react-select-table';
 import columns from '../columns';
 import { useDispatch, useSelector } from 'react-redux';
-import { tableUtils, tableNamespace } from "../store";
+import { tableActions as actions, tableNamespace } from "../store";
 import todos from "../todos";
-
-const { actions } = tableUtils;
 
 function logEvent(type) {
     return (...args) => console.log(type, ...args);

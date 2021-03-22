@@ -3,6 +3,7 @@ import React, {useContext} from 'react';
 export const SelectionRectContext = React.createContext(null);
 SelectionRectContext.displayName = "SelectionRectContext";
 
+//Child of BodyContainer
 function SelectionRect({ bodyContainerRef }) {
     const rect = useContext(SelectionRectContext);
     if (!rect) return null;

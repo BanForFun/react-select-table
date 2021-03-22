@@ -2,11 +2,8 @@ import _ from "lodash";
 import {useMemo, useCallback} from "react";
 import {createDispatchHook, createSelectorHook, createStoreHook} from "react-redux";
 import {bindActionCreators} from "redux";
-import Actions from "./Actions";
-import * as selSelectors from "../selectors/selectionSelectors";
-import * as pgSelectors from "../selectors/paginationSelectors";
 
-export default function Utils(namespace, options) {
+export default function Utils(namespace, options, actions) {
     const { context, path } = options;
 
     //Create redux hooks
@@ -14,23 +11,13 @@ export default function Utils(namespace, options) {
     const _useDispatch = createDispatchHook(context);
     const _useStore = createStoreHook(context);
 
-    const actions = new Actions(namespace);
+    const useSelector = (selector, ...args) =>
+        _useSelector(state => selector(getStateSlice(state), ...args));
 
-    const getStateSlice = state =>
-        path ? _.get(state, path) : state;
-
-    const getItemValue = (slice, index) => {
-        const item = slice.tableItems[index];
-        return item ? item[options.valueProperty] : null;
-    };
-
-    const useSelector = selector =>
-        _useSelector(state => selector(getStateSlice(state)))
-
-    const useSelectorGetter = selector => {
+    const useSelectorGetter = (selector) => {
         const store = _useStore();
-        return useCallback(() =>
-            selector(getStateSlice(store.getState())),
+        return useCallback((...args) =>
+            selector(getStateSlice(store.getState()), ...args),
             [selector, store]
         );
     }
@@ -43,24 +30,14 @@ export default function Utils(namespace, options) {
         );
     }
 
-    const getVisibleRange = pgSelectors.makeGetVisibleRange();
-    const getPaginatedItems = pgSelectors.makeGetPaginatedItems(getVisibleRange);
-    const getPageCount = pgSelectors.makeGetPageCount();
-    const getSelectionArg = selSelectors.makeGetSelectionArg(options);
+    const getStateSlice = state =>
+        path ? _.get(state, path) : state;
 
     return {
-        actions,
-
         getStateSlice,
-        getItemValue,
 
         useSelector,
         useSelectorGetter,
-        useActions,
-
-        getVisibleRange,
-        getPaginatedItems,
-        getPageCount,
-        getSelectionArg
+        useActions
     }
 }

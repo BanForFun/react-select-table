@@ -4,6 +4,7 @@ import ColumnGroup from "./ColumnGroup";
 import SelectionRect from "./SelectionRect";
 import useEvent from "../hooks/useEvent";
 
+//Child of ResizingContainer
 function BodyContainer(props) {
     const {
         onItemsOpen,
@@ -13,7 +14,7 @@ function BodyContainer(props) {
     } = props;
 
     const {
-        storage: { options, utils },
+        storage: { options, utils, selectors },
         actions,
         dragSelectStart,
         bodyContainerRef
@@ -21,7 +22,7 @@ function BodyContainer(props) {
 
     const isTouching = useRef(false);
 
-    const getSelectionArg = utils.useSelectorGetter(utils.getSelectionArg);
+    const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
     const noItems = utils.useSelector(t => !t.tableItems.length);
     const selectionSize = utils.useSelector(t => t.selection.size);

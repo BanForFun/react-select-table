@@ -86,6 +86,10 @@ function Root(props) {
         actions, selectIndex
     ]);
 
+    const searchItem = useCallback(e => {
+
+    })
+
     const handleKeyDown = useCallback(e => {
         if (showPlaceholder) return;
 
@@ -133,6 +137,7 @@ function Root(props) {
         selectOffset, selectIndex, offsetPage, //Component methods
         onKeyDown, onItemsOpen //Event handlers
     ]);
+
 
     //Scrolling container props
     Object.assign(scrollingProps, {

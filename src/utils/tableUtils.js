@@ -13,6 +13,8 @@ export const defaultEvents = {
 const defaultOptions = {
     itemParser: item => item,
     itemPredicate: _.isMatch,
+    itemIndexer: str => str.normalize("NFD")[0].toLowerCase(),
+    indexPath: null,
     multiSelect: true,
     listBox: false,
     minColumnWidth: 3,

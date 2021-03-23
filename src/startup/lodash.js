@@ -1,0 +1,41 @@
+import _ from "lodash";
+
+const unsetMany = (object, paths) => {
+    for (let path of paths)
+        _.unset(object, path);
+}
+
+const sortTuple = (x, y) => [
+    x < y ? x : y,
+    x > y ? x : y
+]
+
+const forRange = (x, y, callback) => {
+    const [start, end] = sortTuple(x, y);
+    for (let i = start; i <= end; i++)
+        callback(i);
+}
+
+const getOrSource = (source, path) =>
+    path ? _.get(source, path) : source;
+
+const replaceSetValue = (set, oldValue, newValue) => {
+    if (set.delete(oldValue))
+        set.add(newValue)
+}
+
+const toggleSetValue = (set, value, exists) => {
+    if (exists) set.add(value);
+    else set.delete(value);
+}
+
+export default function() {
+    _.mixin({
+        unsetMany,
+        sortTuple,
+        forRange,
+        getOrSource,
+        replaceSetValue,
+        toggleSetValue
+    })
+}

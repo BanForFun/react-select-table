@@ -1,3 +1,4 @@
+import "./startup";
 import "./scss/styles.scss";
 
 export { default as Table } from './components/Connector';

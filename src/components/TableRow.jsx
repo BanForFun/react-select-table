@@ -38,10 +38,9 @@ function TableRow({
 
     const renderColumn = column => {
         const { _id, path, render, className, isHeader } = column;
-        const content = _.get(item, path);
 
         const cellProps = {
-            content,
+            content: _.getOrSource(item, path),
             key: `cell_${name}_${value}_${_id}`,
             className, isHeader, render, item
         }

@@ -2,7 +2,6 @@ import React, {useCallback, useRef, useState} from 'react';
 import classNames from "classnames";
 import useEvent from "../hooks/useEvent";
 import ResizingContainer from "./ResizingContainer";
-import {sortTuple} from "../utils/mathUtils";
 import {SelectionRectContext} from "./SelectionRect";
 
 //Child of Root
@@ -96,7 +95,7 @@ function ScrollingContainer(props) {
         } = tableBody;
 
         //Define selection check area
-        const [minMouseY, maxMouseY] = sortTuple(relMouseY, dragSelection.lastRelMouseY);
+        const [minMouseY, maxMouseY] = _.sortTuple(relMouseY, dragSelection.lastRelMouseY);
         dragSelection.lastRelMouseY = relMouseY;
 
         //Set up search

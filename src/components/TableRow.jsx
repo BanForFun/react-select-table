@@ -21,7 +21,7 @@ function TableRow({
         e.stopPropagation();
 
         if (isTouching.current) {
-            actions.select(index, true);
+            actions.select(index, false, true);
             dragSelectStart([e.clientX, e.clientY], index);
         } else {
             actions.contextMenu(index, e.ctrlKey);
@@ -32,7 +32,7 @@ function TableRow({
         if (e.button !== 0) return;
         e.stopPropagation();
 
-        actions.select(index, e.ctrlKey, e.shiftKey);
+        actions.select(index, false, e.ctrlKey, e.shiftKey);
         dragSelectStart([e.clientX, e.clientY], index);
     }, [index, actions]);
 

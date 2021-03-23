@@ -146,19 +146,21 @@
     }
 }
 
+%base {
+    @include row-active();
+    @include row-selected();
+    @include pagination();
+    @include pagination-current();
+    @include pagination-hover();
+    @include pagination-active();
+    @include separator();
+    @include selection();
+}
+
 .rst-table {
     @include head();
     @include body();
-    @include row-active();
-    @include row-selected();
     @include row-hover();
-    @include separator();
-    @include selection();
-    @include pagination();
-    @include pagination-active();
-    @include pagination-hover();
 
-    td, th {
-        padding: 0.75rem;
-    }
+    @extend %base;
 }

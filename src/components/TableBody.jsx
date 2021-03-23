@@ -1,37 +1,30 @@
-import _ from "lodash";
-import React, {useCallback, useRef, useEffect, useImperativeHandle} from 'react';
+import React, {useEffect} from 'react';
 import TableRow from "./TableRow";
 
 //Child of BodyContainer
-function TableBody(props, ref) {
+function TableBody(props) {
     const {
         storage: { options, utils, selectors },
         bodyContainerRef,
+        tableBodyRef,
+        isSelecting,
 
         ...rowCommonProps
     } = props;
 
     const rows = utils.useSelector(selectors.getPaginatedItems);
-    const visibleRange = utils.useSelector(selectors.getVisibleRange);
+    const startIndex = utils.useSelector(s => selectors.getVisibleRange(s).start);
     const selection = utils.useSelector(s => s.selection);
-    const virtualActiveIndex = utils.useSelector(selectors.getVirtualActiveIndex);
+    const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
 
-    const rowCount = rows.length;
-
-    const tbodyRef = useRef();
-
-    const scheduledScroll = useRef(null);
-
-    const scrollToIndex = useCallback(itemIndex => {
-        //Check row index
-        const rowIndex = itemIndex - visibleRange.start;
-        if (!_.inRange(rowIndex, rowCount))
-            return scheduledScroll.current = itemIndex;
+    useEffect(() => {
+        if (isSelecting.current) return;
+        const rowIndex = virtualActiveIndex - startIndex;
 
         //Get elements
         const body = bodyContainerRef.current;
         const root = body.offsetParent;
-        const row = tbodyRef.current.children[rowIndex];
+        const row = tableBodyRef.current.children[rowIndex];
 
         //Scroll up
         const scrollUp = row.offsetTop < root.scrollTop;
@@ -44,23 +37,10 @@ function TableBody(props, ref) {
         const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
         if (scrollDown)
             root.scrollTop = rowBottom - visibleHeight;
-    }, [visibleRange, rowCount]);
-
-    useEffect(() => {
-        const index = scheduledScroll.current;
-        if (index === null) return;
-        scheduledScroll.current = null;
-
-        scrollToIndex(index);
-    }, [scrollToIndex]);
-
-    useImperativeHandle(ref, () => ({
-        scrollToIndex,
-        elementRef: tbodyRef.current
-    }));
+    }, [virtualActiveIndex]);
 
     const renderRow = (item, rowIndex) => {
-        const index = rowIndex + visibleRange.start;
+        const index = rowIndex + startIndex;
         const value = item[options.valueProperty];
 
         const rowProps = {
@@ -74,9 +54,9 @@ function TableBody(props, ref) {
         return <TableRow {...rowProps} />;
     };
 
-    return <tbody ref={tbodyRef}>
+    return <tbody ref={tableBodyRef}>
         {rows.map(renderRow)}
     </tbody>;
 }
 
-export default React.memo(React.forwardRef(TableBody));
+export default React.memo(TableBody);

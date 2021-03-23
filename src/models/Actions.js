@@ -63,8 +63,8 @@ export default function Actions(namespace) {
         sortItems: (path, shiftKey = false) =>
             Action(types.SORT_ITEMS, { path, shiftKey }),
 
-        select: (index, ctrlKey = false, shiftKey = false) =>
-            Action(types.SELECT, { index, ctrlKey, shiftKey }),
+        select: (index, fromKeyboard, ctrlKey = false, shiftKey = false) =>
+            Action(types.SELECT, { index, fromKeyboard, ctrlKey, shiftKey }),
 
         contextMenu: (index, ctrlKey = false) =>
             Action(types.CONTEXT_MENU, { index, ctrlKey }),

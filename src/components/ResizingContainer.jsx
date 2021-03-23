@@ -17,7 +17,8 @@ function ResizingContainer(props) {
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
-        bodyContainerRef, //BodyContainer
+        bodyContainerRef, //BodyContainer + usage
+        isSelecting, //BodyContainer
 
         ...commonProps
     } = props;
@@ -156,7 +157,8 @@ function ResizingContainer(props) {
         tableBodyRef,
         onItemsOpen,
         dragSelectStart,
-        bodyContainerRef
+        bodyContainerRef,
+        isSelecting
     }
 
     const padding = Math.max(maxWidth - width, 0);

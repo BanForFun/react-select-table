@@ -10,11 +10,16 @@
 @mixin head(
     $bg: getColor("head-bg"),
     $text: getColor("head-text"),
-    $border: getColor("head-border")
+    $border: getColor("head-border"),
+    $cell-padding: $head-cell-padding
 ) {
     .rst-headContainer {
         background-color: $bg;
         color: $text;
+
+        th, td {
+            padding: $cell-padding;
+        }
 
         tr {
             border-bottom: 2px solid $border;
@@ -25,11 +30,16 @@
 @mixin body(
     $bg: getColor("body-bg"),
     $text: getColor("body-text"),
-    $border: getColor("body-border")
+    $border: getColor("body-border"),
+    $cell-padding: $head-cell-padding
 ) {
     .rst-bodyContainer {
         background-color: $bg;
         color: $text;
+
+        th, td {
+            padding: $cell-padding;
+        }
 
         tr {
             border-bottom: 1px solid $border;
@@ -134,12 +144,18 @@
     }
 }
 
-@mixin pagination-active(
-    $bg: getColor("pagination-active-bg"),
-    $text: getColor("pagination-active-text")
+@mixin pagination-current(
+    $bg: getColor("pagination-current-bg"),
+    $text: getColor("pagination-current-text")
 ) {
-    .rst-pagination button.rst-active {
+    .rst-pagination button.rst-current {
         background-color: $bg !important;
         color: $text !important;
+    }
+}
+
+@mixin pagination-active() {
+    .rst-pagination button.rst-active {
+        font-weight: bold;
     }
 }

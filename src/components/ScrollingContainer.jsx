@@ -18,14 +18,13 @@ function ScrollingContainer(props) {
 
     const {
         storage: { options, utils, selectors },
-        actions,
-        tableBodyRef
+        actions
     } = props;
 
     const rows = utils.useSelector(selectors.getPaginatedItems);
-    const { start: startIndex } = utils.useSelector(selectors.getVisibleRange);
-    const isLoading = utils.useSelector(t => t.isLoading);
-    const error = utils.useSelector(t => t.error);
+    const startIndex = utils.useSelector(s => selectors.getVisibleRange(s).start);
+    const isLoading = utils.useSelector(s => s.isLoading);
+    const error = utils.useSelector(s => s.error);
     const rowCount = rows.length;
 
     const [cursorClass, setCursorClass] = useState(null);
@@ -34,6 +33,7 @@ function ScrollingContainer(props) {
 
     //Component refs
     const bodyContainerRef = useRef();
+    const tableBodyRef = useRef();
 
     //Variables refs
     const {current: dragSelection} = useRef({
@@ -44,6 +44,8 @@ function ScrollingContainer(props) {
         originRow: null,
         originItem: null
     });
+
+    const isSelecting = useRef(false);
 
     //State
     const [rect, setRect] = useState(null);
@@ -81,6 +83,7 @@ function ScrollingContainer(props) {
         }
 
         setCursorClass("rst-selecting");
+        isSelecting.current = true;
     }, [options, startIndex]);
 
     const updateDragSelection = useCallback(relMouseY => {
@@ -90,7 +93,7 @@ function ScrollingContainer(props) {
         const {
             offsetHeight: tableHeight,
             children: rows
-        } = tableBody.elementRef;
+        } = tableBody;
 
         //Define selection check area
         const [minMouseY, maxMouseY] = sortTuple(relMouseY, dragSelection.lastRelMouseY);
@@ -226,21 +229,24 @@ function ScrollingContainer(props) {
     //Event handlers
 
     const handleScroll = useCallback(() => {
-        if (!dragSelection.originPos) return;
+        if (!isSelecting.current) return;
+
         updateSelectionRect();
     }, [updateSelectionRect]);
 
     const handleDragEnd = useCallback(() => {
         setCursorClass(null);
 
-        if (!dragSelection.originPos) return;
-        dragSelection.originPos = null;
+        if (!isSelecting.current) return;
+        isSelecting.current = false;
+
         setRect(null);
     }, []);
 
     //Window events
     useEvent(document,"mousemove", useCallback(e => {
-        if (!dragSelection.originPos) return;
+        if (!isSelecting.current) return;
+
         dragSelection.mousePos = [e.clientX, e.clientY];
         updateSelectionRect()
     }, [updateSelectionRect]));
@@ -248,7 +254,7 @@ function ScrollingContainer(props) {
     useEvent(document.body,"touchmove", useCallback(e => {
         e.stopPropagation();
 
-        if (!dragSelection.originPos) return;
+        if (!isSelecting.current) return;
         e.preventDefault();
 
         const touch = e.touches[0];
@@ -278,7 +284,8 @@ function ScrollingContainer(props) {
         tableBodyRef,
         dragSelectStart: dragStart,
         scrollToPos,
-        setCursorClass
+        setCursorClass,
+        isSelecting
     });
 
     return <div

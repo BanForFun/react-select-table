@@ -36,12 +36,3 @@ export const makeGetPageCount = () => createSelector(
         return Math.ceil(itemCount / pageSize);
     }
 )
-
-export const makeGetVirtualActiveIndex = getVisibleRange => createSelector(
-    s => s.activeIndex,
-    s => s.virtualActiveIndex,
-    getVisibleRange,
-
-    (active, virtualActive, range) =>
-        range.includes(active) ? active : virtualActive
-)

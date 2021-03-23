@@ -11,6 +11,9 @@ export default function Utils(namespace, options, actions) {
     const _useDispatch = createDispatchHook(context);
     const _useStore = createStoreHook(context);
 
+    const getStateSlice = state =>
+        path ? _.get(state, path) : state;
+
     const useSelector = (selector, ...args) =>
         _useSelector(state => selector(getStateSlice(state), ...args));
 
@@ -29,9 +32,6 @@ export default function Utils(namespace, options, actions) {
             [dispatch]
         );
     }
-
-    const getStateSlice = state =>
-        path ? _.get(state, path) : state;
 
     return {
         getStateSlice,

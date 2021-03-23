@@ -1,22 +1,31 @@
 import React from 'react';
+import classNames from 'classnames';
 import _ from "lodash";
 import AngleDownIcon from "./AngleDownIcon";
 import {unFocusable} from "../utils/eventUtils";
 
 const neighbourNumbers = 1;
 
-//Neighbour numbers + Ellipsis / number (for one side)
+//Neighbour numbers + Ellipsis (for one side)
 const neighbourBlocks = neighbourNumbers + 1;
 
-//Neighbour numbers + Ellipsis / number + Edge number (for both sides)
+//Neighbour numbers + Ellipsis + Edge number (for both sides)
 const totalBlocks = (neighbourBlocks + 1) * 2;
 
 //Child of PaginationContainer
-function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
+function DefaultPagination({
+    page: currentPage,
+    activePage,
+    pageCount,
+    goToPage
+}) {
     const PaginationButton = ({ page, children, ...rest }) => (
         <button
             onClick={() => goToPage(page)}
-            className={currentPage === page ? "rst-active" : null}
+            className={classNames({
+                "rst-current": page === currentPage,
+                "rst-active": page === activePage
+            })}
             {...unFocusable}
             {...rest}
         >{children ?? page}</button>
@@ -58,7 +67,7 @@ function DefaultPagination({ page: currentPage, pageCount, goToPage }) {
         {getPages().map((page, index) =>
             page === null
                 ? <div key={`ellipsis-${index}`}>...</div>
-                : <PaginationButton key={`page-${page}`} page={page}/>
+                : <PaginationButton key={`page-${index}`} page={page}/>
         )}
 
         <PaginationButton

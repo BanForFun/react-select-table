@@ -42,23 +42,22 @@ function Root(props) {
         }, [handler, events]);
     }
 
-    const virtualActiveIndex = utils.useSelector(selectors.getVirtualActiveIndex);
-    const itemCount = utils.useSelector(t => t.tableItems.length);
-    const selection = utils.useSelector(t => t.selection);
-    const pageIndex = utils.useSelector(t => t.pageIndex);
-    const pageSize = utils.useSelector(t => t.pageSize);
+    const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
     const pageCount = utils.useSelector(selectors.getPageCount);
-    const showPlaceholder = utils.useSelector(t => t.isLoading || !!t.error);
+    const itemCount = utils.useSelector(s => s.tableItems.length);
+    const selection = utils.useSelector(s => s.selection);
+    const pageIndex = utils.useSelector(s => s.pageIndex);
+    const pageSize = utils.useSelector(s => s.pageSize);
+    const showPlaceholder = utils.useSelector(s => s.isLoading || !!s.error);
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
+    const getItemValue = utils.useSelectorGetter(selectors.getItemValue);
 
     const selectIndex = useCallback((e, index) => {
         if (matchModifiers(e, true, false))
             actions.setActive(index);
         else
-            actions.select(index, e.ctrlKey, e.shiftKey);
-
-        tableBodyRef.current.scrollToIndex(index);
+            actions.select(index, true, e.ctrlKey, e.shiftKey);
     }, [actions]);
 
     const selectOffset = useCallback((e, offset) => {
@@ -77,13 +76,15 @@ function Root(props) {
         const newIndex = pageIndex + offset;
         if (!_.inRange(newIndex, pageCount)) return;
 
-        const firstIndex = newIndex * pageSize;
-
-        if (e.shiftKey)
-            actions.select(firstIndex, e.ctrlKey, e.shiftKey);
-        else
+        const itemIndex = newIndex * pageSize;
+        if (matchModifiers(e, false, false))
             actions.goToPage(newIndex);
-    }, [pageIndex, pageCount, pageSize, actions]);
+        else
+            selectIndex(e, itemIndex);
+    }, [
+        pageIndex, pageCount, pageSize,
+        actions, selectIndex
+    ]);
 
     const handleKeyDown = useCallback(e => {
         if (showPlaceholder) return;
@@ -107,10 +108,11 @@ function Root(props) {
                 selectIndex(e, itemCount - 1);
                 break;
             case 13: //Enter
-                if (matchModifiers(e, false, false) && selection.has(virtualActiveIndex))
+                const value = getItemValue(virtualActiveIndex);
+                if (matchModifiers(e, false, false) && selection.has(value))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(virtualActiveIndex, e.ctrlKey, e.shiftKey);
+                    actions.select(virtualActiveIndex, true, e.ctrlKey, e.shiftKey);
 
                 break;
             case 37: //Left
@@ -125,10 +127,11 @@ function Root(props) {
 
         e.preventDefault();
     }, [
-        actions, options, showPlaceholder,
-        itemCount, virtualActiveIndex, selection,
-        selectOffset, selectIndex, getSelectionArg, offsetPage,
-        onKeyDown, onItemsOpen
+        actions, options, //Component props
+        showPlaceholder, itemCount, virtualActiveIndex, selection, //Redux props
+        getSelectionArg, getItemValue, //Redux selectors
+        selectOffset, selectIndex, offsetPage, //Component methods
+        onKeyDown, onItemsOpen //Event handlers
     ]);
 
     //Scrolling container props

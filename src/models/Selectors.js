@@ -12,7 +12,6 @@ export default function Selectors(namespace, options) {
 
     const getVisibleRange = pgSelectors.makeGetVisibleRange();
     const getPaginatedItems = pgSelectors.makeGetPaginatedItems(getVisibleRange);
-    const getVirtualActiveIndex = pgSelectors.makeGetVirtualActiveIndex(getVisibleRange);
     const getPageCount = pgSelectors.makeGetPageCount();
     const getSelectionArg = selSelectors.makeGetSelectionArg(options);
 
@@ -23,7 +22,6 @@ export default function Selectors(namespace, options) {
         getVisibleRange,
         getPaginatedItems,
         getPageCount,
-        getSelectionArg,
-        getVirtualActiveIndex
+        getSelectionArg
     };
 }

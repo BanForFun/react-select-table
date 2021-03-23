@@ -8,6 +8,7 @@ function PaginationContainer({
     storage: { utils, selectors }
 }) {
     const page = utils.useSelector(s => s.pageIndex + 1);
+    const activePage = utils.useSelector(s => selectors.getItemPage(s, s.activeIndex) + 1);
     const pageCount = utils.useSelector(selectors.getPageCount);
 
     const goToPage = useCallback(page =>
@@ -15,12 +16,13 @@ function PaginationContainer({
 
     if (showPlaceholder || !pageCount) return null;
 
+    const paginationProps = {
+        page, activePage, pageCount,
+        goToPage
+    };
+
     return <div className="rst-paginationContainer">
-        <Pagination
-            page={page}
-            pageCount={pageCount}
-            goToPage={goToPage}
-        />
+        <Pagination {...paginationProps} />
     </div>
 }
 

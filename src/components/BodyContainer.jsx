@@ -8,7 +8,6 @@ import useEvent from "../hooks/useEvent";
 function BodyContainer(props) {
     const {
         onItemsOpen,
-        tableBodyRef,
         emptyPlaceholder,
         ...bodyProps
     } = props;
@@ -53,7 +52,6 @@ function BodyContainer(props) {
     }, []));
 
     Object.assign(bodyProps, {
-        ref: tableBodyRef,
         isTouching
     });
 

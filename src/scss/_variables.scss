@@ -1,7 +1,7 @@
-$cell-padding: 0.75rem  !default;
-$separator-width: 10px  !default;
-$selection-opacity: 0.5 !default;
-$colors: ()             !default;
+$head-cell-padding: 0.75rem     !default;
+$body-cell-padding: 0.75rem     !default;
+$separator-width: 10px          !default;
+$colors: ()                     !default;
 
 $colors: map-merge((
     //Head
@@ -42,6 +42,6 @@ $colors: map-merge((
     "pagination-hover-bg": #dee2e6,
     "pagination-hover-text": inherit,
 
-    "pagination-active-bg": #c4d9b1,
-    "pagination-active-text": inherit
+    "pagination-current-bg": #c4d9b1,
+    "pagination-current-text": inherit
 ), $colors);

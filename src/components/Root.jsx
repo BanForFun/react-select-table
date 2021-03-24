@@ -44,8 +44,8 @@ function Root(props) {
 
     const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
     const pageCount = utils.useSelector(selectors.getPageCount);
-    const itemCount = utils.useSelector(s => s.tableItems.length);
-    const searchIndex = utils.useSelector(s => s.searchIndex);
+    const itemCount = utils.useSelector(selectors.getItemCount);
+    const searchIndex = utils.useSelector(selectors.getSearchIndex);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const pageSize = utils.useSelector(s => s.pageSize);

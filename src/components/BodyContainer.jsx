@@ -23,7 +23,7 @@ function BodyContainer(props) {
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
-    const noItems = utils.useSelector(t => !t.tableItems.length);
+    const noItems = !utils.useSelector(selectors.getItemCount);
     const selectionSize = utils.useSelector(t => t.selection.size);
 
     const handleMouseDown = useCallback(e => {

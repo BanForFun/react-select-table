@@ -85,7 +85,7 @@ export default function createTable(namespace, options = {}) {
         if (action.namespace !== namespace)
             return state;
 
-        return produce(state, _draft => {
+        const nextState = produce(state, _draft => {
             draft = _draft;
 
             const { payload } = action;
@@ -333,19 +333,19 @@ export default function createTable(namespace, options = {}) {
                 default:
                     break;
             }
+        });
 
-            // delete draft.items[undefined];
+        //A new object will rarely be created
+        return produce(nextState, _draft => {
+            draft = _draft;
 
-            // const itemCount = draft.tableItems.length;
-            // if (itemCount < state.tableItems.length) {
-            //     const maxItem = Math.max(itemCount - 1, 0);
-            //     draft.activeIndex = Math.min(draft.activeIndex, maxItem);
-            //     draft.virtualActiveIndex = Math.min(draft.virtualActiveIndex, maxItem);
-            //     draft.pivotIndex = Math.min(draft.pivotIndex, maxItem);
-            //
-            //     const maxPage = Math.max(selectors.getPageCount(draft) - 1, 0);
-            //     draft.pageIndex = Math.min(draft.pageIndex, maxPage);
-            // }
+            const maxItem = Math.max(selectors.getItemCount(nextState) - 1, 0);
+            draft.activeIndex = Math.min(draft.activeIndex, maxItem);
+            draft.virtualActiveIndex = Math.min(draft.virtualActiveIndex, maxItem);
+            draft.pivotIndex = Math.min(draft.pivotIndex, maxItem);
+
+            const maxPage = Math.max(selectors.getPageCount(nextState) - 1, 0);
+            draft.pageIndex = Math.min(draft.pageIndex, maxPage);
         });
     }
 }

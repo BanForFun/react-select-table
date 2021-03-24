@@ -47,11 +47,13 @@ const eventMiddleware = store => next => action => {
                 events.onSelectionChange(selectors.getSelectionArg(slice));
 
             //Raise onContextMenu
-            if (type === types.CONTEXT_MENU)
+            if (type === types.CONTEXT_MENU) {
+                const index = payload.ctrlKey ? slice.virtualActiveIndex : payload.index;
                 events.onContextMenu(options.listBox
-                    ? selectors.getItemValue(slice, payload.ctrlKey ? slice.activeIndex : payload.index)
+                    ? selectors.getItemValue(slice, index)
                     : selectors.getSelectionArg(slice)
                 );
+            }
 
             return result;
         default:

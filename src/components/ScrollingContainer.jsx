@@ -35,14 +35,14 @@ function ScrollingContainer(props) {
     const tableBodyRef = useRef();
 
     //Variables refs
-    const {current: dragSelection} = useRef({
+    const dragSelection = useRef({
         selected: null,
         mousePos: null,
         lastRelMouseY: null,
         originPos: null,
         originRow: null,
         originItem: null
-    });
+    }).current;
 
     const isSelecting = useRef(false);
 

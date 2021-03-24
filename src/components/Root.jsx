@@ -45,6 +45,7 @@ function Root(props) {
     const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
     const pageCount = utils.useSelector(selectors.getPageCount);
     const itemCount = utils.useSelector(s => s.tableItems.length);
+    const searchIndex = utils.useSelector(s => s.searchIndex);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const pageSize = utils.useSelector(s => s.pageSize);
@@ -86,13 +87,25 @@ function Root(props) {
         actions, selectIndex
     ]);
 
-    const searchItem = useCallback(e => {
+    const lastSearch = useRef({
+        letter: null,
+        index: 0
+    }).current;
 
-    })
+    const handleSearch = useCallback(e => {
+        const letter = e.key.toLowerCase();
+        const letterIndex = searchIndex[letter];
+        if (!letterIndex) return;
 
-    const handleKeyDown = useCallback(e => {
-        if (showPlaceholder) return;
+        const nextIndex = lastSearch.index + 1;
+        const index = letter === lastSearch.letter && nextIndex < letterIndex.length ? nextIndex : 0;
+        actions.select(letterIndex[index], true);
 
+        lastSearch.letter = letter;
+        lastSearch.index = index;
+    }, [searchIndex, actions]);
+
+    const handleShortcuts = useCallback(e => {
         switch (e.keyCode) {
             case 65: //A
                 if (matchModifiers(e, true, false) && options.multiSelect)
@@ -126,16 +139,31 @@ function Root(props) {
                 offsetPage(e, 1);
                 break;
             default:
-                return onKeyDown(e, getSelectionArg());
+                return;
         }
 
         e.preventDefault();
     }, [
         actions, options, //Component props
-        showPlaceholder, itemCount, virtualActiveIndex, selection, //Redux props
-        getSelectionArg, getItemValue, //Redux selectors
+        itemCount, virtualActiveIndex, selection, //Redux props
+        getItemValue, getSelectionArg, //Redux selectors
         selectOffset, selectIndex, offsetPage, //Component methods
-        onKeyDown, onItemsOpen //Event handlers
+        onItemsOpen //Event handlers
+    ])
+
+    const handleKeyDown = useCallback(e => {
+        if (showPlaceholder) return;
+        onKeyDown(e, getSelectionArg());
+
+        if (matchModifiers(e, false))
+            handleSearch(e);
+
+        handleShortcuts(e);
+    }, [
+        showPlaceholder,
+        handleSearch, handleShortcuts,
+        onKeyDown,
+        getSelectionArg
     ]);
 
 

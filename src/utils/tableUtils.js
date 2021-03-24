@@ -14,7 +14,7 @@ const defaultOptions = {
     itemParser: item => item,
     itemPredicate: _.isMatch,
     itemIndexer: str => str.normalize("NFD")[0].toLowerCase(),
-    indexPath: null,
+    indexProperty: null,
     multiSelect: true,
     listBox: false,
     minColumnWidth: 3,

@@ -1,25 +1,11 @@
-import _ from "lodash";
 import {createSelector} from "reselect";
 
-export const makeGetVisibleRange = (getItemCount) => createSelector(
-    s => s.pageSize,
-    s => s.pageIndex,
-    getItemCount,
-    (pageSize, pageIndex, itemCount) => {
-        const start = pageSize * pageIndex;
-        const end = start + (pageSize || itemCount);
-
-        return {
-            start, end,
-            includes: index => _.inRange(index, start, end)
-        };
-    }
-)
-
-export const makeGetPaginatedItems = (getVisible, getSorted) => createSelector(
+export const makeGetPaginatedItems = (getSorted) => createSelector(
     getSorted,
-    getVisible,
-    (sorted, range) => sorted.slice(range.start, range.end)
+    getFirstVisibleIndex,
+    s => s.pageSize,
+    (sorted, start, size) =>
+        size ? sorted.slice(start, start + size) : sorted
 )
 
 export const makeGetPageCount = (getItemCount) => s => {
@@ -32,5 +18,8 @@ export const makeGetPageCount = (getItemCount) => s => {
     return Math.ceil(itemCount / pageSize);
 }
 
-export const getItemPageIndex = (s, itemIndex) =>
-    s.pageSize && Math.trunc(itemIndex / s.pageSize);
+export const getActivePageIndex = (s) =>
+    s.pageSize && Math.trunc(s.activeIndex / s.pageSize);
+
+export const getFirstVisibleIndex = s =>
+    s.pageSize * s.pageIndex

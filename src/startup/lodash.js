@@ -29,6 +29,10 @@ const toggleSetValue = (set, value, exists) => {
     else set.delete(value);
 }
 
+const inRangeRelative = (n, start, endOffset) =>
+    _.inRange(n, start, start + endOffset);
+
+
 export default function() {
     _.mixin({
         unsetMany,
@@ -36,6 +40,7 @@ export default function() {
         forRange,
         getOrSource,
         replaceSetValue,
-        toggleSetValue
+        toggleSetValue,
+        inRangeRelative
     })
 }

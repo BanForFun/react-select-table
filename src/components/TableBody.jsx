@@ -13,7 +13,7 @@ function TableBody(props) {
     } = props;
 
     const rows = utils.useSelector(selectors.getPaginatedItems);
-    const startIndex = utils.useSelector(s => selectors.getVisibleRange(s).start);
+    const startIndex = utils.useSelector(selectors.getFirstVisibleIndex);
     const selection = utils.useSelector(s => s.selection);
     const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
 

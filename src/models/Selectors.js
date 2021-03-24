@@ -1,6 +1,7 @@
 import * as pgSelectors from "../selectors/paginationSelectors";
 import * as selSelectors from "../selectors/selectionSelectors";
 import * as itemSelectors from "../selectors/itemSelectors";
+import {getActivePageIndex, getFirstVisibleIndex} from "../selectors/paginationSelectors";
 
 export default function Selectors(namespace, options) {
     const getSelectionArg = selSelectors.makeGetSelectionArg(options);
@@ -13,20 +14,19 @@ export default function Selectors(namespace, options) {
     const getItemCount = itemSelectors.makeGetItemCount(getFilteredItems);
     const getItemValue = itemSelectors.makeGetItemValue(getSortedValues);
 
-    const getVisibleRange = pgSelectors.makeGetVisibleRange(getItemCount);
     const getPageCount = pgSelectors.makeGetPageCount(getItemCount);
-    const getPaginatedItems = pgSelectors.makeGetPaginatedItems(getVisibleRange, getSortedItems);
+    const getPaginatedItems = pgSelectors.makeGetPaginatedItems(getSortedItems);
 
     return {
         getItemValue,
         getItemCount,
-        getVisibleRange,
         getPageCount,
         getSelectionArg,
         getSortedItems,
         getSortedValues,
         getPaginatedItems,
         getSearchIndex,
-        getItemPageIndex: pgSelectors.getItemPageIndex
+        getActivePageIndex,
+        getFirstVisibleIndex
     };
 }

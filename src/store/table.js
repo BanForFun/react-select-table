@@ -37,20 +37,15 @@ export default function createTable(namespace, options = {}) {
 
     let draft;
 
-    const getState = () => original(draft);
-
     //Utilities
     function setActiveIndex(index) {
         draft.activeIndex = index;
         draft.virtualActiveIndex = index;
 
-        draft.pageIndex = selectors.getItemPageIndex(draft, index); //This selector can accept draft
+        draft.pageIndex = selectors.getActivePageIndex(draft); //This selector can accept draft
     }
 
-    function clearSelection(resetActive = false) {
-        if (resetActive)
-            setActiveIndex(0);
-
+    function clearSelection() {
         draft.selection.clear();
         draft.pivotIndex = draft.activeIndex;
     }
@@ -65,17 +60,19 @@ export default function createTable(namespace, options = {}) {
     }
 
     function setItems(array) {
-        clearSelection(true);
         Object.assign(draft, {
             items: _.keyBy(array, valueProperty),
             isLoading: false,
             error: null
         });
+
+        setActiveIndex(0);
+        clearSelection();
     }
 
     function parseIndex(index) {
         index = parseInt(index);
-        return _.inRange(index, selectors.getItemCount(getState()))
+        return _.inRange(index, selectors.getItemCount(original(draft)))
             ? index : null;
     }
 
@@ -111,8 +108,10 @@ export default function createTable(namespace, options = {}) {
                     const { values } = payload;
                     if (!values.length) break;
 
-                    clearSelection();
                     _.unsetMany(draft.items, values);
+
+                    setActiveIndex(draft.pivotIndex);
+                    clearSelection();
                     break;
                 }
                 case types.SET_ITEM_VALUES: {
@@ -141,7 +140,9 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SORT_ITEMS: {
-                    clearSelection(true);
+                    setActiveIndex(0);
+                    clearSelection();
+
                     const { path, shiftKey } = payload;
 
                     if (!multiSort || !shiftKey)
@@ -163,7 +164,9 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SET_ITEM_FILTER: {
-                    clearSelection(true);
+                    setActiveIndex(0);
+                    clearSelection();
+
                     draft.filter = payload.filter;
                     break;
                 }
@@ -303,10 +306,10 @@ export default function createTable(namespace, options = {}) {
 
                     draft.pageIndex = index;
 
-                    // const visibleRange = selectors.getVisibleRange(draft);
-                    // draft.virtualActiveIndex = visibleRange.includes(draft.activeIndex)
-                    //     ? draft.activeIndex
-                    //     : visibleRange.start
+                    draft.virtualActiveIndex = selectors.getActivePageIndex(draft) === index
+                        ? draft.activeIndex
+                        : selectors.getFirstVisibleIndex(draft);
+
                     break;
                 }
                 default:

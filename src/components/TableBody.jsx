@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import TableRow from "./TableRow";
+import {getFirstVisibleIndex} from "../selectors/paginationSelectors";
 
 //Child of BodyContainer
 function TableBody(props) {
@@ -13,7 +14,7 @@ function TableBody(props) {
     } = props;
 
     const rows = utils.useSelector(selectors.getPaginatedItems);
-    const startIndex = utils.useSelector(selectors.getFirstVisibleIndex);
+    const startIndex = utils.useSelector(getFirstVisibleIndex);
     const selection = utils.useSelector(s => s.selection);
     const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
 

@@ -21,6 +21,7 @@ export const types = Object.freeze({
     SET_ACTIVE: "RST_SET_ACTIVE",
     SET_PIVOT: "RST_SET_PIVOT",
     CONTEXT_MENU: "RST_CONTEXT_MENU",
+    SEARCH: "RST_SEARCH",
 
     //Pagination
     GO_TO_PAGE: "RST_GO_TO_PAGE",
@@ -33,6 +34,9 @@ export default function Actions(namespace) {
     }
 
     return {
+        search: (letter) =>
+            Action(types.SEARCH, { letter }),
+
         goToPage: (index) =>
             Action(types.GO_TO_PAGE, { index }),
 

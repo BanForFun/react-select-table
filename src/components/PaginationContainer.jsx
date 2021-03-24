@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {getActivePageIndex} from "../selectors/paginationSelectors";
 
 //Child of Root
 function PaginationContainer({
@@ -8,7 +9,7 @@ function PaginationContainer({
     storage: { utils, selectors }
 }) {
     const page = utils.useSelector(s => s.pageIndex) + 1;
-    const activePage = utils.useSelector(selectors.getActivePageIndex) + 1;
+    const activePage = utils.useSelector(getActivePageIndex) + 1;
     const pageCount = utils.useSelector(selectors.getPageCount);
 
     const goToPage = useCallback(page =>

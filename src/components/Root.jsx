@@ -45,7 +45,6 @@ function Root(props) {
     const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
     const pageCount = utils.useSelector(selectors.getPageCount);
     const itemCount = utils.useSelector(selectors.getItemCount);
-    const searchIndex = utils.useSelector(selectors.getSearchIndex);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const pageSize = utils.useSelector(s => s.pageSize);
@@ -86,24 +85,6 @@ function Root(props) {
         pageIndex, pageCount, pageSize,
         actions, selectIndex
     ]);
-
-    const lastSearch = useRef({
-        letter: null,
-        index: 0
-    }).current;
-
-    const handleSearch = useCallback(e => {
-        const letter = e.key.toLowerCase();
-        const letterIndex = searchIndex[letter];
-        if (!letterIndex) return;
-
-        const nextIndex = lastSearch.index + 1;
-        const index = letter === lastSearch.letter && nextIndex < letterIndex.length ? nextIndex : 0;
-        actions.select(letterIndex[index], true);
-
-        lastSearch.letter = letter;
-        lastSearch.index = index;
-    }, [searchIndex, actions]);
 
     const handleShortcuts = useCallback(e => {
         switch (e.keyCode) {
@@ -155,13 +136,13 @@ function Root(props) {
         if (showPlaceholder) return;
         onKeyDown(e, getSelectionArg());
 
-        if (matchModifiers(e, false))
-            handleSearch(e);
+        if (matchModifiers(e, false) && e.key.length === 1)
+            actions.search(e.key);
 
         handleShortcuts(e);
     }, [
-        showPlaceholder,
-        handleSearch, handleShortcuts,
+        showPlaceholder, actions,
+        handleShortcuts,
         onKeyDown,
         getSelectionArg
     ]);

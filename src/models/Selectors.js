@@ -1,7 +1,6 @@
 import * as pgSelectors from "../selectors/paginationSelectors";
 import * as selSelectors from "../selectors/selectionSelectors";
 import * as itemSelectors from "../selectors/itemSelectors";
-import {getActivePageIndex, getFirstVisibleIndex} from "../selectors/paginationSelectors";
 
 export default function Selectors(namespace, options) {
     const getSelectionArg = selSelectors.makeGetSelectionArg(options);
@@ -25,8 +24,6 @@ export default function Selectors(namespace, options) {
         getSortedItems,
         getSortedValues,
         getPaginatedItems,
-        getSearchIndex,
-        getActivePageIndex,
-        getFirstVisibleIndex
+        getSearchIndex
     };
 }

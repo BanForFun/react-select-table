@@ -18,7 +18,7 @@ export const makeGetPageCount = (getItemCount) => s => {
     return Math.ceil(itemCount / pageSize);
 }
 
-export const getActivePageIndex = (s) =>
+export const getActivePageIndex = s =>
     s.pageSize && Math.trunc(s.activeIndex / s.pageSize);
 
 export const getFirstVisibleIndex = s =>

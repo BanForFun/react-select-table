@@ -3,6 +3,7 @@ import classNames from "classnames";
 import useEvent from "../hooks/useEvent";
 import ResizingContainer from "./ResizingContainer";
 import {SelectionRectContext} from "./SelectionRect";
+import {getFirstVisibleIndex} from "../selectors/paginationSelectors";
 
 //Child of Root
 function ScrollingContainer(props) {
@@ -21,7 +22,7 @@ function ScrollingContainer(props) {
     } = props;
 
     const rows = utils.useSelector(selectors.getPaginatedItems);
-    const startIndex = utils.useSelector(selectors.getFirstVisibleIndex);
+    const startIndex = utils.useSelector(getFirstVisibleIndex);
     const isLoading = utils.useSelector(s => s.isLoading);
     const error = utils.useSelector(s => s.error);
     const rowCount = rows.length;

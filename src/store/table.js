@@ -2,6 +2,7 @@ import _ from "lodash";
 import produce, {enableMapSet, original} from "immer";
 import {types} from "../models/Actions";
 import {setOptions} from "../utils/tableUtils";
+import {getActivePageIndex, getFirstVisibleIndex} from "../selectors/paginationSelectors";
 
 enableMapSet();
 
@@ -25,6 +26,8 @@ export default function createTable(namespace, options = {}) {
         pageSize: 0,
         pageIndex: 0,
         error: null,
+        searchLetter: null,
+        matchIndex: 0,
         ...options.initState
     };
 
@@ -42,7 +45,9 @@ export default function createTable(namespace, options = {}) {
         draft.activeIndex = index;
         draft.virtualActiveIndex = index;
 
-        draft.pageIndex = selectors.getActivePageIndex(draft); //This selector can accept draft
+        draft.searchLetter = null;
+
+        draft.pageIndex = getActivePageIndex(draft);
     }
 
     function clearSelection() {
@@ -289,6 +294,19 @@ export default function createTable(namespace, options = {}) {
                     draft.pivotIndex = index;
                     break;
                 }
+                case types.SEARCH: {
+                    const letter = payload.letter.toLowerCase();
+                    const matches = selectors.getSearchIndex(state)[letter];
+                    if (!matches) break;
+
+                    const nextIndex = draft.matchIndex + 1;
+                    const index = letter === draft.searchLetter && nextIndex < matches.length ? nextIndex : 0;
+                    setActiveIndex(matches[index]);
+
+                    draft.searchLetter = letter;
+                    draft.matchIndex = index;
+                    break;
+                }
 
                 //Pagination
                 case types.SET_PAGE_SIZE: {
@@ -306,17 +324,15 @@ export default function createTable(namespace, options = {}) {
 
                     draft.pageIndex = index;
 
-                    draft.virtualActiveIndex = selectors.getActivePageIndex(draft) === index
+                    draft.virtualActiveIndex = getActivePageIndex(draft) === index
                         ? draft.activeIndex
-                        : selectors.getFirstVisibleIndex(draft);
+                        : getFirstVisibleIndex(draft);
 
                     break;
                 }
                 default:
                     break;
             }
-
-            //TODO: Validator middleware
 
             // const itemCount = draft.tableItems.length;
             // if (itemCount < state.tableItems.length) {

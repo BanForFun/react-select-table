@@ -1,10 +1,5 @@
 import _ from "lodash";
 
-const unsetMany = (object, paths) => {
-    for (let path of paths)
-        _.unset(object, path);
-}
-
 const sortTuple = (x, y) => [
     x < y ? x : y,
     x > y ? x : y
@@ -35,7 +30,6 @@ const inRangeRelative = (n, start, endOffset) =>
 
 export default function() {
     _.mixin({
-        unsetMany,
         sortTuple,
         forRange,
         getOrSource,

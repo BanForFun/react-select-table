@@ -104,8 +104,7 @@ export default function createTable(namespace, options = {}) {
                         const value = item[valueProperty];
                         draft.items[value] = item;
 
-                        if (!multiSelect) continue;
-                        draft.selection.add(value);
+                        if (multiSelect) draft.selection.add(value);
                     }
                     break;
                 }
@@ -113,7 +112,8 @@ export default function createTable(namespace, options = {}) {
                     const { values } = payload;
                     if (!values.length) break;
 
-                    _.unsetMany(draft.items, values);
+                    for (let value of values)
+                        delete draft.items[value];
 
                     setActiveIndex(draft.pivotIndex);
                     clearSelection();
@@ -311,7 +311,7 @@ export default function createTable(namespace, options = {}) {
                 //Pagination
                 case types.SET_PAGE_SIZE: {
                     const newSize = parseInt(payload.size);
-                    //NaN >= x is always false so doing the comparison in this way avoids an isNaN check
+                    //NaN >= x is false so doing the comparison in this way avoids an isNaN check
                     if (!(newSize >= 0)) break;
 
                     draft.pageSize = newSize;
@@ -333,6 +333,8 @@ export default function createTable(namespace, options = {}) {
                 default:
                     break;
             }
+
+            // delete draft.items[undefined];
 
             // const itemCount = draft.tableItems.length;
             // if (itemCount < state.tableItems.length) {

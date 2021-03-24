@@ -49,4 +49,4 @@ export const makeGetItemCount = (getFiltered) => s =>
     getFiltered(s).length;
 
 export const makeGetItemValue = (getValues) => (s, index) =>
-    getValues(s)[index] ?? null;
+    getValues(s)[index];

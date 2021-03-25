@@ -7,15 +7,15 @@ import {tableStorage, defaultEvents} from '../utils/tableUtils';
 import Root from "./Root";
 
 function Connector({ name, namespace, ...rootProps }) {
-    const storage = tableStorage[namespace];
+    const table = tableStorage[namespace];
 
-    const { context } = storage.options;
+    const { context } = table.options;
     if (!context)
         throw new Error("Please import 'ReactReduxContext' from 'react-redux' and pass it to the 'context' option");
 
     const contextValue = useContext(context);
 
-    rootProps.storage = storage;
+    rootProps.table = table;
     rootProps.name ??= namespace;
 
     return <ReactReduxContext.Provider value={contextValue}>
@@ -48,6 +48,9 @@ Connector.propTypes = {
     name: PropTypes.string,
     id: PropTypes.string,
     className: PropTypes.string,
+    tableClass: PropTypes.string,
+    theadClass: PropTypes.string,
+    tbodyClass: PropTypes.string,
     containerRef: refType,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),

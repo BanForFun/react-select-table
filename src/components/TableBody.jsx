@@ -1,20 +1,20 @@
 import React, {useEffect} from 'react';
 import TableRow from "./TableRow";
-import {getFirstVisibleIndex} from "../selectors/paginationSelectors";
 
 //Child of BodyContainer
 function TableBody(props) {
     const {
-        storage: { options, utils, selectors },
+        table: { options, utils, selectors },
         bodyContainerRef,
         tableBodyRef,
         isSelecting,
+        tbodyClass,
 
         ...rowCommonProps
     } = props;
 
     const rows = utils.useSelector(selectors.getPaginatedItems);
-    const startIndex = utils.useSelector(getFirstVisibleIndex);
+    const startIndex = utils.useSelector(selectors.getFirstVisibleIndex);
     const selection = utils.useSelector(s => s.selection);
     const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
 
@@ -55,7 +55,7 @@ function TableBody(props) {
         return <TableRow {...rowProps} />;
     };
 
-    return <tbody ref={tableBodyRef}>
+    return <tbody ref={tableBodyRef} className={tbodyClass}>
         {rows.map(renderRow)}
     </tbody>;
 }

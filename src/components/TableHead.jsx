@@ -4,9 +4,10 @@ import TableHeader from "./TableHeader";
 //Child of HeadContainer
 function TableHead(props) {
     const {
-        storage: { options, utils },
+        table: { options, utils },
         columns,
         name,
+        theadClass,
         ...commonHeaderProps
     } = props;
 
@@ -27,7 +28,7 @@ function TableHead(props) {
         return <TableHeader {...headerProps} />
     }
 
-    return <thead>
+    return <thead className={theadClass}>
         <tr>{columns.map(renderHeader)}</tr>
     </thead>
 }

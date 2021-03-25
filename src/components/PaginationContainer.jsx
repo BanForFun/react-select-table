@@ -6,7 +6,7 @@ function PaginationContainer({
     Pagination,
     actions,
     showPlaceholder,
-    storage: { utils, selectors }
+    table: { utils, selectors }
 }) {
     const page = utils.useSelector(s => s.pageIndex) + 1;
     const activePage = utils.useSelector(getActivePageIndex) + 1;

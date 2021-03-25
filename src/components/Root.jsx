@@ -20,7 +20,7 @@ function Root(props) {
     } = props;
 
     const {
-        storage: { utils, events, options, selectors },
+        table: { utils, events, options, selectors },
         onItemsOpen
     } = props;
 
@@ -160,7 +160,7 @@ function Root(props) {
         actions,
         Pagination,
         showPlaceholder,
-        storage: props.storage,
+        table: props.table,
         itemContainerRef: props.itemContainerRef
     }
 

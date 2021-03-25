@@ -9,11 +9,12 @@ function BodyContainer(props) {
     const {
         onItemsOpen,
         emptyPlaceholder,
+        tableClass,
         ...bodyProps
     } = props;
 
     const {
-        storage: { options, utils, selectors },
+        table: { options, utils, selectors },
         actions,
         dragSelectStart,
         bodyContainerRef
@@ -66,7 +67,7 @@ function BodyContainer(props) {
         <SelectionRect bodyContainerRef={bodyContainerRef} />
         {noItems
             ? <div className="rst-bodyPlaceholder">{emptyPlaceholder}</div>
-            : <table>
+            : <table className={tableClass}>
                 <ColumnGroup columns={props.columns} name={props.name} />
                 <TableBody {...bodyProps} />
             </table>

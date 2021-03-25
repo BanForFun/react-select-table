@@ -14,17 +14,19 @@ function ResizingContainer(props) {
         onColumnsResizeEnd,
         scrollToPos,
         setCursorClass,
+        bodyContainerRef,
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
-        bodyContainerRef, //BodyContainer + usage
         isSelecting, //BodyContainer
+        tbodyClass, //BodyContainer
+        theadClass, //HeadContainer
 
         ...commonProps
     } = props;
 
     const {
-        storage: { options }
+        table: { options }
     } = props;
 
     const order = useMemo(() =>
@@ -149,7 +151,8 @@ function ResizingContainer(props) {
 
     const headProps = {
         ...commonProps,
-        columnResizeStart
+        columnResizeStart,
+        theadClass
     }
 
     const bodyProps = {
@@ -158,7 +161,8 @@ function ResizingContainer(props) {
         onItemsOpen,
         dragSelectStart,
         bodyContainerRef,
-        isSelecting
+        isSelecting,
+        tbodyClass
     }
 
     const padding = Math.max(maxWidth - width, 0);

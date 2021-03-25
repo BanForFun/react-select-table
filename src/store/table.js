@@ -2,7 +2,6 @@ import _ from "lodash";
 import produce, {enableMapSet, original} from "immer";
 import {types} from "../models/Actions";
 import {setOptions} from "../utils/tableUtils";
-import {getActivePageIndex, getFirstVisibleIndex} from "../selectors/paginationSelectors";
 
 enableMapSet();
 
@@ -47,7 +46,7 @@ export default function createTable(namespace, options = {}) {
 
         draft.searchLetter = null;
 
-        draft.pageIndex = getActivePageIndex(draft);
+        draft.pageIndex = selectors.getActivePageIndex(draft);
     }
 
     function clearSelection() {
@@ -315,7 +314,7 @@ export default function createTable(namespace, options = {}) {
                     if (!(newSize >= 0)) break;
 
                     draft.pageSize = newSize;
-                    setActiveIndex(draft.activeIndex);
+                    setActiveIndex(draft.activeIndex); //Go to the active page
                     break;
                 }
                 case types.GO_TO_PAGE: {
@@ -324,9 +323,9 @@ export default function createTable(namespace, options = {}) {
 
                     draft.pageIndex = index;
 
-                    draft.virtualActiveIndex = getActivePageIndex(draft) === index
+                    draft.virtualActiveIndex = selectors.getActivePageIndex(draft) === index
                         ? draft.activeIndex
-                        : getFirstVisibleIndex(draft);
+                        : selectors.getFirstVisibleIndex(draft);
 
                     break;
                 }

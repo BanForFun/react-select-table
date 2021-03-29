@@ -146,15 +146,24 @@
     }
 }
 
-%base {
-    @include row-active();
-    @include row-selected();
+%rst-pagination {
     @include pagination();
     @include pagination-current();
     @include pagination-hover();
     @include pagination-active();
+}
+
+%rst-base {
+    @extend %rst-pagination;
+
+    @include row-active();
+    @include row-selected();
     @include separator();
     @include selection();
+}
+
+.rst-striped {
+    @include row-striped();
 }
 
 .rst-table {
@@ -162,5 +171,21 @@
     @include body();
     @include row-hover();
 
-    @extend %base;
+    @extend %rst-base;
+}
+
+.rst-bootstrapTable {
+    @extend %rst-base;
+
+    table {
+        margin-bottom: 0;
+    }
+
+    tbody tr:first-child > * {
+        border-top: none;
+    }
+
+    .rst-headContainer {
+        background-color: white;
+    }
 }

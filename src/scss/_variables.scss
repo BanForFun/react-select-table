@@ -1,6 +1,7 @@
 $head-cell-padding: 0.75rem     !default;
 $body-cell-padding: 0.75rem     !default;
 $separator-width: 10px          !default;
+$active-underline-height: 2px   !default;
 $colors: ()                     !default;
 
 $colors: map-merge((
@@ -20,13 +21,12 @@ $colors: map-merge((
     "row-selected-text": inherit,
     "row-selected-text-unfocused": inherit,
 
-    "row-active-shadow": #b1cc97,
-    "row-active-shadow-unfocused": #c4d9b1,
-    "row-active-text": inherit,
-    "row-active-text-unfocused": inherit,
+    "row-active-underline": #b1cc97,
+    "row-active-underline-unfocused": #c4d9b1,
 
-    "row-hover-bg": #F5F5F5,
-    "row-hover-text": inherit,
+    "row-striped-bg": rgba(0, 0, 0, .05),
+
+    "row-hover-bg": rgba(0, 0, 0, .075),
 
     //Separator
     "separator-bg": #dee2e6,

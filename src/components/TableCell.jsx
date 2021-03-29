@@ -9,7 +9,10 @@ function TableCell({
     className
 }) {
     const Cell = isHeader ? 'th' : 'td';
-    return <Cell className={className}>
+    return <Cell
+        className={className}
+        scope={isHeader ? "row" : null}
+    >
         {render(content, item)}
     </Cell>
 }

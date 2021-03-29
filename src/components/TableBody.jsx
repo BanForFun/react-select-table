@@ -8,7 +8,6 @@ function TableBody(props) {
         bodyContainerRef,
         tableBodyRef,
         isSelecting,
-        tbodyClass,
 
         ...rowCommonProps
     } = props;
@@ -55,7 +54,7 @@ function TableBody(props) {
         return <TableRow {...rowProps} />;
     };
 
-    return <tbody ref={tableBodyRef} className={tbodyClass}>
+    return <tbody ref={tableBodyRef}>
         {rows.map(renderRow)}
     </tbody>;
 }

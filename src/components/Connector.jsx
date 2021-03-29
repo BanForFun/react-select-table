@@ -50,7 +50,6 @@ Connector.propTypes = {
     className: PropTypes.string,
     tableClass: PropTypes.string,
     theadClass: PropTypes.string,
-    tbodyClass: PropTypes.string,
     containerRef: refType,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),

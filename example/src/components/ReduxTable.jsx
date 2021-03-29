@@ -75,8 +75,9 @@ function ReduxTable() {
             containerRef={containerRef}
             emptyPlaceholder="No items"
             namespace={tableNamespace}
-            className="rst-bootstrapTable"
-            tableClass="table"
+            className="rst-table rst-striped"
+            // tableClass="table table-striped table-hover"
+            // theadClass="thead-light"
             columns={columns}
             loadingIndicator="Loading..."
             scrollFactor={0.5}

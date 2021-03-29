@@ -28,7 +28,11 @@ function TableHeader({
         handleResizeStart(e);
     }, [handleResizeStart]);
 
-    return <th data-path={path} onMouseDown={handleMouseDown}>
+    return <th
+        data-path={path}
+        onMouseDown={handleMouseDown}
+        scope="col"
+    >
         {title}
         <AngleDownIcon className="rst-sortIcon" data-order={sortOrder} />
         {addSeparator && <div

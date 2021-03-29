@@ -54,7 +54,7 @@ export default function createTable(namespace, options = {}) {
         draft.pivotIndex = draft.activeIndex;
     }
 
-    function replaceSelection(value) {
+    function selectOne(value) {
         draft.selection.clear();
         draft.selection.add(value);
     }
@@ -202,10 +202,11 @@ export default function createTable(namespace, options = {}) {
 
                     setActiveIndex(index);
 
-                    const value = selectors.getItemValue(state, index);
+                    const values = selectors.getSortedValues(state);
+                    const value = values[index];
 
                     if (!multiSelect) {
-                        replaceSelection(value);
+                        selectOne(value);
                         break;
                     }
 
@@ -215,8 +216,6 @@ export default function createTable(namespace, options = {}) {
                         selection.clear();
 
                     if (shiftKey) {
-                        const values = selectors.getSortedValues(state);
-
                         if (ctrlKey) {
                             //Clear previous selection
                             _.forRange(draft.pivotIndex, state.activeIndex, i =>
@@ -250,10 +249,10 @@ export default function createTable(namespace, options = {}) {
 
                     if (listBox) break;
 
-                    const value = selectors.getItemValue(state, index);
+                    const value = selectors.getSortedValues(state)[index];
                     if (draft.selection.has(value)) break;
 
-                    replaceSelection(value);
+                    selectOne(value);
                     break;
                 }
                 case types.CLEAR_SELECTION: {
@@ -276,7 +275,7 @@ export default function createTable(namespace, options = {}) {
                         index = parseIndex(index);
                         if (index === null) return;
 
-                        const value = selectors.getItemValue(state, index);
+                        const value = selectors.getSortedValues(state)[index];
                         _.toggleSetValue(draft.selection, value, selected);
                     });
                     break;
@@ -298,12 +297,17 @@ export default function createTable(namespace, options = {}) {
                     const matches = selectors.getSearchIndex(state)[letter];
                     if (!matches) break;
 
+                    //Find item index
                     const nextIndex = draft.matchIndex + 1;
-                    const index = letter === draft.searchLetter && nextIndex < matches.length ? nextIndex : 0;
-                    setActiveIndex(matches[index]);
+                    const matchIndex = letter === draft.searchLetter && nextIndex < matches.length ? nextIndex : 0;
+                    const itemIndex = matches[matchIndex];
+
+                    //Select item
+                    setActiveIndex(itemIndex);
+                    selectOne(selectors.getSortedValues(state)[itemIndex]);
 
                     draft.searchLetter = letter;
-                    draft.matchIndex = index;
+                    draft.matchIndex = matchIndex;
                     break;
                 }
 

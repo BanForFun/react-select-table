@@ -51,7 +51,7 @@ function Root(props) {
     const showPlaceholder = utils.useSelector(s => s.isLoading || !!s.error);
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
-    const getItemValue = utils.useSelectorGetter(selectors.getItemValue);
+    const getSortedValues = utils.useSelectorGetter(selectors.getSortedValues);
 
     const selectIndex = useCallback((e, index) => {
         if (matchModifiers(e, true, false))
@@ -106,7 +106,7 @@ function Root(props) {
                 selectIndex(e, itemCount - 1);
                 break;
             case 13: //Enter
-                const value = getItemValue(virtualActiveIndex);
+                const value = getSortedValues()[virtualActiveIndex];
                 if (matchModifiers(e, false, false) && selection.has(value))
                     onItemsOpen(getSelectionArg(), true);
                 else
@@ -127,7 +127,7 @@ function Root(props) {
     }, [
         actions, options, //Component props
         itemCount, virtualActiveIndex, selection, //Redux props
-        getItemValue, getSelectionArg, //Redux selectors
+        getSortedValues, getSelectionArg, //Redux selectors
         selectOffset, selectIndex, offsetPage, //Component methods
         onItemsOpen //Event handlers
     ])

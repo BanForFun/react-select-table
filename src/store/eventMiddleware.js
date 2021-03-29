@@ -50,7 +50,7 @@ const eventMiddleware = store => next => action => {
             if (type === types.CONTEXT_MENU) {
                 const index = payload.ctrlKey ? slice.virtualActiveIndex : payload.index;
                 events.onContextMenu(options.listBox
-                    ? selectors.getItemValue(slice, index)
+                    ? selectors.getSortedValues(slice)[index]
                     : selectors.getSelectionArg(slice)
                 );
             }

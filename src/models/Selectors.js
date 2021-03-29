@@ -11,7 +11,6 @@ export default function Selectors(namespace, options) {
     const getItemCount = itemSelectors.makeGetItemCount(_getFilteredItems);
     const getSortedValues = itemSelectors.makeGetSortedValues(getSortedItems, options);
     const getSearchIndex = itemSelectors.makeGetSearchIndex(getSortedItems, options);
-    const getItemValue = itemSelectors.makeGetItemValue(getSortedValues);
 
     const getPageCount = pgSelectors.makeGetPageCount(getItemCount);
     const getPaginatedItems = pgSelectors.makeGetPaginatedItems(getSortedItems);
@@ -23,7 +22,6 @@ export default function Selectors(namespace, options) {
         getItemCount,
         getSortedValues,
         getSearchIndex,
-        getItemValue,
 
         getPageCount,
         getPaginatedItems,

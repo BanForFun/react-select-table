@@ -27,7 +27,6 @@ const toggleSetValue = (set, value, exists) => {
 const inRangeRelative = (n, start, endOffset) =>
     _.inRange(n, start, start + endOffset);
 
-
 export default function() {
     _.mixin({
         sortTuple,

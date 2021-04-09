@@ -1,5 +1,7 @@
-@use "variables" as *;
+@function rst-has($name) {
+    @return map-has-key($rst-colors, $name);
+}
 
-@function getColor($name) {
-    @return map-get($colors, $name);
+@function rst-get($name) {
+    @return var(--#{$rst-prefix}#{$name});
 }

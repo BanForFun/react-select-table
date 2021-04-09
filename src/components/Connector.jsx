@@ -67,7 +67,7 @@ Connector.defaultProps = {
     onItemsOpen: () => { },
     onColumnsResizeEnd: () => { },
     onKeyDown: () => { },
-    className: "rst-table",
+    className: "rst-table rst-hover",
     initColumnWidths: [],
     scrollFactor: 0.2,
     Error: DefaultError,

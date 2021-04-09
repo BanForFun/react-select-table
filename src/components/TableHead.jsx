@@ -20,7 +20,7 @@ function TableHead(props) {
         const headerProps = {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
-            addSeparator: options.scrollX || index < columns.length - 1,
+            addResizer: options.scrollX || index < columns.length - 1,
             path, title, index,
             sortOrder: sortBy[path]
         }

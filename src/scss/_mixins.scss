@@ -1,167 +1,20 @@
-@use "variables" as *;
-@use "functions" as *;
+@mixin rst-set($name, $value) {
+    --#{$rst-prefix}#{$name}: #{$value};
+}
 
-@mixin cursorOverride($cursor) {
-    &, & * {
-        cursor: $cursor !important;
+@mixin rst-config($map) {
+    @each $name, $value in $map {
+        @include rst-set($name, $value);
     }
 }
 
-@mixin head(
-    $bg: getColor("head-bg"),
-    $text: getColor("head-text"),
-    $border: getColor("head-border"),
-    $cell-padding: $head-cell-padding
-) {
-    .rst-headContainer {
-        background-color: $bg;
-        color: $text;
-
-        th, td {
-            padding: $cell-padding;
-        }
-
-        tr {
-            border-bottom: 2px solid $border;
-        }
-    }
+@mixin rst-row-overlay($name) {
+    @include rst-set("row-overlay", rst-get($name));
 }
 
-@mixin body(
-    $bg: getColor("body-bg"),
-    $text: getColor("body-text"),
-    $border: getColor("body-border"),
-    $cell-padding: $head-cell-padding
-) {
-    .rst-bodyContainer {
-        background-color: $bg;
-        color: $text;
+@mixin rst-row-underline($name) {
+    $color: rst-get($name);
+    @include rst-set("row-underline", $color);
 
-        th, td {
-            padding: $cell-padding;
-        }
-
-        tr {
-            border-bottom: 1px solid $border;
-        }
-    }
-}
-
-@mixin row-striped(
-    $bg: getColor("row-striped-bg")
-) {
-    tbody tr:nth-of-type(odd) {
-        background-color: $bg;
-    }
-}
-
-@mixin row-hover(
-    $bg: getColor("row-hover-bg"),
-    $text: getColor("row-hover-text")
-) {
-    tbody tr:hover {
-        background-color: $bg;
-        color: $text;
-    }
-}
-
-@mixin _activeRow($underline, $height) {
-    tbody tr.rst-active {
-        box-shadow: inset 0 -#{$height} 0 0 $underline !important;
-    }
-}
-
-@mixin row-active(
-    $underline: getColor("row-active-underline"),
-    $underline-unfocused: getColor("row-active-underline-unfocused"),
-    $height: $active-underline-height
-) {
-    @include _activeRow($underline, $height);
-
-    .rst-container:not(:focus-within) {
-        @include _activeRow($underline-unfocused, $height);
-    }
-}
-
-@mixin _selectedRow($bg, $text) {
-    tbody tr.rst-selected {
-        background-color: $bg !important;
-        color: $text !important;
-    }
-}
-
-@mixin row-selected(
-    $bg: getColor("row-selected-bg"),
-    $text: getColor("row-selected-text"),
-    $bg-unfocused: getColor("row-selected-bg-unfocused"),
-    $text-unfocused: getColor("row-selected-text-unfocused")
-) {
-    @include _selectedRow($bg, $text);
-
-    .rst-container:not(:focus-within) {
-        @include _selectedRow($bg-unfocused, $text-unfocused);
-    }
-}
-
-@mixin separator(
-    $bg: getColor("separator-bg"),
-    $width: $separator-width
-) {
-    .rst-separator {
-        transition: background-color 150ms;
-        width: $width;
-
-        &:hover, &:active {
-            background-color: $bg;
-        }
-    }
-}
-
-@mixin selection(
-    $bg: getColor("selection-bg"),
-    $border: getColor("selection-border")
-) {
-    .rst-selection {
-        border: 1px solid $border;
-        background-color: $bg;
-    }
-}
-
-@mixin pagination(
-    $text: getColor("pagination-text"),
-    $text-disabled: getColor("pagination-text-disabled")
-) {
-    .rst-pagination {
-        color: $text;
-
-        :disabled {
-            color: $text-disabled;
-        }
-    }
-}
-
-@mixin pagination-hover(
-    $bg: getColor("pagination-hover-bg"),
-    $text: getColor("pagination-hover-text")
-) {
-    .rst-pagination button:hover {
-        background-color: $bg;
-        color: $text;
-    }
-}
-
-@mixin pagination-current(
-    $bg: getColor("pagination-current-bg"),
-    $text: getColor("pagination-current-text")
-) {
-    .rst-pagination button.rst-current {
-        background-color: $bg !important;
-        color: $text !important;
-    }
-}
-
-@mixin pagination-active() {
-    .rst-pagination button.rst-active {
-        font-weight: bold;
-    }
+    border-bottom-color: $color;
 }

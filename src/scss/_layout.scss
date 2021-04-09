@@ -1,0 +1,132 @@
+@mixin _cursorOverride($cursor) {
+    &, & * {
+        cursor: $cursor !important;
+    }
+}
+
+.rst-container {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+    outline: none;
+
+    table {
+        width: 100%;
+        table-layout: fixed;
+        user-select: none;
+        border-collapse: collapse;
+    }
+
+    thead, tbody, tfoot,
+    tr, td, th {
+        border-color: inherit;
+        border-style: solid;
+        border-width: 0;
+    }
+
+    td, th {
+        overflow: hidden;
+        white-space: nowrap;
+    }
+}
+
+.rst-scrollingContainer {
+    position: relative;
+    flex: auto;
+    overflow: auto;
+}
+
+.rst-resizingContainer {
+    box-sizing: content-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+.rst-headContainer {
+    flex: none;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    th {
+        z-index: 1;
+        white-space: nowrap;
+        position: relative;
+
+        &[data-path] {
+            cursor: pointer;
+        }
+
+        &:not([data-order]) .rst-sortIcon {
+            display: none;
+        }
+
+        &[data-order=desc] .rst-sortIcon {
+            transform: rotate(180deg);
+        }
+    }
+}
+
+.rst-tablePlaceholder, .rst-bodyPlaceholder {
+    width: 100%;
+}
+
+.rst-resizing {
+    @include _cursorOverride(col-resize);
+}
+
+.rst-selecting {
+    @include _cursorOverride(default);
+}
+
+.rst-bodyContainer {
+    flex: auto;
+    z-index: 0;
+}
+
+.rst-columnResizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    cursor: col-resize;
+}
+
+.rst-dragSelection {
+    position: absolute;
+    pointer-events: none;
+    border-style: solid;
+}
+
+.rst-icon {
+    max-width: 1em;
+    max-height: 1em;
+    width: 100%;
+    vertical-align: baseline;
+    fill: currentColor;
+}
+
+.rst-paginationContainer {
+    flex: none;
+}
+
+.rst-pagination {
+    .rst-nextPage {
+        transform: rotate(90deg);
+    }
+
+    .rst-prevPage {
+        transform: rotate(-90deg);
+    }
+
+    button {
+        display: inline-block;
+    }
+
+    button:disabled {
+        pointer-events: none;
+    }
+}
+

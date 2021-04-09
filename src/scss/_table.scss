@@ -1,0 +1,113 @@
+.rst-table {
+    @include rst-config($rst-layout);
+    @include rst-config($rst-colors);
+
+    tr {
+        box-shadow: inset 0 0 0 9999px rst-get("row-overlay");
+
+        & > * {
+            $width: calc(#{rst-get("row-underline-width")} * -1);
+            box-shadow: inset 0 $width 0 0 rst-get("row-underline");
+        }
+    }
+
+    .rst-resizingContainer > :not(:last-child) tr:last-child {
+        border-bottom-width: rst-get("group-border-width");
+        border-bottom-color: rst-get("group-border");
+    }
+
+    table {
+        vertical-align: rst-get("cell-vertical-align");
+        border-color: rst-get("cell-border");
+        color: rst-get("cell-color");
+
+        tr {
+            border-bottom-width: rst-get("cell-border-width");
+        }
+
+        td, th {
+            padding: rst-get("cell-padding");
+        }
+    }
+
+    .rst-columnResizer {
+        width: rst-get("column-resizer-width");
+
+        &:hover {
+            background-color: rst-get("column-resizer-hover-bg");
+        }
+    }
+
+    .rst-tablePlaceholder {
+        padding: rst-get("table-placeholder-padding");
+        text-align: rst-get("table-placeholder-text-align");
+    }
+
+    .rst-bodyPlaceholder {
+        padding: rst-get("body-placeholder-padding");
+        text-align: rst-get("body-placeholder-text-align");
+    }
+
+    .rst-sortIcon {
+        margin: rst-get("sort-icon-margin");
+    }
+
+    .rst-paginationContainer {
+        margin: rst-get("pagination-margin");
+    }
+
+    .rst-pagination button {
+        padding: rst-get("pagination-btn-padding");
+        border-radius: rst-get("pagination-btn-border-radius");
+        border-width: rst-get("pagination-btn-border-width");
+    }
+
+    .rst-container {
+        margin: rst-get("table-margin");
+    }
+
+    .rst-headContainer {
+        background-color: rst-get("head-bg");
+        color: rst-get("head-color");
+    }
+
+    .rst-bodyContainer {
+        background-color: rst-get("body-bg");
+        color: rst-get("body-color");
+    }
+
+    tr.rst-active {
+        @include rst-row-underline("row-active-underline");
+    }
+
+    &:focus-within tr.rst-active {
+        @include rst-row-underline("row-active-focused-underline");
+    }
+
+    tbody tr:nth-of-type(#{$rst-striped-order}) {
+        @include rst-row-overlay("row-striped-overlay");
+        color: rst-get("row-striped-color");
+    }
+
+    tbody tr:hover {
+        @include rst-row-overlay("row-hover-overlay");
+        color: rst-get("row-hover-color");
+    }
+
+    tbody tr.rst-selected {
+        @include rst-row-overlay("row-selected-overlay");
+        color: rst-get("row-selected-color");
+    }
+
+    &:focus-within tbody tr.rst-selected {
+        @include rst-row-overlay("row-selected-focused-overlay");
+        color: rst-get("row-selected-focused-color");
+    }
+
+    .rst-dragSelection {
+        border-width: rst-get("drag-selection-border-width");
+        border-color: rst-get("drag-selection-border");
+        background-color: rst-get("drag-selection-bg");
+    }
+
+}

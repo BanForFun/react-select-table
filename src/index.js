@@ -1,5 +1,6 @@
 import "./startup";
-import "./scss/styles.scss";
+
+import "./scss/index.scss"; //Generate css in dist
 
 export { default as Table } from './components/Connector';
 export { types as actionTypes } from "./models/Actions";

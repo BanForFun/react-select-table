@@ -1,9 +1,8 @@
+$head-cell-padding: 5rem;
+
+@use "~react-select-table/src/scss";
+
 @import "~bootstrap/scss/bootstrap";
-@import "./rst";
-
-.custom-table-dark {
-
-}
 
 #app {
     height: 100vh;

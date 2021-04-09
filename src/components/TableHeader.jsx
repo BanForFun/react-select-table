@@ -8,7 +8,7 @@ function TableHeader({
     index,
     columnResizeStart,
     actions,
-    addSeparator,
+    addResizer,
     sortOrder
 }) {
     const handleMouseDown = useCallback(e => {
@@ -30,13 +30,14 @@ function TableHeader({
 
     return <th
         data-path={path}
+        data-order={sortOrder}
         onMouseDown={handleMouseDown}
         scope="col"
     >
         {title}
-        <AngleDownIcon className="rst-sortIcon" data-order={sortOrder} />
-        {addSeparator && <div
-            className="rst-separator"
+        <AngleDownIcon className="rst-sortIcon" />
+        {addResizer && <div
+            className="rst-columnResizer"
             onMouseDown={handleSeparatorMouseDown}
             onTouchStart={handleResizeStart}
         />}

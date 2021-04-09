@@ -14,7 +14,7 @@ function SelectionRect({ bodyContainerRef }) {
         transform: `translate(${offsetLeft}px, ${offsetTop}px)`,
     }
 
-    return <div className="rst-selection" style={style} />;
+    return <div className="rst-dragSelection" style={style} />;
 }
 
 export default React.memo(SelectionRect);

@@ -1,47 +1,85 @@
-$head-cell-padding: 0.75rem     !default;
-$body-cell-padding: 0.75rem     !default;
-$separator-width: 10px          !default;
-$active-underline-height: 2px   !default;
-$colors: ()                     !default;
+$rst-prefix:            rst- !default;
 
-$colors: map-merge((
-    //Head
-    "head-bg": #F5F5F5,
-    "head-text": #616161,
-    "head-border": #dee2e6,
+$rst-striped-order:     even !default;
 
-    //Body
-    "body-bg": transparent,
-    "body-text": #333333,
-    "body-border": #dee2e6,
+$rst-colors: () !default;
+$rst-layout: () !default;
 
-    //Rows
-    "row-selected-bg": #c4d9b1,
-    "row-selected-bg-unfocused": #d3dbcd,
-    "row-selected-text": inherit,
-    "row-selected-text-unfocused": inherit,
+$rst-layout: map-merge((
+    "cell-border-width":                1px,
+    "cell-vertical-align":              middle,
+    "cell-padding":                     0.75rem,
 
-    "row-active-underline": #b1cc97,
-    "row-active-underline-unfocused": #c4d9b1,
+    "row-underline-width":              2px,
 
-    "row-striped-bg": rgba(0, 0, 0, .05),
+    "column-resizer-width":             10px,
 
-    "row-hover-bg": rgba(0, 0, 0, .075),
+    "group-border-width":               2px,
 
-    //Separator
-    "separator-bg": #dee2e6,
+    "drag-selection-border-width":      1px,
 
-    //Selection box
-    "selection-border": rgba(blue, .25),
-    "selection-bg": rgba(lightskyblue, .5),
+    "table-placeholder-padding":        1rem,
+    "table-placeholder-text-align":     center,
 
-    //Pagination
-    "pagination-text": #333333,
-    "pagination-text-disabled": #8e8e90,
+    "body-placeholder-padding":         1rem,
+    "body-placeholder-text-align":      center,
 
-    "pagination-hover-bg": #dee2e6,
-    "pagination-hover-text": inherit,
+    "sort-icon-margin":                 0 0 0 0.25rem,
 
-    "pagination-current-bg": #c4d9b1,
-    "pagination-current-text": inherit
-), $colors);
+    "pagination-margin":                1rem 0 0 0,
+
+    "pagination-btn-padding":           0.25rem 0.5rem,
+    "pagination-btn-border-radius":     0.2rem,
+    "pagination-btn-border-width":      1px,
+    "pagination-btn-width":             3ch,
+
+    "table-margin":                     0 0 1rem 0,
+
+), $rst-layout);
+
+$rst-colors: map-merge((
+    "cell-border":                      #dee2e6,
+    "group-border":                     #616161,
+
+    "column-resizer-hover-bg":          #dee2e6,
+
+    "head-bg":                          #F5F5F5,
+    "head-color":                       #616161,
+
+    "body-bg":                          transparent,
+    "body-color":                       #333333,
+
+    "row-selected-overlay":             #d3dbcd,
+    "row-selected-color":               inherit,
+    "row-selected-focused-overlay":     #c4d9b1,
+    "row-selected-focused-color":       inherit,
+
+    "row-active-underline":             #c4d9b1,
+    "row-active-focused-underline":     #b1cc97,
+
+    "row-striped-overlay":              rgba(0, 0, 0, .05),
+    "row-striped-color":                inherit,
+
+    "row-hover-overlay":                rgba(0, 0, 0, .075),
+    "row-hover-color":                  inherit,
+
+    "drag-selection-border":            rgba(blue, .25),
+    "drag-selection-bg":                rgba(lightskyblue, .5),
+
+    "pagination-btn-bg":                transparent,
+    "pagination-btn-color":             #333333,
+    "pagination-btn-border":            transparent,
+
+    "pagination-btn-disabled-bg":       transparent,
+    "pagination-btn-disabled-color":    rgba(#333333, .5),
+    "pagination-btn-disabled-border":   transparent,
+
+    "pagination-btn-hover-bg":          #dee2e6,
+    "pagination-btn-hover-color":       inherit,
+    "pagination-btn-hover-border":      transparent,
+
+    "pagination-btn-current-bg":        #c4d9b1,
+    "pagination-btn-current-color":     inherit,
+    "pagination-btn-current-border":    transparent,
+
+), $rst-colors);

@@ -19,17 +19,18 @@ function DefaultPagination({
     pageCount,
     goToPage
 }) {
-    const PaginationButton = ({ page, children, ...rest }) => (
-        <button
+    const PaginationButton = ({ page, children, ...rest }) => {
+        rest.className ??= classNames({
+            "rst-current": page === currentPage,
+            "rst-active": page === activePage
+        });
+
+        return <button
             onClick={() => goToPage(page)}
-            className={classNames({
-                "rst-current": page === currentPage,
-                "rst-active": page === activePage
-            })}
             {...unFocusable}
             {...rest}
         >{children ?? page}</button>
-    );
+    };
 
     const getPages = () => {
         if (pageCount <= totalBlocks)
@@ -60,21 +61,23 @@ function DefaultPagination({
         <PaginationButton
             page={currentPage - 1}
             disabled={currentPage === 1}
+            className="rst-prevPage"
         >
-            <AngleDownIcon className="rst-prevPage" />
+            <AngleDownIcon  />
         </PaginationButton>
 
         {getPages().map((page, index) =>
             page === null
-                ? <div key={`ellipsis-${index}`}>...</div>
+                ? <span key={`ellipsis-${index}`}>...</span>
                 : <PaginationButton key={`page-${index}`} page={page}/>
         )}
 
         <PaginationButton
             page={currentPage + 1}
             disabled={currentPage === pageCount}
+            className="rst-nextPage"
         >
-            <AngleDownIcon className="rst-nextPage" />
+            <AngleDownIcon />
         </PaginationButton>
     </div>
 }

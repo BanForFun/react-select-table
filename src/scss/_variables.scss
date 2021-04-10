@@ -10,6 +10,8 @@ $rst-layout: map-merge((
     "cell-vertical-align":              middle,
     "cell-padding":                     0.75rem,
 
+    "th-font-weight":                   bold,
+
     "row-underline-width":              2px,
 
     "column-resizer-width":             10px,
@@ -30,8 +32,11 @@ $rst-layout: map-merge((
 
     "pagination-btn-padding":           0.25rem 0.5rem,
     "pagination-btn-border-radius":     0.2rem,
-    "pagination-btn-border-width":      1px,
-    "pagination-btn-width":             3ch,
+    "pagination-btn-border-width":      0px,
+    "pagination-btn-spacing":           2px,
+    "pagination-btn-width":             2ch,
+
+    "pagination-active-font-weight":    bold,
 
     "table-margin":                     0 0 1rem 0,
 

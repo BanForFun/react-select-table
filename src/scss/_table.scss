@@ -6,14 +6,17 @@
         box-shadow: inset 0 0 0 9999px rst-get("row-overlay");
 
         & > * {
-            $width: calc(#{rst-get("row-underline-width")} * -1);
-            box-shadow: inset 0 $width 0 0 rst-get("row-underline");
+            box-shadow: inset 0 rst-get("row-underline-width", -1) 0 0 rst-get("row-underline");
         }
     }
 
     .rst-resizingContainer > :not(:last-child) tr:last-child {
         border-bottom-width: rst-get("group-border-width");
         border-bottom-color: rst-get("group-border");
+    }
+
+    th {
+        font-weight: rst-get("th-font-weight");
     }
 
     table {
@@ -50,16 +53,6 @@
 
     .rst-sortIcon {
         margin: rst-get("sort-icon-margin");
-    }
-
-    .rst-paginationContainer {
-        margin: rst-get("pagination-margin");
-    }
-
-    .rst-pagination button {
-        padding: rst-get("pagination-btn-padding");
-        border-radius: rst-get("pagination-btn-border-radius");
-        border-width: rst-get("pagination-btn-border-width");
     }
 
     .rst-container {
@@ -110,4 +103,51 @@
         background-color: rst-get("drag-selection-bg");
     }
 
+    .rst-paginationContainer {
+        margin: rst-get("pagination-margin");
+    }
+
+    .rst-pagination {
+        color: rst-get("pagination-btn-color");
+        margin: 0 rst-get("pagination-btn-spacing", -1);
+    }
+
+    .rst-pagination > * {
+        margin: 0 rst-get("pagination-btn-spacing");
+        padding: rst-get("pagination-btn-padding");
+    }
+
+    .rst-page {
+        width: rst-get("pagination-btn-width");
+    }
+
+    .rst-pagination > button {
+        border-radius: rst-get("pagination-btn-border-radius");
+        border-width: rst-get("pagination-btn-border-width");
+
+        background-color: rst-get("pagination-btn-bg");
+        border-color: rst-get("pagination-btn-border");
+
+        &:disabled {
+            background-color: rst-get("pagination-btn-disabled-bg");
+            border-color: rst-get("pagination-btn-disabled-border");
+            color: rst-get("pagination-btn-disabled-color")
+        }
+
+        &:hover {
+            background-color: rst-get("pagination-btn-hover-bg");
+            border-color: rst-get("pagination-btn-hover-border");
+            color: rst-get("pagination-btn-hover-color")
+        }
+
+        &.rst-current {
+            background-color: rst-get("pagination-btn-current-bg");
+            border-color: rst-get("pagination-btn-current-border");
+            color: rst-get("pagination-btn-current-color")
+        }
+
+        &.rst-active {
+            font-weight: rst-get("pagination-active-font-weight");
+        }
+    }
 }

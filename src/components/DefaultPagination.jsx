@@ -22,7 +22,8 @@ function DefaultPagination({
     const PaginationButton = ({ page, children, ...rest }) => {
         rest.className ??= classNames({
             "rst-current": page === currentPage,
-            "rst-active": page === activePage
+            "rst-active": page === activePage,
+            "rst-page": true
         });
 
         return <button
@@ -61,21 +62,21 @@ function DefaultPagination({
         <PaginationButton
             page={currentPage - 1}
             disabled={currentPage === 1}
-            className="rst-prevPage"
+            className="rst-prev"
         >
             <AngleDownIcon  />
         </PaginationButton>
 
         {getPages().map((page, index) =>
             page === null
-                ? <span key={`ellipsis-${index}`}>...</span>
+                ? <span className="rst-page" key={`ellipsis-${index}`}>...</span>
                 : <PaginationButton key={`page-${index}`} page={page}/>
         )}
 
         <PaginationButton
             page={currentPage + 1}
             disabled={currentPage === pageCount}
-            className="rst-nextPage"
+            className="rst-next"
         >
             <AngleDownIcon />
         </PaginationButton>

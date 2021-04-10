@@ -2,6 +2,12 @@
     @return map-has-key($rst-colors, $name);
 }
 
-@function rst-get($name) {
-    @return var(--#{$rst-prefix}#{$name});
+@function rst-get($name, $factor: 1) {
+    $value: var(--#{$rst-prefix}#{$name});
+
+    @if $factor != 1 {
+        @return calc(#{$value} * #{$factor});
+    }
+
+    @return $value;
 }

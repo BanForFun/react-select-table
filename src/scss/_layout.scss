@@ -112,20 +112,21 @@
     flex: none;
 }
 
-.rst-pagination {
-    .rst-nextPage {
-        transform: rotate(90deg);
-    }
+.rst-pagination > * {
+    text-align: center;
+    display: inline-block;
+    box-sizing: content-box;
+    color: inherit;
 
-    .rst-prevPage {
+    &.rst-prev svg {
         transform: rotate(-90deg);
     }
 
-    button {
-        display: inline-block;
+    &.rst-next svg {
+        transform: rotate(90deg);
     }
 
-    button:disabled {
+    &:disabled {
         pointer-events: none;
     }
 }

@@ -14,7 +14,7 @@
 
 @mixin rst-row-underline($name) {
     $color: rst-get($name);
-    @include rst-set("row-underline", $color);
 
+    @include rst-set("row-underline", $color);
     border-bottom-color: $color;
 }

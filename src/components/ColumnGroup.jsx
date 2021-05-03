@@ -5,16 +5,17 @@ ColumnWidthsContext.displayName = "ColumnWidthsContext";
 
 //Child of HeadContainer
 //Child of BodyContainer
+
+const Column = ({ width }) => <col style={{ width: `${width}%` }} />
+
 function ColumnGroup({ columns, name }) {
-    const widths = useContext(ColumnWidthsContext);
+    const {widths, padding} = useContext(ColumnWidthsContext);
 
     return <colgroup>
-        {columns.map((col, index) => (
-            <col
-                key={`col_${name}_${col._id}`}
-                style={{ width: `${widths[index]}%` }}
-            />
-        ))}
+        {columns.map((col, index) =>
+            <Column key={`col_${name}_${col._id}`} width={widths[index]} />)}
+
+        <Column key={`spacer_${name}`} width={padding} />
     </colgroup>;
 }
 

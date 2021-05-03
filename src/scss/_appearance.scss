@@ -9,35 +9,37 @@
 }
 
 %rst-table {
-    .rst-resizingContainer > :not(:last-child) tr:last-child {
-        border-bottom-width: rst-get("group-border-width");
-        border-bottom-color: rst-get("group-border");
-    }
-
     th {
         font-weight: rst-get("th-font-weight");
     }
 
-    table {
+    td, th {
+        padding: rst-get("cell-padding");
         vertical-align: rst-get("cell-vertical-align");
-        border-color: rst-get("cell-border");
-        color: rst-get("cell-color");
+    }
 
-        tr {
-            border-bottom-width: rst-get("cell-border-width");
+    thead > tr > * {
+        border-bottom-width: rst-get("header-border-width");
+
+        //Doing this in a weird way, because we don't want the right border of the last header to be visible by default
+        //We also don't want to offset the header text (if we set the left border)
+        &:not(:last-of-type) {
+            //Only header (spacer is td)
+            border-right-width: rst-get("cell-border-width");
         }
 
-        td, th {
-            padding: rst-get("cell-padding");
+        &:last-child {
+            //The spacer column
+            border-left-width: rst-get("cell-border-width");
         }
+    }
+
+    tbody > tr > * {
+        border-bottom-width: rst-get("cell-border-width");
     }
 
     .rst-columnResizer {
         width: rst-get("column-resizer-width");
-
-        &:hover {
-            background-color: rst-get("column-resizer-hover-bg");
-        }
     }
 
     .rst-sortIcon {
@@ -48,14 +50,16 @@
         margin: rst-get("table-margin");
     }
 
-    .rst-headContainer {
+    thead {
         background-color: rst-get("head-bg");
         color: rst-get("head-color");
+        border-color: rst-get("head-border");
     }
 
-    .rst-bodyContainer {
+    tbody {
         background-color: rst-get("body-bg");
         color: rst-get("body-color");
+        border-color: rst-get("body-border");
     }
 }
 

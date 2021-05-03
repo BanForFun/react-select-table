@@ -59,6 +59,7 @@ function TableRow({
         onMouseDown={handleMouseDown}
     >
         {columns.map(renderColumn)}
+        <td/>
     </tr>;
 }
 

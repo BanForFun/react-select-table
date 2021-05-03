@@ -48,7 +48,7 @@ function BodyContainer(props) {
         onItemsOpen(getSelectionArg(), false);
     }, [onItemsOpen, getSelectionArg, selectionSize]);
 
-    useEvent(document.body, "touchend", useCallback(() => {
+    useEvent(window, "touchend", useCallback(() => {
         isTouching.current = false;
     }, []));
 

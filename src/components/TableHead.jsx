@@ -29,7 +29,10 @@ function TableHead(props) {
     }
 
     return <thead className={theadClass}>
-        <tr>{columns.map(renderHeader)}</tr>
+        <tr>
+            {columns.map(renderHeader)}
+            <td/>
+        </tr>
     </thead>
 }
 

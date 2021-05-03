@@ -243,14 +243,14 @@ function ScrollingContainer(props) {
     }, []);
 
     //Window events
-    useEvent(document,"mousemove", useCallback(e => {
+    useEvent(window, "mousemove", useCallback(e => {
         if (!isSelecting.current) return;
 
         dragSelection.mousePos = [e.clientX, e.clientY];
         updateSelectionRect()
     }, [updateSelectionRect]));
 
-    useEvent(document.body,"touchmove", useCallback(e => {
+    useEvent(window, "touchmove", useCallback(e => {
         e.stopPropagation();
 
         if (!isSelecting.current) return;
@@ -261,8 +261,8 @@ function ScrollingContainer(props) {
         updateSelectionRect();
     }, [updateSelectionRect]), false);
 
-    useEvent(document,"mouseup", handleDragEnd);
-    useEvent(document.body,"touchend", handleDragEnd);
+    useEvent(window, "mouseup", handleDragEnd);
+    useEvent(window, "touchend", handleDragEnd);
 
     //#endregion
 

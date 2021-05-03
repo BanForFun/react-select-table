@@ -4,6 +4,7 @@ import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
 import {ColumnWidthsContext} from "./ColumnGroup";
+import useObjectMemo from "../hooks/useObjectMemo";
 
 //Child of ScrollingContainer
 function ResizingContainer(props) {
@@ -41,13 +42,19 @@ function ResizingContainer(props) {
             : _.times(count, _.constant(100 / count));
     });
 
-    const width = useMemo(() => _.sum(widths), [widths]);
-    const [maxWidth, setMaxWidth] = useState(0);
+    const [width, setWidth] = useState(0);
+    const [padding, setPadding] = useState(0);
 
-    useEffect(() => {
-        if (width <= maxWidth) return;
-        setMaxWidth(width);
-    }, [width, maxWidth]);
+    const resetWidth = useCallback((maxWidth = 0) => {
+        const actualWidth = _.sum(widths);
+        const newWidth = Math.max(actualWidth, maxWidth, 100);
+        if (newWidth > maxWidth)
+            setWidth(newWidth);
+
+        setPadding(newWidth - actualWidth);
+    }, [widths])
+
+    useEffect(() => resetWidth(width), [resetWidth, width]);
 
     const { current: resizing } = useRef({
         index: null,
@@ -57,10 +64,6 @@ function ResizingContainer(props) {
         started: false,
         lastMouseX: null
     });
-
-    const refreshWidths = useCallback(() => {
-        setWidths([...resizing.widths]);
-    }, []);
 
     const columnResizeStart = useCallback((index, mouseX, left, right) => {
         setCursorClass("rst-resizing");
@@ -95,22 +98,21 @@ function ResizingContainer(props) {
             widths[index + 1] = available - limited;
         }
 
-        refreshWidths();
+        setWidths([...widths]);
     }, [
         options,
-        scrollToPos,
-        refreshWidths
+        scrollToPos
     ]);
 
     const handleDragEnd = useCallback(() => {
         if (resizing.index === null) return;
 
         resizing.index = null;
-        setMaxWidth(0);
+        resetWidth();
 
         if (resizing.started)
             onColumnsResizeEnd(resizing.widths);
-    }, [onColumnsResizeEnd]);
+    }, [onColumnsResizeEnd, resetWidth]);
 
     //#region Window events
 
@@ -119,13 +121,13 @@ function ResizingContainer(props) {
         updateWidth();
     }, [updateWidth]));
 
-    useEvent(document,"mousemove", useCallback(e => {
+    useEvent(window, "mousemove", useCallback(e => {
         if (resizing.index === null) return;
         resizing.mouseX = e.clientX;
         updateWidth()
     },[updateWidth]));
 
-    useEvent(document.body,"touchmove", useCallback(e => {
+    useEvent(window, "touchmove", useCallback(e => {
         e.stopPropagation();
         if (resizing.index === null) return;
         e.preventDefault();
@@ -134,8 +136,8 @@ function ResizingContainer(props) {
         updateWidth();
     }, [updateWidth]), false);
 
-    useEvent(document, "mouseup", handleDragEnd);
-    useEvent(document.body, "touchend", handleDragEnd);
+    useEvent(window, "mouseup", handleDragEnd);
+    useEvent(window, "touchend", handleDragEnd);
 
     //#endregion
 
@@ -163,16 +165,11 @@ function ResizingContainer(props) {
         isSelecting
     }
 
-    const padding = Math.max(maxWidth - width, 0);
-
     return <div
         className="rst-resizingContainer"
-        style={{
-            width: `${width}%`,
-            paddingRight: `${padding}%`
-        }}
+        style={{ width: `${width}%` }}
     >
-        <ColumnWidthsContext.Provider value={widths}>
+        <ColumnWidthsContext.Provider value={useObjectMemo({ widths, padding })}>
             <HeadContainer {...headProps} />
             <BodyContainer {...bodyProps} />
         </ColumnWidthsContext.Provider>

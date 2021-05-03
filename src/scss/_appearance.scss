@@ -1,7 +1,4 @@
-.rst-table {
-    @include rst-config($rst-layout);
-    @include rst-config($rst-colors);
-
+%rst-utils {
     tr {
         box-shadow: inset 0 0 0 9999px rst-get("row-overlay");
 
@@ -9,7 +6,9 @@
             box-shadow: inset 0 rst-get("row-underline-width", -1) 0 0 rst-get("row-underline");
         }
     }
+}
 
+%rst-table {
     .rst-resizingContainer > :not(:last-child) tr:last-child {
         border-bottom-width: rst-get("group-border-width");
         border-bottom-color: rst-get("group-border");
@@ -41,16 +40,6 @@
         }
     }
 
-    .rst-tablePlaceholder {
-        padding: rst-get("table-placeholder-padding");
-        text-align: rst-get("table-placeholder-text-align");
-    }
-
-    .rst-bodyPlaceholder {
-        padding: rst-get("body-placeholder-padding");
-        text-align: rst-get("body-placeholder-text-align");
-    }
-
     .rst-sortIcon {
         margin: rst-get("sort-icon-margin");
     }
@@ -68,7 +57,21 @@
         background-color: rst-get("body-bg");
         color: rst-get("body-color");
     }
+}
 
+%rst-placeholders {
+    .rst-tablePlaceholder {
+        padding: rst-get("table-placeholder-padding");
+        text-align: rst-get("table-placeholder-text-align");
+    }
+
+    .rst-bodyPlaceholder {
+        padding: rst-get("body-placeholder-padding");
+        text-align: rst-get("body-placeholder-text-align");
+    }
+}
+
+%rst-rowActive {
     tr.rst-active {
         @include rst-row-underline("row-active-underline");
     }
@@ -76,17 +79,23 @@
     &:focus-within tr.rst-active {
         @include rst-row-underline("row-active-focused-underline");
     }
+}
 
+%rst-rowStriped {
     tbody tr:nth-of-type(#{$rst-striped-order}) {
         @include rst-row-overlay("row-striped-overlay");
         color: rst-get("row-striped-color");
     }
+}
 
+%rst-rowHover {
     tbody tr:hover {
         @include rst-row-overlay("row-hover-overlay");
         color: rst-get("row-hover-color");
     }
+}
 
+%rst-rowSelected {
     tbody tr.rst-selected {
         @include rst-row-overlay("row-selected-overlay");
         color: rst-get("row-selected-color");
@@ -96,58 +105,97 @@
         @include rst-row-overlay("row-selected-focused-overlay");
         color: rst-get("row-selected-focused-color");
     }
+}
 
+%rst-dragSelection {
     .rst-dragSelection {
         border-width: rst-get("drag-selection-border-width");
         border-color: rst-get("drag-selection-border");
         background-color: rst-get("drag-selection-bg");
     }
+}
 
+%rst-pg {
     .rst-paginationContainer {
-        margin: rst-get("pagination-margin");
+        margin: rst-get("pg-margin");
     }
 
     .rst-pagination {
-        color: rst-get("pagination-btn-color");
-        margin: 0 rst-get("pagination-btn-spacing", -1);
+        margin: 0 rst-get("pg-btn-spacing", -1);
     }
 
     .rst-pagination > * {
-        margin: 0 rst-get("pagination-btn-spacing");
-        padding: rst-get("pagination-btn-padding");
+        margin: 0 rst-get("pg-btn-spacing");
+        padding: rst-get("pg-btn-padding");
     }
 
     .rst-page {
-        width: rst-get("pagination-btn-width");
+        width: rst-get("pg-btn-width");
     }
 
     .rst-pagination > button {
-        border-radius: rst-get("pagination-btn-border-radius");
-        border-width: rst-get("pagination-btn-border-width");
-
-        background-color: rst-get("pagination-btn-bg");
-        border-color: rst-get("pagination-btn-border");
-
-        &:disabled {
-            background-color: rst-get("pagination-btn-disabled-bg");
-            border-color: rst-get("pagination-btn-disabled-border");
-            color: rst-get("pagination-btn-disabled-color")
-        }
-
-        &:hover {
-            background-color: rst-get("pagination-btn-hover-bg");
-            border-color: rst-get("pagination-btn-hover-border");
-            color: rst-get("pagination-btn-hover-color")
-        }
-
-        &.rst-current {
-            background-color: rst-get("pagination-btn-current-bg");
-            border-color: rst-get("pagination-btn-current-border");
-            color: rst-get("pagination-btn-current-color")
-        }
-
-        &.rst-active {
-            font-weight: rst-get("pagination-active-font-weight");
-        }
+        border-radius: rst-get("pg-btn-border-radius");
+        border-width: rst-get("pg-btn-border-width");
     }
+}
+
+%rst-pgBtn {
+    .rst-pagination {
+        color: rst-get("pg-btn-color");
+    }
+
+    .rst-pagination > button {
+        background-color: rst-get("pg-btn-bg");
+        border-color: rst-get("pg-btn-border");
+    }
+}
+
+%rst-pgBtnDisabled {
+    .rst-pagination > button:disabled {
+        background-color: rst-get("pg-btn-disabled-bg");
+        border-color: rst-get("pg-btn-disabled-border");
+        color: rst-get("pg-btn-disabled-color")
+    }
+}
+
+%rst-pgBtnHover {
+    .rst-pagination > button:hover {
+        background-color: rst-get("pg-btn-hover-bg");
+        border-color: rst-get("pg-btn-hover-border");
+        color: rst-get("pg-btn-hover-color")
+    }
+}
+
+%rst-pgBtnCurrent {
+    .rst-pagination > button.rst-current {
+        background-color: rst-get("pg-btn-current-bg");
+        border-color: rst-get("pg-btn-current-border");
+        color: rst-get("pg-btn-current-color")
+    }
+}
+
+%rst-pgBtnActive {
+    .rst-pagination > button.rst-active {
+        font-weight: rst-get("pg-active-font-weight");
+    }
+}
+
+.rst-table {
+    @include rst-config($rst-layout);
+    @include rst-config($rst-colors);
+
+    @extend %rst-utils;
+    @extend %rst-table;
+    @extend %rst-placeholders;
+    @extend %rst-rowActive;
+    @extend %rst-rowStriped;
+    @extend %rst-rowHover;
+    @extend %rst-rowSelected;
+    @extend %rst-dragSelection;
+    @extend %rst-pg;
+    @extend %rst-pgBtn;
+    @extend %rst-pgBtnDisabled;
+    @extend %rst-pgBtnHover;
+    @extend %rst-pgBtnCurrent;
+    @extend %rst-pgBtnActive;
 }

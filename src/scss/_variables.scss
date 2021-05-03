@@ -28,15 +28,15 @@ $rst-layout: map-merge((
 
     "sort-icon-margin":                 0 0 0 0.25rem,
 
-    "pagination-margin":                1rem 0 0 0,
+    "pg-margin":                        1rem 0 0 0,
 
-    "pagination-btn-padding":           0.25rem 0.5rem,
-    "pagination-btn-border-radius":     0.2rem,
-    "pagination-btn-border-width":      0px,
-    "pagination-btn-spacing":           2px,
-    "pagination-btn-width":             2ch,
+    "pg-btn-padding":                   0.25rem 0.5rem,
+    "pg-btn-border-radius":             0.2rem,
+    "pg-btn-border-width":              0px,
+    "pg-btn-spacing":                   2px,
+    "pg-btn-width":                     2ch,
 
-    "pagination-active-font-weight":    bold,
+    "pg-active-font-weight":            bold,
 
     "table-margin":                     0 0 1rem 0,
 
@@ -71,20 +71,20 @@ $rst-colors: map-merge((
     "drag-selection-border":            rgba(blue, .25),
     "drag-selection-bg":                rgba(lightskyblue, .5),
 
-    "pagination-btn-bg":                transparent,
-    "pagination-btn-color":             #333333,
-    "pagination-btn-border":            transparent,
+    "pg-btn-bg":                        transparent,
+    "pg-btn-color":                     #333333,
+    "pg-btn-border":                    transparent,
 
-    "pagination-btn-disabled-bg":       transparent,
-    "pagination-btn-disabled-color":    rgba(#333333, .5),
-    "pagination-btn-disabled-border":   transparent,
+    "pg-btn-disabled-bg":               transparent,
+    "pg-btn-disabled-color":            rgba(#333333, .5),
+    "pg-btn-disabled-border":           transparent,
 
-    "pagination-btn-hover-bg":          #dee2e6,
-    "pagination-btn-hover-color":       inherit,
-    "pagination-btn-hover-border":      transparent,
+    "pg-btn-hover-bg":                  #dee2e6,
+    "pg-btn-hover-color":               inherit,
+    "pg-btn-hover-border":              transparent,
 
-    "pagination-btn-current-bg":        #c4d9b1,
-    "pagination-btn-current-color":     inherit,
-    "pagination-btn-current-border":    transparent,
+    "pg-btn-current-bg":                #c4d9b1,
+    "pg-btn-current-color":             inherit,
+    "pg-btn-current-border":            transparent,
 
 ), $rst-colors);

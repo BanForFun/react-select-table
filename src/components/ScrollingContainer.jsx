@@ -142,7 +142,7 @@ function ScrollingContainer(props) {
 
         if (_.isEmpty(selectMap)) return;
 
-        //If origin is below rows, set the pivot to the last row ONLY if it is selected
+        //If origin is below rows, set the pivot to the last row and ONLY if it is selected
         const lastItemIndex = startIndex + rowCount - 1;
         const setPivot = originItem ?? (selectMap[lastItemIndex] ? lastItemIndex : null)
 

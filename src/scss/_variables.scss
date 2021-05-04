@@ -51,22 +51,22 @@ $rst-colors: map-merge((
     "body-color":                       #333333,
     "body-border":                      #dee2e6,
 
-    "row-selected-overlay":             #d3dbcd,
+    "row-selected-overlay":             rgba(#a7b79b, 0.5),
     "row-selected-color":               inherit,
-    "row-selected-focused-overlay":     #c4d9b1,
+    "row-selected-focused-overlay":     rgba(#89b363, 0.5),
     "row-selected-focused-color":       inherit,
 
-    "row-active-underline":             #c4d9b1,
-    "row-active-focused-underline":     #b1cc97,
+    "row-active-underline":             rgba(#a7b79b, 0.5),
+    "row-active-focused-underline":     rgba(#89b363, 0.5),
 
-    "row-striped-overlay":              rgba(black, .05),
+    "row-striped-overlay":              rgba(#afafaf, 0.1),
     "row-striped-color":                inherit,
 
-    "row-hover-overlay":                rgba(black, .075),
+    "row-hover-overlay":                rgba(#7d7d7d, 0.1),
     "row-hover-color":                  inherit,
 
-    "drag-selection-border":            rgba(blue, .25),
-    "drag-selection-bg":                rgba(lightskyblue, .5),
+    "drag-selection-border":            rgba(#89b363, 0.5),
+    "drag-selection-bg":                rgba(#89b363, 0.25),
 
     "pg-btn-bg":                        transparent,
     "pg-btn-color":                     #333333,

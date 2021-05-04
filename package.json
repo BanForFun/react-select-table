@@ -64,7 +64,7 @@
     ],
     "dependencies": {
         "classnames": "^2.2.6",
-        "immer": "^6.0.3",
+        "immer": "^9.0.2",
         "lodash": "^4.17.20",
         "prop-types": "^15.7.2",
         "reselect": "^4.0.0"

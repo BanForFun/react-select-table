@@ -20,7 +20,6 @@ const defaultOptions = {
     minColumnWidth: 3,
     valueProperty: "id",
     scrollX: false,
-    multiSort: false,
     path: null,
     initState: {},
     context: null

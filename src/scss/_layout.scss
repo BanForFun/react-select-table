@@ -59,11 +59,11 @@
             cursor: pointer;
         }
 
-        &:not([data-order]) .rst-sortIcon {
+        &:not([data-ascending]) .rst-sortIcon {
             display: none;
         }
 
-        &[data-order=desc] .rst-sortIcon {
+        &[data-ascending=false] .rst-sortIcon {
             transform: rotate(180deg);
         }
     }

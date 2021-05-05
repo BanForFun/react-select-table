@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import AngleDownIcon from "./AngleDownIcon";
+import AngleUpIcon from "./AngleUpIcon";
 
 //Child of TableHead
 function TableHeader({
@@ -9,7 +9,7 @@ function TableHeader({
     columnResizeStart,
     actions,
     addResizer,
-    sortOrder
+    sortAscending
 }) {
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0 || !path) return;
@@ -30,12 +30,12 @@ function TableHeader({
 
     return <th
         data-path={path}
-        data-order={sortOrder}
+        data-ascending={sortAscending}
         onMouseDown={handleMouseDown}
         scope="col"
     >
         {title}
-        <AngleDownIcon className="rst-sortIcon" />
+        <AngleUpIcon className="rst-sortIcon" />
         {addResizer && <div
             className="rst-columnResizer"
             onMouseDown={handleSeparatorMouseDown}

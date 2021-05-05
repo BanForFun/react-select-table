@@ -5,13 +5,14 @@ import {setOptions} from "../utils/tableUtils";
 
 enableMapSet();
 
-const sortOrders = Object.freeze({
-    Ascending: "asc",
-    Descending: "desc"
-});
-
 export default function createTable(namespace, options = {}) {
     const selectors = setOptions(namespace, options);
+
+    const {
+        valueProperty,
+        listBox,
+        multiSelect
+    } = options;
 
     const initState = {
         selection: new Set(),
@@ -20,7 +21,8 @@ export default function createTable(namespace, options = {}) {
         virtualActiveIndex: 0,
         filter: null,
         items: {},
-        sortBy: {},
+        sortPath: valueProperty,
+        sortAscending: true,
         isLoading: false,
         pageSize: 0,
         pageIndex: 0,
@@ -29,13 +31,6 @@ export default function createTable(namespace, options = {}) {
         matchIndex: 0,
         ...options.initState
     };
-
-    const {
-        valueProperty,
-        listBox,
-        multiSelect,
-        multiSort
-    } = options;
 
     let draft;
 
@@ -147,23 +142,12 @@ export default function createTable(namespace, options = {}) {
                     setActiveIndex(0);
                     clearSelection();
 
-                    const { path, shiftKey } = payload;
-
-                    if (!multiSort || !shiftKey)
-                        draft.sortBy = {};
-
-                    const { sortBy } = draft;
-                    switch(state.sortBy[path]) {
-                        case sortOrders.Ascending:
-                            sortBy[path] = sortOrders.Descending;
-                            break;
-                        case sortOrders.Descending:
-                            if (shiftKey) delete sortBy[path];
-                            else sortBy[path] = sortOrders.Ascending;
-                            break;
-                        default:
-                            sortBy[path] = sortOrders.Ascending;
-                            break;
+                    const { path } = payload;
+                    if (path === draft.sortPath)
+                        draft.sortAscending = !draft.sortAscending;
+                    else {
+                        draft.sortAscending = true;
+                        draft.sortPath = path;
                     }
                     break;
                 }

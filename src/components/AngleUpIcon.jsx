@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 
-function AngleDownIcon({className}) {
+function AngleUpIcon({className}) {
      return <svg
          viewBox="0 0 24.002 14.801"
          className={classNames("rst-icon", className)}
@@ -10,4 +10,4 @@ function AngleDownIcon({className}) {
     </svg>
 }
 
-export default AngleDownIcon
+export default AngleUpIcon

@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import _ from "lodash";
-import AngleDownIcon from "./AngleDownIcon";
+import AngleUpIcon from "./AngleUpIcon";
 import {unFocusable} from "../utils/eventUtils";
 
 const neighbourNumbers = 1;
@@ -64,7 +64,7 @@ function DefaultPagination({
             disabled={currentPage === 1}
             className="rst-prev"
         >
-            <AngleDownIcon  />
+            <AngleUpIcon  />
         </PaginationButton>
 
         {getPages().map((page, index) =>
@@ -78,7 +78,7 @@ function DefaultPagination({
             disabled={currentPage === pageCount}
             className="rst-next"
         >
-            <AngleDownIcon />
+            <AngleUpIcon />
         </PaginationButton>
     </div>
 }

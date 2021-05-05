@@ -16,7 +16,7 @@ $rst-layout: map-merge((
 
     "column-resizer-width":             10px,
 
-    "header-border-width":               2px,
+    "header-border-width":              2px,
 
     "drag-selection-border-width":      1px,
 
@@ -45,19 +45,19 @@ $rst-layout: map-merge((
 $rst-colors: map-merge((
     "head-bg":                          #f7f7f7,
     "head-color":                       #616161,
-    "head-border":                      #cdcece,
+    "head-border":                      rgba(#a3a5a5, 0.5),
 
     "body-bg":                          transparent,
     "body-color":                       #333333,
-    "body-border":                      #dee2e6,
+    "body-border":                      rgba(#bdc5cd, 0.5),
 
     "row-selected-overlay":             rgba(#a7b79b, 0.5),
     "row-selected-color":               inherit,
     "row-selected-focused-overlay":     rgba(#89b363, 0.5),
     "row-selected-focused-color":       inherit,
 
-    "row-active-underline":             rgba(#a7b79b, 0.5),
-    "row-active-focused-underline":     rgba(#89b363, 0.5),
+    "row-active-underline":             rgba(#a7b79b, 0.75),
+    "row-active-focused-underline":     rgba(#89b363, 0.75),
 
     "row-striped-overlay":              rgba(#afafaf, 0.1),
     "row-striped-color":                inherit,

@@ -1,10 +1,10 @@
 import _ from "lodash";
-import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
+import React, {useState, useMemo, useRef, useCallback} from 'react';
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
-import {ColumnWidthsContext} from "./ColumnGroup";
 import useObjectMemo from "../hooks/useObjectMemo";
+import {ColumnWidthsContext} from "./ColumnGroup";
 
 //Child of ScrollingContainer
 function ResizingContainer(props) {
@@ -42,28 +42,27 @@ function ResizingContainer(props) {
             : _.times(count, _.constant(100 / count));
     });
 
-    const [width, setWidth] = useState(0);
-    const [padding, setPadding] = useState(0);
-
-    const resetWidth = useCallback((maxWidth = 0) => {
-        const actualWidth = _.sum(widths);
-        const newWidth = Math.max(actualWidth, maxWidth, 100);
-        if (newWidth > maxWidth)
-            setWidth(newWidth);
-
-        setPadding(newWidth - actualWidth);
-    }, [widths])
-
-    useEffect(() => resetWidth(width), [resetWidth, width]);
+    const [width, setWidth] = useState(() => _.sum(widths));
+    const [padding, setPadding] = useState(() => Math.max(100 - width, 0));
 
     const { current: resizing } = useRef({
         index: null,
         left: 0,
         right: 0,
         widths,
+        maxWidth: 0,
         started: false,
         lastMouseX: null
     });
+
+    const calculateTableWidth = useCallback(() => {
+        const actualWidth = _.sum(resizing.widths);
+        const newWidth = Math.max(actualWidth, 100);
+        if (newWidth > resizing.maxWidth)
+            setWidth(resizing.maxWidth = newWidth);
+
+        setPadding(resizing.maxWidth - actualWidth);
+    }, [])
 
     const columnResizeStart = useCallback((index, mouseX, left, right) => {
         setCursorClass("rst-resizing");
@@ -99,20 +98,22 @@ function ResizingContainer(props) {
         }
 
         setWidths([...widths]);
+        calculateTableWidth();
     }, [
         options,
-        scrollToPos
+        scrollToPos, calculateTableWidth
     ]);
 
     const handleDragEnd = useCallback(() => {
         if (resizing.index === null) return;
 
         resizing.index = null;
-        resetWidth();
+        resizing.maxWidth = 0;
+        calculateTableWidth();
 
         if (resizing.started)
             onColumnsResizeEnd(resizing.widths);
-    }, [onColumnsResizeEnd, resetWidth]);
+    }, [onColumnsResizeEnd, calculateTableWidth]);
 
     //#region Window events
 

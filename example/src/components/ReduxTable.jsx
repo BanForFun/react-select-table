@@ -31,7 +31,8 @@ function ReduxTable() {
         "Page size 8": actions.setPageSize(8),
         "Page size 10": actions.setPageSize(10),
         "Disable pagination": actions.setPageSize(0),
-        "Start loading": actions.startLoading()
+        "Start loading": actions.startLoading(),
+        "Debug": actions.debug()
     }), [])
 
     const handleTableKeyDown = useCallback((e, selection) => {

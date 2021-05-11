@@ -1,85 +1,100 @@
-import React from 'react';
+import React, {useCallback, useRef} from 'react';
 import classNames from 'classnames';
-import _ from "lodash";
 import AngleUpIcon from "./AngleUpIcon";
+import _ from "lodash";
 import {unFocusable} from "../utils/eventUtils";
+import useEvent from "../hooks/useEvent";
 
-const neighbourNumbers = 1;
-
-//Neighbour numbers + Ellipsis (for one side)
-const neighbourBlocks = neighbourNumbers + 1;
-
-//Neighbour numbers + Ellipsis + Edge number (for both sides)
-const totalBlocks = (neighbourBlocks + 1) * 2;
+const startDelay = 600
+const repeatDelay = 100
 
 //Child of PaginationContainer
 function DefaultPagination({
-    page: currentPage,
+    page,
     activePage,
     pageCount,
-    goToPage
+    nextPage,
+    prevPage,
+    firstPage,
+    lastPage
 }) {
-    const PaginationButton = ({ page, children, ...rest }) => {
-        rest.className ??= classNames({
-            "rst-current": page === currentPage,
-            "rst-active": page === activePage,
-            "rst-page": true
+    const Page = ({ number, action, children }) => {
+        if (!number)
+            return <span className="rst-page">{children}</span>
+
+        const className = classNames({
+            "rst-page": true,
+            "rst-current": number === page,
+            "rst-active": number === activePage
         });
 
         return <button
-            onClick={() => goToPage(page)}
             {...unFocusable}
-            {...rest}
-        >{children ?? page}</button>
+            className={className}
+            onClick={action}
+        >{number}</button>
     };
 
-    const getPages = () => {
-        if (pageCount <= totalBlocks)
-            return _.range(1, pageCount);
+    const repeatTimeoutRef = useRef(null);
 
-        const start = currentPage - neighbourBlocks
-        const end = currentPage + neighbourBlocks
+    const repeatAction = useCallback(action => {
+        const repeatAction = (delay = repeatDelay) => {
+            action();
+            repeatTimeoutRef.current = setTimeout(repeatAction, delay);
+        }
 
-        const startMargin = start - 1;
-        const endMargin = pageCount - end;
-        const offset = Math.min(endMargin, 1) - Math.min(startMargin, 1);
+        return () => repeatAction(startDelay);
+    }, [repeatTimeoutRef]);
 
-        const pages = _.range(start + offset, end + offset + 1);
+    useEvent(window, "mouseup", useCallback(() => {
+        clearTimeout(repeatTimeoutRef.current);
+    }, [repeatTimeoutRef]));
 
-        if (startMargin >= 2)
-            pages[0] = null;
+    const pages = [];
+    const pageFromEnd = pageCount - page + 1;
 
-        if (endMargin >= 2)
-            pages[pages.length - 1] = null;
+    if (page >= 4)
+        pages.push(<Page key="ellipsis_left">...</Page>);
 
-        pages.unshift(1);
-        pages.push(pageCount);
+    if (page >= 3)
+        pages.push(<Page key="page_prev" number={page - 1} action={prevPage} />)
 
-        return pages;
-    }
+    if (page >= 2 && pageFromEnd >= 2)
+        pages.push(<Page key="page_current" number={page} />)
+
+    if (pageFromEnd >= 3)
+        pages.push(<Page key="page_next" number={page + 1} action={nextPage} />)
+
+    if (pageFromEnd >= 4)
+        pages.push(<Page key="ellipsis_right">...</Page>);
+
+    const paddingLeft = 4 - page;
+    const paddingRight = 4 - pageFromEnd;
 
     return <div className="rst-pagination">
-        <PaginationButton
-            page={currentPage - 1}
-            disabled={currentPage === 1}
+        <button
+            disabled={page === 1}
             className="rst-prev"
+            onMouseDown={repeatAction(prevPage)}
         >
             <AngleUpIcon  />
-        </PaginationButton>
+        </button>
 
-        {getPages().map((page, index) =>
-            page === null
-                ? <span className="rst-page" key={`ellipsis-${index}`}>...</span>
-                : <PaginationButton key={`page-${index}`} page={page}/>
-        )}
+        {_.times(paddingLeft, i => <Page key={`padding_left_${i}`} />)}
 
-        <PaginationButton
-            page={currentPage + 1}
-            disabled={currentPage === pageCount}
+        <Page number={1} action={firstPage} />
+        {pages}
+        <Page number={pageCount} action={lastPage} />
+
+        {_.times(paddingRight, i => <Page key={`padding_right_${i}`} />)}
+
+        <button
+            disabled={page === pageCount}
             className="rst-next"
+            onMouseDown={repeatAction(nextPage)}
         >
             <AngleUpIcon />
-        </PaginationButton>
+        </button>
     </div>
 }
 

@@ -12,8 +12,7 @@ function TableHead(props) {
     } = props;
 
     //Redux state
-    const sortPath = utils.useSelector(s => s.sortPath);
-    const sortAscending = utils.useSelector(s => s.sortAscending)
+    const sortBy = utils.useSelector(s => s.sortBy);
 
     const renderHeader = (column, index) => {
         const { _id, path, title } = column;
@@ -23,7 +22,7 @@ function TableHead(props) {
             key: `header_${name}_${_id}`,
             addResizer: options.scrollX || index < columns.length - 1,
             path, title, index,
-            sortAscending: sortPath !== path ? null : sortAscending
+            sortAscending: sortBy[path]
         }
 
         return <TableHeader {...headerProps} />

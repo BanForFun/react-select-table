@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {getActivePageIndex} from "../selectors/paginationSelectors";
 
 //Child of Root
@@ -8,18 +8,20 @@ function PaginationContainer({
     showPlaceholder,
     table: { utils, selectors }
 }) {
-    const page = utils.useSelector(s => s.pageIndex) + 1;
-    const activePage = utils.useSelector(getActivePageIndex) + 1;
+    const pageIndex = utils.useSelector(s => s.pageIndex);
+    const activePageIndex = utils.useSelector(getActivePageIndex);
     const pageCount = utils.useSelector(selectors.getPageCount);
-
-    const goToPage = useCallback(page =>
-        actions.goToPage(page - 1), [actions]);
 
     if (showPlaceholder || !pageCount) return null;
 
     const paginationProps = {
-        page, activePage, pageCount,
-        goToPage
+        page: pageIndex + 1,
+        activePage: activePageIndex + 1,
+        pageCount,
+        nextPage: actions.nextPage,
+        prevPage: actions.prevPage,
+        firstPage: actions.firstPage,
+        lastPage: actions.lastPage
     };
 
     return <div className="rst-paginationContainer">

@@ -24,8 +24,13 @@ export const types = Object.freeze({
     SEARCH: "RST_SEARCH",
 
     //Pagination
-    GO_TO_PAGE: "RST_GO_TO_PAGE",
-    SET_PAGE_SIZE: "RST_SET_PAGE_SIZE"
+    NEXT_PAGE: "RST_NEXT_PAGE",
+    PREV_PAGE: "RST_PREV_PAGE",
+    FIRST_PAGE: "RST_FIRST_PAGE",
+    LAST_PAGE: "RST_LAST_PAGE",
+    SET_PAGE_SIZE: "RST_SET_PAGE_SIZE",
+
+    DEBUG: "RST_DEBUG"
 })
 
 export default function Actions(namespace) {
@@ -34,11 +39,15 @@ export default function Actions(namespace) {
     }
 
     return {
+        debug: () => Action(types.DEBUG),
+
         search: (letter) =>
             Action(types.SEARCH, { letter }),
 
-        goToPage: (index) =>
-            Action(types.GO_TO_PAGE, { index }),
+        nextPage: () => Action(types.NEXT_PAGE),
+        prevPage: () => Action(types.PREV_PAGE),
+        firstPage: () => Action(types.FIRST_PAGE),
+        lastPage: () => Action(types.LAST_PAGE),
 
         setPageSize: (size) =>
             Action(types.SET_PAGE_SIZE, { size }),

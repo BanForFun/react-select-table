@@ -9,7 +9,7 @@ enableMapSet();
 const nextSortOrder = {
     undefined: true,
     true: false,
-    false: undefined
+    false: null
 }
 
 export default function createTable(namespace, options = {}) {
@@ -27,7 +27,7 @@ export default function createTable(namespace, options = {}) {
         pivotIndex: 0,
         virtualActiveIndex: 0,
         filter: null,
-        sortBy: {},
+        sortAscending: {},
         isLoading: false,
         pageSize: 0,
         pageIndex: 0,
@@ -39,6 +39,8 @@ export default function createTable(namespace, options = {}) {
         sortedItems: {},
         headValue: undefined,
         tailValue: undefined,
+        startValue: undefined,
+        endValue: undefined,
         tableItems: [],
         visibleItemCount: 0,
 
@@ -102,21 +104,19 @@ export default function createTable(namespace, options = {}) {
             setItemOrder(second, firstNext);
             setItemOrder(secondPrev, first);
         }
-
-
     }
 
     function compareItemData(data, other) {
         const compareProperty = (comparator, path) =>
             comparator(_.get(data, path), _.get(other, path));
 
-        for (let path in draft.sortBy) {
+        for (let path in draft.sortAscending) {
             const comparator = _.get(options.comparators, path, compareAscending);
             const result = compareProperty(comparator, path);
 
             if (!result) continue;
 
-            return result * (draft.sortBy[path] ? 1 : -1);
+            return result * (draft.sortAscending[path] ? 1 : -1);
         }
 
         //Ensure that items are never considered equal
@@ -386,13 +386,16 @@ export default function createTable(namespace, options = {}) {
 
                     const { path, shiftKey } = payload;
 
-                    let next = nextSortOrder[state.sortBy[path]];
+                    let next = nextSortOrder[state.sortAscending[path]];
                     if (!shiftKey) {
-                        draft.sortBy = {};
+                        draft.sortAscending = {};
                         next ??= true;
                     }
 
-                    draft.sortBy[path] = next;
+                    if (next === null)
+                        delete draft.sortAscending[path];
+                    else
+                        draft.sortAscending[path] = next;
 
                     sortItems();
 

@@ -59,10 +59,6 @@
             cursor: pointer;
         }
 
-        &:not([data-ascending]) .rst-sortIcon {
-            display: none;
-        }
-
         &[data-ascending=false] .rst-sortIcon {
             transform: rotate(180deg);
         }

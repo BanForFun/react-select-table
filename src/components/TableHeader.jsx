@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {Fragment, useCallback} from 'react';
 import AngleUpIcon from "./AngleUpIcon";
 
 //Child of TableHead
@@ -9,7 +9,8 @@ function TableHeader({
     columnResizeStart,
     actions,
     addResizer,
-    sortAscending
+    sortAscending,
+    sortPriority
 }) {
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0 || !path) return;
@@ -35,7 +36,12 @@ function TableHeader({
         scope="col"
     >
         {title}
-        <AngleUpIcon className="rst-sortIcon" />
+
+        {sortPriority >= 0 && <>
+            <AngleUpIcon className="rst-sortIcon" />
+            <small>{sortPriority}</small>
+        </>}
+
         {addResizer && <div
             className="rst-columnResizer"
             onMouseDown={handleSeparatorMouseDown}

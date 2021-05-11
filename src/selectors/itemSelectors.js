@@ -16,9 +16,9 @@ export const makeGetFilteredItems = (getParsed, options) => createSelector(
 
 export const makeGetSortedItems = (getFiltered) => createSelector(
     getFiltered,
-    s => s.sortBy,
-   (filtered, sortBy) =>
-       _.orderBy(filtered, _.keys(sortBy), _.values(sortBy).map(asc => asc ? "asc" : "desc"))
+    s => s.sortAscending,
+   (filtered, sortAscending) =>
+       _.orderBy(filtered, _.keys(sortAscending), _.values(sortAscending).map(asc => asc ? "asc" : "desc"))
 )
 
 export const makeGetSortedValues = (getSorted, options) => createSelector(

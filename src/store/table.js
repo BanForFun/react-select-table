@@ -28,6 +28,7 @@ export default function createTable(namespace, options = {}) {
         virtualActiveIndex: 0,
         filter: null,
         sortAscending: {},
+        sortCount: 0,
         isLoading: false,
         pageSize: 0,
         pageIndex: 0,
@@ -35,12 +36,9 @@ export default function createTable(namespace, options = {}) {
         searchLetter: null,
         matchIndex: 0,
         items: {},
-
         sortedItems: {},
         headValue: undefined,
         tailValue: undefined,
-        startValue: undefined,
-        endValue: undefined,
         tableItems: [],
         visibleItemCount: 0,
 
@@ -49,7 +47,15 @@ export default function createTable(namespace, options = {}) {
 
     let draft;
 
-    function setItemOrder(first, second) {
+    //#region Item utils
+
+    const getNextVisibleItem = value =>
+        _getVisibleItem(value, item => item.next);
+
+    const getPrevVisibleItem = value =>
+        _getVisibleItem(value, item => item.prev);
+
+    function _setItemOrder(first, second) {
         const secondItem = getItem(second)
         if (secondItem)
             secondItem.prev = first;
@@ -63,25 +69,7 @@ export default function createTable(namespace, options = {}) {
             draft.headValue = second;
     }
 
-    //#region Item utils
-    function addItem(data, prev, next) {
-        const value = data[valueProperty];
-        draft.sortedItems[value] = { data };
-
-        setItemOrder(prev, value);
-        setItemOrder(value, next);
-
-        setItemVisibility(value, options.itemPredicate(data, draft.filter));
-
-        return value;
-    }
-
-    function getItem(value) {
-        if (value === undefined) return null;
-        return draft.sortedItems[value];
-    }
-
-    function setItemVisibility(value, visibility) {
+    function _setItemVisibility(value, visibility) {
         const item = getItem(value);
         if (!!item.visible === visibility) return;
 
@@ -89,62 +77,44 @@ export default function createTable(namespace, options = {}) {
         draft.visibleItemCount += visibility ? 1 : -1;
     }
 
-    function swapItemPositions(first, second) {
+    function _swapItemPositions(first, second) {
         if (first === second) return;
 
-        const {next: firstNext, prev: firstPrev} = getItem(first);
-        const {next: secondNext, prev: secondPrev} = getItem(second);
+        const { next: firstNext, prev: firstPrev } = getItem(first);
+        const { next: secondNext, prev: secondPrev } = getItem(second);
 
-        setItemOrder(firstPrev, second);
-        setItemOrder(first, secondNext);
+        _setItemOrder(firstPrev, second);
+        _setItemOrder(first, secondNext);
 
         if (firstNext === second) {
-            setItemOrder(second, first);
+            _setItemOrder(second, first);
         } else {
-            setItemOrder(second, firstNext);
-            setItemOrder(secondPrev, first);
+            _setItemOrder(second, firstNext);
+            _setItemOrder(secondPrev, first);
         }
     }
 
-    function compareItemData(data, other) {
+    function _compareItemData(data, other, allowEqual = false) {
         const compareProperty = (comparator, path) =>
             comparator(_.get(data, path), _.get(other, path));
 
+        //Ensure that reversing the sort order of a column with all equal values, reverses the items
+        let factor = 1;
         for (let path in draft.sortAscending) {
+            factor = draft.sortAscending[path] ? 1 : -1
+
             const comparator = _.get(options.comparators, path, compareAscending);
             const result = compareProperty(comparator, path);
 
             if (!result) continue;
 
-            return result * (draft.sortAscending[path] ? 1 : -1);
+            return result * factor;
         }
 
-        //Ensure that items are never considered equal
-        return compareProperty(compareAscending, valueProperty);
-    }
+        if (allowEqual)
+            return 0;
 
-    function addItems(data) {
-        data.sort(compareItemData);
-
-        let dataIndex = 0;
-        let current = draft.headValue;
-
-        //In-place merge
-        while (current !== undefined && dataIndex < data.length) {
-            const newData = data[dataIndex];
-            const currentItem = getItem(current);
-
-            if (compareItemData(newData, currentItem.data) < 0) {
-                //New item is smaller
-                addItem(newData, currentItem.prev, current);
-                dataIndex++;
-            } else {
-                current = currentItem.next;
-            }
-        }
-
-        for (; dataIndex < data.length; dataIndex++)
-            addItem(data[dataIndex], draft.tailValue);
+        return compareProperty(compareAscending, valueProperty) * factor;
     }
 
     function _partitionItems(start, end) {
@@ -154,7 +124,7 @@ export default function createTable(namespace, options = {}) {
         let current = start;
 
         const swapBoundary = () => {
-            swapItemPositions(boundary, current);
+            _swapItemPositions(boundary, current);
 
             if (start === boundary)
                 start = current;
@@ -164,7 +134,7 @@ export default function createTable(namespace, options = {}) {
             const currentItem = getItem(current);
             const next = currentItem.next;
 
-            if (compareItemData(currentItem.data, pivotItem.data) < 0) {
+            if (_compareItemData(currentItem.data, pivotItem.data) < 0) {
                 const boundaryItem = getItem(boundary);
                 const nextBoundary = boundaryItem.next;
                 swapBoundary();
@@ -178,6 +148,7 @@ export default function createTable(namespace, options = {}) {
         end = boundary;
 
         return {
+            //Add startIndex and boundaryIndex
             pivotItem,
             start, end
         };
@@ -186,7 +157,7 @@ export default function createTable(namespace, options = {}) {
     function _sortItems(start, end) {
         if (start === end) return;
 
-        const updated = _partitionItems(start, end);
+        const updated = _partitionItems(...arguments);
         const {prev, next} = updated.pivotItem;
 
         if (updated.start !== end)
@@ -196,8 +167,78 @@ export default function createTable(namespace, options = {}) {
             _sortItems(next, updated.end);
     }
 
+    function _getVisibleItem(value, getNextValue) {
+        let item = getItem(value);
+
+        do {
+            item = getItem(getNextValue(item));
+        } while (item && !item.visible)
+
+        return item;
+    }
+
     function sortItems() {
         _sortItems(draft.headValue, draft.tailValue);
+    }
+
+    function addItem(data, prev, next) {
+        const value = data[valueProperty];
+        const item = draft.sortedItems[value] = { data };
+
+        _setItemOrder(prev, value);
+        _setItemOrder(value, next);
+
+        _setItemVisibility(value, options.itemPredicate(data, draft.filter));
+
+        return item;
+    }
+
+    function getItem(value) {
+        if (value === undefined) return null;
+        return draft.sortedItems[value];
+    }
+
+    function addItems(data) {
+        data.sort(_compareItemData);
+
+        let addToTable = false;
+
+        const addTableItem = item => {
+            if (!addToTable) return;
+            if (!item.visible) return;
+            if (draft.tableItems.length >= draft.pageSize) return;
+
+            draft.tableItems.push(item.data);
+        }
+
+        let dataIndex = 0;
+        let current = draft.headValue;
+
+        const startValue = draft.tableItems[0]?.[valueProperty];
+        draft.tableItems = [];
+
+        //In-place merge
+        while (current !== undefined && dataIndex < data.length) {
+            const newData = data[dataIndex];
+            const currentItem = getItem(current);
+
+            if (current === startValue)
+                addToTable = true;
+
+            if (_compareItemData(newData, currentItem.data) < 0) {
+                //New item is smaller
+                addTableItem(addItem(newData, currentItem.prev, current));
+                dataIndex++;
+            } else {
+                addTableItem(currentItem);
+                current = currentItem.next;
+            }
+        }
+
+        addToTable = true;
+
+        for (; dataIndex < data.length; dataIndex++)
+            addTableItem(addItem(data[dataIndex], draft.tailValue));
     }
 
     //#endregion
@@ -205,25 +246,10 @@ export default function createTable(namespace, options = {}) {
     //#region Debugging
 
     function debugInit() {
-        const debugItems = [
-            { id: 5 },
-            { id: 10 },
-            { id: 1 },
-            { id: 4 },
-            { id: 12 },
-            { id: 13 },
-        ];
 
-        // for (let item of debugItems)
-        //     addItem(item, draft.tailValue);
     }
 
     function debug() {
-        console.log(" ")
-        printHead();
-    }
-
-    function printHead() {
         let count = 0;
         let value = draft.headValue;
         while (value !== undefined && ++count <= 10) {
@@ -233,6 +259,7 @@ export default function createTable(namespace, options = {}) {
             value = item.next;
         }
     }
+
 
     //#endregion
 
@@ -306,6 +333,8 @@ export default function createTable(namespace, options = {}) {
     }
 
     return (state = initState, action) => {
+        console.clear();
+
         if (action.type === "@@INIT")
             return produce(state, newDraft => {
                 draft = newDraft;
@@ -576,6 +605,8 @@ export default function createTable(namespace, options = {}) {
                 }
             }
         });
+
+        console.log(state.tableItems);
 
         //A new object will rarely be created
         return produce(nextState, _draft => {

@@ -14,6 +14,10 @@ const columns = [
         title: "Completed",
         path: "completed",
         render: renderCheckOrX
+    },
+    {
+        title: "E",
+        path: "e"
     }
 ];
 

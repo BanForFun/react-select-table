@@ -20,11 +20,10 @@ function ScrollingContainer(props) {
         actions
     } = props;
 
-    const rows = utils.useSelector(selectors.getPaginatedItems);
+    const rowCount = utils.useSelector(s => s.rows.length);
     const startIndex = utils.useSelector(selectors.getFirstVisibleIndex);
     const isLoading = utils.useSelector(s => s.isLoading);
     const error = utils.useSelector(s => s.error);
-    const rowCount = rows.length;
 
     const [cursorClass, setCursorClass] = useState(null);
 

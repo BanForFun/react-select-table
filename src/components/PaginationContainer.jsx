@@ -1,5 +1,5 @@
-import React from 'react';
-import {getActivePageIndex} from "../selectors/paginationSelectors";
+import React, {useMemo} from 'react';
+import {relativePos} from "../store/table";
 
 //Child of Root
 function PaginationContainer({
@@ -9,23 +9,28 @@ function PaginationContainer({
     table: { utils, selectors }
 }) {
     const pageIndex = utils.useSelector(s => s.pageIndex);
-    const activePageIndex = utils.useSelector(getActivePageIndex);
     const pageCount = utils.useSelector(selectors.getPageCount);
 
     if (showPlaceholder || !pageCount) return null;
 
+    const actionAliases = useMemo(() => {
+        const createAlias = pos => () => actions.goToPageRelative(pos);
+
+        return {
+            nextPage: createAlias(relativePos.NEXT),
+            prevPage: createAlias(relativePos.PREV),
+            firstPage: createAlias(relativePos.FIRST),
+            lastPage: createAlias(relativePos.LAST),
+        }
+    }, [actions]);
+
     const paginationProps = {
         page: pageIndex + 1,
-        activePage: activePageIndex + 1,
-        pageCount,
-        nextPage: actions.nextPage,
-        prevPage: actions.prevPage,
-        firstPage: actions.firstPage,
-        lastPage: actions.lastPage
+        pageCount
     };
 
     return <div className="rst-paginationContainer">
-        <Pagination {...paginationProps} />
+        <Pagination {...paginationProps} {...actionAliases} />
     </div>
 }
 

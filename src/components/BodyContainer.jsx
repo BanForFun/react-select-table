@@ -24,8 +24,8 @@ function BodyContainer(props) {
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
-    const noItems = !utils.useSelector(selectors.getItemCount);
-    const selectionSize = utils.useSelector(t => t.selection.size);
+    const noItems = utils.useSelector(s => !s.visibleItemCount);
+    const noSelection = utils.useSelector(s => !s.selection.size);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
@@ -40,13 +40,13 @@ function BodyContainer(props) {
         if (isTouching.current)
             dragSelectStart([e.clientX, e.clientY]);
         else
-            actions.contextMenu(null, e.ctrlKey);
+            actions.contextMenu(null, e);
     }, [dragSelectStart, actions]);
 
     const handleDoubleClick = useCallback(() => {
-        if (!selectionSize) return;
+        if (noSelection) return;
         onItemsOpen(getSelectionArg(), false);
-    }, [onItemsOpen, getSelectionArg, selectionSize]);
+    }, [onItemsOpen, getSelectionArg, noSelection]);
 
     useEvent(window, "touchend", useCallback(() => {
         isTouching.current = false;

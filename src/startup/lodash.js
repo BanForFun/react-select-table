@@ -14,15 +14,18 @@ const forRange = (x, y, callback) => {
 const getOrSource = (source, path) =>
     path ? _.get(source, path) : source;
 
-const replaceSetValue = (set, oldValue, newValue) => {
+const setReplaceValue = (set, oldValue, newValue) => {
     if (set.delete(oldValue))
         set.add(newValue)
 }
 
-const toggleSetValue = (set, value, exists) => {
+const setToggleValue = (set, value, exists) => {
     if (exists) set.add(value);
     else set.delete(value);
 }
+
+const setAddMany = (set, values) =>
+    values.forEach(v => set.add(v))
 
 const inRangeRelative = (n, start, endOffset) =>
     _.inRange(n, start, start + endOffset);
@@ -32,8 +35,9 @@ export default function() {
         sortTuple,
         forRange,
         getOrSource,
-        replaceSetValue,
-        toggleSetValue,
+        setReplaceValue,
+        setToggleValue,
+        setAddMany,
         inRangeRelative
     })
 }

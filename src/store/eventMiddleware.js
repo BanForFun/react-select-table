@@ -16,7 +16,7 @@ function compareSets(a, b) {
 }
 
 const eventMiddleware = store => next => action => {
-    const { type, namespace, payload } = action;
+    const { type, namespace } = action;
 
     switch (type) {
         case types.SET_ITEMS:
@@ -47,13 +47,11 @@ const eventMiddleware = store => next => action => {
                 events.onSelectionChange(selectors.getSelectionArg(slice));
 
             //Raise onContextMenu
-            if (type === types.CONTEXT_MENU) {
-                const index = payload.ctrlKey ? slice.virtualActiveIndex : payload.index;
+            if (type === types.CONTEXT_MENU)
                 events.onContextMenu(options.listBox
-                    ? selectors.getSortedValues(slice)[index]
+                    ? slice.virtualActiveValue
                     : selectors.getSelectionArg(slice)
                 );
-            }
 
             return result;
         default:

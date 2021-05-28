@@ -1,21 +1,9 @@
-import {createSelector} from "reselect";
-
-export const makeGetPaginatedItems = (getSorted) => createSelector(
-    getSorted,
-    getFirstVisibleIndex,
-    s => s.pageSize,
-    (sorted, start, size) =>
-        size ? sorted.slice(start, start + size) : sorted
-)
-
-export const makeGetPageCount = (getItemCount) => s => {
-    const { pageSize } = s;
+export const getPageCount = s => {
+    const { pageSize, visibleItemCount } = s;
     if (!pageSize) return null;
+    if (!visibleItemCount) return 1;
 
-    const itemCount = getItemCount(s);
-    if (!itemCount) return 1;
-
-    return Math.ceil(itemCount / pageSize);
+    return Math.ceil(visibleItemCount / pageSize);
 }
 
 export const getActivePageIndex = s =>

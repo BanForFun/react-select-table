@@ -1,16 +1,23 @@
 import _ from "lodash";
-import produce, {enableMapSet, original, current} from "immer";
+import produce, {enableMapSet, original} from "immer";
 import {types} from "../models/Actions";
 import {setOptions} from "../utils/tableUtils";
 import {compareAscending} from "../utils/sortUtils";
 
 enableMapSet();
 
-const nextSortOrder = {
+const nextSortOrder = Object.freeze({
     undefined: true,
     true: false,
     false: null
-}
+})
+
+export const relativePos = Object.freeze({
+    NEXT: 1,
+    PREV: -1,
+    FIRST: "first",
+    LAST: "last"
+})
 
 export default function createTable(namespace, options = {}) {
     const selectors = setOptions(namespace, options);
@@ -23,9 +30,9 @@ export default function createTable(namespace, options = {}) {
 
     const initState = {
         selection: new Set(),
-        activeIndex: 0,
-        pivotIndex: 0,
-        virtualActiveIndex: 0,
+        activeIndex: 0, //Legacy
+        pivotIndex: 0, //Legacy
+        virtualActiveIndex: 0, //Legacy
         filter: null,
         sortAscending: {},
         sortCount: 0,
@@ -33,14 +40,17 @@ export default function createTable(namespace, options = {}) {
         pageSize: 0,
         pageIndex: 0,
         error: null,
-        searchLetter: null,
-        matchIndex: 0,
+        searchLetter: null, //Legacy
+        matchIndex: 0, //Legacy
         items: {},
         sortedItems: {},
         headValue: undefined,
         tailValue: undefined,
-        tableItems: [],
+        rows: [],
         visibleItemCount: 0,
+        activeValue: undefined,
+        pivotValue: undefined,
+        virtualActiveValue: undefined,
 
         ...options.initState
     };
@@ -49,20 +59,17 @@ export default function createTable(namespace, options = {}) {
 
     //#region Item utils
 
-    const getNextVisibleItem = value =>
-        _getVisibleItem(value, item => item.next);
-
-    const getPrevVisibleItem = value =>
-        _getVisibleItem(value, item => item.prev);
-
     function _setItemOrder(first, second) {
-        const secondItem = getItem(second)
+        const {
+            [second]: secondItem,
+            [first]: firstItem
+        } = draft.sortedItems
+
         if (secondItem)
             secondItem.prev = first;
         else
             draft.tailValue = first;
 
-        const firstItem = getItem(first)
         if (firstItem)
             firstItem.next = second;
         else
@@ -70,7 +77,7 @@ export default function createTable(namespace, options = {}) {
     }
 
     function _setItemVisibility(value, visibility) {
-        const item = getItem(value);
+        const item = draft.sortedItems[value];
         if (!!item.visible === visibility) return;
 
         item.visible = visibility;
@@ -80,8 +87,10 @@ export default function createTable(namespace, options = {}) {
     function _swapItemPositions(first, second) {
         if (first === second) return;
 
-        const { next: firstNext, prev: firstPrev } = getItem(first);
-        const { next: secondNext, prev: secondPrev } = getItem(second);
+        const {
+            [first]: { next: firstNext, prev: firstPrev },
+            [second]: { next: secondNext, prev: secondPrev }
+        } = draft.sortedItems
 
         _setItemOrder(firstPrev, second);
         _setItemOrder(first, secondNext);
@@ -94,9 +103,9 @@ export default function createTable(namespace, options = {}) {
         }
     }
 
-    function _compareItemData(data, other, allowEqual = false) {
+    function _compareItemData(thisData, otherData, allowEqual = false) {
         const compareProperty = (comparator, path) =>
-            comparator(_.get(data, path), _.get(other, path));
+            comparator(_.get(thisData, path), _.get(otherData, path));
 
         //Ensure that reversing the sort order of a column with all equal values, reverses the items
         let factor = 1;
@@ -118,7 +127,7 @@ export default function createTable(namespace, options = {}) {
     }
 
     function _partitionItems(start, end) {
-        const pivotItem = getItem(end);
+        const pivotItem =  draft.sortedItems[end];
 
         let boundary = start;
         let current = start;
@@ -131,11 +140,11 @@ export default function createTable(namespace, options = {}) {
         }
 
         while (current !== end) {
-            const currentItem = getItem(current);
+            const currentItem = draft.sortedItems[current];
             const next = currentItem.next;
 
             if (_compareItemData(currentItem.data, pivotItem.data) < 0) {
-                const boundaryItem = getItem(boundary);
+                const boundaryItem = draft.sortedItems[boundary];
                 const nextBoundary = boundaryItem.next;
                 swapBoundary();
                 boundary = nextBoundary;
@@ -148,7 +157,6 @@ export default function createTable(namespace, options = {}) {
         end = boundary;
 
         return {
-            //Add startIndex and boundaryIndex
             pivotItem,
             start, end
         };
@@ -167,18 +175,86 @@ export default function createTable(namespace, options = {}) {
             _sortItems(next, updated.end);
     }
 
-    function _getVisibleItem(value, getNextValue) {
-        let item = getItem(value);
-
-        do {
-            item = getItem(getNextValue(item));
-        } while (item && !item.visible)
-
-        return item;
-    }
-
     function sortItems() {
         _sortItems(draft.headValue, draft.tailValue);
+        firstPage()
+    }
+
+    function getRelativeVisibleValue(relPos, originValue) {
+        let nextProperty;
+
+        if (relPos === relativePos.FIRST) {
+            originValue = draft.headValue;
+            nextProperty = "next";
+            relPos = 0
+        } else if (relPos === relativePos.LAST) {
+            originValue = draft.tailValue;
+            nextProperty = "prev";
+            relPos = 0
+        } else
+            nextProperty = relPos > 0 ? "next" : "prev";
+
+        let currentPos = 0
+        let currentValue = originValue;
+        while (currentValue !== undefined) {
+            const item = draft.sortedItems[currentValue];
+            if (item.visible && (currentPos++ === Math.abs(relPos)))
+                return currentValue;
+
+            currentValue = item[nextProperty];
+        }
+    }
+
+    function _addTableItems(originValue, forward, inclusive = true) {
+        draft.rows = []
+
+        const nextProperty = forward ? "next" : "prev"
+        const indexOffset = forward ? 1 : -1
+        let currentIndex = forward ? 0 : draft.pageSize - 1
+        let currentValue = originValue;
+
+        while (currentValue !== undefined && draft.rows.length < draft.pageSize) {
+            const item = draft.sortedItems[currentValue];
+            currentValue = item[nextProperty];
+
+            if (!inclusive) {
+                inclusive = true;
+                continue;
+            }
+
+            if (!item.visible) continue;
+
+            draft.rows[currentIndex] = item.data;
+            currentIndex += indexOffset
+        }
+    }
+
+    function firstPage() {
+        _addTableItems(draft.headValue, true)
+        draft.pageIndex = 0
+        resetActiveValue();
+    }
+
+    function lastPage() {
+        _addTableItems(draft.tailValue, false)
+        draft.pageIndex = getMaxPageIndex()
+        resetActiveValue();
+    }
+
+    function nextPage() {
+        if (draft.pageIndex === getMaxPageIndex()) return;
+
+        _addTableItems(_.last(draft.rows)[valueProperty], true, false)
+        draft.pageIndex++
+        resetActiveValue();
+    }
+
+    function prevPage() {
+        if (draft.pageIndex === 0) return;
+
+        _addTableItems(draft.rows[0][valueProperty], false, false)
+        draft.pageIndex--
+        resetActiveValue();
     }
 
     function addItem(data, prev, next) {
@@ -193,52 +269,62 @@ export default function createTable(namespace, options = {}) {
         return item;
     }
 
-    function getItem(value) {
-        if (value === undefined) return null;
-        return draft.sortedItems[value];
-    }
-
     function addItems(data) {
-        data.sort(_compareItemData);
+        const firstRow = draft.rows[0]?.[valueProperty];
+        draft.rows = [];
+
+        function addRow(item) {
+            if (draft.rows.length >= draft.pageSize) return;
+            if (!item.visible) return;
+
+            draft.rows.push(item.data);
+        }
 
         let addToTable = false;
-
-        const addTableItem = item => {
-            if (!addToTable) return;
-            if (!item.visible) return;
-            if (draft.tableItems.length >= draft.pageSize) return;
-
-            draft.tableItems.push(item.data);
-        }
 
         let dataIndex = 0;
         let current = draft.headValue;
 
-        const startValue = draft.tableItems[0]?.[valueProperty];
-        draft.tableItems = [];
+        data.sort(_compareItemData);
 
         //In-place merge
         while (current !== undefined && dataIndex < data.length) {
             const newData = data[dataIndex];
-            const currentItem = getItem(current);
+            let currentItem = draft.sortedItems[current];
 
-            if (current === startValue)
+            if (current === firstRow)
                 addToTable = true;
 
             if (_compareItemData(newData, currentItem.data) < 0) {
                 //New item is smaller
-                addTableItem(addItem(newData, currentItem.prev, current));
+                currentItem = addItem(newData, currentItem.prev, current);
                 dataIndex++;
-            } else {
-                addTableItem(currentItem);
+            } else
                 current = currentItem.next;
-            }
+
+            if (addToTable)
+                addRow(currentItem)
         }
 
-        addToTable = true;
-
         for (; dataIndex < data.length; dataIndex++)
-            addTableItem(addItem(data[dataIndex], draft.tailValue));
+            addRow(addItem(data[dataIndex], draft.tailValue));
+    }
+
+    function setRangeSelected(from, to, selected) {
+        const {
+            [from]: fromItem,
+            [to]: toItem
+        } = draft.sortedItems
+
+        if (!fromItem || !toItem) return;
+
+        const nextProperty = _compareItemData(fromItem.data, toItem.data) > 0 ? "prev" : "next"
+
+        let currentValue = from;
+        while (currentValue !== toItem[nextProperty]) {
+            _.setToggleValue(draft.selection, currentValue, selected)
+            currentValue = draft.sortedItems[currentValue][nextProperty]
+        }
     }
 
     //#endregion
@@ -250,86 +336,62 @@ export default function createTable(namespace, options = {}) {
     }
 
     function debug() {
-        let count = 0;
-        let value = draft.headValue;
-        while (value !== undefined && ++count <= 10) {
-            const item = getItem(value);
-            console.log(value, current(item));
 
-            value = item.next;
-        }
     }
-
 
     //#endregion
 
 
     //Utilities
+    function getMaxPageIndex() {
+        return selectors.getPageCount(draft) - 1
+    }
+
     function setActiveIndex(index) {
         draft.activeIndex = index;
         draft.virtualActiveIndex = index;
 
         draft.searchLetter = null;
+    }
 
-        draft.pageIndex = selectors.getActivePageIndex(draft);
+    function resetActiveValue() {
+        setActiveIndex(draft.rows[0][valueProperty])
+    }
+
+    function setActiveValue(value) {
+        draft.activeValue = value;
+        draft.virtualActiveValue = value;
     }
 
     function clearSelection() {
         draft.selection.clear();
-        draft.pivotIndex = draft.activeIndex;
+        draft.pivotValue = draft.activeValue;
     }
 
-    function selectOne(value) {
+    function selectOnly(value) {
         draft.selection.clear();
         draft.selection.add(value);
     }
 
     function parseValue(value) {
-        return draft.items[value][valueProperty];
-    }
-
-    function setItems(array) {
-        Object.assign(draft, {
-            items: _.keyBy(array, valueProperty),
-            isLoading: false,
-            error: null
-        });
-
-        setActiveIndex(0);
-        clearSelection();
-    }
-
-    function parseIndex(index) {
-        index = parseInt(index);
-        return _.inRange(index, selectors.getItemCount(original(draft)))
-            ? index : null;
+        return draft.sortedItems[value].data[valueProperty];
     }
 
 
     function clearItems() {
         Object.assign(draft, {
-            headValue: null,
-            tailValue: null,
+            headValue: undefined,
+            tailValue: undefined,
             visibleItemCount: 0,
-            tableItems: [],
-            items: {},
+            pageIndex: 0,
+            rows: [],
+            sortedItems: {},
             isLoading: false,
             error: null
         });
 
-        setActiveIndex(0);
+        setActiveValue(undefined);
         clearSelection();
-    }
-
-
-    function goToPage(index) {
-        if (!_.inRange(index, selectors.getPageCount(draft))) return;
-
-        draft.pageIndex = index;
-
-        draft.virtualActiveIndex = selectors.getActivePageIndex(draft) === index
-            ? draft.activeIndex
-            : selectors.getFirstVisibleIndex(draft);
     }
 
     return (state = initState, action) => {
@@ -344,10 +406,12 @@ export default function createTable(namespace, options = {}) {
         if (action.namespace !== namespace)
             return state;
 
-        const nextState = produce(state, newDraft => {
+        return produce(state, newDraft => {
             draft = newDraft;
 
             const { payload } = action;
+
+            // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
                 case types.DEBUG: {
                     debug();
@@ -356,7 +420,7 @@ export default function createTable(namespace, options = {}) {
 
                 //Items
                 case types.SET_ITEMS: {
-                    setItems(payload.items);
+                    clearItems();
                     addItems(payload.items);
                     break;
                 }
@@ -365,52 +429,48 @@ export default function createTable(namespace, options = {}) {
                     if (!items.length) break;
 
                     clearSelection();
-                    for (let item of items) {
-                        const value = item[valueProperty];
-                        draft.items[value] = item;
+                    addItems(items);
+                    items.forEach(item => draft.selection.add(item[valueProperty]));
 
-                        if (multiSelect) draft.selection.add(value);
-                    }
                     break;
                 }
                 case types.DELETE_ITEMS: {
-                    const { values } = payload;
-                    if (!values.length) break;
-
-                    for (let value of values)
-                        delete draft.items[value];
-
-                    setActiveIndex(draft.pivotIndex);
-                    clearSelection();
+                    // const { values } = payload;
+                    // if (!values.length) break;
+                    //
+                    // for (let value of values)
+                    //     delete draft.items[value];
+                    //
+                    // setActiveIndex(draft.pivotIndex);
+                    // clearSelection();
                     break;
                 }
                 case types.SET_ITEM_VALUES: {
-                    _.forEach(payload.map, (newValue, oldValue) => {
-                        oldValue = parseValue(oldValue);
-                        if (oldValue === newValue) return;
-
-                        //Update selection
-                        _.replaceSetValue(draft.selection, oldValue, newValue);
-
-                        //Create new item
-                        const newItem = draft.items[oldValue];
-                        newItem[valueProperty] = newValue;
-                        draft.items[newValue] = newItem;
-
-                        //Delete old item
-                        delete draft.items[oldValue];
-                    });
+                    // _.forEach(payload.map, (newValue, oldValue) => {
+                    //     oldValue = parseValue(oldValue);
+                    //     if (oldValue === newValue) return;
+                    //
+                    //     //Update selection
+                    //     _.setReplaceValue(draft.selection, oldValue, newValue);
+                    //
+                    //     //Create new item
+                    //     const newItem = draft.items[oldValue];
+                    //     newItem[valueProperty] = newValue;
+                    //     draft.items[newValue] = newItem;
+                    //
+                    //     //Delete old item
+                    //     delete draft.items[oldValue];
+                    // });
 
                     break;
                 }
                 case types.PATCH_ITEMS: {
-                    clearSelection();
-                    for (let patch of payload.patches)
-                        Object.assign(draft.items[patch[valueProperty]], patch);
+                    // clearSelection();
+                    // for (let patch of payload.patches)
+                    //     Object.assign(draft.items[patch[valueProperty]], patch);
                     break;
                 }
                 case types.SORT_ITEMS: {
-                    setActiveIndex(0);
                     clearSelection();
 
                     const { path, shiftKey } = payload;
@@ -431,14 +491,14 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SET_ITEM_FILTER: {
-                    setActiveIndex(0);
-                    clearSelection();
-
-                    draft.filter = payload.filter;
+                    // setActiveIndex(0);
+                    // clearSelection();
+                    //
+                    // draft.filter = payload.filter;
                     break;
                 }
                 case types.CLEAR_ITEMS: {
-                    setItems([]);
+                    // setItems([]);
                     break;
                 }
                 case types.START_LOADING: {
@@ -454,22 +514,31 @@ export default function createTable(namespace, options = {}) {
                 }
 
                 //Selection
+                case types.SELECT_RELATIVE: {
+                    const value = getRelativeVisibleValue(payload.position, draft.virtualActiveValue);
+
+                    if (draft.virtualActiveValue !== draft.activeValue)
+                        draft.pivotValue = draft.activeValue;
+
+                    if (payload.ctrlKey && !payload.shiftKey) {
+                        setActiveValue(value);
+                        draft.pivotValue = value;
+                        break;
+                    }
+
+                    payload.value = value;
+                    //Deliberate fall-through
+                }
                 case types.SELECT: {
-                    const {shiftKey, ctrlKey} = payload;
+                    const { value, ctrlKey, shiftKey } = payload;
 
-                    let index = parseIndex(payload.index);
-                    if (index === null) break;
+                    const item = draft.sortedItems[value];
+                    if (!item?.visible) break;
 
-                    if (payload.fromKeyboard && draft.virtualActiveIndex !== draft.activeIndex)
-                        draft.pivotIndex = draft.virtualActiveIndex;
-
-                    setActiveIndex(index);
-
-                    const values = selectors.getSortedValues(state);
-                    const value = values[index];
+                    setActiveValue(value);
 
                     if (!multiSelect) {
-                        selectOne(value);
+                        selectOnly(value);
                         break;
                     }
 
@@ -479,43 +548,39 @@ export default function createTable(namespace, options = {}) {
                         selection.clear();
 
                     if (shiftKey) {
-                        if (ctrlKey) {
+                        if (ctrlKey)
                             //Clear previous selection
-                            _.forRange(draft.pivotIndex, state.activeIndex, i =>
-                                selection.delete(values[i]));
-                        }
+                            setRangeSelected(draft.pivotValue, original(draft).activeValue, false)
 
-                        _.forRange(draft.pivotIndex, index, i =>
-                            selection.add(values[i]));
-
+                        setRangeSelected(draft.pivotValue, value, true);
                         break;
                     }
 
-                    draft.pivotIndex = index;
+                    draft.pivotValue = value;
 
                     const selected = !ctrlKey || !selection.has(value);
-                    _.toggleSetValue(selection, value, selected);
+                    _.setToggleValue(selection, value, selected);
 
                     break;
                 }
                 case types.CONTEXT_MENU: {
                     //Should still be dispatched for middleware
-                    if (payload.ctrlKey) break;
-
-                    const index = parseIndex(payload.index);
-                    if (index === null) {
-                        if (!listBox) clearSelection();
-                        break;
-                    }
-
-                    setActiveIndex(index);
-
-                    if (listBox) break;
-
-                    const value = selectors.getSortedValues(state)[index];
-                    if (draft.selection.has(value)) break;
-
-                    selectOne(value);
+                    // if (payload.ctrlKey) break;
+                    //
+                    // const index = parseIndex(payload.index);
+                    // if (index === null) {
+                    //     if (!listBox) clearSelection();
+                    //     break;
+                    // }
+                    //
+                    // setActiveIndex(index);
+                    //
+                    // if (listBox) break;
+                    //
+                    // const value = selectors.getSortedValues(state)[index];
+                    // if (draft.selection.has(value)) break;
+                    //
+                    // selectOnly(value);
                     break;
                 }
                 case types.CLEAR_SELECTION: {
@@ -523,102 +588,88 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SET_SELECTED: {
-                    //Active index
-                    const setActive = parseIndex(payload.active);
-                    if (setActive !== null)
-                        setActiveIndex(setActive);
-
-                    //Pivot index
-                    const setPivot = parseIndex(payload.pivot);
-                    if (setPivot !== null)
-                        draft.pivotIndex = setPivot;
-
-                    //Selection
-                    _.forEach(payload.map, (selected, index) => {
-                        index = parseIndex(index);
-                        if (index === null) return;
-
-                        const value = selectors.getSortedValues(state)[index];
-                        _.toggleSetValue(draft.selection, value, selected);
-                    });
+                    // //Active index
+                    // const setActive = parseIndex(payload.active);
+                    // if (setActive !== null)
+                    //     setActiveIndex(setActive);
+                    //
+                    // //Pivot index
+                    // const setPivot = parseIndex(payload.pivot);
+                    // if (setPivot !== null)
+                    //     draft.pivotIndex = setPivot;
+                    //
+                    // //Selection
+                    // _.forEach(payload.map, (selected, index) => {
+                    //     index = parseIndex(index);
+                    //     if (index === null) return;
+                    //
+                    //     const value = selectors.getSortedValues(state)[index];
+                    //     _.setToggleValue(draft.selection, value, selected);
+                    // });
                     break;
                 }
                 case types.SELECT_ALL: {
-                    draft.selection = new Set(selectors.getSortedValues(state));
-                    break;
-                }
-                case types.SET_ACTIVE: {
-                    const index = parseIndex(payload.index);
-                    if (index === null) break;
-
-                    setActiveIndex(index);
-                    draft.pivotIndex = index;
+                    draft.selection.clear();
+                    _.setAddMany(draft.selection, _.map(draft.rows, valueProperty))
                     break;
                 }
                 case types.SEARCH: {
-                    const letter = payload.letter.toLowerCase();
-                    const matches = selectors.getSearchIndex(state)[letter];
-                    if (!matches) break;
-
-                    //Find item index
-                    const nextIndex = draft.matchIndex + 1;
-                    const matchIndex = letter === draft.searchLetter && nextIndex < matches.length ? nextIndex : 0;
-                    const itemIndex = matches[matchIndex];
-
-                    //Select item
-                    setActiveIndex(itemIndex);
-                    selectOne(selectors.getSortedValues(state)[itemIndex]);
-
-                    draft.searchLetter = letter;
-                    draft.matchIndex = matchIndex;
+                    // const letter = payload.letter.toLowerCase();
+                    // const matches = selectors.getSearchIndex(state)[letter];
+                    // if (!matches) break;
+                    //
+                    // //Find item index
+                    // const nextIndex = draft.matchIndex + 1;
+                    // const matchIndex = letter === draft.searchLetter && nextIndex < matches.length ? nextIndex : 0;
+                    // const itemIndex = matches[matchIndex];
+                    //
+                    // //Select item
+                    // setActiveIndex(itemIndex);
+                    // selectOnly(selectors.getSortedValues(state)[itemIndex]);
+                    //
+                    // draft.searchLetter = letter;
+                    // draft.matchIndex = matchIndex;
                     break;
                 }
 
                 //Pagination
                 case types.SET_PAGE_SIZE: {
-                    const newSize = parseInt(payload.size);
-                    //NaN >= x is false so doing the comparison in this way avoids an isNaN check
-                    if (!(newSize >= 0)) break;
+                    // const newSize = parseInt(payload.size);
+                    // //NaN >= x is false so doing the comparison in this way avoids an isNaN check
+                    // if (!(newSize >= 0)) break;
+                    //
+                    // draft.pageSize = newSize;
+                    // setActiveIndex(draft.activeIndex); //Go to the active page
+                    break;
+                }
+                case types.GO_TO_PAGE_RELATIVE: {
+                    switch (payload.position) {
+                        case relativePos.NEXT:
+                            nextPage();
+                            break;
+                        case relativePos.PREV:
+                            prevPage();
+                            break;
+                        case relativePos.FIRST:
+                            firstPage();
+                            break;
+                        case relativePos.LAST:
+                            lastPage();
+                            break;
+                    }
 
-                    draft.pageSize = newSize;
-                    setActiveIndex(draft.activeIndex); //Go to the active page
-                    break;
-                }
-                case types.NEXT_PAGE: {
-                    goToPage(draft.pageIndex + 1);
-                    break;
-                }
-                case types.PREV_PAGE: {
-                    goToPage(draft.pageIndex - 1);
-                    break;
-                }
-                case types.FIRST_PAGE: {
-                    goToPage(0);
-                    break;
-                }
-                case types.LAST_PAGE: {
-                    goToPage(selectors.getPageCount(draft) - 1);
-                    break;
+                    // if (!_.inRange(index, selectors.getPageCount(draft))) break;
+                    //
+                    // draft.pageIndex = index;
+                    //
+                    // draft.virtualActiveIndex = selectors.getActivePageIndex(draft) === index
+                    //     ? draft.activeIndex
+                    //     : selectors.getFirstVisibleIndex(draft);
                 }
                 default: {
                     break;
                 }
             }
-        });
-
-        console.log(state.tableItems);
-
-        //A new object will rarely be created
-        return produce(nextState, _draft => {
-            draft = _draft;
-
-            const maxItem = Math.max(selectors.getItemCount(nextState) - 1, 0);
-            draft.activeIndex = Math.min(draft.activeIndex, maxItem);
-            draft.virtualActiveIndex = Math.min(draft.virtualActiveIndex, maxItem);
-            draft.pivotIndex = Math.min(draft.pivotIndex, maxItem);
-
-            const maxPage = Math.max(selectors.getPageCount(nextState) - 1, 0);
-            draft.pageIndex = Math.min(draft.pageIndex, maxPage);
         });
     }
 }

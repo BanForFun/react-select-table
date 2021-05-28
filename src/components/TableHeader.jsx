@@ -1,4 +1,4 @@
-import React, {Fragment, useCallback} from 'react';
+import React, {useCallback} from 'react';
 import AngleUpIcon from "./AngleUpIcon";
 
 //Child of TableHead
@@ -13,8 +13,8 @@ function TableHeader({
     sortPriority
 }) {
     const handleMouseDown = useCallback(e => {
-        if (e.button !== 0 || !path) return;
-        actions.sortItems(path, e.shiftKey);
+        if (!e.button && path)
+            actions.sortItems(path, e);
     }, [path, actions]);
 
     const handleResizeStart = useCallback(e => {

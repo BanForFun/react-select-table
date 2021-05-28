@@ -4,6 +4,7 @@ import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
 import classNames from "classnames";
 import {matchModifiers} from "../utils/eventUtils";
+import {relativePos} from "../store/table";
 
 //Child of Connector
 function Root(props) {
@@ -42,48 +43,30 @@ function Root(props) {
         }, [handler, events]);
     }
 
-    const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
+    const virtualActiveValue = utils.useSelector(s => s.virtualActiveValue);
     const pageCount = utils.useSelector(selectors.getPageCount);
-    const itemCount = utils.useSelector(selectors.getItemCount);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const pageSize = utils.useSelector(s => s.pageSize);
     const showPlaceholder = utils.useSelector(s => s.isLoading || !!s.error);
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
-    const getSortedValues = utils.useSelectorGetter(selectors.getSortedValues);
 
-    const selectIndex = useCallback((e, index) => {
-        if (matchModifiers(e, true, false))
-            actions.setActive(index);
-        else
-            actions.select(index, true, e.ctrlKey, e.shiftKey);
-    }, [actions]);
-
-    const selectOffset = useCallback((e, offset) => {
-        const index = virtualActiveIndex + offset;
-        if (!_.inRange(index, itemCount)) return;
-
-        selectIndex(e, index);
-    }, [
-        selectIndex,
-        virtualActiveIndex, itemCount
-    ]);
 
     const offsetPage = useCallback((e, offset) => {
-        if (!pageCount) return;
+        // if (!pageCount) return;
 
-        const newIndex = pageIndex + offset;
-        if (!_.inRange(newIndex, pageCount)) return;
-
-        const itemIndex = newIndex * pageSize;
-        if (matchModifiers(e, false, false))
-            actions.goToPage(newIndex);
-        else
-            selectIndex(e, itemIndex);
+        // const newIndex = pageIndex + offset;
+        // if (!_.inRange(newIndex, pageCount)) return;
+        //
+        // const itemIndex = newIndex * pageSize;
+        // if (matchModifiers(e, false, false))
+        //     actions.goToPage(newIndex);
+        // else
+        //     selectValue(e, itemIndex);
     }, [
         pageIndex, pageCount, pageSize,
-        actions, selectIndex
+        actions
     ]);
 
     const handleShortcuts = useCallback(e => {
@@ -94,23 +77,22 @@ function Root(props) {
 
                 break;
             case 38: //Up
-                selectOffset(e, -1);
+                actions.selectRelative(relativePos.PREV, e);
                 break;
             case 40: //Down
-                selectOffset(e, 1);
+                actions.selectRelative(relativePos.NEXT, e);
                 break;
             case 36: //Home
-                selectIndex(e, 0);
+                actions.selectRelative(relativePos.FIRST, e);
                 break;
             case 35: //End
-                selectIndex(e, itemCount - 1);
+                actions.selectRelative(relativePos.LAST, e);
                 break;
             case 13: //Enter
-                const value = getSortedValues()[virtualActiveIndex];
-                if (matchModifiers(e, false, false) && selection.has(value))
+                if (matchModifiers(e, false, false) && selection.has(virtualActiveValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(virtualActiveIndex, true, e.ctrlKey, e.shiftKey);
+                    actions.select(virtualActiveValue, e);
 
                 break;
             case 37: //Left
@@ -126,9 +108,9 @@ function Root(props) {
         e.preventDefault();
     }, [
         actions, options, //Component props
-        itemCount, virtualActiveIndex, selection, //Redux props
-        getSortedValues, getSelectionArg, //Redux selectors
-        selectOffset, selectIndex, offsetPage, //Component methods
+        virtualActiveValue, selection, //Redux props
+        getSelectionArg, //Redux selectors
+        offsetPage, //Component methods
         onItemsOpen //Event handlers
     ])
 

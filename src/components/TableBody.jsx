@@ -12,10 +12,12 @@ function TableBody(props) {
         ...rowCommonProps
     } = props;
 
-    const rows = utils.useSelector(selectors.getPaginatedItems);
+    const rows = utils.useSelector(s => s.rows);
     const startIndex = utils.useSelector(selectors.getFirstVisibleIndex);
     const selection = utils.useSelector(s => s.selection);
     const virtualActiveIndex = utils.useSelector(s => s.virtualActiveIndex);
+
+    const virtualActiveValue = utils.useSelector(s => s.virtualActiveValue);
 
     useEffect(() => {
         if (isSelecting.current) return;
@@ -48,7 +50,7 @@ function TableBody(props) {
             key: `row_${props.name}_${value}`,
             item, index, value,
             selected: selection.has(value),
-            active: virtualActiveIndex === index
+            active: value === virtualActiveValue
         };
 
         return <TableRow {...rowProps} />;

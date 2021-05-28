@@ -8,23 +8,17 @@ export default function Selectors(namespace, options) {
     const _getParsedItems = itemSelectors.makeGetParsedItems(options);
     const _getFilteredItems = itemSelectors.makeGetFilteredItems(_getParsedItems, options);
     const getSortedItems = itemSelectors.makeGetSortedItems(_getFilteredItems)
-    const getItemCount = itemSelectors.makeGetItemCount(_getFilteredItems);
     const getSortedValues = itemSelectors.makeGetSortedValues(getSortedItems, options);
     const getSearchIndex = itemSelectors.makeGetSearchIndex(getSortedItems, options);
-
-    const getPageCount = pgSelectors.makeGetPageCount(getItemCount);
-    const getPaginatedItems = pgSelectors.makeGetPaginatedItems(getSortedItems);
 
     return {
         getSelectionArg,
 
         getSortedItems,
-        getItemCount,
         getSortedValues,
         getSearchIndex,
 
-        getPageCount,
-        getPaginatedItems,
+        getPageCount: pgSelectors.getPageCount,
         getActivePageIndex: pgSelectors.getActivePageIndex,
         getFirstVisibleIndex: pgSelectors.getFirstVisibleIndex
     };

@@ -1,53 +1,53 @@
-export const types = Object.freeze({
+export const types = {
     //Items
-    SET_ITEMS: "RST_SET_ITEMS",
-    ADD_ITEMS: "RST_ADD_ITEMS",
-    DELETE_ITEMS: "RST_DELETE_ITEMS",
-    SET_ITEM_VALUES: "RST_SET_ITEM_VALUES",
-    PATCH_ITEMS: "RST_PATCH_ITEMS",
-    CLEAR_ITEMS: "RST_CLEAR_ITEMS",
-    SORT_ITEMS: "RST_SORT_ITEMS",
-    SET_ITEM_FILTER: "RST_SET_ITEM_FILTER",
+    SET_ITEMS: "",
+    ADD_ITEMS: "",
+    DELETE_ITEMS: "",
+    SET_ITEM_VALUES: "",
+    PATCH_ITEMS: "",
+    CLEAR_ITEMS: "",
+    SORT_ITEMS: "",
+    SET_ITEM_FILTER: "",
 
     //Displaying
-    SET_ERROR: "RST_SET_ERROR",
-    START_LOADING: "RST_START_LOADING",
+    SET_ERROR: "",
+    START_LOADING: "",
 
     //Selection
-    SET_SELECTED: "RST_SET_SELECTED",
-    SELECT: "RST_SELECT",
-    CLEAR_SELECTION: "RST_CLEAR_SELECTION",
-    SELECT_ALL: "RST_SELECT_ALL",
-    SET_ACTIVE: "RST_SET_ACTIVE",
-    SET_PIVOT: "RST_SET_PIVOT",
-    CONTEXT_MENU: "RST_CONTEXT_MENU",
-    SEARCH: "RST_SEARCH",
+    SET_SELECTED: "",
+    SELECT: "",
+    SELECT_RELATIVE: "",
+    CLEAR_SELECTION: "",
+    SELECT_ALL: "",
+    CONTEXT_MENU: "",
+    SEARCH: "",
 
     //Pagination
-    NEXT_PAGE: "RST_NEXT_PAGE",
-    PREV_PAGE: "RST_PREV_PAGE",
-    FIRST_PAGE: "RST_FIRST_PAGE",
-    LAST_PAGE: "RST_LAST_PAGE",
-    SET_PAGE_SIZE: "RST_SET_PAGE_SIZE",
+    SET_PAGE_SIZE: "",
+    GO_TO_PAGE_RELATIVE: "",
 
-    DEBUG: "RST_DEBUG"
-})
+    DEBUG: ""
+};
+
+//Set action type strings
+for (let name in types)
+    types[name] = `RST_${name}`;
+
+Object.freeze(types);
 
 export default function Actions(namespace) {
     function Action(type, payload = null) {
         return { type, namespace, payload }
     }
 
-    return {
+    const actions = {
         debug: () => Action(types.DEBUG),
 
         search: (letter) =>
             Action(types.SEARCH, { letter }),
 
-        nextPage: () => Action(types.NEXT_PAGE),
-        prevPage: () => Action(types.PREV_PAGE),
-        firstPage: () => Action(types.FIRST_PAGE),
-        lastPage: () => Action(types.LAST_PAGE),
+        goToPageRelative: (position) =>
+            Action(types.GO_TO_PAGE_RELATIVE, { position }),
 
         setPageSize: (size) =>
             Action(types.SET_PAGE_SIZE, { size }),
@@ -73,17 +73,17 @@ export default function Actions(namespace) {
         setItems: (items) =>
             Action(types.SET_ITEMS, { items }),
 
-        sortItems: (path, shiftKey = false) =>
+        baseSortItems: (path, shiftKey) =>
             Action(types.SORT_ITEMS, { path, shiftKey }),
 
-        select: (index, fromKeyboard, ctrlKey = false, shiftKey = false) =>
-            Action(types.SELECT, { index, fromKeyboard, ctrlKey, shiftKey }),
+        baseSelectRelative: (position, ctrlKey, shiftKey) =>
+            Action(types.SELECT_RELATIVE, { position, ctrlKey, shiftKey }),
 
-        contextMenu: (index, ctrlKey = false) =>
+        baseSelect: (value, ctrlKey, shiftKey) =>
+            Action(types.SELECT, { value, ctrlKey, shiftKey }),
+
+        baseContextMenu: (index, ctrlKey) =>
             Action(types.CONTEXT_MENU, { index, ctrlKey }),
-
-        setActive: (index) =>
-            Action(types.SET_ACTIVE, { index }),
 
         clearSelection: () =>
             Action(types.CLEAR_SELECTION),
@@ -100,4 +100,20 @@ export default function Actions(namespace) {
         startLoading: () =>
             Action(types.START_LOADING)
     }
+
+    const aliases = {
+        selectRelative: (relativePos, e) =>
+            actions.baseSelectRelative(relativePos, e.ctrlKey, e.shiftKey),
+
+        select: (value, e) =>
+            actions.baseSelect(value, e.ctrlKey, e.shiftKey),
+
+        contextMenu: (index, e) =>
+            actions.baseContextMenu(index, e.ctrlKey),
+
+        sortItems: (path, e) =>
+            actions.baseSortItems(e, e.shiftKey)
+    }
+
+    return Object.assign(actions, aliases);
 }

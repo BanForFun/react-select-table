@@ -11,7 +11,6 @@ const repeatDelay = 100
 //Child of PaginationContainer
 function DefaultPagination({
     page,
-    activePage,
     pageCount,
     nextPage,
     prevPage,
@@ -24,8 +23,7 @@ function DefaultPagination({
 
         const className = classNames({
             "rst-page": true,
-            "rst-current": number === page,
-            "rst-active": number === activePage
+            "rst-current": number === page
         });
 
         return <button

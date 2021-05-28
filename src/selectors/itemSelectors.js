@@ -46,5 +46,3 @@ export const makeGetSearchIndex = (getSorted, options) => createSelector(
     }
 )
 
-export const makeGetItemCount = (getFiltered) => s =>
-    getFiltered(s).length;

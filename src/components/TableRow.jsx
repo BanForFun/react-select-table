@@ -21,20 +21,20 @@ function TableRow({
         e.stopPropagation();
 
         if (isTouching.current) {
-            actions.select(index, false, true);
+            actions.baseSelect(value, true, false);
             dragSelectStart([e.clientX, e.clientY], index);
         } else {
-            actions.contextMenu(index, e.ctrlKey);
+            actions.contextMenu(value, e);
         }
-    }, [index, actions, isTouching]);
+    }, [value, index, actions, isTouching]);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
         e.stopPropagation();
 
-        actions.select(index, false, e.ctrlKey, e.shiftKey);
+        actions.select(value, e);
         dragSelectStart([e.clientX, e.clientY], index);
-    }, [index, actions]);
+    }, [value, index, actions]);
 
     const renderColumn = column => {
         const { _id, path, render, className, isHeader } = column;

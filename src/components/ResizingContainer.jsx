@@ -19,7 +19,7 @@ function ResizingContainer(props) {
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
-        isSelecting, //BodyContainer
+        isSelectingRef, //BodyContainer
         theadClass, //HeadContainer
 
         ...commonProps
@@ -163,7 +163,7 @@ function ResizingContainer(props) {
         onItemsOpen,
         dragSelectStart,
         bodyContainerRef,
-        isSelecting
+        isSelectingRef
     }
 
     return <div

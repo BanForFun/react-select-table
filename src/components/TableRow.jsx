@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import classNames from "classnames";
 import _ from "lodash";
 import TableCell from "./TableCell";
@@ -8,25 +8,51 @@ function TableRow({
     columns,
     name,
     actions,
-    isTouching,
+    isTouchingRef,
     dragSelectStart,
     selected,
     active,
     item,
     value,
-    index
+    index,
+    isSelectingRef,
+    bodyContainerRef
 }) {
+    const trRef = useRef();
+
+    useEffect(() => {
+        if (!active) return;
+        if (isSelectingRef.current) return;
+
+        //Get elements
+        const body = bodyContainerRef.current;
+        const root = body.offsetParent;
+        const tr = trRef.current;
+
+        //Scroll up
+        const scrollUp = tr.offsetTop < root.scrollTop;
+        if (scrollUp)
+            root.scrollTop = tr.offsetTop;
+
+        //Scroll down
+        const visibleHeight = root.offsetHeight - body.offsetTop;
+        const rowBottom = tr.offsetTop + tr.offsetHeight;
+        const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
+        if (scrollDown)
+            root.scrollTop = rowBottom - visibleHeight;
+
+    }, [active]);
 
     const handleContextMenu = useCallback(e => {
         e.stopPropagation();
 
-        if (isTouching.current) {
+        if (isTouchingRef.current) {
             actions.baseSelect(value, true, false);
             dragSelectStart([e.clientX, e.clientY], index);
         } else {
             actions.contextMenu(value, e);
         }
-    }, [value, index, actions, isTouching]);
+    }, [value, index, actions]);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
@@ -54,6 +80,7 @@ function TableRow({
     };
 
     return <tr
+        ref={trRef}
         className={classNames(item._className, classes)}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}

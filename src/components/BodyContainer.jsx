@@ -20,7 +20,7 @@ function BodyContainer(props) {
         bodyContainerRef
     } = props;
 
-    const isTouching = useRef(false);
+    const isTouchingRef = useRef(false);
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
@@ -37,7 +37,7 @@ function BodyContainer(props) {
     }, [dragSelectStart, actions, options]);
 
     const handleContextMenu = useCallback(e => {
-        if (isTouching.current)
+        if (isTouchingRef.current)
             dragSelectStart([e.clientX, e.clientY]);
         else
             actions.contextMenu(null, e);
@@ -49,11 +49,11 @@ function BodyContainer(props) {
     }, [onItemsOpen, getSelectionArg, noSelection]);
 
     useEvent(window, "touchend", useCallback(() => {
-        isTouching.current = false;
+        isTouchingRef.current = false;
     }, []));
 
     Object.assign(bodyProps, {
-        isTouching
+        isTouchingRef
     });
 
     return <div
@@ -62,7 +62,7 @@ function BodyContainer(props) {
         onDoubleClick={handleDoubleClick}
         onMouseDown={handleMouseDown}
         onContextMenu={handleContextMenu}
-        onTouchStart={() => isTouching.current = true}
+        onTouchStart={() => isTouchingRef.current = true}
     >
         <SelectionRect bodyContainerRef={bodyContainerRef} />
         {noItems

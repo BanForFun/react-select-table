@@ -43,12 +43,12 @@ function ScrollingContainer(props) {
         originItem: null
     }).current;
 
-    const isSelecting = useRef(false);
+    const isSelectingRef = useRef(false);
 
     //State
     const [rect, setRect] = useState(null);
 
-    const dragStart = useCallback((mousePos, itemIndex = null) => {
+    const dragSelectStart = useCallback((mousePos, itemIndex = null) => {
         //Return if multiSelect is disabled
         if (!options.multiSelect) return;
 
@@ -81,7 +81,7 @@ function ScrollingContainer(props) {
         }
 
         setCursorClass("rst-selecting");
-        isSelecting.current = true;
+        isSelectingRef.current = true;
     }, [options, startIndex]);
 
     const updateDragSelection = useCallback(relMouseY => {
@@ -227,7 +227,7 @@ function ScrollingContainer(props) {
     //Event handlers
 
     const handleScroll = useCallback(() => {
-        if (!isSelecting.current) return;
+        if (!isSelectingRef.current) return;
 
         updateSelectionRect();
     }, [updateSelectionRect]);
@@ -235,15 +235,15 @@ function ScrollingContainer(props) {
     const handleDragEnd = useCallback(() => {
         setCursorClass(null);
 
-        if (!isSelecting.current) return;
-        isSelecting.current = false;
+        if (!isSelectingRef.current) return;
+        isSelectingRef.current = false;
 
         setRect(null);
     }, []);
 
     //Window events
     useEvent(window, "mousemove", useCallback(e => {
-        if (!isSelecting.current) return;
+        if (!isSelectingRef.current) return;
 
         dragSelection.mousePos = [e.clientX, e.clientY];
         updateSelectionRect()
@@ -252,7 +252,7 @@ function ScrollingContainer(props) {
     useEvent(window, "touchmove", useCallback(e => {
         e.stopPropagation();
 
-        if (!isSelecting.current) return;
+        if (!isSelectingRef.current) return;
         e.preventDefault();
 
         const touch = e.touches[0];
@@ -280,10 +280,10 @@ function ScrollingContainer(props) {
     Object.assign(resizingProps,{
         bodyContainerRef,
         tableBodyRef,
-        dragSelectStart: dragStart,
+        dragSelectStart,
         scrollToPos,
         setCursorClass,
-        isSelecting
+        isSelectingRef
     });
 
     return <div

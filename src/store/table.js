@@ -1,5 +1,5 @@
 import _ from "lodash";
-import produce, {enableMapSet, original} from "immer";
+import produce, {enableMapSet, original, current} from "immer";
 import {types} from "../models/Actions";
 import {setOptions} from "../utils/tableUtils";
 import {compareAscending} from "../utils/sortUtils";
@@ -57,7 +57,8 @@ export default function createTable(namespace, options = {}) {
 
     let draft;
 
-    //#region Item utils
+
+    //#region Ordering
 
     function _setItemOrder(first, second) {
         const {
@@ -74,14 +75,6 @@ export default function createTable(namespace, options = {}) {
             firstItem.next = second;
         else
             draft.headValue = second;
-    }
-
-    function _setItemVisibility(value, visibility) {
-        const item = draft.sortedItems[value];
-        if (!!item.visible === visibility) return;
-
-        item.visible = visibility;
-        draft.visibleItemCount += visibility ? 1 : -1;
     }
 
     function _swapItemPositions(first, second) {
@@ -102,6 +95,22 @@ export default function createTable(namespace, options = {}) {
             _setItemOrder(secondPrev, first);
         }
     }
+
+    //#endregion
+
+    //#region Visibility
+
+    function _setItemVisibility(value, visibility) {
+        const item = draft.sortedItems[value];
+        if (!!item.visible === visibility) return;
+
+        item.visible = visibility;
+        draft.visibleItemCount += visibility ? 1 : -1;
+    }
+
+    //#endregion
+
+    //#region Sorting
 
     function _compareItemData(thisData, otherData, allowEqual = false) {
         const compareProperty = (comparator, path) =>
@@ -180,63 +189,96 @@ export default function createTable(namespace, options = {}) {
         firstPage()
     }
 
-    function getRelativeVisibleValue(relPos, originValue) {
-        let nextProperty;
+    //#endregion
 
-        if (relPos === relativePos.FIRST) {
-            originValue = draft.headValue;
-            nextProperty = "next";
-            relPos = 0
-        } else if (relPos === relativePos.LAST) {
-            originValue = draft.tailValue;
-            nextProperty = "prev";
-            relPos = 0
-        } else
-            nextProperty = relPos > 0 ? "next" : "prev";
+    //#region Querying
 
-        let currentPos = 0
+    function _findVisibleItem(callback, originValue, forwards, skipOrigin = false) {
+        const nextProperty = forwards ? "next" : "prev";
+
         let currentValue = originValue;
         while (currentValue !== undefined) {
-            const item = draft.sortedItems[currentValue];
-            if (item.visible && (currentPos++ === Math.abs(relPos)))
-                return currentValue;
-
-            currentValue = item[nextProperty];
-        }
-    }
-
-    function _addTableItems(originValue, forward, inclusive = true) {
-        draft.rows = []
-
-        const nextProperty = forward ? "next" : "prev"
-        const indexOffset = forward ? 1 : -1
-        let currentIndex = forward ? 0 : draft.pageSize - 1
-        let currentValue = originValue;
-
-        while (currentValue !== undefined && draft.rows.length < draft.pageSize) {
-            const item = draft.sortedItems[currentValue];
+            const value = currentValue;
+            const item = draft.sortedItems[value];
             currentValue = item[nextProperty];
 
-            if (!inclusive) {
-                inclusive = true;
+            if (skipOrigin) {
+                skipOrigin = false;
                 continue;
             }
 
             if (!item.visible) continue;
 
-            draft.rows[currentIndex] = item.data;
-            currentIndex += indexOffset
+            const result = callback(value, item);
+            if (result !== undefined)
+                return result;
         }
     }
 
+    function _getRelativeVisibleValue(originValue, relPos) {
+        if (!relPos) return originValue;
+
+        let forward;
+
+        if (relPos === relativePos.FIRST) {
+            originValue = draft.headValue
+            forward = true;
+        } else if (relPos === relativePos.LAST) {
+            originValue = draft.tailValue
+            forward = false;
+        }
+
+        if (forward === undefined)
+            forward = relPos > 0
+        else
+            relPos = 0
+
+        let distance = 0;
+        const callback = value => {
+            if (distance++ === Math.abs(relPos))
+                return value;
+        }
+
+       return _findVisibleItem(callback, originValue, forward);
+    }
+
+    //#endregion
+
+    //#region Pagination
+
+    function _paginateItems(originValue, forwards, skipOrigin) {
+        const isLastPage = !forwards && !skipOrigin
+        const lastPageSize = draft.visibleItemCount % draft.pageSize
+        const pageSize = isLastPage && lastPageSize || draft.pageSize;
+
+        const indexOffset = forwards ? 1 : -1
+        let currentIndex = forwards ? 0 : pageSize - 1
+        let counter = 0;
+
+        const callback = (value, item) => {
+            draft.rows[currentIndex] = item.data;
+            currentIndex += indexOffset
+
+            //We can't use draft.rows.length for back-to-front case
+            if (++counter === pageSize)
+                return true;
+        }
+
+        _findVisibleItem(callback, originValue, forwards, skipOrigin)
+
+        //Clear unused remaining rows (for last page)
+        for (; counter < draft.pageSize; counter++)
+            delete draft.rows[counter]
+    }
+
     function firstPage() {
-        _addTableItems(draft.headValue, true)
+        _paginateItems(draft.headValue, true, false)
         draft.pageIndex = 0
         resetActiveValue();
     }
 
     function lastPage() {
-        _addTableItems(draft.tailValue, false)
+        _paginateItems(draft.tailValue, false, false)
         draft.pageIndex = getMaxPageIndex()
         resetActiveValue();
     }
@@ -244,7 +286,7 @@ export default function createTable(namespace, options = {}) {
     function nextPage() {
         if (draft.pageIndex === getMaxPageIndex()) return;
 
-        _addTableItems(_.last(draft.rows)[valueProperty], true, false)
+        _paginateItems(_.last(draft.rows)[valueProperty], true, true)
         draft.pageIndex++
         resetActiveValue();
     }
@@ -252,12 +294,16 @@ export default function createTable(namespace, options = {}) {
     function prevPage() {
         if (draft.pageIndex === 0) return;
 
-        _addTableItems(draft.rows[0][valueProperty], false, false)
+        _paginateItems(draft.rows[0][valueProperty], false, true)
         draft.pageIndex--
         resetActiveValue();
     }
 
-    function addItem(data, prev, next) {
+    //#endregion
+
+    //#region Addition
+
+    function _addItem(data, prev, next) {
         const value = data[valueProperty];
         const item = draft.sortedItems[value] = { data };
 
@@ -297,7 +343,7 @@ export default function createTable(namespace, options = {}) {
 
             if (_compareItemData(newData, currentItem.data) < 0) {
                 //New item is smaller
-                currentItem = addItem(newData, currentItem.prev, current);
+                currentItem = _addItem(newData, currentItem.prev, current);
                 dataIndex++;
             } else
                 current = currentItem.next;
@@ -307,24 +353,27 @@ export default function createTable(namespace, options = {}) {
         }
 
         for (; dataIndex < data.length; dataIndex++)
-            addRow(addItem(data[dataIndex], draft.tailValue));
+            addRow(_addItem(data[dataIndex], draft.tailValue));
     }
 
-    function setRangeSelected(from, to, selected) {
+    //#endregion
+
+    //#region Selection
+
+    function setRangeSelected(fromValue, toValue, selected) {
         const {
-            [from]: fromItem,
-            [to]: toItem
+            [fromValue]: { data: fromData },
+            [toValue]: { data: toData }
         } = draft.sortedItems
 
-        if (!fromItem || !toItem) return;
+        const callback = value => {
+            _.setToggleValue(draft.selection, value, selected);
 
-        const nextProperty = _compareItemData(fromItem.data, toItem.data) > 0 ? "prev" : "next"
-
-        let currentValue = from;
-        while (currentValue !== toItem[nextProperty]) {
-            _.setToggleValue(draft.selection, currentValue, selected)
-            currentValue = draft.sortedItems[currentValue][nextProperty]
+            if (value === toValue) return true;
         }
+
+        const forwards = _compareItemData(fromData, toData) < 0
+        _findVisibleItem(callback, fromValue, forwards);
     }
 
     //#endregion
@@ -515,7 +564,7 @@ export default function createTable(namespace, options = {}) {
 
                 //Selection
                 case types.SELECT_RELATIVE: {
-                    const value = getRelativeVisibleValue(payload.position, draft.virtualActiveValue);
+                    const value = _getRelativeVisibleValue(draft.virtualActiveValue, payload.position);
 
                     if (draft.virtualActiveValue !== draft.activeValue)
                         draft.pivotValue = draft.activeValue;

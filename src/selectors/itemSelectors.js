@@ -1,11 +1,13 @@
 import _ from "lodash";
 import {createSelector} from "reselect";
 
+//Legacy
 export const makeGetParsedItems = (options) => createSelector(
     s => s.items,
     items => _.map(items, options.itemParser)
 )
 
+//Legacy
 export const makeGetFilteredItems = (getParsed, options) => createSelector(
     getParsed,
     s => s.filter,
@@ -14,6 +16,7 @@ export const makeGetFilteredItems = (getParsed, options) => createSelector(
         : parsed
 )
 
+//Legacy
 export const makeGetSortedItems = (getFiltered) => createSelector(
     getFiltered,
     s => s.sortAscending,
@@ -21,11 +24,18 @@ export const makeGetSortedItems = (getFiltered) => createSelector(
        _.orderBy(filtered, _.keys(sortAscending), _.values(sortAscending).map(asc => asc ? "asc" : "desc"))
 )
 
+//Legacy
 export const makeGetSortedValues = (getSorted, options) => createSelector(
     getSorted,
     sorted => _.map(sorted, options.valueProperty)
 )
 
+export const makeGetRowValues = (options) => createSelector(
+    s => s.rows,
+    rows => _.map(rows, options.valueProperty)
+)
+
+//Legacy
 export const makeGetSearchIndex = (getSorted, options) => createSelector(
     getSorted,
     sorted => {

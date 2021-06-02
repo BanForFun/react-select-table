@@ -48,9 +48,9 @@ export default function createTable(namespace, options = {}) {
         tailValue: undefined,
         rows: [],
         visibleItemCount: 0,
-        activeValue: undefined,
-        pivotValue: undefined,
-        virtualActiveValue: undefined,
+        activeValue: null,
+        pivotValue: null,
+        virtualActiveValue: null,
 
         ...options.initState
     };
@@ -102,7 +102,7 @@ export default function createTable(namespace, options = {}) {
 
     function _setItemVisibility(value, visibility) {
         const item = draft.sortedItems[value];
-        if (!!item.visible === visibility) return;
+        if (!!item?.visible === visibility) return;
 
         item.visible = visibility;
         draft.visibleItemCount += visibility ? 1 : -1;
@@ -213,10 +213,12 @@ export default function createTable(namespace, options = {}) {
             if (result !== undefined)
                 return result;
         }
+
+        return null;
     }
 
-    function _getRelativeVisibleValue(originValue, relPos) {
-        if (!relPos) return originValue;
+    function getRelativeVisibleValue(originValue, relPos) {
+        if (!relPos) return;
 
         let forward;
 
@@ -234,12 +236,28 @@ export default function createTable(namespace, options = {}) {
             relPos = 0
 
         let distance = 0;
-        const callback = value => {
+        const callback = (value, item) => {
+            if (forward)
+                _compareItemData(item.data, _.last(draft.rows)) > 0 && nextPage();
+            else
+                _compareItemData(item.data, draft.rows[0]) < 0 && prevPage();
+
             if (distance++ === Math.abs(relPos))
                 return value;
         }
 
        return _findVisibleItem(callback, originValue, forward);
+    }
+
+    function validateValue(value, checkVisible = false) {
+        if (value == null) return null;
+
+        const item = draft.sortedItems[value];
+
+        if (!item) return null;
+        if (checkVisible && !item.visible) return null;
+
+        return item.data[valueProperty];
     }
 
     //#endregion
@@ -305,55 +323,66 @@ export default function createTable(namespace, options = {}) {
 
     function _addItem(data, prev, next) {
         const value = data[valueProperty];
+
+        //Reject if value is null or undefined
+        if (value == null) return null;
+
+        //Ensure visible item counter stays correct when replacing item
+        _setItemVisibility(value, false);
+
+        //Add or replace item
         const item = draft.sortedItems[value] = { data };
 
+        //Set position
         _setItemOrder(prev, value);
         _setItemOrder(value, next);
 
+        //Set visibility
         _setItemVisibility(value, options.itemPredicate(data, draft.filter));
 
         return item;
+    }
+
+    function _addRow(item) {
+        //item will be null if it has invalid value
+        if (!item?.visible) return;
+        if (draft.rows.length >= draft.pageSize) return;
+
+        draft.rows.push(item.data);
     }
 
     function addItems(data) {
         const firstRow = draft.rows[0]?.[valueProperty];
         draft.rows = [];
 
-        function addRow(item) {
-            if (draft.rows.length >= draft.pageSize) return;
-            if (!item.visible) return;
-
-            draft.rows.push(item.data);
-        }
-
         let addToTable = false;
 
         let dataIndex = 0;
-        let current = draft.headValue;
+        let currentValue = draft.headValue;
 
         data.sort(_compareItemData);
 
         //In-place merge
-        while (current !== undefined && dataIndex < data.length) {
+        while (currentValue !== undefined && dataIndex < data.length) {
             const newData = data[dataIndex];
-            let currentItem = draft.sortedItems[current];
 
-            if (current === firstRow)
+            if (currentValue === firstRow)
                 addToTable = true;
 
+            let currentItem = draft.sortedItems[currentValue];
             if (_compareItemData(newData, currentItem.data) < 0) {
                 //New item is smaller
-                currentItem = _addItem(newData, currentItem.prev, current);
+                currentItem = _addItem(newData, currentItem.prev, currentValue);
                 dataIndex++;
             } else
-                current = currentItem.next;
+                currentValue = currentItem.next;
 
             if (addToTable)
-                addRow(currentItem)
+                _addRow(currentItem)
         }
 
         for (; dataIndex < data.length; dataIndex++)
-            addRow(_addItem(data[dataIndex], draft.tailValue));
+            _addRow(_addItem(data[dataIndex], draft.tailValue));
     }
 
     //#endregion
@@ -367,8 +396,7 @@ export default function createTable(namespace, options = {}) {
         } = draft.sortedItems
 
         const callback = value => {
-            _.setToggleValue(draft.selection, value, selected);
-
+            setValueSelected(value, selected);
             if (value === toValue) return true;
         }
 
@@ -422,10 +450,12 @@ export default function createTable(namespace, options = {}) {
         draft.selection.add(value);
     }
 
-    function parseValue(value) {
-        return draft.sortedItems[value].data[valueProperty];
+    function setValueSelected(value, selected) {
+        if (selected)
+            draft.selection.add(value);
+        else
+            draft.selection.delete(value);
     }
-
 
     function clearItems() {
         Object.assign(draft, {
@@ -439,7 +469,7 @@ export default function createTable(namespace, options = {}) {
             error: null
         });
 
-        setActiveValue(undefined);
+        setActiveValue(null);
         clearSelection();
     }
 
@@ -564,7 +594,8 @@ export default function createTable(namespace, options = {}) {
 
                 //Selection
                 case types.SELECT_RELATIVE: {
-                    const value = _getRelativeVisibleValue(draft.virtualActiveValue, payload.position);
+                    const value = getRelativeVisibleValue(draft.virtualActiveValue, payload.position);
+                    if (value === null) break;
 
                     if (draft.virtualActiveValue !== draft.activeValue)
                         draft.pivotValue = draft.activeValue;
@@ -579,10 +610,8 @@ export default function createTable(namespace, options = {}) {
                     //Deliberate fall-through
                 }
                 case types.SELECT: {
-                    const { value, ctrlKey, shiftKey } = payload;
-
-                    const item = draft.sortedItems[value];
-                    if (!item?.visible) break;
+                    const value = validateValue(payload.value, true);
+                    if (value === null) break;
 
                     setActiveValue(value);
 
@@ -591,10 +620,10 @@ export default function createTable(namespace, options = {}) {
                         break;
                     }
 
-                    const { selection } = draft;
+                    const { ctrlKey, shiftKey } = payload;
 
                     if (!ctrlKey)
-                        selection.clear();
+                        draft.selection.clear();
 
                     if (shiftKey) {
                         if (ctrlKey)
@@ -607,8 +636,8 @@ export default function createTable(namespace, options = {}) {
 
                     draft.pivotValue = value;
 
-                    const selected = !ctrlKey || !selection.has(value);
-                    _.setToggleValue(selection, value, selected);
+                    const selected = !ctrlKey || !draft.selection.has(value);
+                    setValueSelected(value, selected);
 
                     break;
                 }
@@ -637,24 +666,25 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SET_SELECTED: {
-                    // //Active index
-                    // const setActive = parseIndex(payload.active);
-                    // if (setActive !== null)
-                    //     setActiveIndex(setActive);
-                    //
-                    // //Pivot index
-                    // const setPivot = parseIndex(payload.pivot);
-                    // if (setPivot !== null)
-                    //     draft.pivotIndex = setPivot;
-                    //
-                    // //Selection
-                    // _.forEach(payload.map, (selected, index) => {
-                    //     index = parseIndex(index);
-                    //     if (index === null) return;
-                    //
-                    //     const value = selectors.getSortedValues(state)[index];
-                    //     _.setToggleValue(draft.selection, value, selected);
-                    // });
+                    //Active value
+                    const setActive = validateValue(payload.active, true);
+                    if (setActive !== null)
+                        setActiveValue(setActive);
+
+                    //Pivot value
+                    const setPivot = validateValue(payload.pivot, true);
+                    if (setPivot !== null)
+                        draft.pivotValue = setPivot;
+
+                    //Selection
+                    const { map } = payload;
+                    for (let value in map) {
+                        value = validateValue(value, true);
+                        if (value === null) continue;
+
+                        setValueSelected(value, map[value]);
+                    }
+
                     break;
                 }
                 case types.SELECT_ALL: {

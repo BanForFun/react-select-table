@@ -48,7 +48,7 @@ function TableRow({
 
         if (isTouchingRef.current) {
             actions.baseSelect(value, true, false);
-            dragSelectStart([e.clientX, e.clientY], index);
+            dragSelectStart([e.clientX, e.clientY], index, value);
         } else {
             actions.contextMenu(value, e);
         }
@@ -59,7 +59,7 @@ function TableRow({
         e.stopPropagation();
 
         actions.select(value, e);
-        dragSelectStart([e.clientX, e.clientY], index);
+        dragSelectStart([e.clientX, e.clientY], index, value);
     }, [value, index, actions]);
 
     const renderColumn = column => {

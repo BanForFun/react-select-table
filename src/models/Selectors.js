@@ -10,10 +10,12 @@ export default function Selectors(namespace, options) {
     const getSortedItems = itemSelectors.makeGetSortedItems(_getFilteredItems)
     const getSortedValues = itemSelectors.makeGetSortedValues(getSortedItems, options);
     const getSearchIndex = itemSelectors.makeGetSearchIndex(getSortedItems, options);
+    const getRowValues = itemSelectors.makeGetRowValues(options);
 
     return {
         getSelectionArg,
 
+        getRowValues,
         getSortedItems,
         getSortedValues,
         getSearchIndex,

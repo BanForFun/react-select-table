@@ -35,6 +35,15 @@ export const makeGetRowValues = (options) => createSelector(
     rows => _.map(rows, options.valueProperty)
 )
 
+function createSelectorRef(selector) {
+    const ref = {};
+
+    return s => {
+        ref.current = selector(s);
+        return ref;
+    }
+}
+
 //Legacy
 export const makeGetSearchIndex = (getSorted, options) => createSelector(
     getSorted,

@@ -12,24 +12,32 @@ function TableHead(props) {
         ...commonHeaderProps
     } = props;
 
-    //Redux state
     const sortAscending = utils.useSelector(s => s.sortAscending);
 
-    const sortPriority = useMemo(() => {
-        let priority = 0;
-        return _.mapValues(sortAscending,() => ++priority);
+    const sortOrders = useMemo(() => {
+        const orders = {}
+
+        let index = 0;
+        for (let [path, ascending] of sortAscending)
+            orders[path] = { ascending, priority: ++index }
+
+        return orders;
     }, [sortAscending])
+
+    //Redux state
 
     const renderHeader = (column, index) => {
         const { _id, path, title } = column;
+
+        const sortOrder = sortOrders[path];
 
         const headerProps = {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
             addResizer: options.scrollX || index < columns.length - 1,
             path, title, index,
-            sortAscending: sortAscending[path],
-            sortPriority: sortPriority[path]
+            sortAscending: sortOrder?.ascending,
+            sortPriority: sortOrder?.priority
         }
 
         return <TableHeader {...headerProps} />

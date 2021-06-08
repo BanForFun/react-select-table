@@ -112,7 +112,7 @@ export default function Actions(namespace) {
             actions.baseContextMenu(index, e.ctrlKey),
 
         sortItems: (path, e) =>
-            actions.baseSortItems(e, e.shiftKey)
+            actions.baseSortItems(path, e.shiftKey)
     }
 
     return Object.assign(actions, aliases);

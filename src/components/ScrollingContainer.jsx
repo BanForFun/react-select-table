@@ -66,7 +66,7 @@ function ScrollingContainer(props) {
         const relMouseX = mouseX + root.scrollLeft - bounds.x - headerWidth;
         const relMouseY = mouseY + root.scrollTop - bounds.y - headerHeight;
 
-        const state = Object.assign(dragSelectionRef, {
+        Object.assign(dragSelectionRef, {
             selected: {},
             mousePos,
             lastRelMouseY: relMouseY,
@@ -74,9 +74,6 @@ function ScrollingContainer(props) {
             originValue: rowValue,
             originRow: rowIndex
         });
-
-        if (rowValue !== null)
-            state.selected[rowValue] = true;
 
         setCursorClass("rst-selecting");
         isSelectingRef.current = true;
@@ -104,7 +101,10 @@ function ScrollingContainer(props) {
         let setActive = originValue;
         let setPivot = originValue;
 
+        let updates = 0;
+
         const updateCurrent = select => {
+            updates++;
             const value = rowValues[rowIndex];
 
             if (select !== dragSelectionRef.selected[value])
@@ -141,6 +141,13 @@ function ScrollingContainer(props) {
         }
 
         if (_.isEmpty(selectedMap)) return;
+
+        console.log("Updates:", updates);
+
+        //Reselect origin row in the case that the user started drag selecting after ctrl-deselecting the origin row.
+        //Do it only if the cursor is outside of the origin row to not annoy the user trying to deselect
+        if (originValue !== null)
+            selectedMap[originValue] = true;
 
         //Modify selection
         Object.assign(dragSelectionRef.selected, selectedMap);

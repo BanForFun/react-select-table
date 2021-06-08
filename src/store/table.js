@@ -3,13 +3,14 @@ import produce, {enableMapSet, original, current} from "immer";
 import {types} from "../models/Actions";
 import {setOptions} from "../utils/tableUtils";
 import {compareAscending} from "../utils/sortUtils";
+import {getSortedItemValues} from "../selectors/itemSelectors";
 
 enableMapSet();
 
 const nextSortOrder = Object.freeze({
     undefined: true,
     true: false,
-    false: null
+    false: undefined
 })
 
 export const relativePos = Object.freeze({
@@ -34,8 +35,7 @@ export default function createTable(namespace, options = {}) {
         pivotIndex: 0, //Legacy
         virtualActiveIndex: 0, //Legacy
         filter: null,
-        sortAscending: {},
-        sortCount: 0,
+        sortAscending: new Map(),
         isLoading: false,
         pageSize: 0,
         pageIndex: 0,
@@ -43,6 +43,7 @@ export default function createTable(namespace, options = {}) {
         searchLetter: null, //Legacy
         matchIndex: 0, //Legacy
         items: {},
+        itemValues: null,
         sortedItems: {},
         headValue: undefined,
         tailValue: undefined,
@@ -118,8 +119,8 @@ export default function createTable(namespace, options = {}) {
 
         //Ensure that reversing the sort order of a column with all equal values, reverses the items
         let factor = 1;
-        for (let path in draft.sortAscending) {
-            factor = draft.sortAscending[path] ? 1 : -1
+        for (let [path, ascending] of draft.sortAscending) {
+            factor = ascending ? 1 : -1
 
             const comparator = _.get(options.comparators, path, compareAscending);
             const result = compareProperty(comparator, path);
@@ -135,58 +136,45 @@ export default function createTable(namespace, options = {}) {
         return compareProperty(compareAscending, valueProperty) * factor;
     }
 
-    function _partitionItems(start, end) {
-        const pivotItem =  draft.sortedItems[end];
-
-        let boundary = start;
-        let current = start;
-
-        const swapBoundary = () => {
-            _swapItemPositions(boundary, current);
-
-            if (start === boundary)
-                start = current;
-        }
-
-        while (current !== end) {
-            const currentItem = draft.sortedItems[current];
-            const next = currentItem.next;
-
-            if (_compareItemData(currentItem.data, pivotItem.data) < 0) {
-                const boundaryItem = draft.sortedItems[boundary];
-                const nextBoundary = boundaryItem.next;
-                swapBoundary();
-                boundary = nextBoundary;
-            }
-
-            current = next;
-        }
-
-        swapBoundary();
-        end = boundary;
-
-        return {
-            pivotItem,
-            start, end
-        };
+    function debugStateEqual(selector) {
+        console.log(selector(original(draft)) === selector(current(draft)));
     }
 
-    function _sortItems(start, end) {
-        if (start === end) return;
+    function getItemValues() {
+        if (draft.itemValues)
+            return draft.itemValues;
 
-        const updated = _partitionItems(...arguments);
-        const {prev, next} = updated.pivotItem;
+        const itemValues = [];
+        let currentValue = draft.headValue;
+        while (currentValue !== undefined) {
+            itemValues.push(currentValue);
+            currentValue = draft.sortedItems[currentValue].next;
+        }
 
-        if (updated.start !== end)
-            _sortItems(updated.start, prev);
-
-        if (updated.end !== end)
-            _sortItems(next, updated.end);
+        return draft.itemValues = itemValues;
     }
 
-    function sortItems() {
-        _sortItems(draft.headValue, draft.tailValue);
-        firstPage()
+    function sortNative() {
+        const itemValues = getItemValues();
+
+        itemValues.sort((valueA, valueB) => {
+            const {
+                [valueA]: { data: dataA },
+                [valueB]: { data: dataB }
+            } = draft.sortedItems;
+
+            return _compareItemData(dataA, dataB);
+        });
+
+        let prevValue = undefined;
+        for (let value of itemValues) {
+            _setItemOrder(prevValue, value);
+            prevValue = value;
+        }
+
+        _setItemOrder(prevValue, undefined);
+
+        firstPage();
     }
 
     //#endregion
@@ -354,6 +342,7 @@ export default function createTable(namespace, options = {}) {
     function addItems(data) {
         const firstRow = draft.rows[0]?.[valueProperty];
         draft.rows = [];
+        draft.itemValues = null;
 
         let addToTable = false;
 
@@ -424,15 +413,8 @@ export default function createTable(namespace, options = {}) {
         return selectors.getPageCount(draft) - 1
     }
 
-    function setActiveIndex(index) {
-        draft.activeIndex = index;
-        draft.virtualActiveIndex = index;
-
-        draft.searchLetter = null;
-    }
-
     function resetActiveValue() {
-        setActiveIndex(draft.rows[0][valueProperty])
+        setActiveValue(draft.rows[0][valueProperty])
     }
 
     function setActiveValue(value) {
@@ -474,8 +456,6 @@ export default function createTable(namespace, options = {}) {
     }
 
     return (state = initState, action) => {
-        console.clear();
-
         if (action.type === "@@INIT")
             return produce(state, newDraft => {
                 draft = newDraft;
@@ -485,7 +465,7 @@ export default function createTable(namespace, options = {}) {
         if (action.namespace !== namespace)
             return state;
 
-        return produce(state, newDraft => {
+        const nextState = produce(state, newDraft => {
             draft = newDraft;
 
             const { payload } = action;
@@ -552,21 +532,22 @@ export default function createTable(namespace, options = {}) {
                 case types.SORT_ITEMS: {
                     clearSelection();
 
-                    const { path, shiftKey } = payload;
+                    const { path } = payload;
+                    const { sortAscending } = draft;
 
-                    let next = nextSortOrder[state.sortAscending[path]];
-                    if (!shiftKey) {
-                        draft.sortAscending = {};
-                        next ??= true;
+                    let ascending = nextSortOrder[sortAscending.get(path)];
+
+                    if (!payload.shiftKey) {
+                        sortAscending.clear();
+                        ascending ??= true;
                     }
 
-                    if (next === null)
-                        delete draft.sortAscending[path];
+                    if (ascending === undefined)
+                        sortAscending.delete(path);
                     else
-                        draft.sortAscending[path] = next;
+                        sortAscending.set(path, ascending);
 
-                    sortItems();
-
+                    sortNative();
                     break;
                 }
                 case types.SET_ITEM_FILTER: {
@@ -750,5 +731,7 @@ export default function createTable(namespace, options = {}) {
                 }
             }
         });
+
+        return nextState;
     }
 }

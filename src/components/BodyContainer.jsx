@@ -1,7 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import TableBody from "./TableBody";
 import ColumnGroup from "./ColumnGroup";
-import SelectionRect from "./SelectionRect";
 import useEvent from "../hooks/useEvent";
 
 //Child of ResizingContainer
@@ -10,6 +9,7 @@ function BodyContainer(props) {
         onItemsOpen,
         emptyPlaceholder,
         tableClass,
+        selectionRectRef,
         ...bodyProps
     } = props;
 
@@ -64,7 +64,7 @@ function BodyContainer(props) {
         onContextMenu={handleContextMenu}
         onTouchStart={() => isTouchingRef.current = true}
     >
-        <SelectionRect bodyContainerRef={bodyContainerRef} />
+        <div className="rst-dragSelection" ref={selectionRectRef} />
         {noItems
             ? <div className="rst-bodyPlaceholder">{emptyPlaceholder}</div>
             : <table className={tableClass}>

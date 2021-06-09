@@ -16,10 +16,12 @@ function ResizingContainer(props) {
         scrollToPos,
         setCursorClass,
         bodyContainerRef,
+        selectionRectRef, //BodyContainer
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
         isSelectingRef, //BodyContainer
+
         theadClass, //HeadContainer
 
         ...commonProps
@@ -160,6 +162,7 @@ function ResizingContainer(props) {
     const bodyProps = {
         ...commonProps,
         tableBodyRef,
+        selectionRectRef,
         onItemsOpen,
         dragSelectStart,
         bodyContainerRef,

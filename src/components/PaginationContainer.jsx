@@ -11,8 +11,6 @@ function PaginationContainer({
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const pageCount = utils.useSelector(selectors.getPageCount);
 
-    if (showPlaceholder || !pageCount) return null;
-
     const actionAliases = useMemo(() => {
         const createAlias = pos => () => actions.goToPageRelative(pos);
 
@@ -23,6 +21,8 @@ function PaginationContainer({
             lastPage: createAlias(relativePos.LAST),
         }
     }, [actions]);
+
+    if (showPlaceholder || !pageCount) return null;
 
     const paginationProps = {
         page: pageIndex + 1,

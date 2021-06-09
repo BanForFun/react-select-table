@@ -252,10 +252,16 @@ export default function createTable(namespace, options = {}) {
 
     //#region Pagination
 
+    function getMaxPageSize() {
+        return draft.pageSize || draft.visibleItemCount;
+    }
+
     function _paginateItems(originValue, forwards, skipOrigin) {
+        const maxPageSize = getMaxPageSize();
+
         const isLastPage = !forwards && !skipOrigin
-        const lastPageSize = draft.visibleItemCount % draft.pageSize
-        const pageSize = isLastPage && lastPageSize || draft.pageSize;
+        const lastPageSize = draft.visibleItemCount % maxPageSize
+        const pageSize = isLastPage && lastPageSize || maxPageSize;
 
         const indexOffset = forwards ? 1 : -1
         let currentIndex = forwards ? 0 : pageSize - 1
@@ -273,7 +279,7 @@ export default function createTable(namespace, options = {}) {
         _findVisibleItem(callback, originValue, forwards, skipOrigin)
 
         //Clear unused remaining rows (for last page)
-        for (; counter < draft.pageSize; counter++)
+        for (; counter < maxPageSize; counter++)
             delete draft.rows[counter]
     }
 
@@ -334,7 +340,7 @@ export default function createTable(namespace, options = {}) {
     function _addRow(item) {
         //item will be null if it has invalid value
         if (!item?.visible) return;
-        if (draft.rows.length >= draft.pageSize) return;
+        if (draft.rows.length >= getMaxPageSize()) return;
 
         draft.rows.push(item.data);
     }
@@ -410,7 +416,8 @@ export default function createTable(namespace, options = {}) {
 
     //Utilities
     function getMaxPageIndex() {
-        return selectors.getPageCount(draft) - 1
+        const count = selectors.getPageCount(draft) ?? 1;
+        return count - 1;
     }
 
     function resetActiveValue() {
@@ -694,12 +701,12 @@ export default function createTable(namespace, options = {}) {
 
                 //Pagination
                 case types.SET_PAGE_SIZE: {
-                    // const newSize = parseInt(payload.size);
-                    // //NaN >= x is false so doing the comparison in this way avoids an isNaN check
-                    // if (!(newSize >= 0)) break;
-                    //
-                    // draft.pageSize = newSize;
-                    // setActiveIndex(draft.activeIndex); //Go to the active page
+                    const newSize = parseInt(payload.size);
+                    //NaN >= x is false so doing the comparison in this way avoids an isNaN check
+                    if (!(newSize >= 0)) break;
+
+                    draft.pageSize = newSize;
+                    firstPage();
                     break;
                 }
                 case types.GO_TO_PAGE_RELATIVE: {

@@ -3,6 +3,9 @@ import classNames from "classnames";
 import _ from "lodash";
 import TableCell from "./TableCell";
 
+export const selectedClass = "rst-selected";
+export const activeClass = "rst-active";
+
 //Child of TableBody
 function TableRow({
     columns,
@@ -48,7 +51,7 @@ function TableRow({
 
         if (isTouchingRef.current) {
             actions.baseSelect(value, true, false);
-            dragSelectStart([e.clientX, e.clientY], index, value);
+            dragSelectStart([e.clientX, e.clientY], index);
         } else {
             actions.contextMenu(value, e);
         }
@@ -59,7 +62,7 @@ function TableRow({
         e.stopPropagation();
 
         actions.select(value, e);
-        dragSelectStart([e.clientX, e.clientY], index, value);
+        dragSelectStart([e.clientX, e.clientY], index);
     }, [value, index, actions]);
 
     const renderColumn = (column, colIndex) => {
@@ -75,13 +78,13 @@ function TableRow({
     };
 
     const classes = {
-        "rst-selected": selected,
-        "rst-active": active
+        [selectedClass]: selected,
+        [activeClass]: active
     };
 
     return <tr
         ref={trRef}
-        className={classNames(item._className, classes)}
+        className={classNames(classes)}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
     >

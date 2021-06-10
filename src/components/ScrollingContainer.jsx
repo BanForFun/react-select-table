@@ -33,7 +33,10 @@ function ScrollingContainer(props) {
 
     //Component refs
     const bodyContainerRef = useRef();
-    const tableBodyRef = useRef();
+    const tableBodyRef = useRef({
+        activeIndex: 0,
+        element: null
+    }).current;
     const selectionRectRef = useRef();
 
     //Variables refs
@@ -52,37 +55,38 @@ function ScrollingContainer(props) {
         //Return if below items and multiSelect listBox
         if (rowIndex === null && options.listBox) return;
 
-        const [mouseX, mouseY] = mousePos;
         const {
             offsetParent: root,
             offsetTop: headerHeight,
             offsetLeft: headerWidth
         } = bodyContainerRef.current;
+
         const bounds = root.getBoundingClientRect();
+        const relX = mousePos[0] + root.scrollLeft - bounds.x - headerWidth;
+        const relY = mousePos[1] + root.scrollTop - bounds.y - headerHeight;
 
         //Setup selection rect
         applyRectStyles({
             transform: `translate(${headerWidth}px, ${headerHeight}px)`
         });
 
-        const relX = mouseX + root.scrollLeft - bounds.x - headerWidth;
-        const relY = mouseY + root.scrollTop - bounds.y - headerHeight;
+        const safeRowIndex = rowIndex ?? rowValues.length;
 
         Object.assign(dragSelectionRef, {
             selected: {},
-            active: -1,
+            active: rowIndex ?? tableBodyRef.activeIndex,
             pivot: -1,
             mousePos,
-            prevIndex: rowIndex,
+            prevIndex: safeRowIndex,
             prevRelY: relY,
             originRelPos: [relX, relY],
-            originIndex: rowIndex,
+            originIndex: safeRowIndex,
             pendingFrames: 0
         });
 
         setCursorClass("rst-selecting");
         isSelectingRef.current = true;
-    }, [options, applyRectStyles]);
+    }, [options, applyRectStyles, rowValues]);
 
     const dragSelectEnd = useCallback(() => {
         applyRectStyles({ display: "none" });
@@ -102,42 +106,40 @@ function ScrollingContainer(props) {
     const updateSelection = useCallback(relY => {
         //Define selection check area
         const { prevRelY, originIndex, prevIndex, selected } = dragSelectionRef;
-        if (relY === prevRelY) return;
-
-        const upwards = relY < prevRelY;
-
         const {
             offsetHeight: tableHeight,
             children: rows
-        } = tableBodyRef.current;
+        } = tableBodyRef.element;
 
-        let index = prevIndex;
-        let element = rows[index];
+        if (relY === prevRelY) return;
 
-        //TODO: Fix crash when selecting below items
-
+        const upwards = relY < prevRelY;
+        const fallbackIndex = rows.length;
         const newlySelected = {};
+        let index = prevIndex;
 
         while (true) {
-            if (upwards && relY >= element.offsetTop) break;
-            if (!upwards && relY < element.offsetTop + element.offsetHeight) break;
+            if (index === fallbackIndex) {
+                if (relY > tableHeight) break;
 
-            const abovePivot = index < originIndex;
-            newlySelected[index] = index === originIndex || abovePivot === upwards;
+                dragSelectionRef.pivot = rows.length - 1;
+            } else {
+                const row = rows[index];
+                if (upwards && relY >= row.offsetTop) break;
+                if (!upwards && relY <= row.offsetTop + row.offsetHeight) break;
+
+                const abovePivot = index < originIndex;
+                newlySelected[index] = index === originIndex || abovePivot === upwards;
+            }
 
             index += upwards ? -1 : 1;
-            element = upwards ? element.previousSibling : element.nextSibling;
+            if (index === fallbackIndex) break;
 
             newlySelected[index] = true;
             dragSelectionRef.active = index;
         }
 
         if (index === prevIndex) return;
-
-        //Reselect origin row in the case that the user started drag selecting after ctrl-deselecting the origin row.
-        //Do it only if the cursor is outside of the origin row to not annoy the user trying to deselect
-        // if (originValue !== null)
-        //     newlySelected[originValue] = true;
 
         Object.assign(selected, newlySelected);
         Object.assign(dragSelectionRef, {
@@ -173,13 +175,13 @@ function ScrollingContainer(props) {
         if (x !== null) {
             const result = getScrollPos(x, root.scrollLeft, bounds.left, root.clientWidth, body.offsetLeft);
             root.scrollLeft = result.scroll;
-            relative[0] = result.relative;
+            relative[0] = _.clamp(result.relative, 0, body.scrollWidth);
         }
 
         if (y !== null) {
             const result = getScrollPos(y, root.scrollTop, bounds.top, root.clientHeight, body.offsetTop);
             root.scrollTop = result.scroll;
-            relative[1] = result.relative;
+            relative[1] = _.clamp(result.relative, 0, body.scrollHeight);
         }
 
         return relative;
@@ -192,15 +194,11 @@ function ScrollingContainer(props) {
         else
             mousePos = dragSelectionRef.mousePos;
 
-        //Get body values
-        const { scrollWidth, scrollHeight } = bodyContainerRef.current;
-
-        //Calculate relative mouse position
-        let [relMouseX, relMouseY] = scrollToPos(mousePos[0], mousePos[1]);
-        relMouseX = _.clamp(relMouseX, 0, scrollWidth);
-        relMouseY = _.clamp(relMouseY, 0, scrollHeight);
+        //Scroll to mouse position
+        const [relMouseX, relMouseY] = scrollToPos(mousePos[0], mousePos[1]);
 
         //Update selection
+        const prevActive = dragSelectionRef.active;
         const newlySelected = updateSelection(relMouseY);
 
         const {
@@ -211,13 +209,14 @@ function ScrollingContainer(props) {
         dragSelectionRef.pendingFrames++;
         requestAnimationFrame(() => {
             if (newlySelected) {
-                const rows = tableBodyRef.current.children;
+                const getClassList = index => tableBodyRef.element.children[index].classList;
+
+                getClassList(prevActive).remove(activeClass);
+                getClassList(active).add(activeClass);
 
                 _.forEach(newlySelected, (selected, index) => {
-                    const { classList } = rows[index];
-                    classList.toggle(selectedClass, selected);
-                    classList.toggle(activeClass, +index === active);
-                })
+                    getClassList(index).toggle(selectedClass, selected)
+                });
             }
 
             if (showSelectionRect) {
@@ -231,7 +230,8 @@ function ScrollingContainer(props) {
             }
 
             if (!--dragSelectionRef.pendingFrames && !isSelectingRef.current)
-                dragSelectEnd();
+                //Give time for current frame to be rendered
+                requestAnimationFrame(dragSelectEnd);
         });
     }, [
         updateSelection,

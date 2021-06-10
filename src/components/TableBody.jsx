@@ -16,19 +16,23 @@ function TableBody(props) {
 
     const renderRow = (item, index) => {
         const value = item[options.valueProperty];
+        const active = value === virtualActiveValue;
+
+        if (active)
+            tableBodyRef.activeIndex = index;
 
         const rowProps = {
             ...rowCommonProps,
             key: `row_${props.name}_${value}`,
             item, index, value,
             selected: selection.has(value),
-            active: value === virtualActiveValue
+            active
         };
 
         return <TableRow {...rowProps} />;
     };
 
-    return <tbody ref={tableBodyRef}>
+    return <tbody ref={el => tableBodyRef.element = el}>
         {rows.map(renderRow)}
     </tbody>;
 }

@@ -706,6 +706,7 @@ export default function createTable(namespace, options = {}) {
                     if (!(newSize >= 0)) break;
 
                     draft.pageSize = newSize;
+                    draft.rows = [];
                     firstPage();
                     break;
                 }

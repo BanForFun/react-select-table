@@ -18,7 +18,10 @@ const reducer = createTable(tableNamespace, {
     indexProperty: "title",
     scrollX: true,
     multiSelect: true,
-    multiSort: true
+    multiSort: true,
+    initState: {
+        pageSize: 8
+    }
 });
 
 

@@ -151,7 +151,7 @@ function Root(props) {
         id={id}
         ref={containerRef}
         onKeyDown={handleKeyDown}
-        className={classNames("rst-container", className)}
+        className={"rst-container " + className}
     >
         <ScrollingContainer {...scrollingProps} />
         <PaginationContainer {...paginationProps} />

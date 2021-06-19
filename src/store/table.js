@@ -113,7 +113,7 @@ export default function createTable(namespace, options = {}) {
 
     //#region Sorting
 
-    function _compareItemData(thisData, otherData, allowEqual = false) {
+    function _compareItemData(thisData, otherData) {
         const compareProperty = (comparator, path) =>
             comparator(_.get(thisData, path), _.get(otherData, path));
 
@@ -129,9 +129,6 @@ export default function createTable(namespace, options = {}) {
 
             return result * factor;
         }
-
-        if (allowEqual)
-            return 0;
 
         return compareProperty(compareAscending, valueProperty) * factor;
     }

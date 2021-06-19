@@ -11,7 +11,7 @@ function HeadContainer(props) {
 
     return <div className="rst-headContainer">
         <table className={tableClass}>
-            <ColumnGroup columns={props.columns} name={props.name} />
+            <ColumnGroup id="head" />
             <TableHead {...headProps} />
         </table>
     </div>

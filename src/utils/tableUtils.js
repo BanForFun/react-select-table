@@ -18,9 +18,9 @@ const defaultOptions = {
     indexProperty: null,
     multiSelect: true,
     listBox: false,
-    minColumnWidth: 3,
     valueProperty: "id",
-    scrollX: false,
+    constantWidth: false,
+    minColumnWidth: 20,
     path: null,
     initState: {},
     context: null

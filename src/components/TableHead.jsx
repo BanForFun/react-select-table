@@ -5,10 +5,9 @@ import TableHeader from "./TableHeader";
 //Child of HeadContainer
 function TableHead(props) {
     const {
-        table: { options, utils },
+        table: { utils },
         columns,
         name,
-        theadClass,
         ...commonHeaderProps
     } = props;
 
@@ -34,7 +33,6 @@ function TableHead(props) {
         const headerProps = {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
-            addResizer: options.scrollX || index < columns.length - 1,
             path, title, index,
             sortAscending: sortOrder?.ascending,
             sortPriority: sortOrder?.priority
@@ -43,7 +41,7 @@ function TableHead(props) {
         return <TableHeader {...headerProps} />
     }
 
-    return <thead className={theadClass}>
+    return <thead>
         <tr>
             {columns.map(renderHeader)}
             <td/>

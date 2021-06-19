@@ -1,20 +1,34 @@
-@mixin rst-set($name, $value) {
-    --#{$rst-prefix}#{$name}: #{$value};
-}
+@mixin rst-load-config($config) {
+    //No need to merge with default config, these css variables will override the default ones
 
-@mixin rst-config($map) {
-    @each $name, $value in $map {
-        @include rst-set($name, $value);
+    $config: map-merge((
+        "row-selected-focused-overlay": map-get($config, "row-selected-overlay"),
+        "row-selected-focused-color": map-get($config, "row-selected-color"),
+        "row-selected-focused-border": map-get($config, "row-selected-border"),
+        "row-active-focused-underline": map-get($config, "row-active-underline"),
+    ), $config);
+
+    $config: map-merge((
+        "row-active-selected-underline": map-get($config, "row-active-underline"),
+        "row-active-selected-focused-underline": map-get($config, "row-active-focused-underline"),
+    ), $config);
+
+    @each $name, $value in $config {
+        --#{$rst-prefix}#{$name}: #{$value};
     }
 }
 
 @mixin rst-row-overlay($name) {
-    @include rst-set("row-overlay", rst-get($name));
+    & > * {
+        background-color: rst-get($name);
+    }
 }
 
 @mixin rst-row-underline($name) {
-    $color: rst-get($name);
+    box-shadow: inset 0 rst-get("row-underline-width", -1) 0 0 rst-get($name);
 
-    @include rst-set("row-underline", $color);
-    border-bottom-color: $color;
+    & > * {
+        //-1px is used to prevent anti-aliasing on the clipping mask resulting in spaces
+        clip-path: inset(-1px -1px rst-get("row-underline-width") -1px);
+    }
 }

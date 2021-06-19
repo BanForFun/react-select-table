@@ -1,10 +1,7 @@
 import React, {useCallback, useEffect, useRef} from 'react';
-import classNames from "classnames";
 import _ from "lodash";
 import TableCell from "./TableCell";
-
-export const selectedClass = "rst-selected";
-export const activeClass = "rst-active";
+import {boolAttribute} from "../utils/elementUtils";
 
 //Child of TableBody
 function TableRow({
@@ -18,14 +15,12 @@ function TableRow({
     item,
     value,
     index,
-    isSelectingRef,
     bodyContainerRef
 }) {
     const trRef = useRef();
 
     useEffect(() => {
         if (!active) return;
-        if (isSelectingRef.current) return;
 
         //Get elements
         const body = bodyContainerRef.current;
@@ -38,7 +33,7 @@ function TableRow({
             root.scrollTop = tr.offsetTop;
 
         //Scroll down
-        const visibleHeight = root.offsetHeight - body.offsetTop;
+        const visibleHeight = root.clientHeight - body.offsetTop;
         const rowBottom = tr.offsetTop + tr.offsetHeight;
         const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
         if (scrollDown)
@@ -77,14 +72,10 @@ function TableRow({
         return <TableCell {...cellProps} />
     };
 
-    const classes = {
-        [selectedClass]: selected,
-        [activeClass]: active
-    };
-
     return <tr
         ref={trRef}
-        className={classNames(classes)}
+        data-selected={boolAttribute(selected)}
+        data-active={boolAttribute(active)}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
     >

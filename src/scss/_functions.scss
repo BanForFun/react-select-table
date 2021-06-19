@@ -1,9 +1,5 @@
-@function rst-has($name) {
-    @return map-has-key($rst-colors, $name);
-}
-
-@function rst-get($name, $factor: 1) {
-    $value: var(--#{$rst-prefix}#{$name});
+@function rst-get($key, $factor: 1) {
+    $value: var(--#{$rst-prefix}#{$key});
 
     @if $factor != 1 {
         @return calc(#{$value} * #{$factor});

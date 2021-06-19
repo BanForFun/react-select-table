@@ -16,11 +16,11 @@ const compose = composeWithDevTools({
 const reducer = createTable(tableNamespace, {
     valueProperty: "id",
     indexProperty: "title",
-    scrollX: true,
+    constantWidth: false,
     multiSelect: true,
     multiSort: true,
     initState: {
-        pageSize: 8
+        // pageSize: 8
     }
 });
 

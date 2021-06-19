@@ -1,5 +1,6 @@
 import React, {Fragment, useCallback} from 'react';
 import AngleUpIcon from "./AngleUpIcon";
+import _ from "lodash";
 
 //Child of TableHead
 function TableHeader({
@@ -8,7 +9,6 @@ function TableHeader({
     index,
     columnResizeStart,
     actions,
-    addResizer,
     sortAscending,
     sortPriority
 }) {
@@ -20,8 +20,11 @@ function TableHeader({
     const handleResizeStart = useCallback(e => {
         e.stopPropagation();
 
-        const bounds = e.currentTarget.getBoundingClientRect();
-        columnResizeStart(index, e.clientX, bounds.left, bounds.right);
+        const header = e.currentTarget.offsetParent;
+        const row = header.parentElement;
+        const widths = _.map(row.children, th => th.offsetWidth);
+
+        columnResizeStart(index, e.clientX, header.offsetLeft, widths);
     }, [columnResizeStart, index]);
 
     const handleSeparatorMouseDown = useCallback(e => {
@@ -30,7 +33,6 @@ function TableHeader({
     }, [handleResizeStart]);
 
     return <th
-        data-path={path}
         data-ascending={sortAscending}
         onMouseDown={handleMouseDown}
         scope="col"
@@ -42,11 +44,11 @@ function TableHeader({
             <small>{sortPriority}</small>
         </>}
 
-        {addResizer && <div
+        <div
             className="rst-columnResizer"
             onMouseDown={handleSeparatorMouseDown}
             onTouchStart={handleResizeStart}
-        />}
+        />
     </th>;
 }
 

@@ -1,13 +1,3 @@
-%rst-utils {
-    tr {
-        box-shadow: inset 0 0 0 9999px rst-get("row-overlay");
-
-        & > * {
-            box-shadow: inset 0 rst-get("row-underline-width", -1) 0 0 rst-get("row-underline");
-        }
-    }
-}
-
 %rst-table {
     th {
         font-weight: rst-get("th-font-weight");
@@ -75,16 +65,6 @@
     }
 }
 
-%rst-rowActive {
-    tr.rst-active {
-        @include rst-row-underline("row-active-underline");
-    }
-
-    &:focus-within tr.rst-active {
-        @include rst-row-underline("row-active-focused-underline");
-    }
-}
-
 %rst-rowStriped {
     tbody tr:nth-of-type(#{$rst-striped-order}) {
         @include rst-row-overlay("row-striped-overlay");
@@ -99,15 +79,35 @@
     }
 }
 
-%rst-rowSelected {
-    tbody tr.rst-selected {
-        @include rst-row-overlay("row-selected-overlay");
-        color: rst-get("row-selected-color");
+%rst-rowActive {
+    tbody tr[data-active] {
+        @include rst-row-underline("row-active-underline");
+
+        &[data-selected] {
+            @include rst-row-underline("row-active-selected-underline");
+        }
     }
 
-    &:focus-within tbody tr.rst-selected {
+    &:focus-within tbody tr[data-active] {
+        @include rst-row-underline("row-active-focused-underline");
+
+        &[data-selected] {
+            @include rst-row-underline("row-active-selected-focused-underline");
+        }
+    }
+}
+
+%rst-rowSelected {
+    tbody tr[data-selected] {
+        @include rst-row-overlay("row-selected-overlay");
+        color: rst-get("row-selected-color");
+        border-color: rst-get("row-selected-border");
+    }
+
+    &:focus-within tbody tr[data-selected] {
         @include rst-row-overlay("row-selected-focused-overlay");
         color: rst-get("row-selected-focused-color");
+        border-color: rst-get("row-selected-focused-border");
     }
 }
 
@@ -128,16 +128,13 @@
         margin: 0 rst-get("pg-btn-spacing", -1);
     }
 
-    .rst-pagination > * {
+    .rst-page {
         margin: 0 rst-get("pg-btn-spacing");
         padding: rst-get("pg-btn-padding");
-    }
-
-    .rst-page {
         width: rst-get("pg-btn-width");
     }
 
-    .rst-pagination > button {
+    button.rst-page {
         border-radius: rst-get("pg-btn-border-radius");
         border-width: rst-get("pg-btn-border-width");
     }
@@ -148,14 +145,14 @@
         color: rst-get("pg-btn-color");
     }
 
-    .rst-pagination > button {
+    button.rst-page {
         background-color: rst-get("pg-btn-bg");
         border-color: rst-get("pg-btn-border");
     }
 }
 
 %rst-pgBtnDisabled {
-    .rst-pagination > button:disabled {
+    button.rst-page:disabled {
         background-color: rst-get("pg-btn-disabled-bg");
         border-color: rst-get("pg-btn-disabled-border");
         color: rst-get("pg-btn-disabled-color")
@@ -163,7 +160,7 @@
 }
 
 %rst-pgBtnHover {
-    .rst-pagination > button:hover {
+    button.rst-page:hover {
         background-color: rst-get("pg-btn-hover-bg");
         border-color: rst-get("pg-btn-hover-border");
         color: rst-get("pg-btn-hover-color")
@@ -171,7 +168,7 @@
 }
 
 %rst-pgBtnCurrent {
-    .rst-pagination > button.rst-current {
+    button.rst-page[data-current] {
         background-color: rst-get("pg-btn-current-bg");
         border-color: rst-get("pg-btn-current-border");
         color: rst-get("pg-btn-current-color")
@@ -179,16 +176,14 @@
 }
 
 %rst-pgBtnActive {
-    .rst-pagination > button.rst-active {
+    button.rst-page[data-active] {
         font-weight: rst-get("pg-active-font-weight");
     }
 }
 
 .rst-table {
-    @include rst-config($rst-layout);
-    @include rst-config($rst-colors);
+    @include rst-load-config($rst-config);
 
-    @extend %rst-utils;
     @extend %rst-table;
     @extend %rst-placeholders;
     @extend %rst-rowActive;

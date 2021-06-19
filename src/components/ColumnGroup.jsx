@@ -1,22 +1,29 @@
-import React, {useContext} from 'react';
+import React, {useContext, useCallback} from 'react';
 
-export const ColumnWidthsContext = React.createContext(null);
-ColumnWidthsContext.displayName = "ColumnWidthsContext";
+export const ColumnGroupContext = React.createContext(null);
+ColumnGroupContext.displayName = "ColumnGroupContext";
 
 //Child of HeadContainer
 //Child of BodyContainer
 
-const Column = ({ width }) => <col style={{ width: `${width}%` }} />
+function ColumnGroup({ id }) {
+    const { widths, columns, name, refs } = useContext(ColumnGroupContext);
 
-function ColumnGroup({ columns, name }) {
-    const {widths, padding} = useContext(ColumnWidthsContext);
+    const setRef = useCallback(ref => {
+        refs[id] = ref;
+    }, [refs, id]);
 
-    return <colgroup>
+    const Column = useCallback(({ width }) => {
+        const units = widths.resizing ? "px" : "%";
+        return <col style={{ width: width + units }} />
+    }, [widths]);
+
+    return <colgroup ref={setRef}>
         {columns.map((col, index) =>
-            <Column key={`col_${name}_${col._id}`} width={widths[index]} />)}
+            <Column key={`header_${name}_${col._id}`} width={widths.headers[index]} />)}
 
-        <Column key={`spacer_${name}`} width={padding} />
+        <Column width={widths.spacer} />
     </colgroup>;
 }
 
-export default React.memo(ColumnGroup);
+export default ColumnGroup;

@@ -1,142 +1,204 @@
 import _ from "lodash";
-import React, {useState, useMemo, useRef, useCallback} from 'react';
+import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
 import useObjectMemo from "../hooks/useObjectMemo";
-import {ColumnWidthsContext} from "./ColumnGroup";
+import {ColumnGroupContext} from "./ColumnGroup";
+
+function parseColumn(col) {
+    return {
+        render: v => v,
+        ...col,
+        _id: col.key ?? col.path
+    }
+}
 
 //Child of ScrollingContainer
 function ResizingContainer(props) {
     const {
         columns: _columns,
-        columnOrder: _order,
-        initColumnWidths: initWidths,
+        columnOrder,
+        initColumnWidths,
         onColumnsResizeEnd,
-        scrollToPos,
-        setCursorClass,
+        setMode,
+        columnResizingScrollFactor: scrollFactor,
         bodyContainerRef,
         selectionRectRef, //BodyContainer
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
-        isSelectingRef, //BodyContainer
-
-        theadClass, //HeadContainer
 
         ...commonProps
     } = props;
 
     const {
-        table: { options }
+        table: { options },
+        name,
     } = props;
 
-    const order = useMemo(() =>
-        _order ?? _.range(_columns.length),
-        [_order, _columns]
-    );
+    const parseWidths = useCallback((widths) => {
+        const min = _.min(widths);
+        const sum = _.sum(widths);
+        const container = Math.max(100, sum);
 
-    const [widths, setWidths] = useState(() => {
-        const count = order.length;
+        return {
+            minContainer: container / min * options.minColumnWidth,
+            container,
+            headers: widths,
+            spacer: container - sum,
+            resizing: false
+        }
+    }, [options]);
 
-        return initWidths.length === count
-            ? initWidths
-            : _.times(count, _.constant(100 / count));
-    });
+    const columns = useMemo(() =>
+        columnOrder?.map(index => parseColumn(_columns[index])) ?? _columns.map(parseColumn),
+    [_columns, columnOrder]);
 
-    const [width, setWidth] = useState(() => _.sum(widths));
-    const [padding, setPadding] = useState(() => Math.max(100 - width, 0));
+    const [widths, setWidths] = useState(parseWidths(initColumnWidths));
 
-    const { current: resizing } = useRef({
-        index: null,
-        left: 0,
-        right: 0,
-        widths,
-        maxWidth: 0,
-        started: false,
-        lastMouseX: null
-    });
+    useEffect(() => {
+        const count = columns.length;
+        if (count === widths.headers.length) return;
 
-    const calculateTableWidth = useCallback(() => {
-        const actualWidth = _.sum(resizing.widths);
-        const newWidth = Math.max(actualWidth, 100);
-        if (newWidth > resizing.maxWidth)
-            setWidth(resizing.maxWidth = newWidth);
+        const percentWidths = _.times(count, _.constant(100 / count));
+        setWidths(parseWidths(percentWidths));
+    }, [columns, widths, parseWidths])
 
-        setPadding(resizing.maxWidth - actualWidth);
-    }, [])
+    const colGroupRefs = useRef({}).current;
+    const resizingContainerRef = useRef();
 
-    const columnResizeStart = useCallback((index, mouseX, left, right) => {
-        setCursorClass("rst-resizing");
+    const resizing = useRef({
+        index: null
+    }).current;
+
+    const columnResizeStart = useCallback((index, mouseX, offsetLeft, colWidths) => {
+        setMode("resizing");
         Object.assign(resizing, {
-            index, left, right,
+            index,
+            originX: mouseX,
+            colWidths,
+            totalWidth: _.sum(_.initial(colWidths)),
+            offsetLeft,
             mouseX,
-            started: false,
+            pendingFrames: 0,
+            waitForRender: false
         });
-    }, [setCursorClass]);
+    }, [setMode]);
 
-    const updateWidth = useCallback(() => {
-        const { mouseX, index, widths } = resizing;
-        if (!resizing.started && _.inRange(mouseX, resizing.left, resizing.right))
-            return;
+    const columnResizeEnd = useCallback(() => {
+        const { clientWidth } = bodyContainerRef.current.offsetParent;
+        const percentWidths = _.initial(resizing.colWidths).map(px => px / clientWidth * 100);
 
-        resizing.started = true;
+        setWidths(parseWidths(percentWidths));
 
+        onColumnsResizeEnd(percentWidths);
+    }, [onColumnsResizeEnd])
+
+    const updateWidth = useCallback((ctrlKey, mouseX = null) => {
+        if (mouseX)
+            resizing.mouseX = mouseX;
+        else
+            mouseX = resizing.mouseX;
+
+        const { index, colWidths, offsetLeft } = resizing;
+
+        //Start resizing if pointer is more that 5 pixels away from origin position
+        if (!widths.resizing && !resizing.waitForRender && Math.abs(resizing.originX - mouseX) > 5) {
+            resizing.waitForRender = true;
+            setWidths({
+                minContainer: 0,
+                container: 100,
+                headers: _.initial(colWidths),
+                spacer: _.last(colWidths),
+                resizing: true
+            });
+        } else if (!widths.resizing) return;
+
+        //Get container bounds
+        const scrollingContainer = bodyContainerRef.current.offsetParent;
+        const containerX = scrollingContainer.getBoundingClientRect().x;
+        const { clientWidth, scrollLeft } = scrollingContainer;
+
+        //Calculate new width
+        const relX = mouseX - containerX + scrollLeft;
         const minWidth = options.minColumnWidth;
-        const root = bodyContainerRef.current.offsetParent;
+        let newWidth = Math.max(relX - offsetLeft, minWidth);
 
-        const [distancePx] = scrollToPos(mouseX, null);
-        const distancePercent = 100 / root.clientWidth * distancePx;
-        const offsetPercent = _.sum(_.take(widths, index));
-        const widthPercent = Math.max(distancePercent - offsetPercent, minWidth);
+        const newWidths = {};
+        let setScroll = scrollLeft;
 
-        if (options.scrollX) {
-            widths[index] = widthPercent;
+        if (options.constantWidth || ctrlKey) {
+            const availableWidth = colWidths[index] + colWidths[index + 1];
+            newWidth = Math.min(availableWidth - minWidth, newWidth);
+            newWidths[index + 1] = availableWidth - newWidth;
         } else {
-            const available = widths[index] + widths[index + 1];
-            const limited = _.clamp(widthPercent, minWidth, available - minWidth);
-            widths[index] = limited;
-            widths[index + 1] = available - limited;
+            const targetTotalWidth = resizing.totalWidth + newWidth - colWidths[index];
+            const visibleRight = scrollLeft + clientWidth;
+
+            let scrollOffset = 0;
+            if (targetTotalWidth > clientWidth)
+                scrollOffset =
+                    Math.max(0, relX - visibleRight) - //Scroll to right
+                    Math.max(0, visibleRight - targetTotalWidth) //Scroll to left
+
+            if (scrollOffset)
+                newWidth = colWidths[index] + scrollOffset * scrollFactor;
+
+            if (scrollOffset > 0)
+                setScroll = offsetLeft + newWidth - clientWidth;
+
+            const totalWidth = resizing.totalWidth += newWidth - colWidths[index];
+            newWidths[colWidths.length - 1] = Math.max(0, clientWidth - totalWidth);
         }
 
-        setWidths([...widths]);
-        calculateTableWidth();
-    }, [
-        options,
-        scrollToPos, calculateTableWidth
-    ]);
+        if (newWidth === colWidths[index]) return;
+
+        newWidths[index] = newWidth;
+        Object.assign(colWidths, newWidths);
+
+        resizing.pendingFrames++;
+        requestAnimationFrame(() => {
+            _.forEach(newWidths, (width, index) => {
+                _.forEach(colGroupRefs, (group) => {
+                    group.children[index].style.width = width + "px";
+                })
+            })
+
+            scrollingContainer.scrollLeft = setScroll;
+
+            if (!--resizing.pendingFrames && resizing.index === null)
+                columnResizeEnd();
+        });
+    }, [options, scrollFactor, columnResizeEnd, widths]);
 
     const handleDragEnd = useCallback(() => {
         if (resizing.index === null) return;
-
         resizing.index = null;
-        resizing.maxWidth = 0;
-        calculateTableWidth();
 
-        if (resizing.started)
-            onColumnsResizeEnd(resizing.widths);
-    }, [onColumnsResizeEnd, calculateTableWidth]);
+        if (widths.resizing && !resizing.pendingFrames)
+            columnResizeEnd();
+
+    }, [columnResizeEnd, widths]);
 
     //#region Window events
 
-    useEvent(bodyContainerRef.current?.offsetParent, "scroll", useCallback(() => {
+    useEvent(bodyContainerRef.current?.offsetParent, "scroll", useCallback(e => {
         if (resizing.index === null) return;
-        updateWidth();
+        updateWidth(e.ctrlKey);
     }, [updateWidth]));
 
     useEvent(window, "mousemove", useCallback(e => {
         if (resizing.index === null) return;
-        resizing.mouseX = e.clientX;
-        updateWidth()
+        updateWidth(e.ctrlKey, e.clientX)
     },[updateWidth]));
 
     useEvent(window, "touchmove", useCallback(e => {
         e.stopPropagation();
+
         if (resizing.index === null) return;
         e.preventDefault();
-
-        resizing.mouseX = e.touches[0].clientX;
-        updateWidth();
+        updateWidth(e.ctrlKey, e.touches[0].clientX);
     }, [updateWidth]), false);
 
     useEvent(window, "mouseup", handleDragEnd);
@@ -144,19 +206,13 @@ function ResizingContainer(props) {
 
     //#endregion
 
-    commonProps.columns = useMemo(() => order.map(index => {
-        const column = _columns[index];
-        return {
-            render: v => v,
-            ...column,
-            _id: column.key ?? column.path
-        }
-    }), [_columns, order]);
+    Object.assign(commonProps, {
+        columns
+    });
 
     const headProps = {
         ...commonProps,
-        columnResizeStart,
-        theadClass
+        columnResizeStart
     }
 
     const bodyProps = {
@@ -165,18 +221,26 @@ function ResizingContainer(props) {
         selectionRectRef,
         onItemsOpen,
         dragSelectStart,
-        bodyContainerRef,
-        isSelectingRef
+        bodyContainerRef
     }
 
     return <div
         className="rst-resizingContainer"
-        style={{ width: `${width}%` }}
+        ref={resizingContainerRef}
+        style={{
+            width: widths.container + "%",
+            minWidth: widths.minContainer + "px"
+        }}
     >
-        <ColumnWidthsContext.Provider value={useObjectMemo({ widths, padding })}>
+        <ColumnGroupContext.Provider value={useObjectMemo({
+            refs: colGroupRefs,
+            name,
+            columns,
+            widths
+        })}>
             <HeadContainer {...headProps} />
             <BodyContainer {...bodyProps} />
-        </ColumnWidthsContext.Provider>
+        </ColumnGroupContext.Provider>
     </div>
 }
 

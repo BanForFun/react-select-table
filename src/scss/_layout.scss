@@ -1,9 +1,3 @@
-@mixin _cursorOverride($cursor) {
-    &, & * {
-        cursor: $cursor !important;
-    }
-}
-
 .rst-container {
     display: flex;
     flex-direction: column;
@@ -20,7 +14,13 @@
         border-spacing: 0;
     }
 
+    tr {
+        //For firefox
+        border-color: inherit;
+    }
+
     td, th {
+        white-space: nowrap;
         overflow: hidden;
         border-color: inherit;
         border-style: solid;
@@ -32,6 +32,20 @@
     position: relative;
     flex: auto;
     overflow: auto;
+
+    @mixin _cursorOverride($cursor) {
+        &, & * {
+            cursor: $cursor !important;
+        }
+    }
+
+    &[data-mode=resizing] {
+        @include _cursorOverride(col-resize);
+    }
+
+    &[data-mode=selecting] {
+        @include _cursorOverride(default);
+    }
 }
 
 .rst-resizingContainer {
@@ -51,11 +65,10 @@
     border-width: 0;
 
     th {
-        z-index: 1;
         white-space: nowrap;
         position: relative;
 
-        &[data-path] {
+        .rst-sortable {
             cursor: pointer;
         }
 
@@ -67,14 +80,6 @@
 
 .rst-tablePlaceholder, .rst-bodyPlaceholder {
     width: 100%;
-}
-
-.rst-resizing {
-    @include _cursorOverride(col-resize);
-}
-
-.rst-selecting {
-    @include _cursorOverride(default);
 }
 
 .rst-bodyContainer {
@@ -109,22 +114,22 @@
     flex: none;
 }
 
-.rst-pagination > * {
+.rst-page {
     text-align: center;
     display: inline-block;
     box-sizing: content-box;
     color: inherit;
 
-    &.rst-prev svg {
-        transform: rotate(-90deg);
-    }
-
-    &.rst-next svg {
-        transform: rotate(90deg);
-    }
-
     &:disabled {
         pointer-events: none;
     }
+}
+
+.rst-prevIcon {
+    transform: rotate(-90deg);
+}
+
+.rst-nextIcon {
+    transform: rotate(90deg);
 }
 

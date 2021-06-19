@@ -76,12 +76,12 @@ function ReduxTable() {
             containerRef={containerRef}
             emptyPlaceholder="No items"
             namespace={tableNamespace}
-            className="rst-table rst-striped rst-hover"
+            className="rst-table"
+            initColumnWidths={[10, 60, 10, 10]}
             // tableClass="table table-striped table-hover table-dark"
             theadClass=""
             columns={columns}
             loadingIndicator="Loading..."
-            scrollFactor={0.5}
             autoFocus={true}
             onKeyDown={handleTableKeyDown}
             showSelectionRect={true}

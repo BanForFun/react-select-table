@@ -68,7 +68,7 @@ function BodyContainer(props) {
         {noItems
             ? <div className="rst-bodyPlaceholder">{emptyPlaceholder}</div>
             : <table className={tableClass}>
-                <ColumnGroup columns={props.columns} name={props.name} />
+                <ColumnGroup id="body" />
                 <TableBody {...bodyProps} />
             </table>
         }

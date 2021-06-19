@@ -4,6 +4,7 @@ import AngleUpIcon from "./AngleUpIcon";
 import _ from "lodash";
 import {unFocusable} from "../utils/eventUtils";
 import useEvent from "../hooks/useEvent";
+import {boolAttribute} from "../utils/elementUtils";
 
 const startDelay = 600
 const repeatDelay = 100
@@ -17,22 +18,6 @@ function DefaultPagination({
     firstPage,
     lastPage
 }) {
-    const Page = ({ number, action, children }) => {
-        if (!number)
-            return <span className="rst-page">{children}</span>
-
-        const className = classNames({
-            "rst-page": true,
-            "rst-current": number === page
-        });
-
-        return <button
-            {...unFocusable}
-            className={className}
-            onClick={action}
-        >{number}</button>
-    };
-
     const repeatTimeoutRef = useRef(null);
 
     const repeatAction = useCallback(action => {
@@ -47,6 +32,19 @@ function DefaultPagination({
     useEvent(window, "mouseup", useCallback(() => {
         clearTimeout(repeatTimeoutRef.current);
     }, [repeatTimeoutRef]));
+
+    function Page({ number, action, children, ...rest }) {
+        if (!number)
+            return <span className="rst-page">{children}</span>
+
+        return <button
+            {...unFocusable}
+            {...rest}
+            className="rst-page"
+            data-current={boolAttribute(number === page)}
+            onMouseDown={action}
+        >{number}</button>
+    }
 
     const pages = [];
     const pageFromEnd = pageCount - page + 1;
@@ -70,13 +68,11 @@ function DefaultPagination({
     const paddingRight = 4 - pageFromEnd;
 
     return <div className="rst-pagination">
-        <button
+        <Page
             disabled={page === 1}
-            className="rst-prev"
-            onMouseDown={repeatAction(prevPage)}
-        >
-            <AngleUpIcon  />
-        </button>
+            action={repeatAction(prevPage)}
+            number={<AngleUpIcon className="rst-prevIcon"/>}
+        />
 
         {_.times(paddingLeft, i => <Page key={`padding_left_${i}`} />)}
 
@@ -86,13 +82,11 @@ function DefaultPagination({
 
         {_.times(paddingRight, i => <Page key={`padding_right_${i}`} />)}
 
-        <button
+        <Page
             disabled={page === pageCount}
-            className="rst-next"
-            onMouseDown={repeatAction(nextPage)}
-        >
-            <AngleUpIcon />
-        </button>
+            action={repeatAction(nextPage)}
+            number={<AngleUpIcon className="rst-nextIcon"/>}
+        />
     </div>
 }
 

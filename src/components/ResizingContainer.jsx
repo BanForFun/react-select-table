@@ -5,6 +5,7 @@ import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
 import useObjectMemo from "../hooks/useObjectMemo";
 import {ColumnGroupContext} from "./ColumnGroup";
+import {boolAttribute} from "../utils/elementUtils";
 
 function parseColumn(col) {
     return {
@@ -227,6 +228,7 @@ function ResizingContainer(props) {
 
     return <div
         className="rst-resizingContainer"
+        data-resizing={boolAttribute(widths.resizing)}
         ref={resizingContainerRef}
         style={{
             width: widths.container + "%",

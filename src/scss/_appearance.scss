@@ -111,6 +111,12 @@
     }
 }
 
+%rst-columnResizer {
+    .rst-resizingContainer:not([data-resizing]) .rst-columnResizer:active {
+        background-color: rst-get("column-resizer-active-bg");
+    }
+}
+
 %rst-dragSelection {
     .rst-dragSelection {
         border-width: rst-get("drag-selection-border-width");
@@ -191,6 +197,7 @@
     @extend %rst-rowHover;
     @extend %rst-rowSelected;
     @extend %rst-dragSelection;
+    @extend %rst-columnResizer;
     @extend %rst-pg;
     @extend %rst-pgBtn;
     @extend %rst-pgBtnDisabled;

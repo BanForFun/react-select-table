@@ -87,12 +87,13 @@ function ResizingContainer(props) {
     }, [setMode]);
 
     const columnResizeEnd = useCallback(() => {
-        const { clientWidth } = bodyContainerRef.current.offsetParent;
-        const percentWidths = _.initial(resizing.colWidths).map(px => px / clientWidth * 100);
+        setTimeout(() => {
+            const { clientWidth } = bodyContainerRef.current.offsetParent;
+            const percentWidths = _.initial(resizing.colWidths).map(px => px / clientWidth * 100);
+            setWidths(parseWidths(percentWidths));
 
-        setWidths(parseWidths(percentWidths));
-
-        onColumnsResizeEnd(percentWidths);
+            onColumnsResizeEnd(percentWidths);
+        });
     }, [onColumnsResizeEnd])
 
     const updateWidth = useCallback((ctrlKey, mouseX = null) => {

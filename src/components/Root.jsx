@@ -2,9 +2,8 @@ import React, {useRef, useEffect, useCallback} from 'react';
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
-import classNames from "classnames";
 import {matchModifiers} from "../utils/eventUtils";
-import {relativePos} from "../store/table";
+import {relativePos, specialValues} from "../store/table";
 
 //Child of Connector
 function Root(props) {
@@ -43,31 +42,28 @@ function Root(props) {
         }, [handler, events]);
     }
 
-    const virtualActiveValue = utils.useSelector(s => s.virtualActiveValue);
+    const activeValue = utils.useSelector(s => s.activeValue);
     const pageCount = utils.useSelector(selectors.getPageCount);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
-    const pageSize = utils.useSelector(s => s.pageSize);
     const showPlaceholder = utils.useSelector(s => s.isLoading || !!s.error);
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
 
-    const offsetPage = useCallback((e, offset) => {
-        // if (!pageCount) return;
+    const offsetPage = useCallback((e, prev) => {
+        if (!pageCount) return;
 
-        // const newIndex = pageIndex + offset;
-        // if (!_.inRange(newIndex, pageCount)) return;
-        //
-        // const itemIndex = newIndex * pageSize;
-        // if (matchModifiers(e, false, false))
-        //     actions.goToPage(newIndex);
-        // else
-        //     selectValue(e, itemIndex);
-    }, [
-        pageIndex, pageCount, pageSize,
-        actions
-    ]);
+        const offset = prev ? -1 : 1;
+        const newIndex = pageIndex + offset;
+        if (!_.inRange(newIndex, pageCount)) return;
+
+        if (matchModifiers(e, false, false))
+            actions.goToPageRelative(prev ? relativePos.PREV : relativePos.NEXT);
+        else
+            actions.selectRelative(offset, e, prev ? specialValues.FIRST_ROW : specialValues.LAST_ROW);
+
+    }, [pageIndex, pageCount, actions]);
 
     const handleShortcuts = useCallback(e => {
         switch (e.keyCode) {
@@ -77,22 +73,22 @@ function Root(props) {
 
                 break;
             case 38: //Up
-                actions.selectRelative(relativePos.PREV, e);
+                actions.selectRelative(-1, e);
                 break;
             case 40: //Down
-                actions.selectRelative(relativePos.NEXT, e);
+                actions.selectRelative(1, e);
                 break;
             case 36: //Home
-                actions.selectRelative(relativePos.FIRST, e);
+                actions.selectRelative(0, e, specialValues.FIRST_ITEM);
                 break;
             case 35: //End
-                actions.selectRelative(relativePos.LAST, e);
+                actions.selectRelative(-0, e, specialValues.LAST_ITEM);
                 break;
             case 13: //Enter
-                if (matchModifiers(e, false, false) && selection.has(virtualActiveValue))
+                if (matchModifiers(e, false, false) && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(virtualActiveValue, e);
+                    actions.select(activeValue, e);
 
                 break;
             case 37: //Left
@@ -108,7 +104,7 @@ function Root(props) {
         e.preventDefault();
     }, [
         actions, options, //Component props
-        virtualActiveValue, selection, //Redux props
+        activeValue, selection, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods
         onItemsOpen //Event handlers

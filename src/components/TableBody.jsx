@@ -12,11 +12,11 @@ function TableBody(props) {
 
     const rows = utils.useSelector(s => s.rows);
     const selection = utils.useSelector(s => s.selection);
-    const virtualActiveValue = utils.useSelector(s => s.virtualActiveValue);
+    const activeValue = utils.useSelector(s => s.activeValue);
 
     const renderRow = (item, index) => {
         const value = item[options.valueProperty];
-        const active = value === virtualActiveValue;
+        const active = value === activeValue;
 
         if (active)
             tableBodyRef.activeIndex = index;

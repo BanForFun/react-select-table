@@ -76,8 +76,8 @@ export default function Actions(namespace) {
         baseSortItems: (path, shiftKey) =>
             Action(types.SORT_ITEMS, { path, shiftKey }),
 
-        baseSelectRelative: (position, ctrlKey, shiftKey) =>
-            Action(types.SELECT_RELATIVE, { position, ctrlKey, shiftKey }),
+        baseSelectRelative: (offset, ctrlKey, shiftKey, origin = null) =>
+            Action(types.SELECT_RELATIVE, { offset, origin, ctrlKey, shiftKey }),
 
         baseSelect: (value, ctrlKey, shiftKey) =>
             Action(types.SELECT, { value, ctrlKey, shiftKey }),
@@ -102,8 +102,8 @@ export default function Actions(namespace) {
     }
 
     const aliases = {
-        selectRelative: (relativePos, e) =>
-            actions.baseSelectRelative(relativePos, e.ctrlKey, e.shiftKey),
+        selectRelative: (offset, e, origin = null) =>
+            actions.baseSelectRelative(offset, e.ctrlKey, e.shiftKey, origin),
 
         select: (value, e) =>
             actions.baseSelect(value, e.ctrlKey, e.shiftKey),

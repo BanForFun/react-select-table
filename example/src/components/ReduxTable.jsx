@@ -6,6 +6,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { tableActions as actions, tableNamespace } from "../store";
 import todos from "../todos";
 
+const evenTodos = todos.filter(t => t.id % 2 === 0);
+const oddTodos = todos.filter(t => t.id % 2 === 1);
+
 function logEvent(type) {
     return (...args) => console.log(type, ...args);
 }
@@ -13,25 +16,32 @@ function logEvent(type) {
 function ReduxTable() {
     const dispatch = useDispatch();
 
-    const keyedItems = useSelector(s => s.items);
+    const items = useSelector(s => s.sortedItems);
 
     const [clipboard, setClipboard] = useState(null);
 
     const containerRef = useRef();
 
     useEffect(() => {
-        dispatch(actions.setItems(todos));
+        dispatch(actions.setItems(oddTodos));
     }, [dispatch]);
 
     const buttonActions = useMemo(() => ({
+        "Add even todos": actions.addItems(...evenTodos),
+
         "Set items": actions.setItems(todos),
-        "Set error": actions.setError("Error"),
-        "Clear error": actions.setError(null),
         "Clear items": actions.clearItems(),
-        "Page size 8": actions.setPageSize(8),
+
+        "Set error": actions.setError("Error"),
+
+        "Set filter": actions.setItemFilter({ completed: true }),
+        "Clear filter": actions.setItemFilter({}),
+
         "Page size 10": actions.setPageSize(10),
         "Disable pagination": actions.setPageSize(0),
+
         "Start loading": actions.startLoading(),
+
         "Debug": actions.debug()
     }), [])
 
@@ -46,8 +56,9 @@ function ReduxTable() {
 
         switch (e.keyCode) {
             case 88: //X
-                setClipboard(_.values(_.pick(keyedItems, ...selection)));
-                dispatch(actions.deleteItems(...selection));
+                const values = [...selection];
+                setClipboard(values.map(value => items[value].data));
+                dispatch(actions.deleteItems(...values));
                 break;
             case 86: //V
                 if (!clipboard) break;
@@ -55,7 +66,7 @@ function ReduxTable() {
                 setClipboard(null);
                 break;
         }
-    }, [dispatch, clipboard, keyedItems]);
+    }, [dispatch, clipboard, items]);
 
     return <div id="example">
         <div>

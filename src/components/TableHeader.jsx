@@ -17,20 +17,19 @@ function TableHeader({
             actions.sortItems(path, e);
     }, [path, actions]);
 
-    const handleResizeStart = useCallback(e => {
+    const handleResizeStart = useCallback((e) => {
+        const isMouse = e.type === "mousedown";
+        if (isMouse && e.button !== 0) return;
+
         e.stopPropagation();
 
         const header = e.currentTarget.offsetParent;
         const row = header.parentElement;
         const widths = _.map(row.children, th => th.offsetWidth);
+        const {clientX} = isMouse ? e : e.touches[0];
 
-        columnResizeStart(index, e.clientX, header.offsetLeft, widths);
+        columnResizeStart(index, clientX, header.offsetLeft, widths);
     }, [columnResizeStart, index]);
-
-    const handleSeparatorMouseDown = useCallback(e => {
-        if (e.button !== 0) return;
-        handleResizeStart(e);
-    }, [handleResizeStart]);
 
     return <th
         data-ascending={sortAscending}
@@ -39,14 +38,14 @@ function TableHeader({
     >
         {title}
 
-        {sortPriority >= 0 && <>
+        {sortPriority >= 0 && <Fragment>
             <AngleUpIcon className="rst-sortIcon" />
             <small>{sortPriority}</small>
-        </>}
+        </Fragment>}
 
         <div
             className="rst-columnResizer"
-            onMouseDown={handleSeparatorMouseDown}
+            onMouseDown={handleResizeStart}
             onTouchStart={handleResizeStart}
         />
     </th>;

@@ -60,7 +60,7 @@ function TableRow({
         dragSelectStart([e.clientX, e.clientY], index);
     }, [value, index, actions]);
 
-    const renderColumn = (column, colIndex) => {
+    const renderColumn = (column) => {
         const { _id, path, render, className, isHeader } = column;
 
         const cellProps = {

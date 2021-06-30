@@ -49,7 +49,7 @@ const eventMiddleware = store => next => action => {
             //Raise onContextMenu
             if (type === types.CONTEXT_MENU)
                 events.onContextMenu(options.listBox
-                    ? slice.virtualActiveValue
+                    ? slice.activeValue
                     : selectors.getSelectionArg(slice)
                 );
 

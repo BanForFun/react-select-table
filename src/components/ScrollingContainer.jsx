@@ -97,6 +97,8 @@ function ScrollingContainer(props) {
             setMode(null);
 
             const { selected, active, pivot } = dragSelectionRef;
+            if (active === tableBodyRef.activeIndex) return;
+
             actions.setSelected(
                 _.mapKeys(selected, (_, index) => rowValues[index]),
                 rowValues[active], rowValues[pivot]
@@ -252,7 +254,7 @@ function ScrollingContainer(props) {
 
     //Event handlers
 
-    const handleScroll = useCallback(e => {
+    const handleScroll = useCallback(() => {
         if (!dragSelectionRef.started) return;
 
         updateSelectionRect();

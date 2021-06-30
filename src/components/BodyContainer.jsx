@@ -40,7 +40,7 @@ function BodyContainer(props) {
         if (isTouchingRef.current)
             dragSelectStart([e.clientX, e.clientY]);
         else
-            actions.contextMenu(null, e);
+            actions.contextMenu(e, null);
     }, [dragSelectStart, actions]);
 
     const handleDoubleClick = useCallback(() => {

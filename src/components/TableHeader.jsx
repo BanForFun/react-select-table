@@ -10,11 +10,12 @@ function TableHeader({
     columnResizeStart,
     actions,
     sortAscending,
-    sortPriority
+    sortPriority,
+    showPriority
 }) {
     const handleMouseDown = useCallback(e => {
         if (!e.button && path)
-            actions.sortItems(path, e);
+            actions.sortItems(e, path);
     }, [path, actions]);
 
     const handleResizeStart = useCallback((e) => {
@@ -40,7 +41,7 @@ function TableHeader({
 
         {sortPriority >= 0 && <Fragment>
             <AngleUpIcon className="rst-sortIcon" />
-            <small>{sortPriority}</small>
+            {showPriority && <small>{sortPriority}</small>}
         </Fragment>}
 
         <div

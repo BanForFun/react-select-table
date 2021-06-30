@@ -60,7 +60,7 @@ function Root(props) {
         } else {
             const origin = prev ? specialValues.FIRST_ROW : specialValues.LAST_ROW;
             const offset = prev ? -1 : 1;
-            actions.selectRelative(offset, e, origin);
+            actions.selectRelative(e, offset, origin);
         }
     }, [actions]);
 
@@ -79,25 +79,25 @@ function Root(props) {
                 break;
             case 38: //Up
                 if (isFirstItem) break;
-                actions.selectRelative(-1, e);
+                actions.selectRelative(e, -1);
                 break;
             case 40: //Down
                 if (isLastItem) break;
-                actions.selectRelative(1, e);
+                actions.selectRelative(e, 1);
                 break;
             case 36: //Home
                 if (isFirstItem) break;
-                actions.selectRelative(0, e, specialValues.FIRST_ITEM);
+                actions.selectRelative(e, 0, specialValues.FIRST_ITEM);
                 break;
             case 35: //End
                 if (isLastItem) break;
-                actions.selectRelative(-0, e, specialValues.LAST_ITEM);
+                actions.selectRelative(e, -0, specialValues.LAST_ITEM);
                 break;
             case 13: //Enter
                 if (matchModifiers(e, false, false) && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(activeValue, e);
+                    actions.select(e, activeValue);
 
                 break;
             case 37: //Left

@@ -1,4 +1,3 @@
-import _ from "lodash";
 import React, {useMemo} from 'react';
 import TableHeader from "./TableHeader";
 
@@ -13,14 +12,14 @@ function TableHead(props) {
 
     const sortAscending = utils.useSelector(s => s.sortAscending);
 
-    const sortOrders = useMemo(() => {
+    const sorting = useMemo(() => {
         const orders = {}
 
         let index = 0;
         for (let [path, ascending] of sortAscending)
             orders[path] = { ascending, priority: ++index }
 
-        return orders;
+        return { orders, maxIndex: index };
     }, [sortAscending])
 
     //Redux state
@@ -28,14 +27,15 @@ function TableHead(props) {
     const renderHeader = (column, index) => {
         const { _id, path, title } = column;
 
-        const sortOrder = sortOrders[path];
+        const sortOrder = sorting.orders[path];
 
         const headerProps = {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
             path, title, index,
             sortAscending: sortOrder?.ascending,
-            sortPriority: sortOrder?.priority
+            sortPriority: sortOrder?.priority,
+            showPriority: sorting.maxIndex > 1
         }
 
         return <TableHeader {...headerProps} />

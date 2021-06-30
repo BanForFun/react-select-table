@@ -102,16 +102,16 @@ export default function Actions(namespace) {
     }
 
     const aliases = {
-        selectRelative: (offset, e, origin = null) =>
+        selectRelative: (e, offset, origin = null) =>
             actions.baseSelectRelative(offset, e.ctrlKey, e.shiftKey, origin),
 
-        select: (value, e) =>
+        select: (e, value) =>
             actions.baseSelect(value, e.ctrlKey, e.shiftKey),
 
-        contextMenu: (index, e) =>
+        contextMenu: (e, index) =>
             actions.baseContextMenu(index, e.ctrlKey),
 
-        sortItems: (path, e) =>
+        sortItems: (e, path) =>
             actions.baseSortItems(path, e.shiftKey)
     }
 

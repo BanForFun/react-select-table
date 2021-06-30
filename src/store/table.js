@@ -36,9 +36,6 @@ export default function createTable(namespace, options = {}) {
 
     const initState = {
         selection: new Set(),
-        activeIndex: 0, //Legacy
-        pivotIndex: 0, //Legacy
-        virtualActiveIndex: 0, //Legacy
         filter: null,
         sortAscending: new Map(),
         isLoading: false,
@@ -61,8 +58,40 @@ export default function createTable(namespace, options = {}) {
 
     let draft;
 
+    //#region Visibility
 
-    //#region Ordering
+    function setItemVisibility(value, visibility = null) {
+        const item = draft.sortedItems[value];
+        visibility ??= options.itemPredicate(item.data, draft.filter);
+
+        if (!!item.visible === visibility) return;
+        item.visible = visibility;
+        draft.visibleItemCount += visibility ? 1 : -1;
+    }
+
+    //#endregion
+
+    //#region Sorting
+
+    function compareItemData(thisData, otherData) {
+        const compareProperty = (comparator, path) =>
+            comparator(_.get(thisData, path), _.get(otherData, path));
+
+        //Make it so that reversing the sort order of a column with all equal values, reverses the item order
+        let factor = 1;
+        for (let [path, ascending] of draft.sortAscending) {
+            factor = ascending ? 1 : -1
+
+            const comparator = _.get(options.comparators, path, compareAscending);
+            const result = compareProperty(comparator, path);
+
+            if (!result) continue;
+
+            return result * factor;
+        }
+
+        return compareProperty(compareAscending, valueProperty) * factor;
+    }
 
     function setItemOrder(first, second) {
         const {
@@ -79,47 +108,6 @@ export default function createTable(namespace, options = {}) {
             firstItem.next = second;
         else
             draft.headValue = second;
-    }
-
-    //#endregion
-
-    //#region Visibility
-
-    function setItemVisibility(value, visibility) {
-        const item = draft.sortedItems[value];
-        if (!!item?.visible === visibility) return;
-
-        item.visible = visibility;
-        draft.visibleItemCount += visibility ? 1 : -1;
-    }
-
-    //#endregion
-
-    //#region Sorting
-
-    function compareItemData(thisData, otherData) {
-        const compareProperty = (comparator, path) =>
-            comparator(_.get(thisData, path), _.get(otherData, path));
-
-        //Ensure that reversing the sort order of a column with all equal values, reverses the items
-        let factor = 1;
-        for (let [path, ascending] of draft.sortAscending) {
-            factor = ascending ? 1 : -1
-
-            const comparator = _.get(options.comparators, path, compareAscending);
-            const result = compareProperty(comparator, path);
-
-            if (!result) continue;
-
-            return result * factor;
-        }
-
-        return compareProperty(compareAscending, valueProperty) * factor;
-    }
-
-    // noinspection JSUnusedLocalSymbols
-    function debugStateEqual(selector) {
-        console.log(selector(original(draft)) === selector(current(draft)));
     }
 
     function getItemValues() {
@@ -160,8 +148,11 @@ export default function createTable(namespace, options = {}) {
 
     //#region Querying
 
-    const getFirstRowValue = () => draft.rows[0][valueProperty];
-    const getLastRowValue = () => {
+    function getFirstRowValue() {
+        return draft.rows[0][valueProperty];
+    }
+
+    function getLastRowValue() {
         const pageSize = getCurrentPageSize();
         return draft.rows[pageSize - 1][valueProperty];
     }
@@ -314,112 +305,90 @@ export default function createTable(namespace, options = {}) {
     //#region Addition
 
     function addItem(data, prev, next) {
-        const value = data[valueProperty];
-
         //Reject if value is null or undefined
+        const value = data[valueProperty];
         if (value == null) return null;
 
-        //Ensure visible item counter stays accurate when replacing item
-        setItemVisibility(value, false);
-
-        //Add or replace item
-        const item = draft.sortedItems[value] = { data };
+        //Add item
+        draft.sortedItems[value] = { data };
 
         //Set position
         setItemOrder(prev, value);
         setItemOrder(value, next);
 
         //Set visibility
-        setItemVisibility(value, options.itemPredicate(data, draft.filter));
+        setItemVisibility(value);
 
-        return item;
+        return value;
     }
 
-    function addItems(data) {
-        const { pageSize } = draft;
-        let foundActive = false;
-        let activeIndex = 0;
-        let activePageIndex = -1;
-        let activePageFirstValue;
+    function addItems(itemData) {
+        const setActive = startSetActiveTransaction(value => value === draft.activeValue);
 
-        data.sort(compareItemData);
+        for (let data of itemData.sort(compareItemData))
+            deleteItem(data[valueProperty], true);
 
         let dataIndex = 0;
         let currentValue = draft.headValue;
 
         //In-place merge
-        while (currentValue !== undefined && dataIndex < data.length) {
-            const newData = data[dataIndex];
+        while (currentValue !== undefined && dataIndex < itemData.length) {
+            const data = itemData[dataIndex];
+            const item = draft.sortedItems[currentValue];
 
-            let currentItem = draft.sortedItems[currentValue];
-            if (compareItemData(newData, currentItem.data) < 0) {
-                //New item is smaller
-                currentItem = addItem(newData, currentItem.prev, currentValue);
+            let value;
+            if (compareItemData(data, item.data) < 0) {
+                value = addItem(data, item.prev, currentValue);
                 dataIndex++;
-            } else
-                currentValue = currentItem.next;
-
-            //Find active page
-            if (!currentItem.visible || !pageSize || foundActive) continue;
-
-            const itemValue = currentItem.data[valueProperty];
-
-            if (activeIndex++ % pageSize === 0) {
-                activePageIndex++;
-                activePageFirstValue = itemValue;
+            } else {
+                value = currentValue;
+                currentValue = item.next;
             }
 
-            if (itemValue === draft.activeValue)
-                foundActive = true;
+            setActive.registerItem(value);
         }
 
-        for (; dataIndex < data.length; dataIndex++)
-            addItem(data[dataIndex], draft.tailValue);
+        for (; dataIndex < itemData.length; dataIndex++)
+            addItem(itemData[dataIndex], draft.tailValue);
 
-        if (foundActive) {
-            draft.pageIndex = activePageIndex;
-            paginateItems(activePageFirstValue, true, false);
-        } else {
-            firstPage();
-            if (pageSize) resetActiveValue();
-        }
+        setActive.commit();
+    }
+
+    //#endregion
+
+    //#region Deletion
+
+    function deleteItem(value, toBeReplaced = false) {
+        const item = draft.sortedItems[value];
+        if (!item) return;
+
+        setItemVisibility(value, false);
+        setItemOrder(item.prev, item.next);
+
+        if (toBeReplaced) return;
+        delete draft.sortedItems[value];
+        draft.selection.delete(value);
+    }
+
+    function clearItems() {
+        Object.assign(draft, {
+            headValue: undefined,
+            tailValue: undefined,
+            visibleItemCount: 0,
+            pageIndex: 0,
+            rows: [],
+            sortedItems: {},
+            isLoading: false,
+            error: null
+        });
+
+        setActiveValue(null);
+        clearSelection();
     }
 
     //#endregion
 
     //#region Selection
-
-    function setRangeSelected(fromValue, toValue, selected) {
-        const {
-            [fromValue]: { data: fromData },
-            [toValue]: { data: toData }
-        } = draft.sortedItems
-
-        const callback = value => {
-            setValueSelected(value, selected);
-            return value === toValue;
-        }
-
-        const forward = compareItemData(fromData, toData) < 0
-        findVisibleValue(callback, fromValue, forward);
-    }
-
-    //#endregion
-
-    //#region Debugging
-
-    function debugInit() {
-
-    }
-
-    function debug() {
-
-    }
-
-    //#endregion
-
-
-    //Utilities
 
     function resetActiveValue() {
         setActiveValue(draft.rows[0][valueProperty]);
@@ -447,36 +416,83 @@ export default function createTable(namespace, options = {}) {
             draft.selection.delete(value);
     }
 
-    function clearItems() {
-        Object.assign(draft, {
-            headValue: undefined,
-            tailValue: undefined,
-            visibleItemCount: 0,
-            pageIndex: 0,
-            rows: [],
-            sortedItems: {},
-            isLoading: false,
-            error: null
-        });
+    function setRangeSelected(fromValue, toValue, selected) {
+        const {
+            [fromValue]: { data: fromData },
+            [toValue]: { data: toData }
+        } = draft.sortedItems
 
-        setActiveValue(null);
-        clearSelection();
+        const callback = value => {
+            setValueSelected(value, selected);
+            return value === toValue;
+        }
+
+        const forward = compareItemData(fromData, toData) < 0
+        findVisibleValue(callback, fromValue, forward);
     }
 
-    return (state = initState, action) => {
-        if (action.type === "@@INIT")
-            return produce(state, newDraft => {
-                draft = newDraft;
-                debugInit();
-            });
+    function startSetActiveTransaction(predicate, setPrevious = false) {
+        let found = false;
+        let itemIndex = -1, pageIndex = -1;
+        let itemValue, firstRowValue;
 
+        function registerItem(value) {
+            const item = draft.sortedItems[value];
+            if (found || !item.visible) return;
+
+            if (predicate(value)) {
+                found = true;
+                if (setPrevious) return;
+            }
+
+            itemValue = value;
+            itemIndex++;
+
+            //Checking for !itemIndex, because we need the code to run for the first item even if pageSize is zero
+            if (!itemIndex || itemIndex % draft.pageSize === 0) {
+                pageIndex++;
+                firstRowValue = value;
+            }
+        }
+
+        function commit() {
+            if (found && pageIndex >= 0) {
+                draft.pageIndex = pageIndex;
+                setActiveValue(itemValue);
+                paginateItems(firstRowValue, true, false);
+            } else {
+                firstPage();
+                resetActiveValue();
+            }
+        }
+
+        return { registerItem, commit };
+    }
+
+    //#endregion
+
+    //#region Debugging
+
+    // noinspection JSUnusedLocalSymbols
+    function debugStateEqual(selector) {
+        console.log(selector(original(draft)) === selector(current(draft)));
+    }
+
+    function debug() {
+
+    }
+
+    //#endregion
+
+
+    return (state = initState, action) => {
         if (action.namespace !== namespace)
             return state;
 
         return produce(state, newDraft => {
             draft = newDraft;
 
-            const {payload} = action;
+            const { payload } = action;
 
             // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
@@ -503,14 +519,24 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.DELETE_ITEMS: {
-                    // const { values } = payload;
-                    // if (!values.length) break;
-                    //
-                    // for (let value of values)
-                    //     delete draft.items[value];
-                    //
-                    // setActiveIndex(draft.pivotIndex);
-                    // clearSelection();
+                    const values = new Set(payload.values);
+                    if (!values.size) break;
+
+                    const setActive = startSetActiveTransaction(
+                        value => values.has(value), true);
+
+                    let currentValue = draft.headValue;
+                    while (currentValue !== undefined) {
+                        const value = currentValue;
+                        currentValue = draft.sortedItems[value].next;
+
+                        setActive.registerItem(value);
+
+                        if (values.has(value))
+                            deleteItem(value);
+                    }
+
+                    setActive.commit();
                     break;
                 }
                 case types.SET_ITEM_VALUES: {

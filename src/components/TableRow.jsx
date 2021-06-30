@@ -51,7 +51,7 @@ function TableRow({
             actions.baseSelect(value, true, false);
             dragSelectStart([e.clientX, e.clientY], index);
         } else {
-            actions.contextMenu(value, e);
+            actions.contextMenu(e, value);
         }
     }, [value, index, actions]);
 
@@ -59,7 +59,7 @@ function TableRow({
         if (e.button !== 0) return;
         e.stopPropagation();
 
-        actions.select(value, e);
+        actions.select(e, value);
         dragSelectStart([e.clientX, e.clientY], index);
     }, [value, index, actions]);
 

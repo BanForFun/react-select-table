@@ -15,9 +15,11 @@ function TableRow({
     item,
     value,
     index,
-    bodyContainerRef
+    bodyContainerRef,
+    table: { utils }
 }) {
     const trRef = useRef();
+    const visibleItemCount = utils.useSelector(s => s.visibleItemCount);
 
     useEffect(() => {
         if (!active) return;
@@ -39,7 +41,8 @@ function TableRow({
         if (scrollDown)
             root.scrollTop = rowBottom - visibleHeight;
 
-    }, [active]);
+        //visibleItemCount is a dependency so that when items are added or removed, the active row stays visible
+    }, [active, visibleItemCount]);
 
     const handleContextMenu = useCallback(e => {
         e.stopPropagation();

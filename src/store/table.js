@@ -184,7 +184,8 @@ export default function createTable(namespace, options = {}) {
     }
 
     function findVisibleRelativeValue(callback, originValue, relPos, skipOrigin = false) {
-        const forward = relPos > 0 && !Object.is(relPos, -0);
+        //Not equal to >= 0 as we need to differentiate -0 and +0
+        const forward = relPos > 0 || Object.is(relPos, 0);
 
         let distance = 0;
         function _callback(value, item) {
@@ -380,7 +381,7 @@ export default function createTable(namespace, options = {}) {
             paginateItems(activePageFirstValue, true, false);
         } else {
             firstPage();
-            resetActiveValue();
+            if (pageSize) resetActiveValue();
         }
     }
 

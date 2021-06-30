@@ -4,10 +4,12 @@ import TableRow from "./TableRow";
 //Child of BodyContainer
 function TableBody(props) {
     const {
-        table: { options, utils },
         tableBodyRef,
-
         ...rowCommonProps
+    } = props;
+
+    const {
+        table: { options, utils }
     } = props;
 
     const rows = utils.useSelector(s => s.rows);

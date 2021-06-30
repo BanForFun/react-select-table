@@ -1,15 +1,17 @@
 import React, {useMemo} from 'react';
 import {relativePos} from "../store/table";
+import {getPageCount} from "../selectors/paginationSelectors";
 
 //Child of Root
 function PaginationContainer({
     Pagination,
     actions,
     showPlaceholder,
-    table: { utils, selectors }
+    table: { utils }
 }) {
     const pageIndex = utils.useSelector(s => s.pageIndex);
-    const pageCount = utils.useSelector(selectors.getPageCount);
+    const pageSize = utils.useSelector(s => s.pageSize);
+    const pageCount = utils.useSelector(getPageCount);
 
     const actionAliases = useMemo(() => {
         const createAlias = pos => () => actions.goToPageRelative(pos);
@@ -22,7 +24,7 @@ function PaginationContainer({
         }
     }, [actions]);
 
-    if (showPlaceholder || !pageCount) return null;
+    if (showPlaceholder || !pageSize) return null;
 
     const paginationProps = {
         page: pageIndex + 1,

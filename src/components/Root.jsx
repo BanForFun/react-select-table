@@ -1,9 +1,11 @@
 import React, {useRef, useEffect, useCallback} from 'react';
+import _ from "lodash";
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
 import {matchModifiers} from "../utils/eventUtils";
 import {relativePos, specialValues} from "../store/table";
+import {getPageCount} from "../selectors/paginationSelectors";
 
 //Child of Connector
 function Root(props) {
@@ -43,29 +45,32 @@ function Root(props) {
     }
 
     const activeValue = utils.useSelector(s => s.activeValue);
-    const pageCount = utils.useSelector(selectors.getPageCount);
+    const pageCount = utils.useSelector(getPageCount);
+    const rowValues = utils.useSelector(selectors.getRowValues);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const showPlaceholder = utils.useSelector(s => s.isLoading || !!s.error);
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
-
     const offsetPage = useCallback((e, prev) => {
-        if (!pageCount) return;
-
-        const offset = prev ? -1 : 1;
-        const newIndex = pageIndex + offset;
-        if (!_.inRange(newIndex, pageCount)) return;
-
-        if (matchModifiers(e, false, false))
-            actions.goToPageRelative(prev ? relativePos.PREV : relativePos.NEXT);
-        else
-            actions.selectRelative(offset, e, prev ? specialValues.FIRST_ROW : specialValues.LAST_ROW);
-
-    }, [pageIndex, pageCount, actions]);
+        if (matchModifiers(e, false, false)) {
+            const relPos = prev ? relativePos.PREV : relativePos.NEXT;
+            actions.goToPageRelative(relPos);
+        } else {
+            const origin = prev ? specialValues.FIRST_ROW : specialValues.LAST_ROW;
+            const offset = prev ? -1 : 1;
+            actions.selectRelative(offset, e, origin);
+        }
+    }, [actions]);
 
     const handleShortcuts = useCallback(e => {
+        const isFirstPage = pageIndex === 0;
+        const isLastPage = pageIndex === pageCount - 1;
+
+        const isFirstItem = isFirstPage && activeValue === _.first(rowValues);
+        const isLastItem = isLastPage && activeValue === _.last(rowValues);
+
         switch (e.keyCode) {
             case 65: //A
                 if (matchModifiers(e, true, false) && options.multiSelect)
@@ -73,15 +78,19 @@ function Root(props) {
 
                 break;
             case 38: //Up
+                if (isFirstItem) break;
                 actions.selectRelative(-1, e);
                 break;
             case 40: //Down
+                if (isLastItem) break;
                 actions.selectRelative(1, e);
                 break;
             case 36: //Home
+                if (isFirstItem) break;
                 actions.selectRelative(0, e, specialValues.FIRST_ITEM);
                 break;
             case 35: //End
+                if (isLastItem) break;
                 actions.selectRelative(-0, e, specialValues.LAST_ITEM);
                 break;
             case 13: //Enter
@@ -92,10 +101,12 @@ function Root(props) {
 
                 break;
             case 37: //Left
-                offsetPage(e, -1);
+                if (isFirstPage) break;
+                offsetPage(e, true);
                 break;
             case 39: //Right
-                offsetPage(e, 1);
+                if (isLastPage) break;
+                offsetPage(e, false);
                 break;
             default:
                 return;
@@ -104,7 +115,7 @@ function Root(props) {
         e.preventDefault();
     }, [
         actions, options, //Component props
-        activeValue, selection, //Redux props
+        activeValue, selection, rowValues, pageIndex, pageCount, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods
         onItemsOpen //Event handlers

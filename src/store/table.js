@@ -3,6 +3,7 @@ import produce, {current, enableMapSet, original} from "immer";
 import {types} from "../models/Actions";
 import {setOptions} from "../utils/tableUtils";
 import {compareAscending} from "../utils/sortUtils";
+import {getPageCount} from "../selectors/paginationSelectors";
 
 enableMapSet();
 
@@ -27,13 +28,11 @@ export const specialValues = Object.freeze({
 })
 
 export default function createTable(namespace, options = {}) {
-    const selectors = setOptions(namespace, options);
-
     const {
         valueProperty,
-        listBox,
+        // listBox,
         multiSelect
-    } = options;
+    } = setOptions(namespace, options);
 
     const initState = {
         selection: new Set(),
@@ -118,6 +117,7 @@ export default function createTable(namespace, options = {}) {
         return compareProperty(compareAscending, valueProperty) * factor;
     }
 
+    // noinspection JSUnusedLocalSymbols
     function debugStateEqual(selector) {
         console.log(selector(original(draft)) === selector(current(draft)));
     }
@@ -161,7 +161,10 @@ export default function createTable(namespace, options = {}) {
     //#region Querying
 
     const getFirstRowValue = () => draft.rows[0][valueProperty];
-    const getLastRowValue = () => _.last(draft.rows)[valueProperty];
+    const getLastRowValue = () => {
+        const pageSize = getCurrentPageSize();
+        return draft.rows[pageSize - 1][valueProperty];
+    }
 
     function findVisibleValue(callback, originValue, forward) {
         const nextProperty = forward ? "next" : "prev";
@@ -246,8 +249,7 @@ export default function createTable(namespace, options = {}) {
     //#region Pagination
 
     function getMaxPageIndex() {
-        const count = selectors.getPageCount(draft) ?? 1;
-        return count - 1;
+        return getPageCount(draft) - 1;
     }
 
     function getCurrentPageSize() {
@@ -264,15 +266,11 @@ export default function createTable(namespace, options = {}) {
     function paginateItems(originValue, forwards, skipOrigin) {
         const pageSize = getCurrentPageSize();
         const indexOffset = forwards ? 1 : -1;
-        let doResetActive = true;
 
         let currentIndex = forwards ? 0 : pageSize - 1
         function callback(value, item) {
             draft.rows[currentIndex] = item.data;
             currentIndex += indexOffset;
-
-            if (value === draft.activeValue)
-                doResetActive = false;
         }
 
         findVisibleRelativeValue(callback, originValue, pageSize * indexOffset, skipOrigin);
@@ -280,9 +278,6 @@ export default function createTable(namespace, options = {}) {
         //Clear unused remaining rows (for last page)
         for (let i = pageSize; i < draft.pageSize; i++)
             delete draft.rows[i];
-
-        if (doResetActive)
-            resetActiveValue();
     }
 
     function firstPage() {
@@ -297,16 +292,20 @@ export default function createTable(namespace, options = {}) {
 
     function nextPage() {
         if (draft.pageIndex === getMaxPageIndex()) return;
+        //Get last row value before incrementing page index, because getLastRowValue calls getCurrentPageSize
+        //which will return wrong size if next page is the last one
+        const lastRowValue = getLastRowValue();
 
         draft.pageIndex++
-        paginateItems(getLastRowValue(), true, true)
+        paginateItems(lastRowValue, true, true)
     }
 
     function prevPage() {
         if (draft.pageIndex === 0) return;
+        const firstRowValue = getFirstRowValue();
 
         draft.pageIndex--
-        paginateItems(getFirstRowValue(), false, true)
+        paginateItems(firstRowValue, false, true)
     }
 
     //#endregion
@@ -379,8 +378,10 @@ export default function createTable(namespace, options = {}) {
         if (foundActive) {
             draft.pageIndex = activePageIndex;
             paginateItems(activePageFirstValue, true, false);
-        } else
+        } else {
             firstPage();
+            resetActiveValue();
+        }
     }
 
     //#endregion
@@ -721,6 +722,8 @@ export default function createTable(namespace, options = {}) {
                             lastPage();
                             break;
                     }
+
+                    resetActiveValue();
                 }
                 default: {
                     break;

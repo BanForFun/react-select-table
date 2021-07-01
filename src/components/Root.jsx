@@ -54,10 +54,10 @@ function Root(props) {
 
     const offsetPage = useCallback((e, prev) => {
         if (matchEventModifiers(e, false, false)) {
-            const relPos = prev ? relativePos.PREV : relativePos.NEXT;
+            const relPos = prev ? relativePos.Prev : relativePos.Next;
             actions.goToPageRelative(relPos);
         } else {
-            const origin = prev ? specialValues.FIRST_ROW : specialValues.LAST_ROW;
+            const origin = prev ? specialValues.FirstRow : specialValues.LastRow;
             const offset = prev ? -1 : 1;
             actions.selectRelative(e, offset, origin);
         }
@@ -86,11 +86,11 @@ function Root(props) {
                 break;
             case 36: //Home
                 if (isFirstItem) break;
-                actions.selectRelative(e, 0, specialValues.FIRST_ITEM);
+                actions.selectRelative(e, 0, specialValues.FirstItem);
                 break;
             case 35: //End
                 if (isLastItem) break;
-                actions.selectRelative(e, -0, specialValues.LAST_ITEM);
+                actions.selectRelative(e, -0, specialValues.LastItem);
                 break;
             case 13: //Enter
                 if (matchEventModifiers(e, false, false) && selection.has(activeValue))

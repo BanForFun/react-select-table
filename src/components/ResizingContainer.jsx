@@ -25,6 +25,7 @@ function ResizingContainer(props) {
         setMode,
         columnResizingScrollFactor: scrollFactor,
         bodyContainerRef,
+        getRowClassName, //BodyContainer
         selectionRectRef, //BodyContainer
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
@@ -223,7 +224,8 @@ function ResizingContainer(props) {
         selectionRectRef,
         onItemsOpen,
         dragSelectStart,
-        bodyContainerRef
+        bodyContainerRef,
+        getRowClassName
     }
 
     return <div

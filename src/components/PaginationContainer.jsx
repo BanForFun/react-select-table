@@ -16,10 +16,10 @@ function PaginationContainer({
         const createAlias = pos => () => actions.goToPageRelative(pos);
 
         return {
-            nextPage: createAlias(relativePos.NEXT),
-            prevPage: createAlias(relativePos.PREV),
-            firstPage: createAlias(relativePos.FIRST),
-            lastPage: createAlias(relativePos.LAST),
+            nextPage: createAlias(relativePos.Next),
+            prevPage: createAlias(relativePos.Prev),
+            firstPage: createAlias(relativePos.First),
+            lastPage: createAlias(relativePos.Last),
         }
     }, [actions]);
 

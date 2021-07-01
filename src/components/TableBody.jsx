@@ -5,6 +5,7 @@ import TableRow from "./TableRow";
 function TableBody(props) {
     const {
         tableBodyRef,
+        getRowClassName,
         ...rowCommonProps
     } = props;
 
@@ -16,8 +17,8 @@ function TableBody(props) {
     const selection = utils.useSelector(s => s.selection);
     const activeValue = utils.useSelector(s => s.activeValue);
 
-    const renderRow = (row, index) => {
-        const value = utils.getRowValue(row);
+    const renderRow = (data, index) => {
+        const value = utils.getDataValue(data);
         const active = value === activeValue;
 
         if (active)
@@ -26,9 +27,9 @@ function TableBody(props) {
         const rowProps = {
             ...rowCommonProps,
             key: `row_${props.name}_${value}`,
-            data: row,
+            data, index, value, active,
             selected: selection.has(value),
-            index, value, active
+            className: getRowClassName(data)
         };
 
         return <TableRow {...rowProps} />;

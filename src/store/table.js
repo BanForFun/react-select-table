@@ -14,22 +14,22 @@ const nextSortOrder = Object.freeze({
 });
 
 export const relativePos = Object.freeze({
-    NEXT: "next",
-    PREV: "prev",
-    FIRST: "first",
-    LAST: "last"
+    Next: "next",
+    Prev: "prev",
+    First: "first",
+    Last: "last"
 });
 
 export const specialValues = Object.freeze({
-    FIRST_ITEM: "firstItem",
-    LAST_ITEM: "lastItem",
-    FIRST_ROW: "firstRow",
-    LAST_ROW: "lastRow"
+    FirstItem: "firstItem",
+    LastItem: "lastItem",
+    FirstRow: "firstRow",
+    LastRow: "lastRow"
 });
 
 export default function createTable(namespace, options = {}) {
     const {
-        getRowValue: getValue
+        getDataValue
     } = setOptions(namespace, options);
 
     const {
@@ -86,7 +86,7 @@ export default function createTable(namespace, options = {}) {
         for (let [path, ascending] of draft.sortAscending) {
             factor = ascending ? 1 : -1
 
-            const comparator = _.get(options.comparators, path, compareAscending);
+            const comparator = _.get(options.itemComparators, path, compareAscending);
             const result = compareProperty(comparator, path);
 
             if (!result) continue;
@@ -153,12 +153,12 @@ export default function createTable(namespace, options = {}) {
     //#region Querying
 
     function getFirstRowValue() {
-        return getValue(draft.rows[0]);
+        return getDataValue(draft.rows[0]);
     }
 
     function getLastRowValue() {
         const pageSize = getCurrentPageSize();
-        return getValue(draft.rows[pageSize - 1]);
+        return getDataValue(draft.rows[pageSize - 1]);
     }
 
     function findVisibleValue(callback, originValue, forward) {
@@ -199,17 +199,17 @@ export default function createTable(namespace, options = {}) {
     function getRelativeVisibleValue(specialValue, relPos) {
         let originValue;
         switch (specialValue) {
-            case specialValues.FIRST_ROW:
+            case specialValues.FirstRow:
                 originValue = getFirstRowValue();
                 break;
-            case specialValues.LAST_ROW:
+            case specialValues.LastRow:
                 originValue = getLastRowValue();
                 break;
-            case specialValues.FIRST_ITEM:
+            case specialValues.FirstItem:
                 originValue = draft.headValue;
                 firstPage();
                 break;
-            case specialValues.LAST_ITEM:
+            case specialValues.LastItem:
                 originValue = draft.tailValue;
                 lastPage();
                 break;
@@ -237,7 +237,7 @@ export default function createTable(namespace, options = {}) {
         if (!item) return null;
         if (checkVisible && !item.visible) return null;
 
-        return getValue(item.data);
+        return getDataValue(item.data);
     }
 
     //#endregion
@@ -310,7 +310,7 @@ export default function createTable(namespace, options = {}) {
 
     function addItem(data, prev, next) {
         //Reject if value is null or undefined
-        const value = getValue(data);
+        const value = getDataValue(data);
         if (value == null) return null;
 
         //Add item
@@ -327,14 +327,8 @@ export default function createTable(namespace, options = {}) {
     }
 
     function addItems(itemData) {
-        for (let i = 0; i < itemData.length; i++) {
-            itemData[i] = options.itemParser(itemData[i]);
-
-            const value = getValue(itemData[i]);
-            deleteItem(value, true);
-        }
-
-        itemData.sort(compareItemData);
+        for (let data of itemData.sort(compareItemData))
+            deleteItem(getDataValue(data), true);
 
         const setActive = startSetActiveTransaction(value => value === draft.activeValue);
         const addedValues = [];
@@ -582,7 +576,7 @@ export default function createTable(namespace, options = {}) {
                     const { patches } = payload;
 
                     for (let patch of patches) {
-                        const value = getValue(patch);
+                        const value = getDataValue(patch);
                         _.defaultsDeep(patch, draft.sortedItems[value].data);
                     }
 
@@ -763,16 +757,16 @@ export default function createTable(namespace, options = {}) {
                 }
                 case types.GO_TO_PAGE_RELATIVE: {
                     switch (payload.position) {
-                        case relativePos.NEXT:
+                        case relativePos.Next:
                             nextPage();
                             break;
-                        case relativePos.PREV:
+                        case relativePos.Prev:
                             prevPage();
                             break;
-                        case relativePos.FIRST:
+                        case relativePos.First:
                             firstPage();
                             break;
-                        case relativePos.LAST:
+                        case relativePos.Last:
                             lastPage();
                             break;
                     }

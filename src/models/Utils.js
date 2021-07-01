@@ -12,7 +12,7 @@ export default function Utils(namespace, options, actions) {
 
     const getStateSlice = state => _.getOrSource(state, options.path);
 
-    const getRowValue = data => _.get(data, options.valueProperty);
+    const getDataValue = data => _.get(data, options.valueProperty);
 
     const useSelector = (selector, ...args) =>
         _useSelector(state => selector(getStateSlice(state), ...args));
@@ -35,7 +35,7 @@ export default function Utils(namespace, options, actions) {
 
     return {
         getStateSlice,
-        getRowValue,
+        getDataValue,
 
         useSelector,
         useSelectorGetter,

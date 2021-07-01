@@ -1,9 +1,6 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import _ from "lodash";
-import TableCell from "./TableCell";
 import {boolAttribute} from "../utils/elementUtils";
-
-export const ROW_CLASS_SYMBOL = Symbol();
 
 //Child of TableBody
 function TableRow({
@@ -18,6 +15,7 @@ function TableRow({
     value,
     index,
     bodyContainerRef,
+    className,
     table: { utils }
 }) {
     const trRef = useRef();
@@ -66,19 +64,23 @@ function TableRow({
     }, [value, index, actions]);
 
     const renderColumn = (column) => {
-        const { _id, path, render, className, isHeader } = column;
+        const { _id, path, render, isHeader } = column;
 
-        const cellProps = {
-            content: _.getOrSource(data, path),
-            key: `cell_${name}_${value}_${_id}`,
-            className, isHeader, render, data
-        }
+        const options = {
+            className: null
+        };
+        const defaultContent = _.getOrSource(data, path);
+        const content = render(defaultContent, data, options);
 
-        return <TableCell {...cellProps} />
+        const CellType = isHeader ? 'th' : 'td';
+        return <CellType
+            key={`cell_${name}_${value}_${_id}`}
+            className={options.className}
+        >{content}</CellType>
     };
 
     return <tr
-        className={data[ROW_CLASS_SYMBOL]}
+        className={className}
         ref={trRef}
         data-selected={boolAttribute(selected)}
         data-active={boolAttribute(active)}

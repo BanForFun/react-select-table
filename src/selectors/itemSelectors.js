@@ -6,7 +6,7 @@ export const makeGetRowValues = (utils) => createSelector(
         const values = [];
         for (let row of rows) {
             if (!row) break; //For last page
-            values.push(utils.getRowValue(row));
+            values.push(utils.getDataValue(row));
         }
 
         return values;

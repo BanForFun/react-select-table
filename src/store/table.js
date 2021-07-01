@@ -11,21 +11,21 @@ const nextSortOrder = Object.freeze({
     undefined: true,
     true: false,
     false: undefined
-})
+});
 
 export const relativePos = Object.freeze({
     NEXT: "next",
     PREV: "prev",
     FIRST: "first",
     LAST: "last"
-})
+});
 
 export const specialValues = Object.freeze({
     FIRST_ITEM: "firstItem",
     LAST_ITEM: "lastItem",
     FIRST_ROW: "firstRow",
     LAST_ROW: "lastRow"
-})
+});
 
 export default function createTable(namespace, options = {}) {
     const {
@@ -325,8 +325,12 @@ export default function createTable(namespace, options = {}) {
     function addItems(itemData) {
         const setActive = startSetActiveTransaction(value => value === draft.activeValue);
 
-        for (let data of itemData.sort(compareItemData))
-            deleteItem(data[valueProperty], true);
+        for (let i = 0; i < itemData.length; i++) {
+            itemData[i] = options.itemParser(itemData[i]);
+            deleteItem(itemData[i][valueProperty], true);
+        }
+
+        itemData.sort(compareItemData);
 
         let dataIndex = 0;
         let currentValue = draft.headValue;
@@ -438,11 +442,11 @@ export default function createTable(namespace, options = {}) {
 
         function registerItem(value) {
             const item = draft.sortedItems[value];
-            if (found || !item.visible) return;
+            if (found || !item.visible) return found;
 
             if (predicate(value)) {
                 found = true;
-                if (setPrevious) return;
+                if (setPrevious) return true;
             }
 
             itemValue = value;
@@ -453,6 +457,8 @@ export default function createTable(namespace, options = {}) {
                 pageIndex++;
                 firstRowValue = value;
             }
+
+            return found;
         }
 
         function commit() {
@@ -530,7 +536,7 @@ export default function createTable(namespace, options = {}) {
                         const value = currentValue;
                         currentValue = draft.sortedItems[value].next;
 
-                        setActive.registerItem(value);
+                        if (!setActive.registerItem(value)) continue;
 
                         if (values.has(value))
                             deleteItem(value);

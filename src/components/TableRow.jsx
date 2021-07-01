@@ -3,6 +3,8 @@ import _ from "lodash";
 import TableCell from "./TableCell";
 import {boolAttribute} from "../utils/elementUtils";
 
+export const ROW_CLASS_SYMBOL = Symbol();
+
 //Child of TableBody
 function TableRow({
     columns,
@@ -76,6 +78,7 @@ function TableRow({
     };
 
     return <tr
+        className={item[ROW_CLASS_SYMBOL]}
         ref={trRef}
         data-selected={boolAttribute(selected)}
         data-active={boolAttribute(active)}

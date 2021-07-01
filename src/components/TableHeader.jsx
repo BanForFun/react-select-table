@@ -1,6 +1,7 @@
 import React, {Fragment, useCallback} from 'react';
 import AngleUpIcon from "./AngleUpIcon";
 import _ from "lodash";
+import {boolAttribute} from "../utils/elementUtils";
 
 //Child of TableHead
 function TableHeader({
@@ -13,9 +14,9 @@ function TableHeader({
     sortPriority,
     showPriority
 }) {
-    const handleMouseDown = useCallback(e => {
-        if (!e.button && path)
-            actions.sortItems(e, path);
+    const handleTitleMouseDown = useCallback(e => {
+        if (e.button !== 0) return;
+        if (path) actions.sortItems(e, path);
     }, [path, actions]);
 
     const handleResizeStart = useCallback((e) => {
@@ -34,10 +35,12 @@ function TableHeader({
 
     return <th
         data-ascending={sortAscending}
-        onMouseDown={handleMouseDown}
         scope="col"
     >
-        {title}
+        <span
+            data-sortable={boolAttribute(!!path)}
+            onMouseDown={handleTitleMouseDown}
+        >{title}</span>
 
         {sortPriority >= 0 && <Fragment>
             <AngleUpIcon className="rst-sortIcon" />

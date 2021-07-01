@@ -33,18 +33,18 @@
     flex: auto;
     overflow: auto;
 
-    @mixin _cursorOverride($cursor) {
+    @mixin cursorOverride($cursor) {
         &, & * {
             cursor: $cursor !important;
         }
     }
 
     &[data-mode=resizing] {
-        @include _cursorOverride(col-resize);
+        @include cursorOverride(col-resize);
     }
 
     &[data-mode=selecting] {
-        @include _cursorOverride(default);
+        @include cursorOverride(default);
     }
 }
 
@@ -68,7 +68,7 @@
         white-space: nowrap;
         position: relative;
 
-        .rst-sortable {
+        span[data-sortable] {
             cursor: pointer;
         }
 

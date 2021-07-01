@@ -1,5 +1,6 @@
 import _ from "lodash";
 
+//Stolen from lodash and modified
 export function compareAscending(value, other) {
     if (value !== other) {
         const valIsDefined = value !== undefined

@@ -2,9 +2,8 @@ import React, {useCallback, useRef} from 'react';
 import classNames from 'classnames';
 import AngleUpIcon from "./AngleUpIcon";
 import _ from "lodash";
-import {unFocusable} from "../utils/eventUtils";
 import useEvent from "../hooks/useEvent";
-import {boolAttribute} from "../utils/elementUtils";
+import {boolAttribute, unFocusable} from "../utils/elementUtils";
 
 const startDelay = 600
 const repeatDelay = 100

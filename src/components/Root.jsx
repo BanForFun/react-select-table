@@ -3,9 +3,9 @@ import _ from "lodash";
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
-import {matchModifiers} from "../utils/eventUtils";
 import {relativePos, specialValues} from "../store/table";
 import {getPageCount} from "../selectors/paginationSelectors";
+import {matchEventModifiers} from "../utils/elementUtils";
 
 //Child of Connector
 function Root(props) {
@@ -54,7 +54,7 @@ function Root(props) {
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
     const offsetPage = useCallback((e, prev) => {
-        if (matchModifiers(e, false, false)) {
+        if (matchEventModifiers(e, false, false)) {
             const relPos = prev ? relativePos.PREV : relativePos.NEXT;
             actions.goToPageRelative(relPos);
         } else {
@@ -73,7 +73,7 @@ function Root(props) {
 
         switch (e.keyCode) {
             case 65: //A
-                if (matchModifiers(e, true, false) && options.multiSelect)
+                if (matchEventModifiers(e, true, false) && options.multiSelect)
                     actions.selectAll();
 
                 break;
@@ -94,7 +94,7 @@ function Root(props) {
                 actions.selectRelative(e, -0, specialValues.LAST_ITEM);
                 break;
             case 13: //Enter
-                if (matchModifiers(e, false, false) && selection.has(activeValue))
+                if (matchEventModifiers(e, false, false) && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
                     actions.select(e, activeValue);
@@ -125,7 +125,7 @@ function Root(props) {
         if (showPlaceholder) return;
         onKeyDown(e, getSelectionArg());
 
-        if (matchModifiers(e, false) && e.key.length === 1)
+        if (matchEventModifiers(e, false) && e.key.length === 1)
             actions.search(e.key);
 
         handleShortcuts(e);

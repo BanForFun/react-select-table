@@ -14,7 +14,7 @@ function TableRow({
     dragSelectStart,
     selected,
     active,
-    item,
+    data,
     value,
     index,
     bodyContainerRef,
@@ -69,16 +69,16 @@ function TableRow({
         const { _id, path, render, className, isHeader } = column;
 
         const cellProps = {
-            content: _.getOrSource(item, path),
+            content: _.getOrSource(data, path),
             key: `cell_${name}_${value}_${_id}`,
-            className, isHeader, render, item
+            className, isHeader, render, data
         }
 
         return <TableCell {...cellProps} />
     };
 
     return <tr
-        className={item[ROW_CLASS_SYMBOL]}
+        className={data[ROW_CLASS_SYMBOL]}
         ref={trRef}
         data-selected={boolAttribute(selected)}
         data-active={boolAttribute(active)}

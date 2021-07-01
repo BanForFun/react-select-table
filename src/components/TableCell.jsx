@@ -3,7 +3,7 @@ import React from 'react';
 //Child of TableRow
 function TableCell({
     isHeader,
-    item,
+    data,
     content,
     render,
     className
@@ -13,7 +13,7 @@ function TableCell({
         className={className}
         scope={isHeader ? "row" : null}
     >
-        {render(content, item)}
+        {render(content, data)}
     </Cell>
 }
 

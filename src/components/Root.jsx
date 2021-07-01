@@ -4,7 +4,6 @@ import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
 import {relativePos, specialValues} from "../store/table";
-import {getPageCount} from "../selectors/paginationSelectors";
 import {matchEventModifiers} from "../utils/elementUtils";
 
 //Child of Connector
@@ -45,7 +44,7 @@ function Root(props) {
     }
 
     const activeValue = utils.useSelector(s => s.activeValue);
-    const pageCount = utils.useSelector(getPageCount);
+    const pageCount = utils.useSelector(selectors.getPageCount);
     const rowValues = utils.useSelector(selectors.getRowValues);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);

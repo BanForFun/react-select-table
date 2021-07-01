@@ -29,10 +29,14 @@ export const specialValues = Object.freeze({
 
 export default function createTable(namespace, options = {}) {
     const {
+        getRowValue: getValue
+    } = setOptions(namespace, options);
+
+    const {
         valueProperty,
         // listBox,
         multiSelect
-    } = setOptions(namespace, options);
+    } = options;
 
     const initState = {
         selection: new Set(),
@@ -149,12 +153,12 @@ export default function createTable(namespace, options = {}) {
     //#region Querying
 
     function getFirstRowValue() {
-        return draft.rows[0][valueProperty];
+        return getValue(draft.rows[0]);
     }
 
     function getLastRowValue() {
         const pageSize = getCurrentPageSize();
-        return draft.rows[pageSize - 1][valueProperty];
+        return getValue(draft.rows[pageSize - 1]);
     }
 
     function findVisibleValue(callback, originValue, forward) {
@@ -233,7 +237,7 @@ export default function createTable(namespace, options = {}) {
         if (!item) return null;
         if (checkVisible && !item.visible) return null;
 
-        return item.data[valueProperty];
+        return getValue(item.data);
     }
 
     //#endregion
@@ -306,7 +310,7 @@ export default function createTable(namespace, options = {}) {
 
     function addItem(data, prev, next) {
         //Reject if value is null or undefined
-        const value = data[valueProperty];
+        const value = getValue(data);
         if (value == null) return null;
 
         //Add item
@@ -325,7 +329,9 @@ export default function createTable(namespace, options = {}) {
     function addItems(itemData) {
         for (let i = 0; i < itemData.length; i++) {
             itemData[i] = options.itemParser(itemData[i]);
-            deleteItem(itemData[i][valueProperty], true);
+
+            const value = getValue(itemData[i]);
+            deleteItem(value, true);
         }
 
         itemData.sort(compareItemData);
@@ -399,7 +405,7 @@ export default function createTable(namespace, options = {}) {
     //#region Selection
 
     function resetActiveValue() {
-        setActiveValue(draft.rows[0][valueProperty]);
+        setActiveValue(getFirstRowValue());
     }
 
     function setActiveValue(value) {
@@ -576,7 +582,7 @@ export default function createTable(namespace, options = {}) {
                     const { patches } = payload;
 
                     for (let patch of patches) {
-                        const value = patch[valueProperty];
+                        const value = getValue(patch);
                         _.defaultsDeep(patch, draft.sortedItems[value].data);
                     }
 

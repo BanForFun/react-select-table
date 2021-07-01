@@ -1,17 +1,16 @@
 import React, {useMemo} from 'react';
 import {relativePos} from "../store/table";
-import {getPageCount} from "../selectors/paginationSelectors";
 
 //Child of Root
 function PaginationContainer({
     Pagination,
     actions,
     showPlaceholder,
-    table: { utils }
+    table: { utils, selectors }
 }) {
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const pageSize = utils.useSelector(s => s.pageSize);
-    const pageCount = utils.useSelector(getPageCount);
+    const pageCount = utils.useSelector(selectors.getPageCount);
 
     const actionAliases = useMemo(() => {
         const createAlias = pos => () => actions.goToPageRelative(pos);

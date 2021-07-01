@@ -35,7 +35,7 @@ export function setOptions(namespace, options) {
 
     const actions = Actions(namespace);
     const utils = Utils(namespace, options, actions);
-    const selectors = Selectors(namespace, options);
+    const selectors = Selectors(namespace, options, utils);
     const events = _.clone(defaultEvents);
 
     tableStorage[namespace] = {
@@ -46,7 +46,7 @@ export function setOptions(namespace, options) {
         events
     };
 
-    return options;
+    return utils;
 }
 
 export function getTableUtils(namespace) {

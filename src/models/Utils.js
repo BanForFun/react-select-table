@@ -4,14 +4,15 @@ import {createDispatchHook, createSelectorHook, createStoreHook} from "react-red
 import {bindActionCreators} from "redux";
 
 export default function Utils(namespace, options, actions) {
-    const { context, path } = options;
-
     //Create redux hooks
+    const { context } = options;
     const _useSelector = createSelectorHook(context);
     const _useDispatch = createDispatchHook(context);
     const _useStore = createStoreHook(context);
 
-    const getStateSlice = state => _.getOrSource(state, path);
+    const getStateSlice = state => _.getOrSource(state, options.path);
+
+    const getRowValue = data => _.get(data, options.valueProperty);
 
     const useSelector = (selector, ...args) =>
         _useSelector(state => selector(getStateSlice(state), ...args));
@@ -34,6 +35,7 @@ export default function Utils(namespace, options, actions) {
 
     return {
         getStateSlice,
+        getRowValue,
 
         useSelector,
         useSelectorGetter,

@@ -9,15 +9,15 @@ function TableBody(props) {
     } = props;
 
     const {
-        table: { options, utils }
+        table: { utils }
     } = props;
 
     const rows = utils.useSelector(s => s.rows);
     const selection = utils.useSelector(s => s.selection);
     const activeValue = utils.useSelector(s => s.activeValue);
 
-    const renderRow = (item, index) => {
-        const value = item[options.valueProperty];
+    const renderRow = (row, index) => {
+        const value = utils.getRowValue(row);
         const active = value === activeValue;
 
         if (active)
@@ -26,9 +26,9 @@ function TableBody(props) {
         const rowProps = {
             ...rowCommonProps,
             key: `row_${props.name}_${value}`,
-            item, index, value,
+            data: row,
             selected: selection.has(value),
-            active
+            index, value, active
         };
 
         return <TableRow {...rowProps} />;

@@ -323,8 +323,6 @@ export default function createTable(namespace, options = {}) {
     }
 
     function addItems(itemData) {
-        const setActive = startSetActiveTransaction(value => value === draft.activeValue);
-
         for (let i = 0; i < itemData.length; i++) {
             itemData[i] = options.itemParser(itemData[i]);
             deleteItem(itemData[i][valueProperty], true);
@@ -332,10 +330,11 @@ export default function createTable(namespace, options = {}) {
 
         itemData.sort(compareItemData);
 
+        const setActive = startSetActiveTransaction(value => value === draft.activeValue);
+        const addedValues = [];
+
         let dataIndex = 0;
         let currentValue = draft.headValue;
-
-        //In-place merge
         while (currentValue !== undefined && dataIndex < itemData.length) {
             const data = itemData[dataIndex];
             const item = draft.sortedItems[currentValue];
@@ -343,6 +342,7 @@ export default function createTable(namespace, options = {}) {
             let value;
             if (compareItemData(data, item.data) < 0) {
                 value = addItem(data, item.prev, currentValue);
+                addedValues.push(value);
                 dataIndex++;
             } else {
                 value = currentValue;
@@ -352,10 +352,14 @@ export default function createTable(namespace, options = {}) {
             setActive.registerItem(value);
         }
 
-        for (; dataIndex < itemData.length; dataIndex++)
-            addItem(itemData[dataIndex], draft.tailValue);
+        for (; dataIndex < itemData.length; dataIndex++) {
+            const value = addItem(itemData[dataIndex], draft.tailValue);
+            addedValues.push(value);
+        }
 
         setActive.commit();
+
+        return addedValues;
     }
 
     //#endregion
@@ -408,8 +412,14 @@ export default function createTable(namespace, options = {}) {
         draft.pivotValue = draft.activeValue;
     }
 
-    function selectOnly(value) {
-        draft.selection.clear();
+    function setSelection(values) {
+        clearSelection();
+        for (let value of values)
+            draft.selection.add(value);
+    }
+
+    function setSelectionSingle(value) {
+        clearSelection();
         draft.selection.add(value);
     }
 
@@ -517,10 +527,8 @@ export default function createTable(namespace, options = {}) {
                     const {items} = payload;
                     if (!items.length) break;
 
-                    addItems(items);
-
-                    clearSelection();
-                    items.forEach(item => draft.selection.add(item[valueProperty]));
+                    const addedValues = addItems(items);
+                    setSelection(addedValues);
 
                     break;
                 }
@@ -565,9 +573,16 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.PATCH_ITEMS: {
-                    // clearSelection();
-                    // for (let patch of payload.patches)
-                    //     Object.assign(draft.items[patch[valueProperty]], patch);
+                    const { patches } = payload;
+
+                    for (let patch of patches) {
+                        const value = patch[valueProperty];
+                        _.defaultsDeep(patch, draft.sortedItems[value].data);
+                    }
+
+                    const addedValues = addItems(patches);
+                    setSelection(addedValues);
+
                     break;
                 }
                 case types.SORT_ITEMS: {
@@ -634,7 +649,7 @@ export default function createTable(namespace, options = {}) {
                     draft.activeValue = value;
 
                     if (!multiSelect) {
-                        selectOnly(value);
+                        setSelectionSingle(value);
                         break;
                     }
 

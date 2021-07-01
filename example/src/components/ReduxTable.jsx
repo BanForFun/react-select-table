@@ -32,7 +32,7 @@ function ReduxTable() {
         "Set items": actions.setItems(todos),
         "Clear items": actions.clearItems(),
 
-        "Set error": actions.setError("Error"),
+        "Set error": actions.setError("An error occurred"),
 
         "Set filter": actions.setItemFilter({ completed: true }),
         "Clear filter": actions.setItemFilter({}),
@@ -41,6 +41,16 @@ function ReduxTable() {
         "Disable pagination": actions.setPageSize(0),
 
         "Start loading": actions.startLoading(),
+
+        "Patch items": actions.patchItems({
+            id: 11,
+            title: "Title 11",
+            completed: true
+        }, {
+            id: 19,
+            title: "Title 19",
+            completed: false
+        }),
 
         "Debug": actions.debug()
     }), [])

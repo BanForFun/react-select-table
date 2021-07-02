@@ -23,7 +23,7 @@ const eventMiddleware = store => next => action => {
         case types.ADD_ITEMS:
         case types.DELETE_ITEMS:
         case types.PATCH_ITEMS:
-        case types.SET_ITEM_VALUES:
+        case types.PATCH_ITEM_VALUES:
         case types.CLEAR_ITEMS:
         case types.SET_ITEM_FILTER:
         case types.SELECT:

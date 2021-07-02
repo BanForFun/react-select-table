@@ -55,6 +55,11 @@ function ReduxTable() {
             completed: false
         }),
 
+        "Patch values": actions.setItemValues({
+            9: 14,
+            15: 9
+        }),
+
         "Debug": actions.debug()
     }), [])
 

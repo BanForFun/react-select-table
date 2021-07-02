@@ -3,7 +3,7 @@ export const types = {
     SET_ITEMS: "",
     ADD_ITEMS: "",
     DELETE_ITEMS: "",
-    SET_ITEM_VALUES: "",
+    PATCH_ITEM_VALUES: "",
     PATCH_ITEMS: "",
     CLEAR_ITEMS: "",
     SORT_ITEMS: "",
@@ -61,8 +61,8 @@ export default function Actions(namespace) {
         patchItems: (...patches) =>
             Action(types.PATCH_ITEMS, { patches }),
 
-        setItemValues: (map) =>
-            Action(types.SET_ITEM_VALUES, { map }),
+        patchItemValues: (map) =>
+            Action(types.PATCH_ITEM_VALUES, { map }),
 
         deleteItems: (...values) =>
             Action(types.DELETE_ITEMS, { values }),

@@ -527,9 +527,7 @@ export default function createTable(namespace, options = {}) {
                     const {items} = payload;
                     if (!items.length) break;
 
-                    const addedValues = addItems(items);
-                    setSelection(addedValues);
-
+                    setSelection(addItems(items));
                     break;
                 }
                 case types.DELETE_ITEMS: {
@@ -553,23 +551,28 @@ export default function createTable(namespace, options = {}) {
                     setActive.commit();
                     break;
                 }
-                case types.SET_ITEM_VALUES: {
-                    // _.forEach(payload.map, (newValue, oldValue) => {
-                    //     oldValue = parseValue(oldValue);
-                    //     if (oldValue === newValue) return;
-                    //
-                    //     //Update selection
-                    //     _.setReplaceValue(draft.selection, oldValue, newValue);
-                    //
-                    //     //Create new item
-                    //     const newItem = draft.items[oldValue];
-                    //     newItem[valueProperty] = newValue;
-                    //     draft.items[newValue] = newItem;
-                    //
-                    //     //Delete old item
-                    //     delete draft.items[oldValue];
-                    // });
+                case types.PATCH_ITEM_VALUES: {
+                    const patched = [];
 
+                    _.forEach(payload.map, (newValue, oldValue) => {
+                        oldValue = validateValue(oldValue);
+                        if (oldValue === null) return;
+
+                        const { selection } = draft;
+                        if (selection.delete(oldValue))
+                            selection.add(newValue);
+
+                        //Don't bother with the pivot, it will be overwritten by addItems
+                        if (draft.activeValue === oldValue)
+                            draft.activeValue = newValue;
+
+                        const { data } = draft.sortedItems[oldValue];
+                        patched.push(_.set(data, valueProperty, newValue));
+
+                        deleteItem(oldValue);
+                    });
+
+                    addItems(patched);
                     break;
                 }
                 case types.PATCH_ITEMS: {
@@ -580,8 +583,7 @@ export default function createTable(namespace, options = {}) {
                         _.defaultsDeep(patch, draft.sortedItems[value].data);
                     }
 
-                    const addedValues = addItems(patches);
-                    setSelection(addedValues);
+                    addItems(patches);
 
                     break;
                 }
@@ -721,8 +723,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SELECT_ALL: {
-                    draft.selection.clear();
-                    _.setAddMany(draft.selection, _.map(draft.rows, valueProperty))
+                    setSelection(_.map(draft.rows, valueProperty));
                     break;
                 }
                 case types.SEARCH: {

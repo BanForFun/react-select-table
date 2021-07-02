@@ -80,31 +80,31 @@
 }
 
 %rst-rowActive {
-    tbody tr[data-active] {
+    tbody tr.is-active {
         @include rst-row-underline("row-active-underline");
 
-        &[data-selected] {
+        &.is-selected {
             @include rst-row-underline("row-active-selected-underline");
         }
     }
 
-    &:focus-within tbody tr[data-active] {
+    &:focus-within tbody tr.is-active {
         @include rst-row-underline("row-active-focused-underline");
 
-        &[data-selected] {
+        &.is-selected {
             @include rst-row-underline("row-active-selected-focused-underline");
         }
     }
 }
 
 %rst-rowSelected {
-    tbody tr[data-selected] {
+    tbody tr.is-selected {
         @include rst-row-overlay("row-selected-overlay");
         color: rst-get("row-selected-color");
         border-color: rst-get("row-selected-border");
     }
 
-    &:focus-within tbody tr[data-selected] {
+    &:focus-within tbody tr.is-selected {
         @include rst-row-overlay("row-selected-focused-overlay");
         color: rst-get("row-selected-focused-color");
         border-color: rst-get("row-selected-focused-border");
@@ -112,7 +112,7 @@
 }
 
 %rst-columnResizer {
-    .rst-resizingContainer:not([data-resizing]) .rst-columnResizer:active {
+    .rst-resizingContainer:not(.is-resizing) .rst-columnResizer:active {
         background-color: rst-get("column-resizer-active-bg");
     }
 }
@@ -174,16 +174,10 @@
 }
 
 %rst-pgBtnCurrent {
-    button.rst-page[data-current] {
+    button.rst-page.is-current {
         background-color: rst-get("pg-btn-current-bg");
         border-color: rst-get("pg-btn-current-border");
         color: rst-get("pg-btn-current-color")
-    }
-}
-
-%rst-pgBtnActive {
-    button.rst-page[data-active] {
-        font-weight: rst-get("pg-active-font-weight");
     }
 }
 
@@ -203,5 +197,4 @@
     @extend %rst-pgBtnDisabled;
     @extend %rst-pgBtnHover;
     @extend %rst-pgBtnCurrent;
-    @extend %rst-pgBtnActive;
 }

@@ -3,7 +3,10 @@ import _ from "lodash";
 import { Table } from 'react-select-table';
 import columns from '../columns';
 import { useDispatch, useSelector } from 'react-redux';
-import { tableActions as actions, tableNamespace } from "../store";
+import {
+    tableActions as actions,
+    tableNamespace as namespace
+} from "../store";
 import todos from "../todos";
 
 const evenTodos = todos.filter(t => t.id % 2 === 0);
@@ -96,7 +99,7 @@ function ReduxTable() {
         <Table
             containerRef={containerRef}
             emptyPlaceholder="No items"
-            namespace={tableNamespace}
+            namespace={namespace}
             className="rst-table"
             initColumnWidths={[10, 60, 10, 10]}
             // tableClass="table table-striped table-hover table-dark"

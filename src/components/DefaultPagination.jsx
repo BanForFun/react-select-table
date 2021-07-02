@@ -1,9 +1,9 @@
 import React, {useCallback, useRef} from 'react';
-import classNames from 'classnames';
 import AngleUpIcon from "./AngleUpIcon";
 import _ from "lodash";
 import useEvent from "../hooks/useEvent";
-import {boolAttribute, unFocusable} from "../utils/elementUtils";
+import {unFocusable} from "../utils/elementUtils";
+import classNames from "classnames";
 
 const startDelay = 600
 const repeatDelay = 100
@@ -36,11 +36,15 @@ function DefaultPagination({
         if (!number)
             return <span className="rst-page">{children}</span>
 
+        const buttonClass = classNames({
+            "rst-page": true,
+            "is-current": number === page
+        });
+
         return <button
             {...unFocusable}
             {...rest}
-            className="rst-page"
-            data-current={boolAttribute(number === page)}
+            className={buttonClass}
             onMouseDown={action}
         >{number}</button>
     }

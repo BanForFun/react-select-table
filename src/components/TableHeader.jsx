@@ -1,7 +1,7 @@
 import React, {Fragment, useCallback} from 'react';
 import AngleUpIcon from "./AngleUpIcon";
 import _ from "lodash";
-import {boolAttribute} from "../utils/elementUtils";
+import classNames from "classnames";
 
 //Child of TableHead
 function TableHeader({
@@ -33,12 +33,17 @@ function TableHeader({
         columnResizeStart(index, clientX, header.offsetLeft, widths);
     }, [columnResizeStart, index]);
 
-    return <th
-        data-ascending={sortAscending}
-        scope="col"
-    >
+    const thClass = classNames({
+        "is-descending": sortAscending === false
+    });
+
+    const spanClass = classNames({
+        "is-sortable": path
+    });
+
+    return <th className={thClass} scope="col">
         <span
-            data-sortable={boolAttribute(!!path)}
+            className={spanClass}
             onMouseDown={handleTitleMouseDown}
         >{title}</span>
 

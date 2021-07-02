@@ -1,11 +1,11 @@
 import _ from "lodash";
+import classNames from "classnames";
 import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
 import useObjectMemo from "../hooks/useObjectMemo";
 import {ColumnGroupContext} from "./ColumnGroup";
-import {boolAttribute} from "../utils/elementUtils";
 
 function parseColumn(col) {
     return {
@@ -228,9 +228,13 @@ function ResizingContainer(props) {
         getRowClassName
     }
 
+    const className = classNames({
+        "rst-resizingContainer": true,
+        "is-resizing": widths.resizing
+    });
+
     return <div
-        className="rst-resizingContainer"
-        data-resizing={boolAttribute(widths.resizing)}
+        className={className}
         ref={resizingContainerRef}
         style={{
             width: widths.container + "%",

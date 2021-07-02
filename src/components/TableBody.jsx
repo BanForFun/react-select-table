@@ -21,9 +21,6 @@ function TableBody(props) {
         const value = utils.getDataValue(data);
         const active = value === activeValue;
 
-        if (active)
-            tableBodyRef.activeIndex = index;
-
         const rowProps = {
             ...rowCommonProps,
             key: `row_${props.name}_${value}`,
@@ -35,7 +32,7 @@ function TableBody(props) {
         return <TableRow {...rowProps} />;
     };
 
-    return <tbody ref={el => tableBodyRef.element = el}>
+    return <tbody ref={tableBodyRef}>
         {rows.map(renderRow)}
     </tbody>;
 }

@@ -28,24 +28,27 @@
     }
 }
 
+.rst-cursorOverlay {
+    position: fixed;
+    z-index: 5000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+
+    &[data-mode=resizing] {
+        cursor: col-resize;
+    }
+
+    &[data-mode=selecting] {
+        cursor: default;
+    }
+}
+
 .rst-scrollingContainer {
     position: relative;
     flex: auto;
     overflow: auto;
-
-    @mixin cursorOverride($cursor) {
-        &, & * {
-            cursor: $cursor !important;
-        }
-    }
-
-    &[data-mode=resizing] {
-        @include cursorOverride(col-resize);
-    }
-
-    &[data-mode=selecting] {
-        @include cursorOverride(default);
-    }
 }
 
 .rst-resizingContainer {
@@ -68,11 +71,11 @@
         white-space: nowrap;
         position: relative;
 
-        span[data-sortable] {
+        span.is-sortable {
             cursor: pointer;
         }
 
-        &[data-ascending=false] .rst-sortIcon {
+        &.is-descending .rst-sortIcon {
             transform: rotate(180deg);
         }
     }

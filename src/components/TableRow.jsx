@@ -1,6 +1,9 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import _ from "lodash";
-import {boolAttribute} from "../utils/elementUtils";
+import classNames from "classnames";
+
+export const ActiveClass = "is-active";
+export const SelectedClass = "is-selected";
 
 //Child of TableBody
 function TableRow({
@@ -79,11 +82,14 @@ function TableRow({
         >{content}</CellType>
     };
 
+    const trClass = classNames(className, {
+        [SelectedClass]: selected,
+        [ActiveClass]: active
+    });
+
     return <tr
-        className={className}
+        className={trClass}
         ref={trRef}
-        data-selected={boolAttribute(selected)}
-        data-active={boolAttribute(active)}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
     >

@@ -2,7 +2,8 @@ import _ from "lodash";
 import React, {useCallback, useRef, useState} from 'react';
 import useEvent from "../hooks/useEvent";
 import ResizingContainer from "./ResizingContainer";
-import {setBoolAttribute} from "../utils/elementUtils";
+import {ActiveClass, SelectedClass} from "./TableRow";
+import CursorOverlay from "./CursorOverlay";
 
 const px = n => `${n}px`;
 
@@ -31,10 +32,7 @@ function ScrollingContainer(props) {
     //#region Drag selection
 
     //Element refs
-    const tableBodyRef = useRef({
-        activeIndex: 0,
-        element: null
-    }).current;
+    const tableBodyRef = useRef();
     const selectionRectRef = useRef();
     const bodyContainerRef = useRef();
 
@@ -73,18 +71,18 @@ function ScrollingContainer(props) {
             transform: `translate(${headerWidth}px, ${headerHeight}px)`
         });
 
-        const safeRowIndex = rowIndex ?? rowValues.length;
+        rowIndex ??= rowValues.length;
 
         Object.assign(dragSelectionRef, {
             started: true,
             selected: {},
-            active: rowIndex ?? tableBodyRef.activeIndex,
+            active: -1,
             pivot: -1,
             mousePos,
-            prevIndex: safeRowIndex,
+            prevIndex: rowIndex,
+            originIndex: rowIndex,
             prevRelPos: relPos,
             originRelPos: relPos,
-            originIndex: safeRowIndex,
             pendingFrames: 0
         });
     }, [options, applyRectStyles, rowValues]);
@@ -97,7 +95,7 @@ function ScrollingContainer(props) {
             setMode(null);
 
             const { selected, active, pivot } = dragSelectionRef;
-            if (active === tableBodyRef.activeIndex) return;
+            if (active < 0) return;
 
             actions.setSelected(
                 _.mapKeys(selected, (_, index) => rowValues[index]),
@@ -113,7 +111,7 @@ function ScrollingContainer(props) {
         const {
             offsetHeight: tableHeight,
             children: rows
-        } = tableBodyRef.element;
+        } = tableBodyRef.current;
 
         const { originIndex, prevIndex } = dragSelectionRef;
         const upwards = relY < prevRelY;
@@ -202,7 +200,6 @@ function ScrollingContainer(props) {
         const [relX, relY] = relPos;
 
         //Update selection
-        const prevActive = dragSelectionRef.active;
         const newlySelected = updateSelection(relY);
 
         const {
@@ -221,13 +218,16 @@ function ScrollingContainer(props) {
         dragSelectionRef.pendingFrames++;
         requestAnimationFrame(() => {
             if (newlySelected) {
-                const rows = tableBodyRef.element.children;
+                const tableBody = tableBodyRef.current;
+                const getClassList = index => tableBody.children[index].classList;
 
-                setBoolAttribute(rows[prevActive], "active", false);
-                setBoolAttribute(rows[active], "active", true);
+                const [activeRow] = tableBody.getElementsByClassName(ActiveClass);
+                activeRow.classList.remove(ActiveClass);
+
+                getClassList(active).add(ActiveClass);
 
                 _.forEach(newlySelected, (selected, index) => {
-                    setBoolAttribute(rows[index], "selected", selected);
+                    getClassList(index).toggle(SelectedClass, selected);
                 });
             }
 
@@ -315,9 +315,9 @@ function ScrollingContainer(props) {
 
     return <div
         className="rst-scrollingContainer"
-        data-mode={mode}
         onScroll={handleScroll}
     >
+        {!!mode && <CursorOverlay mode={mode} />}
         {showPlaceholder
             ? <div className="rst-tablePlaceholder">{renderPlaceholder()}</div>
             : <ResizingContainer {...resizingProps} />

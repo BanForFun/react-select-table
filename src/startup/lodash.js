@@ -1,16 +1,5 @@
 import _ from "lodash";
 
-const sortTuple = (x, y) => [
-    x < y ? x : y,
-    x > y ? x : y
-]
-
-const forRange = (x, y, callback) => {
-    const [start, end] = sortTuple(x, y);
-    for (let i = start; i <= end; i++)
-        callback(i);
-}
-
 const getOrSource = (source, path) =>
     path ? _.get(source, path) : source;
 
@@ -27,17 +16,11 @@ const setToggleValue = (set, value, exists) => {
 const setAddMany = (set, values) =>
     values.forEach(v => set.add(v))
 
-const inRangeRelative = (n, start, endOffset) =>
-    _.inRange(n, start, start + endOffset);
-
 export default function() {
     _.mixin({
-        sortTuple,
-        forRange,
         getOrSource,
         setReplaceValue,
         setToggleValue,
-        setAddMany,
-        inRangeRelative
+        setAddMany
     })
 }

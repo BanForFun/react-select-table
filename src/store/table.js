@@ -114,19 +114,8 @@ export default function createTable(namespace, options = {}) {
             draft.headValue = second;
     }
 
-    function getItemValues() {
-        const itemValues = [];
-        let currentValue = draft.headValue;
-        while (currentValue !== undefined) {
-            itemValues.push(currentValue);
-            currentValue = draft.sortedItems[currentValue].next;
-        }
-
-        return itemValues;
-    }
-
     function sortNative() {
-        const itemValues = getItemValues();
+        const itemValues = [...createValueIterator()];
 
         itemValues.sort((valueA, valueB) => {
             const {
@@ -161,39 +150,37 @@ export default function createTable(namespace, options = {}) {
         return getDataValue(draft.rows[pageSize - 1]);
     }
 
-    function findVisibleValue(callback, originValue, forward) {
+    function* createValueIterator(onlyVisible = false, forward = true, originValue = null) {
+        originValue ??= draft.headValue;
         const nextProperty = forward ? "next" : "prev";
 
-        let currentValue = originValue;
-        while (currentValue !== undefined) {
-            const value = currentValue;
+        let value = originValue;
+        while (value !== undefined) {
             const item = draft.sortedItems[value];
-            currentValue = item[nextProperty];
+            if (!onlyVisible || item.visible)
+                yield value;
 
-            if (!item.visible) continue;
-
-            if (callback(value, item)) return value;
+            value = item[nextProperty];
         }
-
-        return null;
     }
 
     function findVisibleRelativeValue(callback, originValue, relPos, skipOrigin = false) {
         //Not equal to >= 0 as we need to differentiate -0 and +0
         const forward = relPos > 0 || Object.is(relPos, 0);
+        const values = createValueIterator(true, forward, originValue);
 
         let distance = 0;
-        function _callback(value, item) {
+        for (let value of values) {
             const reachedTarget = distance++ === Math.abs(relPos);
 
             if ((value !== originValue || !skipOrigin) && (!reachedTarget || skipOrigin))
                 //Callback will be called exactly abs(relPos) times, regardless of skipOrigin
-                callback(value, item);
+                callback(value);
 
-            return reachedTarget;
+            if (reachedTarget) return value;
         }
 
-        return findVisibleValue(_callback, originValue, forward);
+        return null;
     }
 
     function getRelativeVisibleValue(specialValue, relPos) {
@@ -263,9 +250,9 @@ export default function createTable(namespace, options = {}) {
         const pageSize = getCurrentPageSize();
         const indexOffset = forwards ? 1 : -1;
 
-        let currentIndex = forwards ? 0 : pageSize - 1
-        function callback(value, item) {
-            draft.rows[currentIndex] = item.data;
+        let currentIndex = forwards ? 0 : pageSize - 1;
+        function callback(value) {
+            draft.rows[currentIndex] = draft.sortedItems[value].data;
             currentIndex += indexOffset;
         }
 
@@ -333,29 +320,29 @@ export default function createTable(namespace, options = {}) {
         const setActive = startSetActiveTransaction(value => value === draft.activeValue);
         const addedValues = [];
 
-        let dataIndex = 0;
-        let currentValue = draft.headValue;
-        while (currentValue !== undefined && dataIndex < itemData.length) {
-            const data = itemData[dataIndex];
-            const item = draft.sortedItems[currentValue];
+        const values = createValueIterator();
 
-            let value;
+        let dataIndex = 0;
+        let nextValue = values.next();
+        while (!nextValue.done && dataIndex < itemData.length) {
+            let value = nextValue.value;
+            const item = draft.sortedItems[value];
+
+            const data = itemData[dataIndex];
+
             if (compareItemData(data, item.data) < 0) {
-                value = addItem(data, item.prev, currentValue);
+                value = addItem(data, item.prev, value);
                 addedValues.push(value);
                 dataIndex++;
             } else {
-                value = currentValue;
-                currentValue = item.next;
+                nextValue = values.next();
             }
 
             setActive.registerItem(value);
         }
 
-        for (; dataIndex < itemData.length; dataIndex++) {
-            const value = addItem(itemData[dataIndex], draft.tailValue);
-            addedValues.push(value);
-        }
+        for (; dataIndex < itemData.length; dataIndex++)
+            addedValues.push(addItem(itemData[dataIndex], draft.tailValue));
 
         setActive.commit();
 
@@ -387,10 +374,10 @@ export default function createTable(namespace, options = {}) {
             rows: [],
             sortedItems: {},
             isLoading: false,
-            error: null
+            error: null,
+            activeValue: null
         });
 
-        setActiveValue(null);
         clearSelection();
     }
 
@@ -531,21 +518,18 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.DELETE_ITEMS: {
-                    const values = new Set(payload.values);
-                    if (!values.size) break;
+                    const valuesToDelete = new Set(payload.values);
+                    if (!valuesToDelete.size) break;
 
                     const setActive = startSetActiveTransaction(
-                        value => values.has(value), true);
+                        value => valuesToDelete.has(value), true);
 
-                    let currentValue = draft.headValue;
-                    while (currentValue !== undefined) {
-                        const value = currentValue;
-                        currentValue = draft.sortedItems[value].next;
-
+                    const values = createValueIterator(true);
+                    for (let value of values) {
                         if (!setActive.registerItem(value)) continue;
+                        if (!valuesToDelete.has(value)) continue;
 
-                        if (values.has(value))
-                            deleteItem(value);
+                        deleteItem(value);
                     }
 
                     setActive.commit();
@@ -584,7 +568,6 @@ export default function createTable(namespace, options = {}) {
                     }
 
                     addItems(patches);
-
                     break;
                 }
                 case types.SORT_ITEMS: {
@@ -609,14 +592,15 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SET_ITEM_FILTER: {
-                    // setActiveIndex(0);
-                    // clearSelection();
-                    //
                     // draft.filter = payload.filter;
+                    //
+                    // const values = createValueIterator();
+                    //
+
                     break;
                 }
                 case types.CLEAR_ITEMS: {
-                    // setItems([]);
+                    clearItems();
                     break;
                 }
                 case types.START_LOADING: {

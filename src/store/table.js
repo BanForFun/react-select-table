@@ -68,9 +68,12 @@ export default function createTable(namespace, options = {}) {
         const item = draft.sortedItems[value];
         visibility ??= options.itemPredicate(item.data, draft.filter);
 
-        if (!!item.visible === visibility) return;
-        item.visible = visibility;
-        draft.visibleItemCount += visibility ? 1 : -1;
+        if (!!item.visible !== visibility) {
+            item.visible = visibility;
+            draft.visibleItemCount += visibility ? 1 : -1;
+        }
+
+        return visibility;
     }
 
     //#endregion
@@ -327,7 +330,6 @@ export default function createTable(namespace, options = {}) {
         while (!nextValue.done && dataIndex < itemData.length) {
             let value = nextValue.value;
             const item = draft.sortedItems[value];
-
             const data = itemData[dataIndex];
 
             if (compareItemData(data, item.data) < 0) {
@@ -423,13 +425,13 @@ export default function createTable(namespace, options = {}) {
             [toValue]: { data: toData }
         } = draft.sortedItems
 
-        const callback = value => {
-            setValueSelected(value, selected);
-            return value === toValue;
-        }
+        const forward = compareItemData(fromData, toData) < 0;
+        const values = createValueIterator(true, forward, fromValue);
 
-        const forward = compareItemData(fromData, toData) < 0
-        findVisibleValue(callback, fromValue, forward);
+        for (let value of values) {
+            setValueSelected(value, selected);
+            if (value === toValue) break;
+        }
     }
 
     function startSetActiveTransaction(predicate, setPrevious = false) {
@@ -571,8 +573,6 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SORT_ITEMS: {
-                    clearSelection();
-
                     const {path} = payload;
                     const {sortAscending} = draft;
 
@@ -589,14 +589,20 @@ export default function createTable(namespace, options = {}) {
                         sortAscending.set(path, ascending);
 
                     sortNative();
+                    clearSelection();
+                    resetActiveValue();
                     break;
                 }
                 case types.SET_ITEM_FILTER: {
-                    // draft.filter = payload.filter;
-                    //
-                    // const values = createValueIterator();
-                    //
+                    draft.filter = payload.filter;
 
+                    const values = createValueIterator();
+                    for (let value of values)
+                        setItemVisibility(value)
+
+                    clearSelection();
+                    firstPage();
+                    resetActiveValue();
                     break;
                 }
                 case types.CLEAR_ITEMS: {
@@ -756,7 +762,8 @@ export default function createTable(namespace, options = {}) {
                             break;
                     }
 
-                    resetActiveValue();
+                    //Don't use setActiveValue, we don't want to change the pivot
+                    draft.activeValue = getFirstRowValue();
                 }
                 default: {
                     break;

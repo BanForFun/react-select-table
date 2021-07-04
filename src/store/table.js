@@ -56,6 +56,7 @@ export default function createTable(namespace, options = {}) {
         visibleItemCount: 0,
         activeValue: null,
         pivotValue: null,
+        pageChangedSincePivotSet: false,
 
         ...options.initState
     };
@@ -137,7 +138,7 @@ export default function createTable(namespace, options = {}) {
 
         setItemOrder(prevValue, undefined);
 
-        firstPage();
+        firstPage(true);
     }
 
     //#endregion
@@ -266,9 +267,14 @@ export default function createTable(namespace, options = {}) {
             delete draft.rows[i];
     }
 
-    function firstPage() {
+    function firstPage(resetSelection = false) {
         draft.pageIndex = 0
-        paginateItems(draft.headValue, true, false)
+        paginateItems(draft.headValue, true, false);
+
+        if (resetSelection) {
+            draft.activeValue = getFirstRowValue();
+            clearSelection();
+        }
     }
 
     function lastPage() {
@@ -292,6 +298,17 @@ export default function createTable(namespace, options = {}) {
 
         draft.pageIndex--
         paginateItems(firstRowValue, false, true)
+    }
+
+    function goToActivePage() {
+        const setActive = startSetActiveTransaction(value => value === draft.activeValue);
+        const values = createValueIterator(true);
+
+        for (let value of values) {
+            if (setActive.registerItem(value)) break;
+        }
+
+        setActive.commit();
     }
 
     //#endregion
@@ -387,18 +404,18 @@ export default function createTable(namespace, options = {}) {
 
     //#region Selection
 
-    function resetActiveValue() {
-        setActiveValue(getFirstRowValue());
+    function setPivotValue(value) {
+        draft.pivotValue = value;
+        draft.pageChangedSincePivotSet = false;
     }
 
-    function setActiveValue(value) {
-        draft.activeValue = value;
-        draft.pivotValue = value;
+    function resetPivotValue() {
+        setPivotValue(draft.activeValue);
     }
 
     function clearSelection() {
         draft.selection.clear();
-        draft.pivotValue = draft.activeValue;
+        resetPivotValue();
     }
 
     function setSelection(values) {
@@ -463,12 +480,14 @@ export default function createTable(namespace, options = {}) {
         function commit() {
             if (found && pageIndex >= 0) {
                 draft.pageIndex = pageIndex;
-                setActiveValue(itemValue);
                 paginateItems(firstRowValue, true, false);
             } else {
                 firstPage();
-                resetActiveValue();
+                itemValue = getFirstRowValue();
             }
+
+            draft.activeValue = itemValue;
+            resetPivotValue();
         }
 
         return { registerItem, commit };
@@ -498,6 +517,7 @@ export default function createTable(namespace, options = {}) {
             draft = newDraft;
 
             const { payload } = action;
+            const metadata = {};
 
             // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
@@ -589,8 +609,6 @@ export default function createTable(namespace, options = {}) {
                         sortAscending.set(path, ascending);
 
                     sortNative();
-                    clearSelection();
-                    resetActiveValue();
                     break;
                 }
                 case types.SET_ITEM_FILTER: {
@@ -600,9 +618,7 @@ export default function createTable(namespace, options = {}) {
                     for (let value of values)
                         setItemVisibility(value)
 
-                    clearSelection();
-                    firstPage();
-                    resetActiveValue();
+                    firstPage(true);
                     break;
                 }
                 case types.CLEAR_ITEMS: {
@@ -626,19 +642,28 @@ export default function createTable(namespace, options = {}) {
                     const value = getRelativeVisibleValue(payload.origin, payload.offset);
                     if (value === null) break;
 
+                    if (draft.pageChangedSincePivotSet)
+                        resetPivotValue();
+
+                    draft.activeValue = value;
+
                     if (payload.ctrlKey && !payload.shiftKey) {
-                        setActiveValue(value);
+                        resetPivotValue();
                         break;
                     }
 
-                    payload.value = value;
+                    metadata.value = value;
                     //Deliberate fall-through
                 }
                 case types.SELECT: {
-                    const value = validateValue(payload.value, true);
-                    if (value === null) break;
+                    let { value } = metadata;
 
-                    draft.activeValue = value;
+                    if (value === undefined) {
+                        value = validateValue(payload.value, true);
+                        if (value === null) break;
+
+                        draft.activeValue = value;
+                    }
 
                     if (!multiSelect) {
                         setSelectionSingle(value);
@@ -659,7 +684,7 @@ export default function createTable(namespace, options = {}) {
                         break;
                     }
 
-                    draft.pivotValue = value;
+                    resetPivotValue();
 
                     const selected = !ctrlKey || !draft.selection.has(value);
                     setValueSelected(value, selected);
@@ -699,10 +724,10 @@ export default function createTable(namespace, options = {}) {
                     //Pivot value
                     const setPivot = validateValue(payload.pivot, true);
                     if (setPivot !== null)
-                        draft.pivotValue = setPivot;
+                        setPivotValue(setPivot);
 
                     //Selection
-                    const {map} = payload;
+                    const { map } = payload;
                     for (let value in map) {
                         value = validateValue(value, true);
                         if (value === null) continue;
@@ -743,7 +768,9 @@ export default function createTable(namespace, options = {}) {
 
                     draft.pageSize = newSize;
                     draft.rows = [];
+
                     firstPage();
+                    goToActivePage();
                     break;
                 }
                 case types.GO_TO_PAGE_RELATIVE: {
@@ -762,8 +789,8 @@ export default function createTable(namespace, options = {}) {
                             break;
                     }
 
-                    //Don't use setActiveValue, we don't want to change the pivot
                     draft.activeValue = getFirstRowValue();
+                    draft.pageChangedSincePivotSet = true;
                 }
                 default: {
                     break;

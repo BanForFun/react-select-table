@@ -41,6 +41,7 @@ function ReduxTable() {
         "Clear filter": actions.setItemFilter({}),
 
         "Page size 10": actions.setPageSize(10),
+        "Page size 17": actions.setPageSize(17),
         "Disable pagination": actions.setPageSize(0),
 
         "Start loading": actions.startLoading(),

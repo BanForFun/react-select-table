@@ -44,6 +44,7 @@ function Root(props) {
     }
 
     const activeValue = utils.useSelector(s => s.activeValue);
+    const pageSize = utils.useSelector(s => s.pageSize);
     const pageCount = utils.useSelector(selectors.getPageCount);
     const rowValues = utils.useSelector(selectors.getRowValues);
     const selection = utils.useSelector(s => s.selection);
@@ -58,10 +59,10 @@ function Root(props) {
             actions.goToPageRelative(relPos);
         } else {
             const origin = prev ? specialValues.FirstRow : specialValues.LastRow;
-            const offset = prev ? -1 : 1;
+            const offset = prev ? -pageSize : 1;
             actions.selectRelative(e, offset, origin);
         }
-    }, [actions]);
+    }, [actions, pageSize]);
 
     const handleShortcuts = useCallback(e => {
         const isFirstPage = pageIndex === 0;

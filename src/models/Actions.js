@@ -19,7 +19,6 @@ export const types = {
     SELECT_RELATIVE: "",
     CLEAR_SELECTION: "",
     SELECT_ALL: "",
-    CONTEXT_MENU: "",
     SEARCH: "",
 
     //Pagination
@@ -37,7 +36,7 @@ Object.freeze(types);
 
 export default function Actions(namespace) {
     function Action(type, payload = null) {
-        return { type, namespace, payload }
+        return { type, namespace, payload };
     }
 
     const actions = {
@@ -79,14 +78,11 @@ export default function Actions(namespace) {
         baseSelectRelative: (offset, ctrlKey, shiftKey, origin = null) =>
             Action(types.SELECT_RELATIVE, { offset, origin, ctrlKey, shiftKey }),
 
-        baseSelect: (value, ctrlKey, shiftKey) =>
-            Action(types.SELECT, { value, ctrlKey, shiftKey }),
+        baseSelect: (value, ctrlKey, shiftKey, contextMenu = false) =>
+            Action(types.SELECT, { value, ctrlKey, shiftKey, contextMenu }),
 
-        baseContextMenu: (index, ctrlKey) =>
-            Action(types.CONTEXT_MENU, { index, ctrlKey }),
-
-        clearSelection: () =>
-            Action(types.CLEAR_SELECTION),
+        baseClearSelection: (ctrlKey, contextMenu = false) =>
+            Action(types.CLEAR_SELECTION, { ctrlKey, contextMenu }),
 
         selectAll: () =>
             Action(types.SELECT_ALL),
@@ -106,10 +102,10 @@ export default function Actions(namespace) {
             actions.baseSelectRelative(offset, e.ctrlKey, e.shiftKey, origin),
 
         select: (e, value) =>
-            actions.baseSelect(value, e.ctrlKey, e.shiftKey),
+            actions.baseSelect(value, e.ctrlKey, e.shiftKey, e.type === "contextmenu"),
 
-        contextMenu: (e, index) =>
-            actions.baseContextMenu(index, e.ctrlKey),
+        clearSelection: (e) =>
+            actions.baseClearSelection(e.ctrlKey,e.type === "contextmenu"),
 
         sortItems: (e, path) =>
             actions.baseSortItems(path, e.shiftKey)

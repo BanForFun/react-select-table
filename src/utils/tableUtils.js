@@ -32,7 +32,7 @@ export function setDefaultTableOptions(options) {
 export function setOptions(namespace, options) {
     _.defaults(options, defaultOptions);
 
-    const actions = Actions(namespace);
+    const actions = Actions(namespace, options);
     const utils = Utils(namespace, options, actions);
     const selectors = Selectors(namespace, options, utils);
     const events = _.clone(defaultEvents);

@@ -14,7 +14,7 @@ function BodyContainer(props) {
     } = props;
 
     const {
-        table: { options, utils, selectors },
+        table: { utils, selectors },
         actions,
         dragSelectStart,
         bodyContainerRef
@@ -30,17 +30,15 @@ function BodyContainer(props) {
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
 
-        if (!e.ctrlKey && !options.listBox)
-            actions.clearSelection();
-
+        actions.clearSelection(e);
         dragSelectStart([e.clientX, e.clientY]);
-    }, [dragSelectStart, actions, options]);
+    }, [dragSelectStart, actions]);
 
     const handleContextMenu = useCallback(e => {
         if (isTouchingRef.current)
             dragSelectStart([e.clientX, e.clientY]);
         else
-            actions.contextMenu(e, null);
+            actions.clearSelection(e);
     }, [dragSelectStart, actions]);
 
     const handleDoubleClick = useCallback(() => {

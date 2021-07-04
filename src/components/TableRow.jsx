@@ -54,7 +54,7 @@ function TableRow({
             actions.baseSelect(value, true, false);
             dragSelectStart([e.clientX, e.clientY], index);
         } else {
-            actions.contextMenu(e, value);
+            actions.select(e, value);
         }
     }, [value, index, actions]);
 

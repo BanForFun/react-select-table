@@ -16,7 +16,7 @@ function compareSets(a, b) {
 }
 
 const eventMiddleware = store => next => action => {
-    const { type, namespace } = action;
+    const { type, namespace, payload } = action;
 
     switch (type) {
         case types.SET_ITEMS:
@@ -32,7 +32,6 @@ const eventMiddleware = store => next => action => {
         case types.SELECT_ALL:
         case types.SET_ERROR:
         case types.START_LOADING:
-        case types.CONTEXT_MENU:
             //Get table options, events and utils
             const { events, utils, options, selectors } = tableStorage[namespace];
             const getSlice = () => utils.getStateSlice(store.getState());
@@ -47,7 +46,7 @@ const eventMiddleware = store => next => action => {
                 events.onSelectionChange(selectors.getSelectionArg(slice));
 
             //Raise onContextMenu
-            if (type === types.CONTEXT_MENU)
+            if (payload.contextMenu)
                 events.onContextMenu(options.listBox
                     ? slice.activeValue
                     : selectors.getSelectionArg(slice)

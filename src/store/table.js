@@ -34,7 +34,7 @@ export default function createTable(namespace, options = {}) {
 
     const {
         valueProperty,
-        // listBox,
+        listBox,
         multiSelect
     } = options;
 
@@ -419,24 +419,29 @@ export default function createTable(namespace, options = {}) {
     }
 
     function setSelection(values) {
+        if (!multiSelect) return;
+
         clearSelection();
         for (let value of values)
             draft.selection.add(value);
     }
 
-    function setSelectionSingle(value) {
-        clearSelection();
-        draft.selection.add(value);
-    }
-
     function setValueSelected(value, selected) {
+        const { selection } = draft;
+
+        if (!multiSelect)
+            selection.clear();
+
         if (selected)
-            draft.selection.add(value);
+            selection.add(value);
         else
-            draft.selection.delete(value);
+            selection.delete(value);
     }
 
     function setRangeSelected(fromValue, toValue, selected) {
+        if (!multiSelect)
+            return setValueSelected(selected ? toValue : fromValue, selected)
+
         const {
             [fromValue]: { data: fromData },
             [toValue]: { data: toData }
@@ -656,21 +661,16 @@ export default function createTable(namespace, options = {}) {
                     //Deliberate fall-through
                 }
                 case types.SELECT: {
-                    let { value } = metadata;
+                    const { ctrlKey, shiftKey } = payload;
+                    if (payload.contextMenu && ctrlKey) break;
 
+                    let { value } = metadata;
                     if (value === undefined) {
                         value = validateValue(payload.value, true);
                         if (value === null) break;
 
                         draft.activeValue = value;
                     }
-
-                    if (!multiSelect) {
-                        setSelectionSingle(value);
-                        break;
-                    }
-
-                    const {ctrlKey, shiftKey} = payload;
 
                     if (!ctrlKey)
                         draft.selection.clear();
@@ -691,31 +691,14 @@ export default function createTable(namespace, options = {}) {
 
                     break;
                 }
-                case types.CONTEXT_MENU: {
-                    //Should still be dispatched for middleware
-                    // if (payload.ctrlKey) break;
-                    //
-                    // const index = parseIndex(payload.index);
-                    // if (index === null) {
-                    //     if (!listBox) clearSelection();
-                    //     break;
-                    // }
-                    //
-                    // setActiveIndex(index);
-                    //
-                    // if (listBox) break;
-                    //
-                    // const value = selectors.getSortedValues(state)[index];
-                    // if (draft.selection.has(value)) break;
-                    //
-                    // selectOnly(value);
-                    break;
-                }
                 case types.CLEAR_SELECTION: {
+                    if (payload.ctrlKey || listBox) break;
                     clearSelection();
                     break;
                 }
                 case types.SET_SELECTED: {
+                    if (!multiSelect) break;
+
                     //Active value
                     const setActive = validateValue(payload.active, true);
                     if (setActive !== null)

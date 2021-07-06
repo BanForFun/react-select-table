@@ -1,10 +1,10 @@
-import React, {useRef, useEffect, useCallback} from 'react';
+import React, {useRef, useEffect, useCallback, useState} from 'react';
 import _ from "lodash";
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationContainer";
 import {relativePos, specialValues} from "../store/table";
-import {matchEventModifiers} from "../utils/elementUtils";
+import SearchContainer from "./SearchContainer";
 
 //Child of Connector
 function Root(props) {
@@ -53,8 +53,10 @@ function Root(props) {
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
+    const [showSearch, setShowSearch] = useState(false);
+
     const offsetPage = useCallback((e, prev) => {
-        if (matchEventModifiers(e, false, false)) {
+        if (!e.ctrlKey && !e.shiftKey) {
             const relPos = prev ? relativePos.Prev : relativePos.Next;
             actions.goToPageRelative(relPos);
         } else {
@@ -73,7 +75,7 @@ function Root(props) {
 
         switch (e.keyCode) {
             case 65: //A
-                if (matchEventModifiers(e, true, false) && options.multiSelect)
+                if (e.ctrlKey && !e.shiftKey && options.multiSelect)
                     actions.selectAll();
 
                 break;
@@ -94,7 +96,7 @@ function Root(props) {
                 actions.selectRelative(e, -0, specialValues.LastItem);
                 break;
             case 13: //Enter
-                if (matchEventModifiers(e, false, false) && selection.has(activeValue))
+                if (!e.ctrlKey && !e.shiftKey && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
                     actions.select(e, activeValue);
@@ -108,6 +110,10 @@ function Root(props) {
                 if (isLastPage) break;
                 offsetPage(e, false);
                 break;
+            case 70: //F
+                if (!e.ctrlKey) break;
+                setShowSearch(!showSearch);
+                break;
             default:
                 return;
         }
@@ -118,14 +124,15 @@ function Root(props) {
         activeValue, selection, rowValues, pageIndex, pageCount, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods
-        onItemsOpen //Event handlers
+        onItemsOpen, //Event handlers
+        showSearch, setShowSearch
     ])
 
     const handleKeyDown = useCallback(e => {
         if (showPlaceholder) return;
         onKeyDown(e, getSelectionArg());
 
-        if (matchEventModifiers(e, false) && e.key.length === 1)
+        if (!e.ctrlKey && e.key.length === 1)
             actions.search(e.key);
 
         handleShortcuts(e);
@@ -159,7 +166,9 @@ function Root(props) {
         ref={containerRef}
         onKeyDown={handleKeyDown}
         className={"rst-container " + className}
+        onFocus={e => console.log(e.currentTarget)}
     >
+        <SearchContainer show={showSearch} />
         <ScrollingContainer {...scrollingProps} />
         <PaginationContainer {...paginationProps} />
     </div>

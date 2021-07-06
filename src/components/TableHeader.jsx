@@ -1,5 +1,5 @@
 import React, {Fragment, useCallback} from 'react';
-import AngleUpIcon from "./AngleUpIcon";
+import AngleIcon, {angleRotation} from "./AngleIcon";
 import _ from "lodash";
 import classNames from "classnames";
 
@@ -33,22 +33,21 @@ function TableHeader({
         columnResizeStart(index, clientX, header.offsetLeft, widths);
     }, [columnResizeStart, index]);
 
-    const thClass = classNames({
-        "is-descending": sortAscending === false
-    });
-
     const spanClass = classNames({
         "is-sortable": path
     });
 
-    return <th className={thClass} scope="col">
+    return <th scope="col">
         <span
             className={spanClass}
             onMouseDown={handleTitleMouseDown}
         >{title}</span>
 
         {sortPriority >= 0 && <Fragment>
-            <AngleUpIcon className="rst-sortIcon" />
+            <AngleIcon
+                className="rst-sortIcon"
+                rotation={sortAscending ? angleRotation.Up : angleRotation.Down}
+            />
             {showPriority && <small>{sortPriority}</small>}
         </Fragment>}
 

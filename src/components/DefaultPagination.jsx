@@ -1,5 +1,5 @@
 import React, {useCallback, useRef} from 'react';
-import AngleUpIcon from "./AngleUpIcon";
+import AngleIcon, {angleRotation} from "./AngleIcon";
 import _ from "lodash";
 import useEvent from "../hooks/useEvent";
 import {unFocusable} from "../utils/elementUtils";
@@ -74,7 +74,7 @@ function DefaultPagination({
         <Page
             disabled={page === 1}
             action={repeatAction(prevPage)}
-            number={<AngleUpIcon className="rst-prevIcon"/>}
+            number={<AngleIcon rotation={angleRotation.Left} />}
         />
 
         {_.times(paddingLeft, i => <Page key={`padding_left_${i}`} />)}
@@ -88,7 +88,7 @@ function DefaultPagination({
         <Page
             disabled={page === pageCount}
             action={repeatAction(nextPage)}
-            number={<AngleUpIcon className="rst-nextIcon"/>}
+            number={<AngleIcon rotation={angleRotation.Right} />}
         />
     </div>
 }

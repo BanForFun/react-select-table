@@ -7,10 +7,10 @@ import {
     tableActions as actions,
     tableNamespace as namespace
 } from "../store";
-import todos from "../todos";
+import allItems from "../data/comments";
 
-const evenTodos = todos.filter(t => t.id % 2 === 0);
-const oddTodos = todos.filter(t => t.id % 2 === 1);
+const evenItems = allItems.filter(t => t.id % 2 === 0);
+const oddItems = allItems.filter(t => t.id % 2 === 1);
 
 function logEvent(type) {
     return (...args) => console.log(type, ...args);
@@ -26,13 +26,13 @@ function ReduxTable() {
     const containerRef = useRef();
 
     useEffect(() => {
-        dispatch(actions.setItems(oddTodos));
+        dispatch(actions.setItems(oddItems));
     }, [dispatch]);
 
     const buttonActions = useMemo(() => ({
-        "Add even todos": actions.addItems(...evenTodos),
+        "Add even": actions.addItems(...evenItems),
 
-        "Set items": actions.setItems(todos),
+        "Set items": actions.setItems(allItems),
         "Clear items": actions.clearItems(),
 
         "Set error": actions.setError("An error occurred"),

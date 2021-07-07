@@ -2,7 +2,6 @@ import React, {useCallback, useRef} from 'react';
 import AngleIcon, {angleRotation} from "./AngleIcon";
 import _ from "lodash";
 import useEvent from "../hooks/useEvent";
-import {unFocusable} from "../utils/elementUtils";
 import classNames from "classnames";
 
 const startDelay = 600
@@ -32,7 +31,7 @@ function DefaultPagination({
         clearTimeout(repeatTimeoutRef.current);
     }, [repeatTimeoutRef]));
 
-    function Page({ number, action, children, ...rest }) {
+    function Page({ number, children, ...rest }) {
         if (!number)
             return <span className="rst-page">{children}</span>
 
@@ -42,10 +41,9 @@ function DefaultPagination({
         });
 
         return <button
-            {...unFocusable}
             {...rest}
+            tabIndex="-1"
             className={buttonClass}
-            onMouseDown={action}
         >{number}</button>
     }
 
@@ -56,13 +54,13 @@ function DefaultPagination({
         pages.push(<Page key="ellipsis_left">...</Page>);
 
     if (page >= 3)
-        pages.push(<Page key="page_prev" number={page - 1} action={prevPage} />)
+        pages.push(<Page key="page_prev" number={page - 1} onClick={prevPage} />)
 
     if (page >= 2 && pageFromEnd >= 2)
         pages.push(<Page key="page_current" number={page} />)
 
     if (pageFromEnd >= 3)
-        pages.push(<Page key="page_next" number={page + 1} action={nextPage} />)
+        pages.push(<Page key="page_next" number={page + 1} onClick={nextPage} />)
 
     if (pageFromEnd >= 4)
         pages.push(<Page key="ellipsis_right">...</Page>);
@@ -73,21 +71,21 @@ function DefaultPagination({
     return <div className="rst-pagination">
         <Page
             disabled={page === 1}
-            action={repeatAction(prevPage)}
+            onMouseDown={repeatAction(prevPage)}
             number={<AngleIcon rotation={angleRotation.Left} />}
         />
 
         {_.times(paddingLeft, i => <Page key={`padding_left_${i}`} />)}
 
-        <Page number={1} action={firstPage} />
+        <Page number={1} onClick={firstPage} />
         {pages}
-        <Page number={pageCount} action={lastPage} />
+        <Page number={pageCount} onClick={lastPage} />
 
         {_.times(paddingRight, i => <Page key={`padding_right_${i}`} />)}
 
         <Page
             disabled={page === pageCount}
-            action={repeatAction(nextPage)}
+            onMouseDown={repeatAction(nextPage)}
             number={<AngleIcon rotation={angleRotation.Right} />}
         />
     </div>

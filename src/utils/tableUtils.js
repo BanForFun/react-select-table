@@ -12,9 +12,9 @@ export const defaultEvents = {
 
 const defaultOptions = {
     itemPredicate: _.isMatch,
-    itemIndexer: str => str.normalize("NFD")[0].toLowerCase(),
     itemComparators: {},
-    indexProperty: null,
+    searchValueParser: str => str.normalize("NFD").toLowerCase(),
+    searchProperty: null,
     multiSelect: true,
     listBox: false,
     valueProperty: "id",

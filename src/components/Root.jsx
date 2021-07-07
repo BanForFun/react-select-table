@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useCallback, useState} from 'react';
+import React, {useRef, useEffect, useCallback} from 'react';
 import _ from "lodash";
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
@@ -25,14 +25,15 @@ function Root(props) {
         onItemsOpen
     } = props;
 
-    const actions = utils.useActions();
-
-    const tableBodyRef = useRef();
-
     useEffect(() => {
         if (!autoFocus) return;
         containerRef.current.focus();
     }, []);
+
+    const actions = utils.useActions();
+
+    const tableBodyRef = useRef();
+    const searchInputRef = useRef();
 
     //Register redux event handlers
     for (let event in defaultEvents) {
@@ -53,8 +54,6 @@ function Root(props) {
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
-    const [showSearch, setShowSearch] = useState(false);
-
     const offsetPage = useCallback((e, prev) => {
         if (!e.ctrlKey && !e.shiftKey) {
             const relPos = prev ? relativePos.Prev : relativePos.Next;
@@ -66,7 +65,10 @@ function Root(props) {
         }
     }, [actions, pageSize]);
 
-    const handleShortcuts = useCallback(e => {
+    const handleKeyDown = useCallback(e => {
+        if (showPlaceholder) return;
+        if (onKeyDown(e, getSelectionArg()) === false) return;
+
         const isFirstPage = pageIndex === 0;
         const isLastPage = pageIndex === pageCount - 1;
 
@@ -110,37 +112,17 @@ function Root(props) {
                 if (isLastPage) break;
                 offsetPage(e, false);
                 break;
-            case 70: //F
-                if (!e.ctrlKey) break;
-                setShowSearch(!showSearch);
-                break;
             default:
                 return;
         }
 
         e.preventDefault();
     }, [
-        actions, options, //Component props
-        activeValue, selection, rowValues, pageIndex, pageCount, //Redux props
+        actions, options, onKeyDown, //Component props
+        activeValue, selection, rowValues, pageIndex, pageCount, showPlaceholder, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods
         onItemsOpen, //Event handlers
-        showSearch, setShowSearch
-    ])
-
-    const handleKeyDown = useCallback(e => {
-        if (showPlaceholder) return;
-        onKeyDown(e, getSelectionArg());
-
-        if (!e.ctrlKey && e.key.length === 1)
-            actions.search(e.key);
-
-        handleShortcuts(e);
-    }, [
-        showPlaceholder, actions,
-        handleShortcuts,
-        onKeyDown,
-        getSelectionArg
     ]);
 
 
@@ -156,8 +138,13 @@ function Root(props) {
         actions,
         Pagination,
         showPlaceholder,
+        table: props.table
+    }
+
+    const searchProps = {
         table: props.table,
-        itemContainerRef: props.itemContainerRef
+        actions,
+        inputRef: searchInputRef
     }
 
     return <div
@@ -166,9 +153,9 @@ function Root(props) {
         ref={containerRef}
         onKeyDown={handleKeyDown}
         className={"rst-container " + className}
-        onFocus={e => console.log(e.currentTarget)}
+        onFocus={() => searchInputRef.current.focus()}
     >
-        <SearchContainer show={showSearch} />
+        <SearchContainer {...searchProps} />
         <ScrollingContainer {...scrollingProps} />
         <PaginationContainer {...paginationProps} />
     </div>

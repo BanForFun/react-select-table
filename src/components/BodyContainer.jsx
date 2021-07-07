@@ -28,6 +28,8 @@ function BodyContainer(props) {
     const noSelection = utils.useSelector(s => !s.selection.size);
 
     const handleMouseDown = useCallback(e => {
+        //Checking currentTarget instead of stopping propagation at rows,
+        if (e.currentTarget !== e.target) return;
         if (e.button !== 0) return;
 
         actions.clearSelection(e);
@@ -35,6 +37,8 @@ function BodyContainer(props) {
     }, [dragSelectStart, actions]);
 
     const handleContextMenu = useCallback(e => {
+        if (e.currentTarget !== e.target) return;
+
         if (isTouchingRef.current)
             dragSelectStart([e.clientX, e.clientY]);
         else

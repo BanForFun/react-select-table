@@ -34,6 +34,7 @@ export default function createTable(namespace, options = {}) {
 
     const {
         valueProperty,
+        searchProperty,
         listBox,
         multiSelect
     } = options;
@@ -46,8 +47,10 @@ export default function createTable(namespace, options = {}) {
         pageSize: 0,
         pageIndex: 0,
         error: null,
-        searchLetter: null, //Legacy
-        matchIndex: 0, //Legacy
+        searchIndex: {},
+        searchPhrase: "",
+        matches: [],
+        matchIndex: 0,
         items: {},
         sortedItems: {},
         headValue: undefined,
@@ -313,6 +316,54 @@ export default function createTable(namespace, options = {}) {
 
     //#endregion
 
+    //#region Searching
+
+    function searchIndexAdd(value) {
+        if (!searchProperty) return;
+
+        const { data } = draft.sortedItems[value];
+        const searchValue = options.searchValueParser(_.get(data, searchProperty));
+
+        let parent = draft.searchIndex;
+        for (let letter of searchValue)
+            parent = parent[letter] ??= { values: new Set() };
+
+        parent.values.add(value);
+    }
+
+    function _searchIndexRemove(root, itemValue, searchValue, index) {
+        if (index === searchValue.length)
+            return root.values.delete(itemValue);
+
+        const char = searchValue[index];
+        const child = root[char];
+        if (!child) return;
+
+        _searchIndexRemove(child, itemValue, searchValue, index + 1);
+
+        //If any items end in this character, don't delete
+        if (child.values.size) return;
+
+        let propertyCount = 0;
+        for (let prop in child) {
+            //If other words depend on this character, don't delete
+            if (++propertyCount > 1) return; //All nodes have a 'values' property
+        }
+
+        delete root[char];
+    }
+
+    function searchIndexRemove(value) {
+        if (!searchProperty) return;
+
+        const { data } = draft.sortedItems[value];
+        const searchValue = options.searchValueParser(_.get(data, searchProperty));
+
+        _searchIndexRemove(draft.searchIndex, value, searchValue, 0);
+    }
+
+    //#endregion
+
     //#region Addition
 
     function addItem(data, prev, next) {
@@ -329,6 +380,9 @@ export default function createTable(namespace, options = {}) {
 
         //Set visibility
         setItemVisibility(value);
+
+        //Add to search index
+        searchIndexAdd(value);
 
         return value;
     }
@@ -378,6 +432,7 @@ export default function createTable(namespace, options = {}) {
 
         setItemVisibility(value, false);
         setItemOrder(item.prev, item.next);
+        searchIndexRemove(value);
 
         if (toBeReplaced) return;
         delete draft.sortedItems[value];
@@ -523,6 +578,8 @@ export default function createTable(namespace, options = {}) {
 
             const { payload } = action;
             const metadata = {};
+
+            let clearSearch = true;
 
             // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
@@ -725,21 +782,8 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SEARCH: {
-                    // const letter = payload.letter.toLowerCase();
-                    // const matches = selectors.getSearchIndex(state)[letter];
-                    // if (!matches) break;
-                    //
-                    // //Find item index
-                    // const nextIndex = draft.matchIndex + 1;
-                    // const matchIndex = letter === draft.searchLetter && nextIndex < matches.length ? nextIndex : 0;
-                    // const itemIndex = matches[matchIndex];
-                    //
-                    // //Select item
-                    // setActiveIndex(itemIndex);
-                    // selectOnly(selectors.getSortedValues(state)[itemIndex]);
-                    //
-                    // draft.searchLetter = letter;
-                    // draft.matchIndex = matchIndex;
+                    clearSearch = false;
+                    draft.searchPhrase = payload.phrase;
                     break;
                 }
 
@@ -778,6 +822,14 @@ export default function createTable(namespace, options = {}) {
                 default: {
                     break;
                 }
+            }
+
+            if (clearSearch) {
+                Object.assign(draft, {
+                    searchPhrase: "",
+                    matches: [],
+                    matchIndex: 0
+                })
             }
         });
     }

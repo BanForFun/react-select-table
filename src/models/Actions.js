@@ -35,15 +35,15 @@ for (let name in types)
 Object.freeze(types);
 
 export default function Actions(namespace) {
-    function Action(type, payload = null) {
+    function Action(type, payload = {}) {
         return { type, namespace, payload };
     }
 
     const actions = {
         debug: () => Action(types.DEBUG),
 
-        search: (letter) =>
-            Action(types.SEARCH, { letter }),
+        search: (phrase) =>
+            Action(types.SEARCH, { phrase }),
 
         goToPageRelative: (position) =>
             Action(types.GO_TO_PAGE_RELATIVE, { position }),

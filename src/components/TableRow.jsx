@@ -48,8 +48,6 @@ function TableRow({
     }, [active, visibleItemCount]);
 
     const handleContextMenu = useCallback(e => {
-        e.stopPropagation();
-
         if (isTouchingRef.current) {
             actions.baseSelect(value, true, false);
             dragSelectStart([e.clientX, e.clientY], index);
@@ -60,7 +58,6 @@ function TableRow({
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
-        e.stopPropagation();
 
         actions.select(e, value);
         dragSelectStart([e.clientX, e.clientY], index);

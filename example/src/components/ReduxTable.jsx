@@ -107,7 +107,7 @@ function ReduxTable() {
             emptyPlaceholder="No items"
             namespace={namespace}
             className="rst-table"
-            initColumnWidths={[10, 60, 10, 10]}
+            initColumnWidths={[10, 10, 40, 40]}
             // tableClass="table table-striped table-hover table-dark"
             theadClass=""
             columns={columns}

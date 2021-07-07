@@ -29,9 +29,13 @@ import React from 'react';
 
 const columns = [
     {
-        title: "Post id",
-        path: "postId",
+        title: "#",
+        path: "id",
         isHeader: true
+    },
+    {
+        title: "Post id",
+        path: "postId"
     },
     {
         title: "Name",

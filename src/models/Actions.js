@@ -19,6 +19,8 @@ export const types = {
     SELECT_RELATIVE: "",
     CLEAR_SELECTION: "",
     SELECT_ALL: "",
+
+    //Search
     SEARCH: "",
 
     //Pagination

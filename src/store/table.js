@@ -48,10 +48,9 @@ export default function createTable(namespace, options = {}) {
         pageIndex: 0,
         error: null,
         searchIndex: {},
-        searchPhrase: "",
+        searchPhrase: null,
         matches: [],
         matchIndex: 0,
-        items: {},
         sortedItems: {},
         headValue: undefined,
         tailValue: undefined,
@@ -84,9 +83,9 @@ export default function createTable(namespace, options = {}) {
 
     //#region Sorting
 
-    function compareItemData(thisData, otherData) {
+    function compareItemData(dataA, dataB) {
         const compareProperty = (comparator, path) =>
-            comparator(_.get(thisData, path), _.get(otherData, path));
+            comparator(_.get(dataA, path), _.get(dataB, path));
 
         //Make it so that reversing the sort order of a column with all equal values, reverses the item order
         let factor = 1;
@@ -102,6 +101,15 @@ export default function createTable(namespace, options = {}) {
         }
 
         return compareProperty(compareAscending, valueProperty) * factor;
+    }
+
+    function compareItems(valueA, valueB) {
+        const {
+            [valueA]: { data: dataA },
+            [valueB]: { data: dataB }
+        } = draft.sortedItems;
+
+        return compareItemData(dataA, dataB);
     }
 
     function setItemOrder(first, second) {
@@ -122,16 +130,7 @@ export default function createTable(namespace, options = {}) {
     }
 
     function sortNative() {
-        const itemValues = [...createValueIterator()];
-
-        itemValues.sort((valueA, valueB) => {
-            const {
-                [valueA]: { data: dataA },
-                [valueB]: { data: dataB }
-            } = draft.sortedItems;
-
-            return compareItemData(dataA, dataB);
-        });
+        const itemValues = [...createValueIterator()].sort(compareItems);
 
         let prevValue = undefined;
         for (let value of itemValues) {
@@ -318,11 +317,16 @@ export default function createTable(namespace, options = {}) {
 
     //#region Searching
 
+    function getItemSearchValue(itemValue) {
+        const item = draft.sortedItems[itemValue];
+        const searchValue = _.get(item.data, searchProperty);
+        return options.searchValueParser(searchValue);
+    }
+
     function searchIndexAdd(value) {
         if (!searchProperty) return;
 
-        const { data } = draft.sortedItems[value];
-        const searchValue = options.searchValueParser(_.get(data, searchProperty));
+        const searchValue = getItemSearchValue(value);
 
         let parent = draft.searchIndex;
         for (let letter of searchValue)
@@ -356,10 +360,30 @@ export default function createTable(namespace, options = {}) {
     function searchIndexRemove(value) {
         if (!searchProperty) return;
 
-        const { data } = draft.sortedItems[value];
-        const searchValue = options.searchValueParser(_.get(data, searchProperty));
-
+        const searchValue = getItemSearchValue(value);
         _searchIndexRemove(draft.searchIndex, value, searchValue, 0);
+    }
+
+    function addMatches(root, searchPhrase, index) {
+        if (index < searchPhrase.length) {
+            const char = searchPhrase[index];
+            const child = root[char];
+            if (!child) return;
+
+            addMatches(child, searchPhrase, index + 1);
+        } else {
+            for (let value of root.values) {
+                const item = draft.sortedItems[value];
+                if (!item.visible) continue;
+
+                draft.matches.push(value);
+            }
+
+            for (let char in root) {
+                if (char.length > 1) continue;
+                addMatches(root[char], searchPhrase, index + 1);
+            }
+        }
     }
 
     //#endregion
@@ -579,8 +603,6 @@ export default function createTable(namespace, options = {}) {
             const { payload } = action;
             const metadata = {};
 
-            let clearSearch = true;
-
             // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
                 case types.DEBUG: {
@@ -781,9 +803,23 @@ export default function createTable(namespace, options = {}) {
                     setSelection(_.map(draft.rows, valueProperty));
                     break;
                 }
+
+                //Search
                 case types.SEARCH: {
-                    clearSearch = false;
-                    draft.searchPhrase = payload.phrase;
+                    let { phrase } = payload;
+                    Object.assign(draft, {
+                        searchPhrase: phrase,
+                        matches: [],
+                        matchIndex: 0
+                    });
+
+                    if (!phrase) break;
+                    phrase = options.searchValueParser(phrase);
+
+                    addMatches(draft.searchIndex, phrase,  0);
+                    draft.matches.sort(compareItems);
+
+                    console.log(draft.matches);
                     break;
                 }
 
@@ -822,14 +858,6 @@ export default function createTable(namespace, options = {}) {
                 default: {
                     break;
                 }
-            }
-
-            if (clearSearch) {
-                Object.assign(draft, {
-                    searchPhrase: "",
-                    matches: [],
-                    matchIndex: 0
-                })
             }
         });
     }

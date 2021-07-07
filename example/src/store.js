@@ -15,7 +15,7 @@ const compose = composeWithDevTools({
 
 const reducer = createTable(tableNamespace, {
     valueProperty: "id",
-    indexProperty: "title",
+    searchProperty: "name",
     constantWidth: false,
     multiSelect: true,
     multiSort: true,

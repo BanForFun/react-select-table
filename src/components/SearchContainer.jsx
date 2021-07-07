@@ -15,7 +15,7 @@ function SearchContainer(props) {
 
     const className = classNames({
         "rst-searchContainer": true,
-        "is-shown": !!phrase
+        "is-shown": phrase !== null
     });
 
     const handleChange = useCallback(e => {
@@ -34,7 +34,7 @@ function SearchContainer(props) {
 
                 break;
             case 27: //Escape
-                actions.search("");
+                actions.search(null);
                 break;
             default:
                 return;
@@ -43,12 +43,17 @@ function SearchContainer(props) {
         e.preventDefault();
     }, [actions]);
 
+    const handleBlur = useCallback(() => {
+        actions.search(null);
+    }, [actions]);
+
     return <div className={className}>
         <input
+            value={phrase || ""}
             ref={inputRef}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            value={phrase}
+            onBlur={handleBlur}
         />
         <div>{matchCount && (matchIndex + 1)}/{matchCount}</div>
         <button tabIndex="-1">

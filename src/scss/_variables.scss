@@ -7,9 +7,17 @@ $rst-config: () !default;
 $rst-config: map-merge((
     //Layout -----------------------------------------------------------------------------
 
-    "cell-border-width":                        1px,
-    "cell-vertical-align":                      middle,
-    "cell-padding":                             0.75rem,
+    "head-border":                              1px solid rgba(#a3a5a5, 0.5),
+    "head-vertical-align":                      middle,
+    "head-text-align":                          left,
+    "head-padding":                             0.75rem,
+
+    "body-border":                              1px solid rgba(#bdc5cd, 0.5),
+    "body-vertical-align":                      middle,
+    "body-text-align":                          left,
+    "body-padding":                             0.75rem,
+
+    "header-border-width":                      2px,
 
     "th-font-weight":                           bold,
 
@@ -17,9 +25,7 @@ $rst-config: map-merge((
 
     "column-resizer-width":                     0.75rem,
 
-    "header-border-width":                      2px,
-
-    "drag-selection-border-width":              1px,
+    "drag-selection-border":                    1px solid rgba(#89b363, 0.5),
 
     "table-placeholder-padding":                1rem,
     "table-placeholder-text-align":             center,
@@ -33,30 +39,53 @@ $rst-config: map-merge((
 
     "pg-btn-padding":                           0.25rem 0.5rem,
     "pg-btn-border-radius":                     0.2rem,
-    "pg-btn-border-width":                      0px,
     "pg-btn-spacing":                           2px,
     "pg-btn-width":                             2ch,
 
-    "table-margin":                             0 0 1rem 0,
+    "container-margin":                         0 0 1rem 0,
+
+    "search-left":                              2px,
+    "search-height":                            3rem,
+    "search-width":                             400px,
+    "search-padding":                           0.5rem 1rem,
+    "search-border":                            1px solid rgba(#a3a5a5, 0.5),
+    "search-border-radius":                     0.25rem,
+    "search-matches-border":                    1px solid currentColor,
+    "search-column-gap":                        0.5rem,
+
+    "search-visible-top":                       2px,
+    "search-visible-box-shadow":                2px 2px 10px rgba(#000, 0.2),
+
+    "search-btn-padding":                       0.25rem,
+    "search-btn-border":                        none,
+    "search-btn-border-radius":                 50%,
 
     //Theme ------------------------------------------------------------------------------
 
-    "head-bg":                                  #f7f7f7,
+    "search-background-color":                  #f7f7f7,
+    "search-color":                             #333333,
+
+    "search-matches-color":                     #616161,
+
+    "search-btn-background-color":              transparent,
+
+    "search-btn-hover-background-color":        #dee2e6,
+    "search-btn-hover-border-color":            inherit,
+
+    "head-background-color":                    #f7f7f7,
     "head-color":                               #616161,
-    "head-border":                              rgba(#a3a5a5, 0.5),
 
-    "column-resizer-active-bg":                 rgba(#afafaf, 0.5),
-
-    "body-bg":                                  transparent,
+    "body-background-color":                    transparent,
     "body-color":                               #333333,
-    "body-border":                              rgba(#bdc5cd, 0.5),
+
+    "column-resizer-active-background-color":   rgba(#afafaf, 0.5),
 
     "row-selected-overlay":                     rgba(#a7b79b, 0.5),
     "row-selected-focused-overlay":             rgba(#89b363, 0.5),     //Optional
     "row-selected-color":                       inherit,
     //"row-selected-focused-color":               null,                   //Optional
-    "row-selected-border":                      rgba(#f5f5f5, 0.5),
-    //"row-selected-focused-border":              null,                   //Optional
+    "row-selected-border-color":                rgba(#f5f5f5, 0.5),
+    //"row-selected-focused-border-color":        null,                   //Optional
 
     "row-active-underline":                     rgba(#a7b79b, 0.875),
     //"row-active-selected-underline":            rgba(#a7b79b, 0.75),    //Optional
@@ -69,23 +98,22 @@ $rst-config: map-merge((
     "row-hover-overlay":                        rgba(#7d7d7d, 0.1),
     "row-hover-color":                          inherit,
 
-    "drag-selection-border":                    rgba(#89b363, 0.5),
-    "drag-selection-bg":                        rgba(#89b363, 0.25),
+    "drag-selection-background-color":          rgba(#89b363, 0.25),
 
-    "pg-btn-bg":                                transparent,
-    "pg-btn-color":                             #333333,
-    "pg-btn-border":                            transparent,
+    "pg-color":                                 #333333,
 
-    "pg-btn-disabled-bg":                       transparent,
+    "pg-btn-background-color":                  transparent,
+
+    "pg-btn-disabled-background-color":         transparent,
     "pg-btn-disabled-color":                    rgba(#333333, .5),
-    "pg-btn-disabled-border":                   transparent,
+    "pg-btn-disabled-border-color":             inherit,
 
-    "pg-btn-hover-bg":                          #dee2e6,
+    "pg-btn-hover-background-color":            #dee2e6,
     "pg-btn-hover-color":                       inherit,
-    "pg-btn-hover-border":                      transparent,
+    "pg-btn-hover-border-color":                inherit,
 
-    "pg-btn-current-bg":                        #c4d9b1,
+    "pg-btn-current-background-color":          #c4d9b1,
     "pg-btn-current-color":                     inherit,
-    "pg-btn-current-border":                    transparent,
+    "pg-btn-current-border-color":              inherit,
 
 ), $rst-config);

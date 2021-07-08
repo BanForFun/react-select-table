@@ -1,133 +1,158 @@
 %rst-table {
     th {
-        font-weight: rst-get("th-font-weight");
+        @include rst-apply-properties("th",
+            "font-weight"
+        );
     }
 
-    td, th {
-        padding: rst-get("cell-padding");
-        vertical-align: rst-get("cell-vertical-align");
+    $headBodyProperties: "background-color", "color", "vertical-align", "text-align";
+
+    thead {
+        @include rst-apply-properties("head", $headBodyProperties...);
+    }
+
+    tbody {
+        @include rst-apply-properties("body", $headBodyProperties...);
     }
 
     thead > tr > * {
-        border-bottom-width: rst-get("header-border-width");
+        border-bottom: rst-get("head-border");
+        padding: rst-get("head-padding");
 
         //Doing this in a weird way, because we don't want the right border of the last header to be visible by default
         //We also don't want to offset the header text (if we set the left border)
         &:not(:last-of-type) {
             //Only header (spacer is td)
-            border-right-width: rst-get("cell-border-width");
+            border-right: rst-get("head-border");
         }
 
         &:last-child {
             //The spacer column
-            border-left-width: rst-get("cell-border-width");
+            border-left: rst-get("head-border");
         }
     }
 
+    thead > tr:last-child > * {
+        border-bottom-width: rst-get("header-border-width");
+    }
+
     tbody > tr > * {
-        border-bottom-width: rst-get("cell-border-width");
+        border-bottom: rst-get("body-border");
+        padding: rst-get("body-padding");
     }
 
     .rst-columnResizer {
-        width: rst-get("column-resizer-width");
+        @include rst-apply-properties("column-resizer",
+            "width"
+        );
     }
 
     .rst-sortIcon {
-        margin: rst-get("sort-icon-margin");
+        @include rst-apply-properties("sort-icon",
+            "margin"
+        );
     }
 
     .rst-container {
-        margin: rst-get("table-margin");
-    }
-
-    thead {
-        background-color: rst-get("head-bg");
-        color: rst-get("head-color");
-        border-color: rst-get("head-border");
-    }
-
-    tbody {
-        background-color: rst-get("body-bg");
-        color: rst-get("body-color");
-        border-color: rst-get("body-border");
+        @include rst-apply-properties("container",
+            "margin"
+        );
     }
 }
 
 %rst-placeholders {
+    $properties: "padding", "text-align";
+
     .rst-tablePlaceholder {
-        padding: rst-get("table-placeholder-padding");
-        text-align: rst-get("table-placeholder-text-align");
+        @include rst-apply-properties("table-placeholder", $properties...);
     }
 
     .rst-bodyPlaceholder {
-        padding: rst-get("body-placeholder-padding");
-        text-align: rst-get("body-placeholder-text-align");
+        @include rst-apply-properties("body-placeholder" , $properties...);
     }
 }
 
 %rst-rowStriped {
     tbody tr:nth-of-type(#{$rst-striped-order}) {
-        @include rst-row-overlay("row-striped-overlay");
-        color: rst-get("row-striped-color");
+        @include rst-apply-properties("row-striped",
+            "overlay",
+            "color"
+        )
     }
 }
 
 %rst-rowHover {
     tbody tr:hover {
-        @include rst-row-overlay("row-hover-overlay");
-        color: rst-get("row-hover-color");
+        @include rst-apply-properties("row-hover",
+            "overlay",
+            "color"
+        )
     }
 }
 
 %rst-rowActive {
+    $properties: "underline";
+
     tbody tr.is-active {
-        @include rst-row-underline("row-active-underline");
+        @include rst-apply-properties("row-active", $properties...);
 
         &.is-selected {
-            @include rst-row-underline("row-active-selected-underline");
+            @include rst-apply-properties("row-active-selected", $properties...);
         }
     }
 
     &:focus-within tbody tr.is-active {
-        @include rst-row-underline("row-active-focused-underline");
+        @include rst-apply-properties("row-active-focused", $properties...);
 
         &.is-selected {
-            @include rst-row-underline("row-active-selected-focused-underline");
+            @include rst-apply-properties("row-active-selected-focused", $properties...);
         }
     }
 }
 
 %rst-rowSelected {
+    $properties: "overlay", "color";
+
     tbody tr.is-selected {
-        @include rst-row-overlay("row-selected-overlay");
-        color: rst-get("row-selected-color");
-        border-color: rst-get("row-selected-border");
+        @include rst-apply-properties("row-selected", $properties...);
+
+        & > * {
+            border-color: rst-get("row-selected-border-color");
+        }
     }
 
     &:focus-within tbody tr.is-selected {
-        @include rst-row-overlay("row-selected-focused-overlay");
-        color: rst-get("row-selected-focused-color");
-        border-color: rst-get("row-selected-focused-border");
+        @include rst-apply-properties("row-selected-focused", $properties...);
+
+        & > * {
+            border-color: rst-get("row-selected-focused-border-color");
+        }
     }
 }
 
 %rst-columnResizer {
     .rst-resizingContainer:not(.is-resizing) .rst-columnResizer:active {
-        background-color: rst-get("column-resizer-active-bg");
+        @include rst-apply-properties("column-resizer-active",
+            "background-color"
+        );
     }
 }
 
 %rst-dragSelection {
     .rst-dragSelection {
-        border-width: rst-get("drag-selection-border-width");
-        border-color: rst-get("drag-selection-border");
-        background-color: rst-get("drag-selection-bg");
+        @include rst-apply-properties("drag-selection",
+            "border",
+            "background-color"
+        );
     }
 }
 
-%rst-pg {
+%rst-pagination {
     .rst-paginationContainer {
-        margin: rst-get("pg-margin");
+        @include rst-apply-properties("pg",
+            "margin",
+            "color"
+        );
     }
 
     .rst-pagination {
@@ -136,48 +161,86 @@
 
     .rst-page {
         margin: 0 rst-get("pg-btn-spacing");
-        padding: rst-get("pg-btn-padding");
-        width: rst-get("pg-btn-width");
-    }
 
+        @include rst-apply-properties("pg-btn",
+            "padding",
+            "width",
+            "border-radius"
+        );
+    }
+}
+
+%rst-paginationButtons {
     button.rst-page {
-        border-radius: rst-get("pg-btn-border-radius");
-        border-width: rst-get("pg-btn-border-width");
+        @include rst-apply-properties("pg-btn",
+            "background-color",
+            "border"
+        );
+
+        $properties: "background-color", "border-color", "color";
+
+        &:disabled {
+            @include rst-apply-properties("pg-btn-disabled", $properties...);
+        }
+
+        &:hover {
+            @include rst-apply-properties("pg-btn-hover", $properties...);
+        }
+
+        &.is-current {
+            @include rst-apply-properties("pg-btn-current", $properties...);
+        }
     }
 }
 
-%rst-pgBtn {
-    .rst-pagination {
-        color: rst-get("pg-btn-color");
-    }
+%rst-search {
+    .rst-searchContainer {
+        top: rst-get("search-height", -1);
 
-    button.rst-page {
-        background-color: rst-get("pg-btn-bg");
-        border-color: rst-get("pg-btn-border");
-    }
-}
+        @include rst-apply-properties("search",
+            "width",
+            "height",
+            "left",
+            "background-color",
+            "color",
+            "padding",
+            "column-gap",
+            "border",
+            "border-radius"
+        );
 
-%rst-pgBtnDisabled {
-    button.rst-page:disabled {
-        background-color: rst-get("pg-btn-disabled-bg");
-        border-color: rst-get("pg-btn-disabled-border");
-        color: rst-get("pg-btn-disabled-color")
-    }
-}
-
-%rst-pgBtnHover {
-    button.rst-page:hover {
-        background-color: rst-get("pg-btn-hover-bg");
-        border-color: rst-get("pg-btn-hover-border");
-        color: rst-get("pg-btn-hover-color")
+        &.is-visible {
+            @include rst-apply-properties("search-visible",
+                "top",
+                "box-shadow"
+            );
+        }
     }
 }
 
-%rst-pgBtnCurrent {
-    button.rst-page.is-current {
-        background-color: rst-get("pg-btn-current-bg");
-        border-color: rst-get("pg-btn-current-border");
-        color: rst-get("pg-btn-current-color")
+%rst-searchMatches {
+    .rst-searchContainer div {
+        padding-right: rst-get("search-spacing");
+        border-right: rst-get("search-matches-border");
+        color: rst-get("search-matches-color");
+    }
+}
+
+%rst-searchButtons {
+    .rst-searchContainer button {
+        @include rst-apply-properties("search-btn",
+            "padding",
+            "border",
+            "border-radius",
+            "background-color"
+        );
+
+        &:hover {
+            @include rst-apply-properties("search-btn-hover",
+                "background-color",
+                "border-color"
+            );
+        }
     }
 }
 
@@ -192,9 +255,9 @@
     @extend %rst-rowSelected;
     @extend %rst-dragSelection;
     @extend %rst-columnResizer;
-    @extend %rst-pg;
-    @extend %rst-pgBtn;
-    @extend %rst-pgBtnDisabled;
-    @extend %rst-pgBtnHover;
-    @extend %rst-pgBtnCurrent;
+    @extend %rst-pagination;
+    @extend %rst-paginationButtons;
+    @extend %rst-search;
+    @extend %rst-searchMatches;
+    @extend %rst-searchButtons;
 }

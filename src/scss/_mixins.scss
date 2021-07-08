@@ -4,7 +4,7 @@
     $config: map-merge((
         "row-selected-focused-overlay": map-get($config, "row-selected-overlay"),
         "row-selected-focused-color": map-get($config, "row-selected-color"),
-        "row-selected-focused-border": map-get($config, "row-selected-border"),
+        "row-selected-focused-border-color": map-get($config, "row-selected-border-color"),
         "row-active-focused-underline": map-get($config, "row-active-underline"),
     ), $config);
 
@@ -15,6 +15,20 @@
 
     @each $name, $value in $config {
         --#{$rst-prefix}#{$name}: #{$value};
+    }
+}
+
+@mixin rst-apply-properties($prefix, $properties...) {
+    @each $property in $properties {
+        $name: $prefix + "-" + $property;
+
+        @if $property == "overlay" {
+            @include rst-row-overlay($name);
+        } @else if $property == "underline" {
+            @include rst-row-underline($name);
+        } @else {
+            #{$property}: rst-get($name);
+        }
     }
 }
 

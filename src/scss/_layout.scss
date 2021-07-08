@@ -46,7 +46,7 @@
     top: -$height;
     transition: top 0.25s, box-shadow 0.25s;
 
-    &.is-shown {
+    &.is-visible {
         top: 2px;
         box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
     }

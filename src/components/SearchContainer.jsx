@@ -13,25 +13,26 @@ function SearchContainer(props) {
     const matchCount = utils.useSelector(s => s.matches.length);
     const matchIndex = utils.useSelector(s => s.matchIndex);
 
-    const className = classNames({
-        "rst-searchContainer": true,
-        "is-shown": phrase !== null
-    });
+    const isVisible = phrase !== null;
+
+    const goToAdjacentMatch = useCallback((offset) =>
+        actions.goToMatch(matchIndex + offset),
+        [actions, matchIndex]);
 
     const handleChange = useCallback(e => {
         actions.search(e.currentTarget.value);
     }, [actions]);
 
     const handleKeyDown = useCallback(e => {
-        if (!e.currentTarget.value) return;
+        if (!isVisible) return;
         e.stopPropagation();
 
         switch (e.keyCode) {
             case 38: //Up
-
+                goToAdjacentMatch(-1);
                 break;
             case 40: //Down
-
+                goToAdjacentMatch(1);
                 break;
             case 27: //Escape
                 actions.search(null);
@@ -41,25 +42,32 @@ function SearchContainer(props) {
         }
 
         e.preventDefault();
-    }, [actions]);
+    }, [actions, goToAdjacentMatch, isVisible]);
 
-    const handleBlur = useCallback(() => {
+    const handleBlur = useCallback(e => {
+        if (e.currentTarget.contains(e.relatedTarget)) return;
         actions.search(null);
     }, [actions]);
 
-    return <div className={className}>
+    const className = classNames({
+        "rst-searchContainer": true,
+        "is-visible": isVisible
+    });
+
+    return <div className={className} onBlur={handleBlur}>
         <input
             value={phrase || ""}
             ref={inputRef}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            onBlur={handleBlur}
         />
         <div>{matchCount && (matchIndex + 1)}/{matchCount}</div>
-        <button tabIndex="-1">
+
+        <button tabIndex="-1" onClick={() => goToAdjacentMatch(-1)}>
             <AngleIcon rotation={angleRotation.Up} />
         </button>
-        <button tabIndex="-1">
+
+        <button tabIndex="-1" onClick={() => goToAdjacentMatch(1)}>
             <AngleIcon rotation={angleRotation.Down} />
         </button>
     </div>

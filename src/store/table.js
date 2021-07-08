@@ -170,20 +170,26 @@ export default function createTable(namespace, options = {}) {
         }
     }
 
-    function findVisibleRelativeValue(callback, originValue, relPos, skipOrigin = false) {
+    function findVisibleRelativeValue(originValue, targetRelIndex, callback = null, changePages = true) {
         //Not equal to >= 0 as we need to differentiate -0 and +0
-        const forward = relPos > 0 || Object.is(relPos, 0);
+        const forward = targetRelIndex > 0 || Object.is(targetRelIndex, 0);
+        const step = forward ? 1 : -1;
         const values = createValueIterator(true, forward, originValue);
 
-        let distance = 0;
+        let relIndex = 0;
         for (let value of values) {
-            const reachedTarget = distance++ === Math.abs(relPos);
+            const cbResult = callback?.(value, relIndex);
 
-            if ((value !== originValue || !skipOrigin) && (!reachedTarget || skipOrigin))
-                //Callback will be called exactly abs(relPos) times, regardless of skipOrigin
-                callback(value);
+            if (cbResult !== false) {
+                if (relIndex === targetRelIndex) return value;
+                relIndex += step;
+            }
 
-            if (reachedTarget) return value;
+            if (!changePages) continue;
+            if (forward && value === getLastRowValue())
+                nextPage();
+            else if (!forward && value === getFirstRowValue())
+                prevPage();
         }
 
         return null;
@@ -211,15 +217,7 @@ export default function createTable(namespace, options = {}) {
                 break;
         }
 
-        const forward = relPos > 0;
-        function callback(value) {
-            if (forward && value === getLastRowValue())
-                nextPage();
-            else if (!forward && value === getFirstRowValue())
-                prevPage();
-        }
-
-       return findVisibleRelativeValue(callback, originValue, relPos);
+        return findVisibleRelativeValue(originValue, relPos);
     }
 
     function validateValue(value, checkVisible = false) {
@@ -254,15 +252,18 @@ export default function createTable(namespace, options = {}) {
 
     function paginateItems(originValue, forwards, skipOrigin) {
         const pageSize = getCurrentPageSize();
-        const indexOffset = forwards ? 1 : -1;
+        const maxIndex = pageSize - 1;
+        const startIndex = forwards ? 0 : maxIndex;
 
-        let currentIndex = forwards ? 0 : pageSize - 1;
-        function callback(value) {
-            draft.rows[currentIndex] = draft.sortedItems[value].data;
-            currentIndex += indexOffset;
+        function callback(value, relIndex) {
+            if (skipOrigin && value === originValue) return false;
+
+            const index = startIndex + relIndex;
+            draft.rows[index] = draft.sortedItems[value].data;
         }
 
-        findVisibleRelativeValue(callback, originValue, pageSize * indexOffset, skipOrigin);
+        const targetRelIndex = forwards ? maxIndex : -maxIndex;
+        findVisibleRelativeValue(originValue, targetRelIndex, callback, false);
 
         //Clear unused remaining rows (for last page)
         for (let i = pageSize; i < draft.pageSize; i++)
@@ -495,6 +496,14 @@ export default function createTable(namespace, options = {}) {
     function clearSelection() {
         draft.selection.clear();
         resetPivotValue();
+    }
+
+    function setSelectedActive(value) {
+        if (value === undefined) return;
+
+        draft.activeValue = value;
+        clearSelection();
+        draft.selection.add(value);
     }
 
     function setSelection(values) {
@@ -817,9 +826,25 @@ export default function createTable(namespace, options = {}) {
                     phrase = options.searchValueParser(phrase);
 
                     addMatches(draft.searchIndex, phrase,  0);
-                    draft.matches.sort(compareItems);
+                    const [firstMatch] = draft.matches.sort(compareItems);
+                    setSelectedActive(firstMatch);
 
-                    console.log(draft.matches);
+                    break;
+                }
+                case types.GO_TO_MATCH: {
+                    const { index } = payload;
+                    const { matches, matchIndex: prevIndex } = draft;
+                    if (!_.inRange(index, matches.length)) break;
+
+                    const targetRelIndex = index - prevIndex;
+                    const callback = (value, relPos) =>
+                        value === matches[prevIndex + relPos];
+
+                    const value = findVisibleRelativeValue(matches[prevIndex], targetRelIndex, callback);
+
+                    draft.matchIndex = index;
+                    setSelectedActive(value);
+
                     break;
                 }
 

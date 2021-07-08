@@ -22,6 +22,7 @@ export const types = {
 
     //Search
     SEARCH: "",
+    GO_TO_MATCH: "",
 
     //Pagination
     SET_PAGE_SIZE: "",
@@ -46,6 +47,9 @@ export default function Actions(namespace) {
 
         search: (phrase) =>
             Action(types.SEARCH, { phrase }),
+
+        goToMatch: (index) =>
+            Action(types.GO_TO_MATCH, { index }),
 
         goToPageRelative: (position) =>
             Action(types.GO_TO_PAGE_RELATIVE, { position }),

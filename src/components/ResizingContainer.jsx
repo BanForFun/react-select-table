@@ -7,9 +7,11 @@ import useEvent from "../hooks/useEvent";
 import useObjectMemo from "../hooks/useObjectMemo";
 import {ColumnGroupContext} from "./ColumnGroup";
 
+const defaultColumnRenderer = value => value;
+
 function parseColumn(col) {
     return {
-        render: v => v,
+        render: defaultColumnRenderer,
         ...col,
         _id: col.key ?? col.path
     }

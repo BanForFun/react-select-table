@@ -45,9 +45,10 @@ function SearchContainer(props) {
     }, [actions, goToAdjacentMatch, isVisible]);
 
     const handleBlur = useCallback(e => {
+        if (!isVisible) return;
         if (e.currentTarget.contains(e.relatedTarget)) return;
         actions.search(null);
-    }, [actions]);
+    }, [actions, isVisible]);
 
     const className = classNames({
         "rst-searchContainer": true,

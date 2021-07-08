@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import _ from "lodash";
 import classNames from "classnames";
 
@@ -24,7 +24,7 @@ function TableRow({
     const trRef = useRef();
     const visibleItemCount = utils.useSelector(s => s.visibleItemCount);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!active) return;
 
         //Get elements

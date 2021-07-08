@@ -77,9 +77,9 @@ function DefaultPagination({
 
         {_.times(paddingLeft, i => <Page key={`padding_left_${i}`} />)}
 
-        <Page number={1} onClick={firstPage} />
+        {pageCount > 0 && <Page number={1} onClick={firstPage} />}
         {pages}
-        <Page number={pageCount} onClick={lastPage} />
+        {pageCount > 1 && <Page number={pageCount} onClick={lastPage} />}
 
         {_.times(paddingRight, i => <Page key={`padding_right_${i}`} />)}
 

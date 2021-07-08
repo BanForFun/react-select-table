@@ -77,9 +77,8 @@ function Root(props) {
 
         switch (e.keyCode) {
             case 65: //A
-                if (e.ctrlKey && !e.shiftKey && options.multiSelect)
-                    actions.selectAll();
-
+                if (!e.ctrlKey || e.shiftKey || !options.multiSelect) return;
+                actions.selectAll();
                 break;
             case 38: //Up
                 if (isFirstItem) break;

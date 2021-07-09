@@ -695,9 +695,8 @@ export default function createTable(namespace, options = {}) {
                     const value = getRelativeVisibleValue(payload.origin, payload.offset);
                     if (value === null) break;
 
-                    draft.activeValue = value;
-
                     if (payload.ctrlKey && !payload.shiftKey) {
+                        draft.activeValue = value;
                         draft.resetPivotForRelative = true;
                         break;
                     }
@@ -713,13 +712,10 @@ export default function createTable(namespace, options = {}) {
                     if (payload.contextMenu && ctrlKey) break;
 
                     let { value } = metadata;
-                    if (value === undefined) {
-                        value = validateValue(payload.value, true);
-                        if (value === null) break;
+                    value ??= validateValue(payload.value, true);
+                    if (value === null) break;
 
-                        draft.activeValue = value;
-                    }
-
+                    draft.activeValue = value;
                     draft.resetPivotForRelative = false;
 
                     if (!ctrlKey)

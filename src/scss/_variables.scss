@@ -3,117 +3,125 @@ $rst-prefix:            rst- !default;
 $rst-striped-order:     even !default;
 
 $rst-config: () !default;
-
 $rst-config: map-merge((
+    //Naming convention: element_property
+
     //Layout -----------------------------------------------------------------------------
 
-    "head-border":                              1px solid rgba(#a3a5a5, 0.5),
-    "head-vertical-align":                      middle,
-    "head-text-align":                          left,
-    "head-padding":                             0.75rem,
+    "head_border":                              1px solid rgba(#a3a5a5, 0.5),
+    "head_vertical-align":                      middle,
+    "head_text-align":                          left,
+    "head_padding":                             0.75rem,
 
-    "body-border":                              1px solid rgba(#bdc5cd, 0.5),
-    "body-vertical-align":                      middle,
-    "body-text-align":                          left,
-    "body-padding":                             0.75rem,
+    "body_border":                              1px solid rgba(#bdc5cd, 0.5),
+    "body_vertical-align":                      middle,
+    "body_text-align":                          left,
+    "body_padding":                             0.75rem,
 
-    "header-border-width":                      2px,
+    "header_border-width":                      2px,
 
-    "th-font-weight":                           bold,
+    "th_font-weight":                           bold,
 
-    "row-underline-width":                      3px,
+    "row_underline-width":                      3px,
 
-    "column-resizer-width":                     0.75rem,
+    "column-resizer_width":                     0.75rem,
 
-    "drag-selection-border":                    1px solid rgba(#89b363, 0.5),
+    "drag-selection_border":                    1px solid rgba(#89b363, 0.5),
+    "drag-selection_border-radius":             0.25rem,
 
-    "table-placeholder-padding":                1rem,
-    "table-placeholder-text-align":             center,
+    "table-placeholder_padding":                1rem,
+    "table-placeholder_text-align":             center,
 
-    "body-placeholder-padding":                 1rem,
-    "body-placeholder-text-align":              center,
+    "body-placeholder_padding":                 1rem,
+    "body-placeholder_text-align":              center,
 
-    "sort-icon-margin":                         0 0.25rem,
+    "sort-icon_margin":                         0 0.25rem,
 
-    "pg-margin":                                1rem 0 0 0,
+    "pg_margin":                                1rem 0 0 0,
 
-    "pg-btn-padding":                           0.25rem 0.5rem,
-    "pg-btn-border-radius":                     0.2rem,
-    "pg-btn-spacing":                           2px,
-    "pg-btn-width":                             2ch,
+    "pg-btn_padding":                           0.25rem 0.5rem,
+    "pg-btn_border-radius":                     0.2rem,
+    "pg-btn_spacing":                           2px,
+    "pg-btn_width":                             2ch,
 
-    "container-margin":                         0 0 1rem 0,
+    "container_margin":                         0 0 1rem 0,
 
-    "search-left":                              2px,
-    "search-height":                            3rem,
-    "search-width":                             400px,
-    "search-padding":                           0.5rem 1rem,
-    "search-border":                            1px solid rgba(#a3a5a5, 0.5),
-    "search-border-radius":                     0.25rem,
-    "search-matches-border":                    1px solid currentColor,
-    "search-column-gap":                        0.5rem,
+    "search_left":                              2px,
+    "search_height":                            3rem,
+    "search_width":                             400px,
+    "search_padding":                           0.5rem 1rem,
+    "search_border":                            1px solid rgba(#a3a5a5, 0.5),
+    "search_border-radius":                     0.25rem,
+    "search_spacing":                           0.5rem,
 
-    "search-visible-top":                       2px,
-    "search-visible-box-shadow":                2px 2px 10px rgba(#000, 0.2),
+    "search-matches_border":                    1px solid currentColor,
 
-    "search-btn-padding":                       0.25rem,
-    "search-btn-border":                        none,
-    "search-btn-border-radius":                 50%,
+    "search-visible_top":                       2px,
+    "search-visible_box-shadow":                2px 2px 10px rgba(#000, 0.2),
+
+    "search-btn_padding":                       0.25rem,
+    "search-btn_border":                        none,
+    "search-btn_border-radius":                 50%,
 
     //Theme ------------------------------------------------------------------------------
 
-    "search-background-color":                  #f7f7f7,
-    "search-color":                             #333333,
+    "search_background-color":                  #f7f7f7,
+    "search_color":                             #333333,
 
-    "search-matches-color":                     #616161,
+    "search-matches_color":                     #616161,
 
-    "search-btn-background-color":              transparent,
+    "search-btn_color":                         inherit,
+    "search-btn_background-color":              transparent,
 
-    "search-btn-hover-background-color":        #dee2e6,
-    "search-btn-hover-border-color":            inherit,
+    "search-btn-hover_background-color":        #dee2e6,
+    "search-btn-hover_border-color":            inherit,
 
-    "head-background-color":                    #f7f7f7,
-    "head-color":                               #616161,
+    "head_background-color":                    #f7f7f7,
+    "head_color":                               #616161,
 
-    "body-background-color":                    transparent,
-    "body-color":                               #333333,
+    "body_background-color":                    transparent,
+    "body_color":                               #333333,
 
-    "column-resizer-active-background-color":   rgba(#afafaf, 0.5),
+    "column-resizer-active_background-color":   rgba(#afafaf, 0.5),
 
-    "row-selected-overlay":                     rgba(#a7b79b, 0.5),
-    "row-selected-focused-overlay":             rgba(#89b363, 0.5),     //Optional
-    "row-selected-color":                       inherit,
-    //"row-selected-focused-color":               null,                   //Optional
-    "row-selected-border-color":                rgba(#f5f5f5, 0.5),
-    //"row-selected-focused-border-color":        null,                   //Optional
+    "row-selected_overlay":                     rgba(#a7b79b, 0.5),
+    "row-selected_color":                       inherit,
+    "row-selected_border-color":                rgba(#f5f5f5, 0.5),
 
-    "row-active-underline":                     rgba(#a7b79b, 0.875),
-    //"row-active-selected-underline":            rgba(#a7b79b, 0.75),    //Optional
-    "row-active-focused-underline":             rgba(#89b363, 0.875),    //Optional
-    //"row-active-selected-focused-underline":    rgba(#89b363, 0.75),    //Optional
+    "row-selected-focused_overlay":             rgba(#89b363, 0.5),
+    "row-selected-focused_color":               rst-get("row-selected_color"),
+    "row-selected-focused_border-color":        rst-get("row-selected_border-color"),
 
-    "row-striped-overlay":                      rgba(#afafaf, 0.1),
-    "row-striped-color":                        inherit,
+    "row-active_underline":                     rgba(#a7b79b, 0.875),
 
-    "row-hover-overlay":                        rgba(#7d7d7d, 0.1),
-    "row-hover-color":                          inherit,
+    "row-active-selected_underline":            rst-get("row-active_underline"),
 
-    "drag-selection-background-color":          rgba(#89b363, 0.25),
+    "row-active-focused_underline":             rgba(#89b363, 0.875),
 
-    "pg-color":                                 #333333,
+    "row-active-selected-focused_underline":    rst-get("row-active-focused_underline"),
 
-    "pg-btn-background-color":                  transparent,
+    "row-striped_overlay":                      rgba(#afafaf, 0.1),
+    "row-striped_color":                        inherit,
 
-    "pg-btn-disabled-background-color":         transparent,
-    "pg-btn-disabled-color":                    rgba(#333333, .5),
-    "pg-btn-disabled-border-color":             inherit,
+    "row-hover_overlay":                        rgba(#7d7d7d, 0.1),
+    "row-hover_color":                          inherit,
 
-    "pg-btn-hover-background-color":            #dee2e6,
-    "pg-btn-hover-color":                       inherit,
-    "pg-btn-hover-border-color":                inherit,
+    "drag-selection_background-color":          rgba(#89b363, 0.25),
 
-    "pg-btn-current-background-color":          #c4d9b1,
-    "pg-btn-current-color":                     inherit,
-    "pg-btn-current-border-color":              inherit,
+    "pg_color":                                 #333333,
+
+    "pg-btn_background-color":                  transparent,
+
+    "pg-btn-disabled_background-color":         transparent,
+    "pg-btn-disabled_color":                    rgba(#333333, .5),
+    "pg-btn-disabled_border-color":             inherit,
+
+    "pg-btn-hover_background-color":            #dee2e6,
+    "pg-btn-hover_color":                       inherit,
+    "pg-btn-hover_border-color":                inherit,
+
+    "pg-btn-current_background-color":          #c4d9b1,
+    "pg-btn-current_color":                     inherit,
+    "pg-btn-current_border-color":              inherit,
 
 ), $rst-config);

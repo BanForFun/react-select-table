@@ -16,29 +16,29 @@
     }
 
     thead > tr > * {
-        border-bottom: rst-get("head-border");
-        padding: rst-get("head-padding");
+        border-bottom: rst-get("head_border");
+        padding: rst-get("head_padding");
 
         //Doing this in a weird way, because we don't want the right border of the last header to be visible by default
         //We also don't want to offset the header text (if we set the left border)
         &:not(:last-of-type) {
             //Only header (spacer is td)
-            border-right: rst-get("head-border");
+            border-right: rst-get("head_border");
         }
 
         &:last-child {
             //The spacer column
-            border-left: rst-get("head-border");
+            border-left: rst-get("head_border");
         }
     }
 
     thead > tr:last-child > * {
-        border-bottom-width: rst-get("header-border-width");
+        border-bottom-width: rst-get("header_border-width");
     }
 
     tbody > tr > * {
-        border-bottom: rst-get("body-border");
-        padding: rst-get("body-padding");
+        border-bottom: rst-get("body_border");
+        padding: rst-get("body_padding");
     }
 
     .rst-columnResizer {
@@ -117,7 +117,7 @@
         @include rst-apply-properties("row-selected", $properties...);
 
         & > * {
-            border-color: rst-get("row-selected-border-color");
+            border-color: rst-get("row-selected_border-color");
         }
     }
 
@@ -125,13 +125,13 @@
         @include rst-apply-properties("row-selected-focused", $properties...);
 
         & > * {
-            border-color: rst-get("row-selected-focused-border-color");
+            border-color: rst-get("row-selected-focused_border-color");
         }
     }
 }
 
 %rst-columnResizer {
-    .rst-resizingContainer:not(.is-resizing) .rst-columnResizer:active {
+    .rst-columnResizer:active {
         @include rst-apply-properties("column-resizer-active",
             "background-color"
         );
@@ -142,6 +142,7 @@
     .rst-dragSelection {
         @include rst-apply-properties("drag-selection",
             "border",
+            "border-radius",
             "background-color"
         );
     }
@@ -156,11 +157,11 @@
     }
 
     .rst-pagination {
-        margin: 0 rst-get("pg-btn-spacing", -1);
+        margin: 0 rst-get("pg-btn_spacing", -1);
     }
 
     .rst-page {
-        margin: 0 rst-get("pg-btn-spacing");
+        margin: 0 rst-get("pg-btn_spacing");
 
         @include rst-apply-properties("pg-btn",
             "padding",
@@ -195,7 +196,8 @@
 
 %rst-search {
     .rst-searchContainer {
-        top: rst-get("search-height", -1);
+        top: rst-get("search_height", -1);
+        column-gap: rst-get("search");
 
         @include rst-apply-properties("search",
             "width",
@@ -204,7 +206,6 @@
             "background-color",
             "color",
             "padding",
-            "column-gap",
             "border",
             "border-radius"
         );
@@ -220,9 +221,9 @@
 
 %rst-searchMatches {
     .rst-searchContainer div {
-        padding-right: rst-get("search-spacing");
-        border-right: rst-get("search-matches-border");
-        color: rst-get("search-matches-color");
+        padding-right: rst-get("search_spacing");
+        border-right: rst-get("search-matches_border");
+        color: rst-get("search-matches_color");
     }
 }
 

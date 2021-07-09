@@ -1,5 +1,4 @@
 import _ from "lodash";
-import classNames from "classnames";
 import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
@@ -230,13 +229,8 @@ function ResizingContainer(props) {
         getRowClassName
     }
 
-    const className = classNames({
-        "rst-resizingContainer": true,
-        "is-resizing": widths.resizing
-    });
-
     return <div
-        className={className}
+        className="rst-resizingContainer"
         ref={resizingContainerRef}
         style={{
             width: widths.container + "%",

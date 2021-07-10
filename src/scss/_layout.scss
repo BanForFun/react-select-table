@@ -86,11 +86,14 @@
     }
 }
 
-.rst-tablePlaceholder, .rst-bodyPlaceholder {
+.rst-bodyPlaceholder {
     width: 100%;
+    height: 100%;
+    position: absolute;
 }
 
 .rst-bodyContainer {
+    position: relative;
     flex: auto;
     z-index: 0;
 }
@@ -120,13 +123,14 @@
     flex: none;
 }
 
+.rst-pagination {
+    display: grid;
+    justify-content: start;
+    grid-auto-flow: column;
+}
+
 .rst-page {
     text-align: center;
-    display: inline-block;
     box-sizing: content-box;
     color: inherit;
-
-    &:disabled {
-        pointer-events: none;
-    }
 }

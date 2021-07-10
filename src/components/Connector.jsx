@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
 import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
-import DefaultError from "./DefaultError";
 import DefaultPagination from "./DefaultPagination";
 import {tableStorage, defaultEvents} from '../utils/tableUtils';
 import Root from "./Root";
@@ -73,7 +72,7 @@ Connector.defaultProps = {
     initColumnWidths: [],
     dragSelectionScrollFactor: 0.5,
     columnResizingScrollFactor: 0.2,
-    Error: DefaultError,
+    Error: 'span',
     Pagination: DefaultPagination,
     loadingIndicator: null,
     emptyPlaceholder: null,

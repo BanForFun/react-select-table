@@ -31,6 +31,7 @@ function ResizingContainer(props) {
         tableBodyRef, //BodyContainer
         onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
+        placeholder, //BodyContainer
 
         ...commonProps
     } = props;
@@ -165,6 +166,7 @@ function ResizingContainer(props) {
         requestAnimationFrame(() => {
             _.forEach(newWidths, (width, index) => {
                 _.forEach(colGroupRefs, (group) => {
+                    if (!group) return; //Body group is undefined when showing placeholder
                     group.children[index].style.width = width + "px";
                 })
             })
@@ -226,7 +228,8 @@ function ResizingContainer(props) {
         onItemsOpen,
         dragSelectStart,
         bodyContainerRef,
-        getRowClassName
+        getRowClassName,
+        placeholder
     }
 
     return <div

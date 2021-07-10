@@ -22,7 +22,7 @@
         //Doing this in a weird way, because we don't want the right border of the last header to be visible by default
         //We also don't want to offset the header text (if we set the left border)
         &:not(:last-of-type) {
-            //Only header (spacer is td)
+            //Headers except last
             border-right: rst-get("head_border");
         }
 
@@ -60,15 +60,13 @@
     }
 }
 
-%rst-placeholders {
-    $properties: "padding", "text-align";
-
-    .rst-tablePlaceholder {
-        @include rst-apply-properties("table-placeholder", $properties...);
-    }
-
+%rst-placeholder {
     .rst-bodyPlaceholder {
-        @include rst-apply-properties("body-placeholder" , $properties...);
+        @include rst-apply-properties("body-placeholder",
+            "padding",
+            "text-align",
+            "color"
+        );
     }
 }
 
@@ -149,40 +147,40 @@
 }
 
 %rst-pagination {
-    .rst-paginationContainer {
-        @include rst-apply-properties("pg",
-            "margin",
-            "color"
-        );
-    }
-
     .rst-pagination {
-        margin: 0 rst-get("pg-btn_spacing", -1);
-    }
+        grid-gap: rst-get("pg_item-spacing");
 
-    .rst-page {
-        margin: 0 rst-get("pg-btn_spacing");
-
-        @include rst-apply-properties("pg-btn",
-            "padding",
-            "width",
-            "border-radius"
+        @include rst-apply-properties("pg",
+            "color",
+            "padding"
         );
+
+        & > * {
+            @include rst-apply-properties("pg-item",
+                "padding"
+            )
+        }
+    }
+}
+
+%rst-paginationPages {
+    .rst-pagination > .rst-page {
+        @include rst-apply-properties("pg-page",
+            "width"
+        )
     }
 }
 
 %rst-paginationButtons {
-    button.rst-page {
+    .rst-pagination > button {
         @include rst-apply-properties("pg-btn",
             "background-color",
-            "border"
+            "border-radius",
+            "border",
+            "color"
         );
 
         $properties: "background-color", "border-color", "color";
-
-        &:disabled {
-            @include rst-apply-properties("pg-btn-disabled", $properties...);
-        }
 
         &:hover {
             @include rst-apply-properties("pg-btn-hover", $properties...);
@@ -191,13 +189,17 @@
         &.is-current {
             @include rst-apply-properties("pg-btn-current", $properties...);
         }
+
+        &:disabled {
+            @include rst-apply-properties("pg-btn-disabled", $properties...);
+        }
     }
 }
 
 %rst-search {
     .rst-searchContainer {
         top: rst-get("search_height", -1);
-        column-gap: rst-get("search");
+        column-gap: rst-get("search_item-spacing");
 
         @include rst-apply-properties("search",
             "width",
@@ -221,7 +223,7 @@
 
 %rst-searchMatches {
     .rst-searchContainer div {
-        padding-right: rst-get("search_spacing");
+        padding-right: rst-get("search_item-spacing");
         border-right: rst-get("search-matches_border");
         color: rst-get("search-matches_color");
     }
@@ -249,7 +251,7 @@
     @include rst-load-config($rst-config);
 
     @extend %rst-table;
-    @extend %rst-placeholders;
+    @extend %rst-placeholder;
     @extend %rst-rowActive;
     @extend %rst-rowStriped;
     @extend %rst-rowHover;
@@ -258,6 +260,7 @@
     @extend %rst-columnResizer;
     @extend %rst-pagination;
     @extend %rst-paginationButtons;
+    @extend %rst-paginationPages;
     @extend %rst-search;
     @extend %rst-searchMatches;
     @extend %rst-searchButtons;

@@ -28,21 +28,21 @@ function TableRow({
         if (!active) return;
 
         //Get elements
-        const body = bodyContainerRef.current;
-        const root = body.offsetParent;
+        const bodyContainer = bodyContainerRef.current;
+        const scrollingContainer = bodyContainer.offsetParent;
         const tr = trRef.current;
 
         //Scroll up
-        const scrollUp = tr.offsetTop < root.scrollTop;
+        const scrollUp = tr.offsetTop < scrollingContainer.scrollTop;
         if (scrollUp)
-            root.scrollTop = tr.offsetTop;
+            scrollingContainer.scrollTop = tr.offsetTop;
 
         //Scroll down
-        const visibleHeight = root.clientHeight - body.offsetTop;
+        const visibleHeight = scrollingContainer.clientHeight - bodyContainer.offsetTop;
         const rowBottom = tr.offsetTop + tr.offsetHeight;
-        const scrollDown = rowBottom > (root.scrollTop + visibleHeight);
+        const scrollDown = rowBottom > (scrollingContainer.scrollTop + visibleHeight);
         if (scrollDown)
-            root.scrollTop = rowBottom - visibleHeight;
+            scrollingContainer.scrollTop = rowBottom - visibleHeight;
 
         //visibleItemCount is a dependency so that when items are added or removed, the active row stays visible
     }, [active, visibleItemCount]);

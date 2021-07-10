@@ -11,9 +11,6 @@ const px = n => `${n}px`;
 function ScrollingContainer(props) {
     const {
         showSelectionRect,
-        loadingIndicator,
-        Error,
-        showPlaceholder,
         dragSelectionScrollFactor: scrollFactor,
         ...resizingProps
     } = props;
@@ -23,8 +20,6 @@ function ScrollingContainer(props) {
         actions
     } = props;
 
-    const isLoading = utils.useSelector(s => s.isLoading);
-    const error = utils.useSelector(s => s.error);
     const rowValues = utils.useSelector(selectors.getRowValues);
 
     const [mode, setMode] = useState(null);
@@ -56,20 +51,15 @@ function ScrollingContainer(props) {
         setMode("selecting");
 
         const {
-            offsetParent: root,
+            offsetParent: scrollingContainer,
             offsetTop: headerHeight,
             offsetLeft: headerWidth
         } = bodyContainerRef.current;
 
-        const bounds = root.getBoundingClientRect();
+        const bounds = scrollingContainer.getBoundingClientRect();
         const relPos = [];
-        relPos[0] = mousePos[0] + root.scrollLeft - bounds.x - headerWidth;
-        relPos[1] = mousePos[1] + root.scrollTop - bounds.y - headerHeight;
-
-        //Setup selection rect
-        applyRectStyles({
-            transform: `translate(${headerWidth}px, ${headerHeight}px)`
-        });
+        relPos[0] = mousePos[0] + scrollingContainer.scrollLeft - bounds.x - headerWidth;
+        relPos[1] = mousePos[1] + scrollingContainer.scrollTop - bounds.y - headerHeight;
 
         rowIndex ??= rowValues.length;
 
@@ -178,12 +168,18 @@ function ScrollingContainer(props) {
             scrollPos[index] = result.scroll;
         }
 
-        const body = bodyContainerRef.current;
-        const root = body.offsetParent;
-        const bounds = root.getBoundingClientRect();
+        const bodyContainer = bodyContainerRef.current;
+        const scrollingContainer = bodyContainer.offsetParent;
+        const scrollingContainerBounds = scrollingContainer.getBoundingClientRect();
 
-        setScrollPos(0, root.scrollLeft, bounds.left, root.clientWidth, body.scrollWidth, body.offsetLeft);
-        setScrollPos(1, root.scrollTop, bounds.top, root.clientHeight, body.scrollHeight, body.offsetTop);
+        setScrollPos(0,
+            scrollingContainer.scrollLeft, scrollingContainerBounds.left, scrollingContainer.clientWidth,
+            bodyContainer.scrollWidth, bodyContainer.offsetLeft
+        );
+        setScrollPos(1,
+            scrollingContainer.scrollTop, scrollingContainerBounds.top, scrollingContainer.clientHeight,
+            bodyContainer.scrollHeight, bodyContainer.offsetTop
+        );
 
         return { relPos, scrollPos };
     }, [getScrollPos])
@@ -293,17 +289,6 @@ function ScrollingContainer(props) {
 
     //#endregion
 
-    //Placeholder
-    const renderPlaceholder = useCallback(() => {
-        if (isLoading)
-            return loadingIndicator;
-
-        if (error)
-            return <Error error={error}/>;
-
-        return null;
-    }, [isLoading, error, loadingIndicator]);
-
     //Set props
     Object.assign(resizingProps,{
         bodyContainerRef,
@@ -318,10 +303,7 @@ function ScrollingContainer(props) {
         onScroll={handleScroll}
     >
         {!!mode && <CursorOverlay mode={mode} />}
-        {showPlaceholder
-            ? <div className="rst-tablePlaceholder">{renderPlaceholder()}</div>
-            : <ResizingContainer {...resizingProps} />
-        }
+        <ResizingContainer {...resizingProps} />
     </div>
 }
 

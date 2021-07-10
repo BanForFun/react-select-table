@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useCallback} from 'react';
+import React, {useRef, useEffect, useCallback, useMemo} from 'react';
 import _ from "lodash";
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
@@ -17,6 +17,9 @@ function Root(props) {
         id,
         className,
         autoFocus,
+        loadingIndicator,
+        emptyPlaceholder,
+        Error,
         ...scrollingProps
     } = props;
 
@@ -50,9 +53,32 @@ function Root(props) {
     const rowValues = utils.useSelector(selectors.getRowValues);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
-    const showPlaceholder = utils.useSelector(s => s.isLoading || !!s.error);
+    const isLoading = utils.useSelector(s => s.isLoading);
+    const error = utils.useSelector(s => s.error);
+    const isEmpty = utils.useSelector(s => !s.visibleItemCount);
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
+
+    const placeholder = useMemo(() => {
+        const props = {
+            className: "rst-bodyPlaceholder"
+        };
+        let content;
+
+        if (isLoading)
+            content = loadingIndicator;
+        else if (error)
+            content = <Error>error</Error>;
+        else if (isEmpty) {
+            content = emptyPlaceholder;
+            props.onContextMenu = () => onContextMenu(null);
+        } else
+            return;
+
+        return <div {...props}>{content}</div>
+    }, [isLoading, error, isEmpty, onContextMenu]);
+
+    const placeholderShown = !!placeholder;
 
     const offsetPage = useCallback((e, prev) => {
         if (!e.ctrlKey && !e.shiftKey) {
@@ -66,7 +92,7 @@ function Root(props) {
     }, [actions, pageSize]);
 
     const handleKeyDown = useCallback(e => {
-        if (showPlaceholder) return;
+        if (placeholderShown) return;
         if (onKeyDown(e, getSelectionArg()) === false) return;
 
         const isFirstPage = pageIndex === 0;
@@ -117,8 +143,8 @@ function Root(props) {
 
         e.preventDefault();
     }, [
-        actions, options, onKeyDown, //Component props
-        activeValue, selection, rowValues, pageIndex, pageCount, showPlaceholder, //Redux props
+        actions, options, onKeyDown, placeholderShown,
+        activeValue, selection, rowValues, pageIndex, pageCount, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods
         onItemsOpen, //Event handlers
@@ -129,14 +155,14 @@ function Root(props) {
     Object.assign(scrollingProps, {
         actions,
         tableBodyRef,
-        showPlaceholder
+        placeholder
     });
 
     //Pagination container props
     const paginationProps = {
         actions,
         Pagination,
-        showPlaceholder,
+        placeholderShown,
         table: props.table
     }
 
@@ -156,7 +182,7 @@ function Root(props) {
     >
         <SearchContainer {...searchProps} />
         <ScrollingContainer {...scrollingProps} />
-        <PaginationContainer {...paginationProps} />
+        {!placeholderShown && !!pageSize && <PaginationContainer {...paginationProps} />}
     </div>
 }
 

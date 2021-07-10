@@ -7,9 +7,9 @@ import useEvent from "../hooks/useEvent";
 function BodyContainer(props) {
     const {
         onItemsOpen,
-        emptyPlaceholder,
         tableClass,
         selectionRectRef,
+        placeholder,
         ...bodyProps
     } = props;
 
@@ -24,11 +24,12 @@ function BodyContainer(props) {
 
     const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
 
-    const noItems = utils.useSelector(s => !s.visibleItemCount);
     const noSelection = utils.useSelector(s => !s.selection.size);
 
     const handleMouseDown = useCallback(e => {
-        //Checking currentTarget instead of stopping propagation at rows,
+        //Checking currentTarget instead of stopping propagation at rows for two reasons:
+        //- Weird chrome bug that doesn't fire a mousedown event on the row, when clicking in an area where its children are clipped
+        //- To not have to also stop the propagation on the placeholder container
         if (e.currentTarget !== e.target) return;
         if (e.button !== 0) return;
 
@@ -67,13 +68,10 @@ function BodyContainer(props) {
         onTouchStart={() => isTouchingRef.current = true}
     >
         <div className="rst-dragSelection" ref={selectionRectRef} />
-        {noItems
-            ? <div className="rst-bodyPlaceholder">{emptyPlaceholder}</div>
-            : <table className={tableClass}>
-                <ColumnGroup id="body" />
-                <TableBody {...bodyProps} />
-            </table>
-        }
+        {placeholder || <table className={tableClass}>
+            <ColumnGroup id="body" />
+            <TableBody {...bodyProps} />
+        </table>}
     </div>
 }
 

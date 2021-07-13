@@ -91,9 +91,9 @@ function Root(props) {
         }
     }, [actions, pageSize]);
 
-    const handleKeyDown = useCallback(e => {
-        if (placeholderShown) return;
-        if (onKeyDown(e, getSelectionArg()) === false) return;
+    const handleShortcuts = useCallback(e => {
+        if (placeholderShown) return false;
+        if (onKeyDown(e, getSelectionArg()) === false) return false;
 
         const isFirstPage = pageIndex === 0;
         const isLastPage = pageIndex === pageCount - 1;
@@ -142,6 +142,7 @@ function Root(props) {
         }
 
         e.preventDefault();
+        return false;
     }, [
         actions, options, onKeyDown, placeholderShown,
         activeValue, selection, rowValues, pageIndex, pageCount, //Redux props
@@ -150,6 +151,10 @@ function Root(props) {
         onItemsOpen, //Event handlers
     ]);
 
+    const handleKeyDown = useCallback(e => {
+        if (handleShortcuts(e) === false) return;
+        searchInputRef.current.focus();
+    }, [handleShortcuts, searchInputRef])
 
     //Scrolling container props
     Object.assign(scrollingProps, {
@@ -178,7 +183,7 @@ function Root(props) {
         ref={containerRef}
         onKeyDown={handleKeyDown}
         className={"rst-container " + className}
-        onFocus={() => searchInputRef.current.focus()}
+        // onFocus={() => }
     >
         <SearchContainer {...searchProps} />
         <ScrollingContainer {...scrollingProps} />

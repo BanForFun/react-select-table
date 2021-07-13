@@ -23,7 +23,8 @@ function TableHeader({
         const isMouse = e.type === "mousedown";
         if (isMouse && e.button !== 0) return;
 
-        e.stopPropagation();
+        if (!isMouse)
+            e.preventDefault();
 
         const header = e.currentTarget.offsetParent;
         const row = header.parentElement;

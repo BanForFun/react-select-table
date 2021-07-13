@@ -275,8 +275,6 @@ function ScrollingContainer(props) {
     }, [updateSelectionRect]));
 
     useEvent(window, "touchmove", useCallback(e => {
-        e.stopPropagation();
-
         if (!dragSelectionRef.started) return;
         e.preventDefault();
 

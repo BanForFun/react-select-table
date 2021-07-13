@@ -200,8 +200,6 @@ function ResizingContainer(props) {
     },[updateWidth]));
 
     useEvent(window, "touchmove", useCallback(e => {
-        e.stopPropagation();
-
         if (resizing.index === null) return;
         e.preventDefault();
         updateWidth(e.ctrlKey, e.touches[0].clientX);

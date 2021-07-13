@@ -20,14 +20,11 @@
     }
 }
 
-.rst-searchContainer {
-    position: absolute;
+.rst-search {
     display: grid;
     grid-template-columns: 1fr;
     grid-auto-flow: column;
     align-items: center;
-    z-index: 2;
-    transition: top 0.25s, box-shadow 0.25s;
 
     input {
         border: none;
@@ -37,6 +34,24 @@
 
     button {
         line-height: 0;
+        height: 100%;
+
+        .rst-icon {
+            height: 100%;
+            width: auto;
+            max-width: 100%;
+        }
+    }
+}
+
+.rst-searchContainer {
+    position: absolute;
+    z-index: 2;
+    transition: transform 0.25s;
+    transform: translateY(-100%);
+
+    &.is-visible {
+        transform: translateY(0);
     }
 }
 
@@ -113,8 +128,8 @@
 }
 
 .rst-icon {
-    height: 1rem;
-    width: 1rem;
+    max-width: 1rem;
+    width: 100%;
     vertical-align: text-bottom;
     fill: currentColor;
 }

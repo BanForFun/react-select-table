@@ -1,34 +1,62 @@
+@mixin rst-set($name, $value) {
+    --#{$rst-prefix}#{$name}: #{$value};
+}
+
 @mixin rst-load-config($config) {
+    $separator: "_";
     @each $name, $value in $config {
-        --#{$rst-prefix}#{$name}: #{$value};
+        $parts: rst-split($name, $separator);
+
+        $property: nth($parts, -1);
+        @if $property == "border" {
+            //Auto generate border-color property from border, to be used as a fallback for more specific values
+            $color: rst-nth-or-default($value, 3, initial);
+            $border-color-key: rst-join(set-nth($parts, -1, "border-color"), $separator);
+            @include rst-set($border-color-key, $color);
+        }
+
+        @if $value == null and length($parts) >= 3 {
+            //Fallback to less specific value
+            $parent-property-key: rst-join(set-nth($parts, -2, null), $separator);
+            $value: rst-get($parent-property-key)
+        }
+
+        @include rst-set($name, $value);
     }
 }
 
-@mixin rst-apply-properties($prefix, $properties...) {
+@mixin rst-apply-properties($module, $properties...) {
     @each $property in $properties {
-        $name: $prefix + "_" + $property;
+        $value: rst-get($module + "_" + $property);
 
         @if $property == "overlay" {
-            @include rst-row-overlay($name);
+            @include rst-row-overlay($value);
         } @else if $property == "underline" {
-            @include rst-row-underline($name);
+            @include rst-row-underline($value);
         } @else {
-            #{$property}: rst-get($name);
+            #{$property}: $value;
+        }
+
+        @if $property == "border-color" {
+            & > td, th {
+                border-color: inherit;
+            }
         }
     }
 }
 
-@mixin rst-row-overlay($name) {
-    & > * {
-        background-color: rst-get($name);
+@mixin rst-row-overlay($color) {
+    & > td, th {
+        background-color: $color;
     }
 }
 
-@mixin rst-row-underline($name) {
-    box-shadow: inset 0 rst-get("row_underline-width", -1) 0 0 rst-get($name);
+@mixin rst-row-underline($color) {
+    $width: rst-get("row_underline-width");
+    box-shadow: inset 0 calc(#{$width} * -1) 0 0 $color;
 
-    & > * {
+    & > td, th {
         //-1px is used to prevent anti-aliasing on the clipping mask resulting in spaces
-        clip-path: inset(-1px -1px rst-get("row_underline-width") -1px);
+        clip-path: inset(-1px -1px $width -1px);
     }
 }

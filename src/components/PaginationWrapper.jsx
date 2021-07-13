@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import {relativePos} from "../store/table";
 
 //Child of Root
-function PaginationContainer({
+function PaginationWrapper({
     Pagination,
     actions,
     table: { utils, selectors }
@@ -26,9 +26,7 @@ function PaginationContainer({
         pageCount
     };
 
-    return <div className="rst-paginationContainer">
-        <Pagination {...paginationProps} {...actionAliases} />
-    </div>
+    return <Pagination {...paginationProps} {...actionAliases} />;
 }
 
-export default React.memo(PaginationContainer);
+export default React.memo(PaginationWrapper);

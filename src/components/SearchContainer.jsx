@@ -56,21 +56,23 @@ function SearchContainer(props) {
     });
 
     return <div className={className} onBlur={handleBlur}>
-        <input
-            value={phrase || ""}
-            ref={inputRef}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-        />
-        <div>{matchCount && (matchIndex + 1)}/{matchCount}</div>
+        <div className="rst-search">
+            <input
+                value={phrase || ""}
+                ref={inputRef}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+            />
+            <div>{matchCount && (matchIndex + 1)}/{matchCount}</div>
 
-        <button tabIndex="-1" onClick={() => goToAdjacentMatch(-1)}>
-            <AngleIcon rotation={angleRotation.Up} />
-        </button>
+            <button tabIndex="-1" onClick={() => goToAdjacentMatch(-1)}>
+                <AngleIcon rotation={angleRotation.Up} />
+            </button>
 
-        <button tabIndex="-1" onClick={() => goToAdjacentMatch(1)}>
-            <AngleIcon rotation={angleRotation.Down} />
-        </button>
+            <button tabIndex="-1" onClick={() => goToAdjacentMatch(1)}>
+                <AngleIcon rotation={angleRotation.Down} />
+            </button>
+        </div>
     </div>
 }
 

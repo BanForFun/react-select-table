@@ -2,7 +2,7 @@ import React, {useRef, useEffect, useCallback, useMemo} from 'react';
 import _ from "lodash";
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
-import PaginationContainer from "./PaginationContainer";
+import PaginationContainer from "./PaginationWrapper";
 import {relativePos, specialValues} from "../store/table";
 import SearchContainer from "./SearchContainer";
 

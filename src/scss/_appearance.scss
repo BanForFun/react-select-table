@@ -43,7 +43,8 @@
 
     .rst-columnResizer {
         @include rst-apply-properties("column-resizer",
-            "width"
+            "width",
+            "background-color"
         );
     }
 
@@ -54,7 +55,7 @@
     }
 
     .rst-container {
-        @include rst-apply-properties("container",
+        @include rst-apply-properties("root-container",
             "margin"
         );
     }
@@ -93,44 +94,28 @@
 
     tbody tr.is-active {
         @include rst-apply-properties("row-active", $properties...);
-
-        &.is-selected {
-            @include rst-apply-properties("row-active-selected", $properties...);
-        }
     }
 
     &:focus-within tbody tr.is-active {
-        @include rst-apply-properties("row-active-focused", $properties...);
-
-        &.is-selected {
-            @include rst-apply-properties("row-active-selected-focused", $properties...);
-        }
+        @include rst-apply-properties("row-active_focused", $properties...);
     }
 }
 
 %rst-rowSelected {
-    $properties: "overlay", "color";
+    $properties: "overlay" "color" "border-color";
 
     tbody tr.is-selected {
         @include rst-apply-properties("row-selected", $properties...);
-
-        & > * {
-            border-color: rst-get("row-selected_border-color");
-        }
     }
 
     &:focus-within tbody tr.is-selected {
-        @include rst-apply-properties("row-selected-focused", $properties...);
-
-        & > * {
-            border-color: rst-get("row-selected-focused_border-color");
-        }
+        @include rst-apply-properties("row-selected_focused", $properties...);
     }
 }
 
 %rst-columnResizer {
     .rst-columnResizer:active {
-        @include rst-apply-properties("column-resizer-active",
+        @include rst-apply-properties("column-resizer_active",
             "background-color"
         );
     }
@@ -183,46 +168,43 @@
         $properties: "background-color", "border-color", "color";
 
         &:hover {
-            @include rst-apply-properties("pg-btn-hover", $properties...);
+            @include rst-apply-properties("pg-btn_hover", $properties...);
         }
 
         &.is-current {
-            @include rst-apply-properties("pg-btn-current", $properties...);
+            @include rst-apply-properties("pg-btn_current", $properties...);
         }
 
         &:disabled {
-            @include rst-apply-properties("pg-btn-disabled", $properties...);
+            @include rst-apply-properties("pg-btn_disabled", $properties...);
         }
     }
 }
 
 %rst-search {
     .rst-searchContainer {
-        top: rst-get("search_height", -1);
+        @include rst-apply-properties("search-container",
+            "padding",
+            "width"
+        );
+    }
+
+    .rst-search {
         column-gap: rst-get("search_item-spacing");
 
         @include rst-apply-properties("search",
-            "width",
-            "height",
-            "left",
             "background-color",
             "color",
             "padding",
             "border",
-            "border-radius"
+            "border-radius",
+            "box-shadow"
         );
-
-        &.is-visible {
-            @include rst-apply-properties("search-visible",
-                "top",
-                "box-shadow"
-            );
-        }
     }
 }
 
 %rst-searchMatches {
-    .rst-searchContainer div {
+    .rst-search div {
         padding-right: rst-get("search_item-spacing");
         border-right: rst-get("search-matches_border");
         color: rst-get("search-matches_color");
@@ -230,7 +212,7 @@
 }
 
 %rst-searchButtons {
-    .rst-searchContainer button {
+    .rst-search button {
         @include rst-apply-properties("search-btn",
             "padding",
             "border",
@@ -239,7 +221,7 @@
         );
 
         &:hover {
-            @include rst-apply-properties("search-btn-hover",
+            @include rst-apply-properties("search-btn_hover",
                 "background-color",
                 "border-color"
             );

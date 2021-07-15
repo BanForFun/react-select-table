@@ -1,5 +1,10 @@
-@function rst-get($key) {
-    @return var(--#{$rst-prefix}#{$key});
+@function rst-get-name($module, $property) {
+    @return --#{$rst-prefix}-#{$module}_#{$property}
+}
+
+@function rst-get($module, $property) {
+    $name: rst-get-name($module, $property);
+    @return var($name);
 }
 
 @function rst-nth-or-default($list, $n, $default: null) {
@@ -31,5 +36,6 @@
         }
     }
 
-    @return str-slice($result, 1, str-length($separator) * -1 - 1);
+    @return str-slice($result, 1, -1 - str-length($separator));
 }
+

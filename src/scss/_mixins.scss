@@ -1,33 +1,43 @@
-@mixin rst-set($name, $value) {
-    --#{$rst-prefix}#{$name}: #{$value};
+@mixin rst-set($module, $property, $value) {
+    $name: rst-get-name($module, $property);
+    #{$name}: #{$value};
 }
 
 @mixin rst-load-config($config) {
-    $separator: "_";
+    $property-separator: ".";
+    $state-separator: "_";
+    $module-separator: "-";
+
     @each $name, $value in $config {
-        $parts: rst-split($name, $separator);
+        $parts: rst-split($name, $property-separator);
 
-        $property: nth($parts, -1);
-        @if $property == "border" {
-            //Auto generate border-color property from border, to be used as a fallback for more specific values
-            $color: rst-nth-or-default($value, 3, initial);
-            $border-color-key: rst-join(set-nth($parts, -1, "border-color"), $separator);
-            @include rst-set($border-color-key, $color);
-        }
+        $module: nth($parts, 1);
+        $property: nth($parts, 2);
 
-        @if $value == null and length($parts) >= 3 {
+        $module_parts: rst-split($module, $state-separator);
+        $module: rst-join($module_parts, $module-separator);
+
+        @if $value != null {
+            @if $property == "border" {
+                //Auto generate border-color property from border, to be used as a fallback for more specific values
+                $color: rst-nth-or-default($value, 3, currentColor);
+                @include rst-set($module, "border-color", $color);
+            }
+        } @else if length($module_parts) >= 2 {
             //Fallback to less specific value
-            $parent-property-key: rst-join(set-nth($parts, -2, null), $separator);
-            $value: rst-get($parent-property-key)
+            $parent_module: rst-join(set-nth($module_parts, -1, null), $module-separator);
+            $value: rst-get($parent-module, $property);
+        } @else {
+            $value: initial;
         }
 
-        @include rst-set($name, $value);
+        @include rst-set($module, $property, $value);
     }
 }
 
 @mixin rst-apply-properties($module, $properties...) {
     @each $property in $properties {
-        $value: rst-get($module + "_" + $property);
+        $value: rst-get($module, $property);
 
         @if $property == "overlay" {
             @include rst-row-overlay($value);
@@ -35,12 +45,6 @@
             @include rst-row-underline($value);
         } @else {
             #{$property}: $value;
-        }
-
-        @if $property == "border-color" {
-            & > td, th {
-                border-color: inherit;
-            }
         }
     }
 }
@@ -52,7 +56,7 @@
 }
 
 @mixin rst-row-underline($color) {
-    $width: rst-get("row_underline-width");
+    $width: rst-get("row", "underline-width");
     box-shadow: inset 0 calc(#{$width} * -1) 0 0 $color;
 
     & > td, th {

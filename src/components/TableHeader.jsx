@@ -20,11 +20,10 @@ function TableHeader({
     }, [path, actions]);
 
     const handleResizeStart = useCallback((e) => {
+        e.preventDefault();
+
         const isMouse = e.type === "mousedown";
         if (isMouse && e.button !== 0) return;
-
-        if (!isMouse)
-            e.preventDefault();
 
         const header = e.currentTarget.offsetParent;
         const row = header.parentElement;

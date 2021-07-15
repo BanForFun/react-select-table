@@ -17,6 +17,25 @@
     td, th {
         white-space: nowrap;
         overflow: hidden;
+        border-bottom: inherit;
+    }
+
+    tr {
+        border: inherit;
+    }
+
+    thead > tr > * {
+        //Doing this in a weird way, because we don't want the right border of the last header to be visible by default
+        //We also don't want to offset the header text (if we set the left border)
+        &:not(:last-of-type) {
+            //Headers except last
+            border-right: inherit;
+        }
+
+        &:last-child {
+            //The spacer column
+            border-right: inherit;
+        }
     }
 }
 

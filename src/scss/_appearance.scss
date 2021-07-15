@@ -5,40 +5,31 @@
         );
     }
 
-    $headBodyProperties: "background-color", "color", "vertical-align", "text-align";
+    $partProperties: "color", "vertical-align", "text-align", "border";
+    $containerProperties: "background-color";
+
+    td, th {
+        padding: rst-get("cell", "padding");
+    }
+
+    .rst-headContainer {
+        @include rst-apply-properties("header", $containerProperties...)
+    }
+
+    .rst-bodyContainer {
+        @include rst-apply-properties("body", $containerProperties...)
+    }
 
     thead {
-        @include rst-apply-properties("head", $headBodyProperties...);
+        @include rst-apply-properties("header", $partProperties...);
     }
 
     tbody {
-        @include rst-apply-properties("body", $headBodyProperties...);
+        @include rst-apply-properties("body", $partProperties...);
     }
 
-    thead > tr > * {
-        border-bottom: rst-get("head_border");
-        padding: rst-get("head_padding");
-
-        //Doing this in a weird way, because we don't want the right border of the last header to be visible by default
-        //We also don't want to offset the header text (if we set the left border)
-        &:not(:last-of-type) {
-            //Headers except last
-            border-right: rst-get("head_border");
-        }
-
-        &:last-child {
-            //The spacer column
-            border-left: rst-get("head_border");
-        }
-    }
-
-    thead > tr:last-child > * {
-        border-bottom-width: rst-get("header_border-width");
-    }
-
-    tbody > tr > * {
-        border-bottom: rst-get("body_border");
-        padding: rst-get("body_padding");
+    thead > tr:last-child {
+        border-bottom-width: rst-get("head", "border-width");
     }
 
     .rst-columnResizer {
@@ -56,7 +47,8 @@
 
     .rst-container {
         @include rst-apply-properties("root-container",
-            "margin"
+            "margin",
+            "background-color"
         );
     }
 }
@@ -97,7 +89,7 @@
     }
 
     &:focus-within tbody tr.is-active {
-        @include rst-apply-properties("row-active_focused", $properties...);
+        @include rst-apply-properties("row-active-focused", $properties...);
     }
 }
 
@@ -109,13 +101,13 @@
     }
 
     &:focus-within tbody tr.is-selected {
-        @include rst-apply-properties("row-selected_focused", $properties...);
+        @include rst-apply-properties("row-selected-focused", $properties...);
     }
 }
 
 %rst-columnResizer {
     .rst-columnResizer:active {
-        @include rst-apply-properties("column-resizer_active",
+        @include rst-apply-properties("column-resizer-active",
             "background-color"
         );
     }
@@ -133,7 +125,7 @@
 
 %rst-pagination {
     .rst-pagination {
-        grid-gap: rst-get("pg_item-spacing");
+        grid-gap: rst-get("pg", "item-spacing");
 
         @include rst-apply-properties("pg",
             "color",
@@ -168,15 +160,15 @@
         $properties: "background-color", "border-color", "color";
 
         &:hover {
-            @include rst-apply-properties("pg-btn_hover", $properties...);
+            @include rst-apply-properties("pg-btn-hover", $properties...);
         }
 
         &.is-current {
-            @include rst-apply-properties("pg-btn_current", $properties...);
+            @include rst-apply-properties("pg-btn-current", $properties...);
         }
 
         &:disabled {
-            @include rst-apply-properties("pg-btn_disabled", $properties...);
+            @include rst-apply-properties("pg-btn-disabled", $properties...);
         }
     }
 }
@@ -190,7 +182,7 @@
     }
 
     .rst-search {
-        column-gap: rst-get("search_item-spacing");
+        column-gap: rst-get("search", "item-spacing");
 
         @include rst-apply-properties("search",
             "background-color",
@@ -205,9 +197,9 @@
 
 %rst-searchMatches {
     .rst-search div {
-        padding-right: rst-get("search_item-spacing");
-        border-right: rst-get("search-matches_border");
-        color: rst-get("search-matches_color");
+        padding-right: rst-get("search", "item-spacing");
+        border-right: rst-get("search-matches", "border");
+        color: rst-get("search-matches", "color");
     }
 }
 
@@ -221,7 +213,7 @@
         );
 
         &:hover {
-            @include rst-apply-properties("search-btn_hover",
+            @include rst-apply-properties("search-btn-hover",
                 "background-color",
                 "border-color"
             );

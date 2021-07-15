@@ -1,11 +1,9 @@
 $rst-prefix:            rst !default;
-
 $rst-striped-order:     even !default;
-
 $rst-config:            () !default;
 
 $rst-config: map-merge((
-    //Naming convention: element_property
+    //Naming convention: element_state.property
     "body-placeholder.color":                   #616161,
     "body-placeholder.padding":                 1rem,
     "body-placeholder.text-align":              center,
@@ -68,7 +66,7 @@ $rst-config: map-merge((
     "row-selected_focused.color":               null,
 
     "row.border-color":                         rst-get("body", "border-color"), //For fallback only
-    "row_selected.border-color":                null,
+    "row_selected.border-color":                rgba(#f5f5f5, 0.5),
     "row_selected_focused.border-color":        null,
 
     "row.underline-width":                      3px,

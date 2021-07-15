@@ -301,20 +301,26 @@ export default function createTable(namespace, options = {}) {
     }
 
     function goToActiveValue() {
+        let found = false;
         let itemIndex = -1, pageIndex = -1;
         let firstRowValue;
 
         const values = createValueIterator(true);
         for (let value of values) {
             if (draft.activeValue == null) break;
-            if (value === draft.activeValue) break;
 
-            if (++itemIndex !== 0 && itemIndex % draft.pageSize !== 0) continue;
-            pageIndex++;
-            firstRowValue = value;
+            if (++itemIndex === 0 || itemIndex % draft.pageSize === 0) {
+                pageIndex++;
+                firstRowValue = value;
+            }
+
+            if (value === draft.activeValue) {
+                found = true;
+                break;
+            }
         }
 
-        if (pageIndex < 0) {
+        if (!found) {
             firstPage();
             setFirstRowActive();
         } else {

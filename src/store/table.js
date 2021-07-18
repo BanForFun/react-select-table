@@ -20,11 +20,12 @@ export const relativePos = Object.freeze({
     Last: "last"
 });
 
-export const specialValues = Object.freeze({
+export const originValues = Object.freeze({
     FirstItem: "firstItem",
     LastItem: "lastItem",
     FirstRow: "firstRow",
-    LastRow: "lastRow"
+    LastRow: "lastRow",
+    ActiveRow: "activeRow"
 });
 
 export default function createTable(namespace, options = {}) {
@@ -54,9 +55,9 @@ export default function createTable(namespace, options = {}) {
         sortedItems: {},
         headValue: undefined,
         tailValue: undefined,
-        rows: [],
+        rowValues: [],
         visibleItemCount: 0,
-        activeValue: null,
+        activeIndex: 0,
         pivotValue: null,
         resetPivotForRelative: false,
 
@@ -150,12 +151,15 @@ export default function createTable(namespace, options = {}) {
     //#region Querying
 
     function getFirstRowValue() {
-        return getDataValue(draft.rows[0]);
+        return draft.rowValues[0];
     }
 
     function getLastRowValue() {
-        const pageSize = getCurrentPageSize();
-        return getDataValue(draft.rows[pageSize - 1]);
+        return _.last(draft.rowValues);
+    }
+
+    function getActiveValue() {
+        return draft.rowValues[draft.activeIndex];
     }
 
     function* createValueIterator(onlyVisible = false, forward = true, originValue = null) {
@@ -172,56 +176,6 @@ export default function createTable(namespace, options = {}) {
         }
     }
 
-    function findVisibleRelativeValue(originValue, targetRelIndex, callback = null, changePages = true) {
-        //Not equal to >= 0 as we need to differentiate -0 and +0
-        const forward = targetRelIndex > 0 || Object.is(targetRelIndex, 0);
-        const step = forward ? 1 : -1;
-        const values = createValueIterator(true, forward, originValue);
-
-        let relIndex = 0;
-        for (let value of values) {
-            const cbResult = callback?.(value, relIndex);
-
-            if (cbResult !== false) {
-                if (relIndex === targetRelIndex) return value;
-                relIndex += step;
-            }
-
-            if (!changePages) continue;
-            if (forward && value === getLastRowValue())
-                nextPage();
-            else if (!forward && value === getFirstRowValue())
-                prevPage();
-        }
-
-        return null;
-    }
-
-    function getRelativeVisibleValue(specialValue, relPos) {
-        let originValue;
-        switch (specialValue) {
-            case specialValues.FirstRow:
-                originValue = getFirstRowValue();
-                break;
-            case specialValues.LastRow:
-                originValue = getLastRowValue();
-                break;
-            case specialValues.FirstItem:
-                originValue = draft.headValue;
-                firstPage();
-                break;
-            case specialValues.LastItem:
-                originValue = draft.tailValue;
-                lastPage();
-                break;
-            default:
-                originValue = draft.activeValue;
-                break;
-        }
-
-        return findVisibleRelativeValue(originValue, relPos);
-    }
-
     function validateValue(value, checkVisible = false) {
         if (value == null) return null;
 
@@ -231,6 +185,10 @@ export default function createTable(namespace, options = {}) {
         if (checkVisible && !item.visible) return null;
 
         return getDataValue(item.data);
+    }
+
+    function validateIndex(index) {
+        return _.inRange(index, 0, draft.rowValues.length);
     }
 
     //#endregion
@@ -252,24 +210,22 @@ export default function createTable(namespace, options = {}) {
         return isLastPage && lastPageSize || pageSize;
     }
 
-    function paginateItems(originValue, forwards, skipOrigin) {
+    function paginateItems(originValue, forward, skipOrigin) {
+        draft.rowValues = [];
+
         const pageSize = getCurrentPageSize();
-        const maxIndex = pageSize - 1;
-        const startIndex = forwards ? 0 : maxIndex;
+        const startIndex = forward ? 0 : -1;
+        const direction = _.sign(startIndex);
 
-        function callback(value, relIndex) {
-            if (skipOrigin && value === originValue) return false;
+        let distance = 0;
+        const values = createValueIterator(true, forward, originValue);
+        for (let value of values) {
+            if (skipOrigin && value === originValue) continue;
+            const index = _.wrapIndex(startIndex + distance * direction, pageSize);
+            draft.rowValues[index] = value;
 
-            const index = startIndex + relIndex;
-            draft.rows[index] = draft.sortedItems[value].data;
+            if (++distance === pageSize) break;
         }
-
-        const targetRelIndex = forwards ? maxIndex : -maxIndex;
-        findVisibleRelativeValue(originValue, targetRelIndex, callback, false);
-
-        //Clear unused remaining rows (for last page)
-        for (let i = pageSize; i < draft.pageSize; i++)
-            delete draft.rows[i];
     }
 
     function firstPage() {
@@ -283,50 +239,85 @@ export default function createTable(namespace, options = {}) {
     }
 
     function nextPage() {
-        if (draft.pageIndex === getMaxPageIndex()) return;
-        //Get last row value before incrementing page index, because getLastRowValue calls getCurrentPageSize
-        //which will return wrong size if next page is the last one
-        const lastRowValue = getLastRowValue();
+        if (draft.pageIndex === getMaxPageIndex()) return false;
 
         draft.pageIndex++
-        paginateItems(lastRowValue, true, true)
+        paginateItems(getLastRowValue(), true, true);
+        return true;
     }
 
     function prevPage() {
-        if (draft.pageIndex === 0) return;
-        const firstRowValue = getFirstRowValue();
+        if (draft.pageIndex === 0) return false;
 
         draft.pageIndex--
-        paginateItems(firstRowValue, false, true)
+        paginateItems(getFirstRowValue(), false, true)
+        return true;
     }
 
     function goToActiveValue() {
-        let found = false;
-        let itemIndex = -1, pageIndex = -1;
+        return setActiveValue(getActiveValue());
+    }
+
+    function setActiveValue(value) {
+        const activeValue = validateValue(value, true);
+
+        let itemIndex = -1;
+        let pageIndex = -1;
         let firstRowValue;
 
         const values = createValueIterator(true);
         for (let value of values) {
-            if (draft.activeValue == null) break;
+            itemIndex++;
+            const rowIndex = draft.pageSize ? itemIndex % draft.pageSize : itemIndex;
 
-            if (++itemIndex === 0 || itemIndex % draft.pageSize === 0) {
+            if (!rowIndex) {
                 pageIndex++;
                 firstRowValue = value;
             }
 
-            if (value === draft.activeValue) {
-                found = true;
-                break;
+            if (activeValue === null || value === activeValue) {
+                draft.activeIndex = rowIndex;
+                draft.pageIndex = pageIndex;
+                paginateItems(firstRowValue, true, false);
+                return value;
+            }
+        }
+    }
+
+    function getOriginIndex(specialValue) {
+        switch (specialValue) {
+            case originValues.FirstItem:
+                firstPage();
+                //Fallthrough
+            case originValues.FirstRow:
+                return 0;
+            case originValues.LastItem:
+                lastPage();
+                //Fallthrough
+            case originValues.LastRow:
+                return draft.rowValues.length - 1;
+            default:
+                return draft.activeIndex;
+        }
+    }
+
+    function setActiveRelative(origin, forward, callback) {
+        let index = getOriginIndex(origin);
+
+        while (!callback(draft.rowValues[index])) {
+            const maxIndex = draft.rowValues.length - 1;
+            if (index === 0 && !forward) {
+                if (!prevPage()) break;
+                index = maxIndex;
+            } else if (index === maxIndex && forward) {
+                if (!nextPage()) break;
+                index = 0;
+            } else {
+                index += forward ? 1 : -1;
             }
         }
 
-        if (!found) {
-            firstPage();
-            setFirstRowActive();
-        } else {
-            draft.pageIndex = pageIndex;
-            paginateItems(firstRowValue, true, false);
-        }
+        draft.activeIndex = index;
     }
 
     //#endregion
@@ -453,8 +444,7 @@ export default function createTable(namespace, options = {}) {
         for (; dataIndex < itemData.length; dataIndex++)
             addedValues.push(addItem(itemData[dataIndex], draft.tailValue));
 
-        goToActiveValue();
-        resetPivotValue();
+        draft.pivotValue = goToActiveValue();
 
         return addedValues;
     }
@@ -482,11 +472,11 @@ export default function createTable(namespace, options = {}) {
             tailValue: undefined,
             visibleItemCount: 0,
             pageIndex: 0,
-            rows: [],
+            rowValues: [],
             sortedItems: {},
             isLoading: false,
             error: null,
-            activeValue: null
+            activeIndex: 0
         });
 
         clearSelection();
@@ -497,16 +487,12 @@ export default function createTable(namespace, options = {}) {
     //#region Selection
 
     function setFirstRowActive() {
-        draft.activeValue = getFirstRowValue();
-    }
-
-    function resetPivotValue() {
-        draft.pivotValue = draft.activeValue;
+        draft.activeIndex = 0;
     }
 
     function clearSelection() {
         draft.selection.clear();
-        resetPivotValue();
+        draft.pivotValue = getActiveValue();
     }
 
     function setSelection(values) {
@@ -533,12 +519,7 @@ export default function createTable(namespace, options = {}) {
         if (!multiSelect)
             return setValueSelected(selected ? toValue : fromValue, selected)
 
-        const {
-            [fromValue]: { data: fromData },
-            [toValue]: { data: toData }
-        } = draft.sortedItems
-
-        const forward = compareItemData(fromData, toData) < 0;
+        const forward = compareItems(fromValue, toValue) < 0;
         const values = createValueIterator(true, forward, fromValue);
 
         for (let value of values) {
@@ -571,7 +552,7 @@ export default function createTable(namespace, options = {}) {
             draft = newDraft;
 
             const { payload } = action;
-            const metadata = {};
+            let metadata;
 
             // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
@@ -597,7 +578,7 @@ export default function createTable(namespace, options = {}) {
                     const valuesToDelete = new Set(payload.values);
                     if (!valuesToDelete.size) break;
 
-                    draft.activeValue = null;
+                    let setActive = null;
                     let finalizedActive = false;
 
                     const values = createValueIterator(true);
@@ -606,12 +587,11 @@ export default function createTable(namespace, options = {}) {
                             finalizedActive = true;
                             deleteItem(value);
                         } else if (!finalizedActive) {
-                            draft.activeValue = value;
+                            setActive = value;
                         }
                     }
 
-                    goToActiveValue();
-                    resetPivotValue();
+                    draft.pivotValue = setActiveValue(setActive);
                     break;
                 }
                 case types.PATCH_ITEM_VALUES: {
@@ -624,10 +604,6 @@ export default function createTable(namespace, options = {}) {
                         const { selection } = draft;
                         if (selection.delete(oldValue))
                             selection.add(newValue);
-
-                        //Don't bother with the pivot, it will be overwritten by addItems
-                        if (draft.activeValue === oldValue)
-                            draft.activeValue = newValue;
 
                         const { data } = draft.sortedItems[oldValue];
                         patched.push(_.set(data, valueProperty, newValue));
@@ -698,30 +674,45 @@ export default function createTable(namespace, options = {}) {
 
                 //Selection
                 case types.SELECT_RELATIVE: {
-                    const value = getRelativeVisibleValue(payload.origin, payload.offset);
-                    if (value === null) break;
+                    const { offset } = payload;
+
+                    metadata = {
+                        prevActiveValue: getActiveValue()
+                    };
+
+                    let distance = 0;
+                    const callback = () => distance++ === Math.abs(offset);
+                    const forward = _.sign(offset) > 0;
+                    setActiveRelative(payload.origin, forward, callback);
 
                     if (payload.ctrlKey && !payload.shiftKey) {
-                        draft.activeValue = value;
                         draft.resetPivotForRelative = true;
                         break;
                     }
 
                     if (draft.resetPivotForRelative)
-                        resetPivotValue();
+                        draft.pivotValue = metadata.prevActiveValue;
 
-                    metadata.value = value;
                     //Deliberate fall-through
                 }
                 case types.SELECT: {
                     const { ctrlKey, shiftKey } = payload;
                     if (payload.contextMenu && ctrlKey) break;
 
-                    let { value } = metadata;
-                    value ??= validateValue(payload.value, true);
-                    if (value === null) break;
+                    if (!metadata) {
+                        const { index } = payload;
+                        if (!validateIndex(index)) break;
 
-                    draft.activeValue = value;
+                        metadata = {
+                            prevActiveValue: getActiveValue()
+                        };
+
+                        draft.activeIndex = index;
+                    }
+
+                    const { prevActiveValue } = metadata;
+                    const value = getActiveValue();
+
                     draft.resetPivotForRelative = false;
 
                     if (!ctrlKey)
@@ -730,13 +721,13 @@ export default function createTable(namespace, options = {}) {
                     if (shiftKey) {
                         if (ctrlKey)
                             //Clear previous selection
-                            setRangeSelected(draft.pivotValue, original(draft).activeValue, false)
+                            setRangeSelected(draft.pivotValue, prevActiveValue, false)
 
                         setRangeSelected(draft.pivotValue, value, true);
                         break;
                     }
 
-                    resetPivotValue();
+                    draft.pivotValue = value;
 
                     const selected = !ctrlKey || !draft.selection.has(value);
                     setValueSelected(value, selected);
@@ -751,15 +742,15 @@ export default function createTable(namespace, options = {}) {
                 case types.SET_SELECTED: {
                     if (!multiSelect) break;
 
-                    //Active value
-                    const setActive = validateValue(payload.active, true);
-                    if (setActive !== null)
-                        draft.activeValue = setActive;
+                    //Active index
+                    const { activeIndex } = payload;
+                    if (validateIndex(activeIndex))
+                        draft.activeIndex = activeIndex;
 
                     //Pivot value
-                    const setPivot = validateValue(payload.pivot, true);
-                    if (setPivot !== null) {
-                        draft.pivotValue = setPivot;
+                    const pivotValue = validateValue(payload.pivotValue, true);
+                    if (pivotValue !== null) {
+                        draft.pivotValue = pivotValue;
                         draft.resetPivotForRelative = false;
                     }
 
@@ -775,7 +766,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SELECT_ALL: {
-                    setSelection(_.map(draft.rows, valueProperty));
+                    setSelection(draft.rowValues);
                     break;
                 }
 
@@ -794,28 +785,24 @@ export default function createTable(namespace, options = {}) {
                     addMatches(draft.searchIndex, phrase,  0);
                     const [firstMatch] = draft.matches.sort(compareItems);
                     if (firstMatch !== undefined) {
-                        draft.activeValue = firstMatch;
+                        setActiveValue(firstMatch);
                         draft.resetPivotForRelative = true;
-                        goToActiveValue();
                     }
 
                     break;
                 }
                 case types.GO_TO_MATCH: {
-                    const { index } = payload;
-                    const { matches, matchIndex: prevIndex } = draft;
-                    if (!_.inRange(index, matches.length)) break;
+                    const { matches } = draft;
+                    const { index: matchIndex } = payload;
+                    if (!_.inRange(matchIndex, matches.length)) break;
 
-                    const targetRelIndex = index - prevIndex;
-                    const callback = (value, relPos) =>
-                        value === matches[prevIndex + relPos];
+                    const matchValue = matches[matchIndex];
+                    const callback = value => value === matchValue;
+                    const forward = compareItems(matchValue, getActiveValue()) > 0;
+                    setActiveRelative(originValues.ActiveRow, forward, callback);
 
-                    const value = findVisibleRelativeValue(matches[prevIndex], targetRelIndex, callback);
-
-                    draft.matchIndex = index;
-                    draft.activeValue = value;
+                    draft.matchIndex = matchIndex;
                     draft.resetPivotForRelative = true;
-
                     break;
                 }
 
@@ -826,8 +813,6 @@ export default function createTable(namespace, options = {}) {
                     if (!(newSize >= 0)) break;
 
                     draft.pageSize = newSize;
-                    draft.rows = [];
-
                     goToActiveValue();
                     break;
                 }

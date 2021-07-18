@@ -48,7 +48,7 @@ const eventMiddleware = store => next => action => {
             //Raise onContextMenu
             if (payload.contextMenu)
                 events.onContextMenu(options.listBox
-                    ? slice.activeValue
+                    ? selectors.getActiveValue(slice)
                     : selectors.getSelectionArg(slice)
                 );
 

@@ -13,13 +13,14 @@ function TableBody(props) {
         table: { utils }
     } = props;
 
-    const rows = utils.useSelector(s => s.rows);
+    const sortedItems = utils.useSelector(s => s.sortedItems);
+    const rowValues = utils.useSelector(s => s.rowValues);
     const selection = utils.useSelector(s => s.selection);
-    const activeValue = utils.useSelector(s => s.activeValue);
+    const activeIndex = utils.useSelector(s => s.activeIndex);
 
-    const renderRow = (data, index) => {
-        const value = utils.getDataValue(data);
-        const active = value === activeValue;
+    const renderRow = (value, index) => {
+        const active = index === activeIndex;
+        const { data } = sortedItems[value];
 
         const rowProps = {
             ...rowCommonProps,
@@ -33,7 +34,7 @@ function TableBody(props) {
     };
 
     return <tbody ref={tableBodyRef}>
-        {rows.map(renderRow)}
+        {rowValues.map(renderRow)}
     </tbody>;
 }
 

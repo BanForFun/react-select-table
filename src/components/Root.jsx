@@ -1,9 +1,8 @@
 import React, {useRef, useEffect, useCallback, useMemo} from 'react';
-import _ from "lodash";
 import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationWrapper";
-import {relativePos, specialValues} from "../store/table";
+import {relativePos, originValues} from "../store/table";
 import SearchContainer from "./SearchContainer";
 
 //Child of Connector
@@ -47,10 +46,10 @@ function Root(props) {
         }, [handler, events]);
     }
 
-    const activeValue = utils.useSelector(s => s.activeValue);
+    const activeIndex = utils.useSelector(s => s.activeIndex);
     const pageSize = utils.useSelector(s => s.pageSize);
     const pageCount = utils.useSelector(selectors.getPageCount);
-    const rowValues = utils.useSelector(selectors.getRowValues);
+    const rowValues = utils.useSelector(s => s.rowValues);
     const selection = utils.useSelector(s => s.selection);
     const pageIndex = utils.useSelector(s => s.pageIndex);
     const isLoading = utils.useSelector(s => s.isLoading);
@@ -85,9 +84,10 @@ function Root(props) {
             const relPos = prev ? relativePos.Prev : relativePos.Next;
             actions.goToPageRelative(relPos);
         } else {
-            const origin = prev ? specialValues.FirstRow : specialValues.LastRow;
-            const offset = prev ? -pageSize : 1;
-            actions.selectRelative(e, offset, origin);
+            // const origin = prev ? originValues.FirstRow : originValues.LastRow;
+            // const offset = prev ? -pageSize : 1;
+            const offset = prev ? -pageSize : pageSize;
+            actions.selectRelative(e, offset);
         }
     }, [actions, pageSize]);
 
@@ -98,8 +98,8 @@ function Root(props) {
         const isFirstPage = pageIndex === 0;
         const isLastPage = pageIndex === pageCount - 1;
 
-        const isFirstItem = isFirstPage && activeValue === _.first(rowValues);
-        const isLastItem = isLastPage && activeValue === _.last(rowValues);
+        const isFirstItem = isFirstPage && activeIndex === 0;
+        const isLastItem = isLastPage && activeIndex === rowValues.length - 1;
 
         switch (e.keyCode) {
             case 65: //A
@@ -116,17 +116,18 @@ function Root(props) {
                 break;
             case 36: //Home
                 if (isFirstItem) break;
-                actions.selectRelative(e, 0, specialValues.FirstItem);
+                actions.selectRelative(e, 0, originValues.FirstItem);
                 break;
             case 35: //End
                 if (isLastItem) break;
-                actions.selectRelative(e, -0, specialValues.LastItem);
+                actions.selectRelative(e, -0, originValues.LastItem);
                 break;
             case 13: //Enter
+                const activeValue = rowValues[activeIndex];
                 if (!e.ctrlKey && !e.shiftKey && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(e, activeValue);
+                    actions.select(e, activeIndex);
 
                 break;
             case 37: //Left
@@ -145,7 +146,7 @@ function Root(props) {
         return false;
     }, [
         actions, options, onKeyDown, placeholderShown,
-        activeValue, selection, rowValues, pageIndex, pageCount, //Redux props
+        activeIndex, selection, rowValues, pageIndex, pageCount, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods
         onItemsOpen, //Event handlers

@@ -16,11 +16,11 @@ function ScrollingContainer(props) {
     } = props;
 
     const {
-        table: { options, utils, selectors },
+        table: { options, utils },
         actions
     } = props;
 
-    const rowValues = utils.useSelector(selectors.getRowValues);
+    const rowValues = utils.useSelector(s => s.rowValues);
 
     const [mode, setMode] = useState(null);
 
@@ -89,7 +89,7 @@ function ScrollingContainer(props) {
 
             actions.setSelected(
                 _.mapKeys(selected, (_, index) => rowValues[index]),
-                rowValues[active], rowValues[pivot]
+                active, rowValues[pivot]
             );
         });
     }, [applyRectStyles, actions, rowValues, setMode]);

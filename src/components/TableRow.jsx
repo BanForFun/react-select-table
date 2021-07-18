@@ -49,19 +49,19 @@ function TableRow({
 
     const handleContextMenu = useCallback(e => {
         if (isTouchingRef.current) {
-            actions.baseSelect(value, true, false);
+            actions.baseSelect(index, true, false);
             dragSelectStart([e.clientX, e.clientY], index);
         } else {
-            actions.select(e, value);
+            actions.select(e, index);
         }
-    }, [value, index, actions]);
+    }, [index, actions]);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
 
-        actions.select(e, value);
+        actions.select(e, index);
         dragSelectStart([e.clientX, e.clientY], index);
-    }, [value, index, actions]);
+    }, [index, actions]);
 
     const renderColumn = (column) => {
         const { _id, path, render, isHeader } = column;

@@ -84,8 +84,8 @@ export default function Actions(namespace) {
         baseSelectRelative: (offset, ctrlKey, shiftKey, origin = null) =>
             Action(types.SELECT_RELATIVE, { offset, origin, ctrlKey, shiftKey }),
 
-        baseSelect: (value, ctrlKey, shiftKey, contextMenu = false) =>
-            Action(types.SELECT, { value, ctrlKey, shiftKey, contextMenu }),
+        baseSelect: (index, ctrlKey, shiftKey, contextMenu = false) =>
+            Action(types.SELECT, { index, ctrlKey, shiftKey, contextMenu }),
 
         baseClearSelection: (ctrlKey, contextMenu = false) =>
             Action(types.CLEAR_SELECTION, { ctrlKey, contextMenu }),
@@ -93,8 +93,8 @@ export default function Actions(namespace) {
         selectAll: () =>
             Action(types.SELECT_ALL),
 
-        setSelected: (map, active = null, pivot = null) =>
-            Action(types.SET_SELECTED, { map, active, pivot }),
+        setSelected: (map, activeIndex = null, pivotValue = null) =>
+            Action(types.SET_SELECTED, { map, activeIndex, pivotValue }),
 
         setError: (error) =>
             Action(types.SET_ERROR, { error }),
@@ -107,8 +107,8 @@ export default function Actions(namespace) {
         selectRelative: (e, offset, origin = null) =>
             actions.baseSelectRelative(offset, e.ctrlKey, e.shiftKey, origin),
 
-        select: (e, value) =>
-            actions.baseSelect(value, e.ctrlKey, e.shiftKey, e.type === "contextmenu"),
+        select: (e, index) =>
+            actions.baseSelect(index, e.ctrlKey, e.shiftKey, e.type === "contextmenu"),
 
         clearSelection: (e) =>
             actions.baseClearSelection(e.ctrlKey,e.type === "contextmenu"),

@@ -6,3 +6,7 @@ export const makeGetSelectionArg = (options) => createSelector(
         ? selection
         : selection.values().next().value ?? null
 )
+
+export function getActiveValue(s) {
+    return s.rowValues[s.activeIndex];
+}

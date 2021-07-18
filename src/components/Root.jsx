@@ -67,7 +67,7 @@ function Root(props) {
         if (isLoading)
             content = loadingIndicator;
         else if (error)
-            content = <Error>error</Error>;
+            content = <Error>{error}</Error>;
         else if (isEmpty) {
             content = emptyPlaceholder;
             props.onContextMenu = () => onContextMenu(null);

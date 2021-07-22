@@ -14,7 +14,7 @@ function BodyContainer(props) {
     } = props;
 
     const {
-        table: { utils, selectors },
+        utils: { hooks, selectors },
         actions,
         dragSelectStart,
         bodyContainerRef
@@ -22,9 +22,9 @@ function BodyContainer(props) {
 
     const isTouchingRef = useRef(false);
 
-    const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
+    const getSelectionArg = hooks.useSelectorGetter(selectors.getSelectionArg);
 
-    const noSelection = utils.useSelector(s => !s.selection.size);
+    const noSelection = hooks.useSelector(s => !s.selection.size);
 
     const handleMouseDown = useCallback(e => {
         //Checking currentTarget instead of stopping propagation at rows for two reasons:

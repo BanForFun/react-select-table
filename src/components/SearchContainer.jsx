@@ -4,14 +4,14 @@ import AngleIcon, {angleRotation} from "./AngleIcon";
 
 function SearchContainer(props) {
     const {
-        table: { utils },
+        utils: { hooks },
         inputRef,
         actions
     } = props;
 
-    const phrase = utils.useSelector(s => s.searchPhrase);
-    const matchCount = utils.useSelector(s => s.matches.length);
-    const matchIndex = utils.useSelector(s => s.matchIndex);
+    const phrase = hooks.useSelector(s => s.searchPhrase);
+    const matchCount = hooks.useSelector(s => s.matches.length);
+    const matchIndex = hooks.useSelector(s => s.matchIndex);
 
     const isVisible = phrase !== null;
 

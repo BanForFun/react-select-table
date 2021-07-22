@@ -1,9 +1,9 @@
 import _ from "lodash";
-import Utils from "../models/Utils";
-import Selectors from "../models/Selectors";
+import Hooks from "../models/Hooks";
+import SimpleSelectors from "../models/SimpleSelectors";
 import Actions from "../models/Actions";
 
-export const tableStorage = {};
+export const tableUtils = {};
 
 export const defaultEvents = {
     onContextMenu: () => { },
@@ -30,32 +30,26 @@ export function setDefaultTableOptions(options) {
 }
 
 export function setOptions(namespace, options) {
-    _.defaults(options, defaultOptions);
+    Object.freeze(_.defaults(options, defaultOptions));
 
-    const actions = Actions(namespace, options);
-    const utils = Utils(namespace, options, actions);
-    const selectors = Selectors(namespace, options, utils);
-    const events = _.clone(defaultEvents);
+    const actions = Actions(namespace);
+    const simpleSelectors = SimpleSelectors(options);
+    const hooks = Hooks(options, actions, simpleSelectors);
 
-    tableStorage[namespace] = {
-        options,
-        actions,
-        utils,
-        selectors,
-        events
+    return tableUtils[namespace] = {
+        public: {
+            actions,
+            hooks,
+            selectors: simpleSelectors,
+            options,
+        },
+        private: {
+            selectors: simpleSelectors,
+            events: {...defaultEvents}
+        }
     };
-
-    return utils;
 }
 
 export function getTableUtils(namespace) {
-    return tableStorage[namespace].utils;
-}
-
-export function getTableActions(namespace) {
-    return tableStorage[namespace].actions;
-}
-
-export function getTableSelectors(namespace) {
-    return tableStorage[namespace].selectors;
+    return tableUtils[namespace].public;
 }

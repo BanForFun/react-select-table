@@ -1,20 +1,36 @@
-import React, {useContext} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultPagination from "./DefaultPagination";
-import {tableStorage, defaultEvents} from '../utils/tableUtils';
+import {tableUtils, defaultEvents} from '../utils/tableUtils';
 import Root from "./Root";
 
-function Connector({ name, namespace, ...rootProps }) {
-    const table = tableStorage[namespace];
+function Connector(props) {
+    const {
+        name, namespace,
+        onSelectionChange,
+        ...rootProps
+    } = props;
 
-    const { context } = table.options;
+    const utils = tableUtils[namespace];
+
+    const { context } = utils.public.options;
     if (!context)
         throw new Error("Please import 'ReactReduxContext' from 'react-redux' and pass it to the 'context' option");
 
     const contextValue = useContext(context);
 
-    rootProps.table = table;
+    //Register redux event handlers
+    const { events } = utils.private;
+
+    for (let event in events) {
+        const handler = props[event];
+        useEffect(() => {
+            events[event] = handler;
+        }, [handler, events]);
+    }
+
+    rootProps.utils = utils.public;
     rootProps.name ??= namespace;
 
     return <ReactReduxContext.Provider value={contextValue}>

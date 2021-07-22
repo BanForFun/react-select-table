@@ -1,18 +1,15 @@
-import _ from "lodash";
 import {useMemo, useCallback} from "react";
 import {createDispatchHook, createSelectorHook, createStoreHook} from "react-redux";
 import {bindActionCreators} from "redux";
 
-export default function Utils(namespace, options, actions) {
+export default function Hooks(options, actions, selectors) {
     //Create redux hooks
     const { context } = options;
     const _useSelector = createSelectorHook(context);
     const _useDispatch = createDispatchHook(context);
     const _useStore = createStoreHook(context);
 
-    const getStateSlice = state => _.getOrSource(state, options.path);
-
-    const getDataValue = data => _.get(data, options.valueProperty);
+    const { getStateSlice } = selectors;
 
     const useSelector = (selector, ...args) =>
         _useSelector(state => selector(getStateSlice(state), ...args));
@@ -34,9 +31,6 @@ export default function Utils(namespace, options, actions) {
     }
 
     return {
-        getStateSlice,
-        getDataValue,
-
         useSelector,
         useSelectorGetter,
         useActions

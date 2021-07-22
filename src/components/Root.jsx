@@ -1,8 +1,7 @@
 import React, {useRef, useEffect, useCallback, useMemo} from 'react';
-import {defaultEvents} from "../utils/tableUtils";
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationWrapper";
-import {relativePos, originValues} from "../store/table";
+import {relativePos, specialValues} from "../models/Actions";
 import SearchContainer from "./SearchContainer";
 
 //Child of Connector
@@ -10,7 +9,6 @@ function Root(props) {
     const {
         Pagination, //PaginationContainer
         onContextMenu,
-        onSelectionChange,
         onKeyDown,
         containerRef,
         id,
@@ -23,7 +21,7 @@ function Root(props) {
     } = props;
 
     const {
-        table: { utils, events, options, selectors },
+        utils: { hooks, options, selectors },
         onItemsOpen
     } = props;
 
@@ -32,31 +30,24 @@ function Root(props) {
         containerRef.current.focus();
     }, []);
 
-    const actions = utils.useActions();
+    const actions = hooks.useActions();
 
     const tableBodyRef = useRef();
     const searchInputRef = useRef();
 
-    //Register redux event handlers
-    for (let event in defaultEvents) {
-        const handler = props[event];
+    const activeIndex = hooks.useSelector(s => s.activeIndex);
+    const pageSize = hooks.useSelector(s => s.pageSize);
+    const isPageFirst = hooks.useSelector(selectors.isPageFirst);
+    const isPageLast = hooks.useSelector(selectors.isPageLast);
+    const isActiveItemFirst = hooks.useSelector(selectors.isActiveItemFirst);
+    const isActiveItemLast = hooks.useSelector(selectors.isActiveItemLast);
+    const activeValue = hooks.useSelector(selectors.getActiveValue);
+    const selection = hooks.useSelector(s => s.selection);
+    const isLoading = hooks.useSelector(s => s.isLoading);
+    const error = hooks.useSelector(s => s.error);
+    const isEmpty = hooks.useSelector(s => !s.visibleItemCount);
 
-        useEffect(() => {
-            events[event] = handler;
-        }, [handler, events]);
-    }
-
-    const activeIndex = utils.useSelector(s => s.activeIndex);
-    const pageSize = utils.useSelector(s => s.pageSize);
-    const pageCount = utils.useSelector(selectors.getPageCount);
-    const rowValues = utils.useSelector(s => s.rowValues);
-    const selection = utils.useSelector(s => s.selection);
-    const pageIndex = utils.useSelector(s => s.pageIndex);
-    const isLoading = utils.useSelector(s => s.isLoading);
-    const error = utils.useSelector(s => s.error);
-    const isEmpty = utils.useSelector(s => !s.visibleItemCount);
-
-    const getSelectionArg = utils.useSelectorGetter(selectors.getSelectionArg);
+    const getSelectionArg = hooks.useSelectorGetter(selectors.getSelectionArg);
 
     const placeholder = useMemo(() => {
         const props = {
@@ -84,8 +75,6 @@ function Root(props) {
             const relPos = prev ? relativePos.Prev : relativePos.Next;
             actions.goToPageRelative(relPos);
         } else {
-            // const origin = prev ? originValues.FirstRow : originValues.LastRow;
-            // const offset = prev ? -pageSize : 1;
             const offset = prev ? -pageSize : pageSize;
             actions.selectRelative(e, offset);
         }
@@ -95,35 +84,28 @@ function Root(props) {
         if (placeholderShown) return false;
         if (onKeyDown(e, getSelectionArg()) === false) return false;
 
-        const isFirstPage = pageIndex === 0;
-        const isLastPage = pageIndex === pageCount - 1;
-
-        const isFirstItem = isFirstPage && activeIndex === 0;
-        const isLastItem = isLastPage && activeIndex === rowValues.length - 1;
-
         switch (e.keyCode) {
             case 65: //A
                 if (!e.ctrlKey || e.shiftKey || !options.multiSelect) return;
                 actions.selectAll();
                 break;
             case 38: //Up
-                if (isFirstItem) break;
+                if (isActiveItemFirst) break;
                 actions.selectRelative(e, -1);
                 break;
             case 40: //Down
-                if (isLastItem) break;
+                if (isActiveItemLast) break;
                 actions.selectRelative(e, 1);
                 break;
             case 36: //Home
-                if (isFirstItem) break;
-                actions.selectRelative(e, 0, originValues.FirstItem);
+                if (isActiveItemFirst) break;
+                actions.selectRelative(e, 0, specialValues.FirstItem);
                 break;
             case 35: //End
-                if (isLastItem) break;
-                actions.selectRelative(e, -0, originValues.LastItem);
+                if (isActiveItemLast) break;
+                actions.selectRelative(e, 0, specialValues.LastItem);
                 break;
             case 13: //Enter
-                const activeValue = rowValues[activeIndex];
                 if (!e.ctrlKey && !e.shiftKey && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
@@ -131,11 +113,11 @@ function Root(props) {
 
                 break;
             case 37: //Left
-                if (isFirstPage) break;
+                if (isPageFirst) break;
                 offsetPage(e, true);
                 break;
             case 39: //Right
-                if (isLastPage) break;
+                if (isPageLast) break;
                 offsetPage(e, false);
                 break;
             default:
@@ -146,7 +128,8 @@ function Root(props) {
         return false;
     }, [
         actions, options, onKeyDown, placeholderShown,
-        activeIndex, selection, rowValues, pageIndex, pageCount, //Redux props
+        activeIndex, selection, activeValue, //Redux props
+        isPageFirst, isPageLast, isActiveItemLast, isActiveItemFirst, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods
         onItemsOpen, //Event handlers
@@ -166,14 +149,14 @@ function Root(props) {
 
     //Pagination container props
     const paginationProps = {
+        utils: props.utils,
         actions,
         Pagination,
-        placeholderShown,
-        table: props.table
+        placeholderShown
     }
 
     const searchProps = {
-        table: props.table,
+        utils: props.utils,
         actions,
         inputRef: searchInputRef
     }

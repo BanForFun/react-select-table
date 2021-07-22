@@ -37,7 +37,7 @@ function ResizingContainer(props) {
     } = props;
 
     const {
-        table: { options },
+        utils: { options },
         name,
     } = props;
 

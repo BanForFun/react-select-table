@@ -19,10 +19,10 @@ function TableRow({
     index,
     bodyContainerRef,
     className,
-    table: { utils }
+    utils: { hooks }
 }) {
     const trRef = useRef();
-    const visibleItemCount = utils.useSelector(s => s.visibleItemCount);
+    const visibleItemCount = hooks.useSelector(s => s.visibleItemCount);
 
     useLayoutEffect(() => {
         if (!active) return;

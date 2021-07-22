@@ -4,13 +4,13 @@ import TableHeader from "./TableHeader";
 //Child of HeadContainer
 function TableHead(props) {
     const {
-        table: { utils },
+        utils: { hooks },
         columns,
         name,
         ...commonHeaderProps
     } = props;
 
-    const sortAscending = utils.useSelector(s => s.sortAscending);
+    const sortAscending = hooks.useSelector(s => s.sortAscending);
 
     const sorting = useMemo(() => {
         const orders = {}

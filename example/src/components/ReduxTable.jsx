@@ -1,13 +1,12 @@
 import React, {useCallback, useState, useMemo, useEffect, useRef} from 'react'
 import _ from "lodash";
-import { Table } from 'react-select-table';
+import { Table, getTableUtils } from 'react-select-table';
 import columns from '../columns';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-    tableActions as actions,
-    tableNamespace as namespace
-} from "../store";
+import { tableNamespace } from "../store";
 import allItems from "../data/comments";
+
+const { actions } = getTableUtils(tableNamespace);
 
 const evenItems = allItems.filter(t => t.id % 2 === 0);
 const oddItems = allItems.filter(t => t.id % 2 === 1);
@@ -105,7 +104,7 @@ function ReduxTable() {
         <Table
             containerRef={containerRef}
             emptyPlaceholder="No items"
-            namespace={namespace}
+            namespace={tableNamespace}
             className="rst-table"
             initColumnWidths={[10, 10, 40, 40]}
             // tableClass="table table-striped table-hover table-dark"

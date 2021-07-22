@@ -1,14 +1,14 @@
 import React, {useMemo} from 'react';
-import {relativePos} from "../store/table";
+import {relativePos} from "../models/Actions";
 
 //Child of Root
 function PaginationWrapper({
     Pagination,
     actions,
-    table: { utils, selectors }
+    utils: { hooks, selectors }
 }) {
-    const pageIndex = utils.useSelector(s => s.pageIndex);
-    const pageCount = utils.useSelector(selectors.getPageCount);
+    const pageIndex = hooks.useSelector(s => s.pageIndex);
+    const pageCount = hooks.useSelector(selectors.getPageCount);
 
     const actionAliases = useMemo(() => {
         const createAlias = pos => () => actions.goToPageRelative(pos);

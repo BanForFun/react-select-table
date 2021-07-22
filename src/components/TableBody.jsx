@@ -10,13 +10,13 @@ function TableBody(props) {
     } = props;
 
     const {
-        table: { utils }
+        utils: { hooks }
     } = props;
 
-    const sortedItems = utils.useSelector(s => s.sortedItems);
-    const rowValues = utils.useSelector(s => s.rowValues);
-    const selection = utils.useSelector(s => s.selection);
-    const activeIndex = utils.useSelector(s => s.activeIndex);
+    const sortedItems = hooks.useSelector(s => s.sortedItems);
+    const rowValues = hooks.useSelector(s => s.rowValues);
+    const selection = hooks.useSelector(s => s.selection);
+    const activeIndex = hooks.useSelector(s => s.activeIndex);
 
     const renderRow = (value, index) => {
         const active = index === activeIndex;

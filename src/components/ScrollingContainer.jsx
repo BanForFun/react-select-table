@@ -16,11 +16,11 @@ function ScrollingContainer(props) {
     } = props;
 
     const {
-        table: { options, utils },
+        utils: { options, hooks },
         actions
     } = props;
 
-    const rowValues = utils.useSelector(s => s.rowValues);
+    const rowValues = hooks.useSelector(s => s.rowValues);
 
     const [mode, setMode] = useState(null);
 

@@ -1,3 +1,18 @@
+export const relativePos = Object.freeze({
+    Next: "next",
+    Prev: "prev",
+    First: "first",
+    Last: "last"
+});
+
+export const specialValues = Object.freeze({
+    FirstItem: "firstItem",
+    LastItem: "lastItem",
+    FirstRow: "firstRow",
+    LastRow: "lastRow",
+    ActiveRow: "activeRow"
+});
+
 export const types = {
     //Items
     SET_ITEMS: "",
@@ -81,7 +96,7 @@ export default function Actions(namespace) {
         baseSortItems: (path, shiftKey) =>
             Action(types.SORT_ITEMS, { path, shiftKey }),
 
-        baseSelectRelative: (offset, ctrlKey, shiftKey, origin = null) =>
+        baseSelectRelative: (offset, ctrlKey, shiftKey, origin = specialValues.ActiveRow) =>
             Action(types.SELECT_RELATIVE, { offset, origin, ctrlKey, shiftKey }),
 
         baseSelect: (index, ctrlKey, shiftKey, contextMenu = false) =>
@@ -104,7 +119,7 @@ export default function Actions(namespace) {
     }
 
     const aliases = {
-        selectRelative: (e, offset, origin = null) =>
+        selectRelative: (e, offset, origin = undefined) =>
             actions.baseSelectRelative(offset, e.ctrlKey, e.shiftKey, origin),
 
         select: (e, index) =>

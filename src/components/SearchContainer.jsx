@@ -47,6 +47,7 @@ function SearchContainer(props) {
     const handleBlur = useCallback(e => {
         if (!isVisible) return;
         if (e.currentTarget.contains(e.relatedTarget)) return;
+
         actions.search(null);
     }, [actions, isVisible]);
 
@@ -63,7 +64,11 @@ function SearchContainer(props) {
                 onChange={handleChange}
                 onKeyDown={handleKeyDown}
             />
-            <div>{matchCount && (matchIndex + 1)}/{matchCount}</div>
+            <div className="rst-matches">
+                {matchCount && (matchIndex + 1)}/{matchCount}
+            </div>
+
+            <div className="rst-separator"/>
 
             <button tabIndex="-1" onClick={() => goToAdjacentMatch(-1)}>
                 <AngleIcon rotation={angleRotation.Up} />

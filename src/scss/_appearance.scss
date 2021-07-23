@@ -32,16 +32,14 @@
         border-bottom-width: rst-get("head", "border-width");
     }
 
+    thead .rst-icon {
+        margin-left: rst-get("header", "icon-spacing");
+    }
+
     .rst-columnResizer {
         @include rst-apply-properties("column-resizer",
             "width",
             "background-color"
-        );
-    }
-
-    .rst-sortIcon {
-        @include rst-apply-properties("sort-icon",
-            "margin"
         );
     }
 
@@ -137,38 +135,34 @@
                 "padding"
             )
         }
-    }
-}
 
-%rst-paginationPages {
-    .rst-pagination > .rst-page {
-        @include rst-apply-properties("pg-page",
-            "width"
-        )
-    }
-}
-
-%rst-paginationButtons {
-    .rst-pagination > button {
-        @include rst-apply-properties("pg-btn",
-            "background-color",
-            "border-radius",
-            "border",
-            "color"
-        );
-
-        $properties: "background-color", "border-color", "color";
-
-        &:hover {
-            @include rst-apply-properties("pg-btn-hover", $properties...);
+        .rst-page {
+            @include rst-apply-properties("pg-page",
+                "width"
+            )
         }
 
-        &.is-current {
-            @include rst-apply-properties("pg-btn-current", $properties...);
-        }
+        button {
+            @include rst-apply-properties("pg-btn",
+                "background-color",
+                "border-radius",
+                "border",
+                "color"
+            );
 
-        &:disabled {
-            @include rst-apply-properties("pg-btn-disabled", $properties...);
+            $properties: "background-color", "border-color", "color";
+
+            &:hover {
+                @include rst-apply-properties("pg-btn-hover", $properties...);
+            }
+
+            &.is-current {
+                @include rst-apply-properties("pg-btn-current", $properties...);
+            }
+
+            &:disabled {
+                @include rst-apply-properties("pg-btn-disabled", $properties...);
+            }
         }
     }
 }
@@ -192,31 +186,31 @@
             "border-radius",
             "box-shadow"
         );
-    }
-}
 
-%rst-searchMatches {
-    .rst-search div {
-        padding-right: rst-get("search", "item-spacing");
-        border-right: rst-get("search-matches", "border");
-        color: rst-get("search-matches", "color");
-    }
-}
-
-%rst-searchButtons {
-    .rst-search button {
-        @include rst-apply-properties("search-btn",
-            "padding",
-            "border",
-            "border-radius",
-            "background-color"
-        );
-
-        &:hover {
-            @include rst-apply-properties("search-btn-hover",
-                "background-color",
-                "border-color"
+        .rst-matches {
+            @include rst-apply-properties("search-matches",
+                "color"
             );
+        }
+
+        .rst-separator {
+            border-right: rst-get("search-separator", "border");
+        }
+
+        button {
+            @include rst-apply-properties("search-btn",
+                "padding",
+                "border",
+                "border-radius",
+                "background-color"
+            );
+
+            &:hover {
+                @include rst-apply-properties("search-btn-hover",
+                    "background-color",
+                    "border-color"
+                );
+            }
         }
     }
 }
@@ -233,9 +227,5 @@
     @extend %rst-dragSelection;
     @extend %rst-columnResizer;
     @extend %rst-pagination;
-    @extend %rst-paginationButtons;
-    @extend %rst-paginationPages;
     @extend %rst-search;
-    @extend %rst-searchMatches;
-    @extend %rst-searchButtons;
 }

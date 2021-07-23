@@ -44,10 +44,7 @@ function TableHeader({
         >{title}</span>
 
         {sortPriority >= 0 && <Fragment>
-            <AngleIcon
-                className="rst-sortIcon"
-                rotation={sortAscending ? angleRotation.Up : angleRotation.Down}
-            />
+            <AngleIcon rotation={sortAscending ? angleRotation.Up : angleRotation.Down}/>
             {showPriority && <small>{sortPriority}</small>}
         </Fragment>}
 

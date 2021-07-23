@@ -7,7 +7,7 @@ function PaginationWrapper({
     actions,
     utils: { hooks, selectors }
 }) {
-    const pageIndex = hooks.useSelector(s => s.pageIndex);
+    const pageIndex = hooks.useSelector(selectors.getPageIndex);
     const pageCount = hooks.useSelector(selectors.getPageCount);
 
     const actionAliases = useMemo(() => {

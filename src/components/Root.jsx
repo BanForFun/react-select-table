@@ -35,7 +35,7 @@ function Root(props) {
     const tableBodyRef = useRef();
     const searchInputRef = useRef();
 
-    const activeIndex = hooks.useSelector(s => s.activeIndex);
+    const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex);
     const pageSize = hooks.useSelector(s => s.pageSize);
     const isPageFirst = hooks.useSelector(selectors.isPageFirst);
     const isPageLast = hooks.useSelector(selectors.isPageLast);
@@ -109,7 +109,7 @@ function Root(props) {
                 if (!e.ctrlKey && !e.shiftKey && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(e, activeIndex);
+                    actions.select(e, activeRowIndex);
 
                 break;
             case 37: //Left
@@ -128,7 +128,7 @@ function Root(props) {
         return false;
     }, [
         actions, options, onKeyDown, placeholderShown,
-        activeIndex, selection, activeValue, //Redux props
+        activeRowIndex, selection, activeValue, //Redux props
         isPageFirst, isPageLast, isActiveItemLast, isActiveItemFirst, //Redux props
         getSelectionArg, //Redux selectors
         offsetPage, //Component methods

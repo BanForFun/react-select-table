@@ -1,18 +1,12 @@
-export function getPageCount(state) {
-    const { pageSize, visibleItemCount } = state;
-    if (!pageSize || !visibleItemCount) return 1;
+export const getPageCount = state =>
+    Math.ceil(state.visibleItemCount / state.pageSize) || 1;
 
-    return Math.ceil(visibleItemCount / pageSize);
-}
+export const getPageIndex = state =>
+    Math.floor(state.activeIndex / state.pageSize) || 0;
 
 export const isPageLast = state =>
-    state.pageIndex === getPageCount(state) - 1;
+    getPageIndex(state) === getPageCount(state) - 1;
 
-export const isPageFirst = state => 
-    state.pageIndex === 0;
+export const isPageFirst = state =>
+    getPageIndex(state) === 0;
 
-export const isActiveItemLast = state =>
-    isPageLast(state) && state.activeIndex === state.rowValues.length - 1;
-
-export const isActiveItemFirst = state =>
-    isPageFirst(state) && state.activeIndex === 0;

@@ -10,16 +10,16 @@ function TableBody(props) {
     } = props;
 
     const {
-        utils: { hooks }
+        utils: { hooks, selectors }
     } = props;
 
     const sortedItems = hooks.useSelector(s => s.sortedItems);
     const rowValues = hooks.useSelector(s => s.rowValues);
     const selection = hooks.useSelector(s => s.selection);
-    const activeIndex = hooks.useSelector(s => s.activeIndex);
+    const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex);
 
     const renderRow = (value, index) => {
-        const active = index === activeIndex;
+        const active = index === activeRowIndex;
         const { data } = sortedItems[value];
 
         const rowProps = {

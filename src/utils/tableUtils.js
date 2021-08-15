@@ -10,6 +10,20 @@ export const defaultEvents = {
     onSelectionChange: () => { }
 }
 
+let moduleIndex = 0;
+const getModuleValue = () => Math.pow(2, moduleIndex++);
+export const tableModules = {
+    Search: getModuleValue(),
+    Selection: getModuleValue(),
+    Pagination: getModuleValue(),
+    Sorting: getModuleValue(),
+    Filtering: getModuleValue(),
+    Items: getModuleValue()
+}
+
+tableModules.Rows = tableModules.Items | tableModules.Filtering | tableModules.Sorting;
+tableModules.Selection |= tableModules.Rows;
+
 const defaultOptions = {
     itemPredicate: _.isMatch,
     itemComparators: {},

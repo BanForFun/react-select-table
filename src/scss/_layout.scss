@@ -149,10 +149,13 @@
 
 .rst-icon {
     height: 1rem;
-    width: 1rem;
     display: inline-flex;
     align-items: flex-end;
     fill: currentColor;
+
+    svg {
+        width: 1rem;
+    }
 }
 
 .rst-paginationContainer {

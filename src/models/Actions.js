@@ -1,18 +1,3 @@
-export const relativePos = Object.freeze({
-    Next: "next",
-    Prev: "prev",
-    First: "first",
-    Last: "last"
-});
-
-export const specialValues = Object.freeze({
-    FirstItem: "firstItem",
-    LastItem: "lastItem",
-    FirstRow: "firstRow",
-    LastRow: "lastRow",
-    ActiveRow: "activeRow"
-});
-
 export const types = {
     //Items
     SET_ITEMS: "",
@@ -31,9 +16,9 @@ export const types = {
     //Selection
     SET_SELECTED: "",
     SELECT: "",
-    SELECT_RELATIVE: "",
     CLEAR_SELECTION: "",
     SELECT_ALL: "",
+    SET_ACTIVE: "",
 
     //Search
     SEARCH: "",
@@ -41,7 +26,6 @@ export const types = {
 
     //Pagination
     SET_PAGE_SIZE: "",
-    GO_TO_PAGE_RELATIVE: "",
 
     DEBUG: ""
 };
@@ -65,9 +49,6 @@ export default function Actions(namespace) {
 
         goToMatch: (index) =>
             Action(types.GO_TO_MATCH, { index }),
-
-        goToPageRelative: (position) =>
-            Action(types.GO_TO_PAGE_RELATIVE, { position }),
 
         setPageSize: (size) =>
             Action(types.SET_PAGE_SIZE, { size }),
@@ -93,23 +74,23 @@ export default function Actions(namespace) {
         setItems: (items) =>
             Action(types.SET_ITEMS, { items }),
 
-        baseSortItems: (path, shiftKey) =>
-            Action(types.SORT_ITEMS, { path, shiftKey }),
+        baseSortItems: (path, addToPrev) =>
+            Action(types.SORT_ITEMS, { path, addToPrev }),
 
-        baseSelectRelative: (offset, ctrlKey, shiftKey, origin = specialValues.ActiveRow) =>
-            Action(types.SELECT_RELATIVE, { offset, origin, ctrlKey, shiftKey }),
+        baseSelect: (index, addToPrev, isRange, contextMenu = false) =>
+            Action(types.SELECT, { index, addToPrev, isRange, contextMenu }),
 
-        baseSelect: (rowIndex, ctrlKey, shiftKey, contextMenu = false) =>
-            Action(types.SELECT, { rowIndex, ctrlKey, shiftKey, contextMenu }),
+        baseClearSelection: (contextMenu = false) =>
+            Action(types.CLEAR_SELECTION, { contextMenu }),
 
-        baseClearSelection: (ctrlKey, contextMenu = false) =>
-            Action(types.CLEAR_SELECTION, { ctrlKey, contextMenu }),
+        baseSetActive: (index, contextMenu = false) =>
+            Action(types.SET_ACTIVE, { index, contextMenu }),
 
         selectAll: () =>
             Action(types.SELECT_ALL),
 
-        setSelected: (map, activeRowIndex = null, pivotValue = null) =>
-            Action(types.SET_SELECTED, { map, activeRowIndex, pivotValue }),
+        setSelected: (map, activeIndex = null, pivotIndex = null) =>
+            Action(types.SET_SELECTED, { map, activeIndex, pivotIndex }),
 
         setError: (error) =>
             Action(types.SET_ERROR, { error }),
@@ -119,14 +100,14 @@ export default function Actions(namespace) {
     }
 
     const aliases = {
-        selectRelative: (e, offset, origin = undefined) =>
-            actions.baseSelectRelative(offset, e.ctrlKey, e.shiftKey, origin),
+        select: (e, index) =>
+            actions.baseSelect(index, e.ctrlKey, e.shiftKey, e.type === "contextmenu"),
 
-        select: (e, rowIndex) =>
-            actions.baseSelect(rowIndex, e.ctrlKey, e.shiftKey, e.type === "contextmenu"),
+        setActive: (e, index) =>
+            actions.baseSetActive(index, e.type === "contextmenu"),
 
         clearSelection: (e) =>
-            actions.baseClearSelection(e.ctrlKey,e.type === "contextmenu"),
+            actions.baseClearSelection(e.ctrlKey, e.type === "contextmenu"),
 
         sortItems: (e, path) =>
             actions.baseSortItems(path, e.shiftKey)

@@ -15,21 +15,21 @@ function PageSpacer({children}) {
 function DefaultPagination({
     page,
     pageCount,
-    nextPage,
-    prevPage,
-    firstPage,
-    lastPage
+    goToPage
 }) {
     const repeatTimeoutRef = useRef(null);
 
-    const repeatAction = useCallback(action => {
+    const repeatOffsetPage = useCallback(offset => {
+        let nextPage = page;
+
         const repeatAction = (delay = repeatDelay) => {
-            action();
+            nextPage += offset;
+            if (!goToPage(nextPage)) return;
             repeatTimeoutRef.current = setTimeout(repeatAction, delay);
         }
 
         return () => repeatAction(startDelay);
-    }, [repeatTimeoutRef]);
+    }, [repeatTimeoutRef, page, goToPage]);
 
     useEvent(window, "mouseup", useCallback(() => {
         clearTimeout(repeatTimeoutRef.current);
@@ -45,6 +45,7 @@ function DefaultPagination({
             {...rest}
             tabIndex="-1"
             className={buttonClass}
+            onClick={() => goToPage(number)}
         >{number}</button>
     }
 
@@ -55,13 +56,13 @@ function DefaultPagination({
         pages.push(<PageSpacer key="ellipsis_left">...</PageSpacer>);
 
     if (page >= 3)
-        pages.push(<Page key="page_prev" number={page - 1} onClick={prevPage} />)
+        pages.push(<Page key="page_prev" number={page - 1} />)
 
     if (page >= 2 && pageFromEnd >= 2)
         pages.push(<Page key="page_current" number={page} />)
 
     if (pageFromEnd >= 3)
-        pages.push(<Page key="page_next" number={page + 1} onClick={nextPage} />)
+        pages.push(<Page key="page_next" number={page + 1} />)
 
     if (pageFromEnd >= 4)
         pages.push(<PageSpacer key="ellipsis_right">...</PageSpacer>);
@@ -73,23 +74,23 @@ function DefaultPagination({
         <button
             tabIndex="-1"
             disabled={page === 1}
-            onMouseDown={repeatAction(prevPage)}
+            onMouseDown={repeatOffsetPage(-1)}
         >
             <AngleIcon rotation={angleRotation.Left} />
         </button>
 
         {_.times(paddingLeft, i => <PageSpacer key={`padding_left_${i}`} />)}
 
-        {pageCount > 0 && <Page number={1} onClick={firstPage} />}
+        {pageCount > 0 && <Page number={1} />}
         {pages}
-        {pageCount > 1 && <Page number={pageCount} onClick={lastPage} />}
+        {pageCount > 1 && <Page number={pageCount} />}
 
         {_.times(paddingRight, i => <PageSpacer key={`padding_right_${i}`} />)}
 
         <button
             tabIndex="-1"
             disabled={page === pageCount}
-            onMouseDown={repeatAction(nextPage)}
+            onMouseDown={repeatOffsetPage(1)}
         >
             <AngleIcon rotation={angleRotation.Right} />
         </button>

@@ -1,7 +1,6 @@
 import React, {useRef, useEffect, useCallback, useMemo} from 'react';
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationWrapper";
-import {relativePos, specialValues} from "../models/Actions";
 import SearchContainer from "./SearchContainer";
 
 //Child of Connector
@@ -35,20 +34,19 @@ function Root(props) {
     const tableBodyRef = useRef();
     const searchInputRef = useRef();
 
-    const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex);
-    const pageSize = hooks.useSelector(s => s.pageSize);
-    const isPageFirst = hooks.useSelector(selectors.isPageFirst);
-    const isPageLast = hooks.useSelector(selectors.isPageLast);
-    const isActiveItemFirst = hooks.useSelector(selectors.isActiveItemFirst);
-    const isActiveItemLast = hooks.useSelector(selectors.isActiveItemLast);
+    const pageIndex = hooks.useSelector(selectors.getPageIndex);
+    const pageCount = hooks.useSelector(selectors.getPageCount);
     const activeValue = hooks.useSelector(selectors.getActiveValue);
+    const activeIndex = hooks.useSelector(s => s.activeIndex);
+    const pageSize = hooks.useSelector(s => s.pageSize);
     const selection = hooks.useSelector(s => s.selection);
     const isLoading = hooks.useSelector(s => s.isLoading);
     const error = hooks.useSelector(s => s.error);
-    const isEmpty = hooks.useSelector(s => !s.visibleItemCount);
+    const itemCount = hooks.useSelector(s => s.visibleItemCount);
 
     const getSelectionArg = hooks.useSelectorGetter(selectors.getSelectionArg);
 
+    const isEmpty = !itemCount;
     const placeholder = useMemo(() => {
         const props = {
             className: "rst-bodyPlaceholder"
@@ -70,55 +68,51 @@ function Root(props) {
 
     const placeholderShown = !!placeholder;
 
-    const offsetPage = useCallback((e, prev) => {
-        if (!e.ctrlKey && !e.shiftKey) {
-            const relPos = prev ? relativePos.Prev : relativePos.Next;
-            actions.goToPageRelative(relPos);
-        } else {
-            const offset = prev ? -pageSize : pageSize;
-            actions.selectRelative(e, offset);
-        }
-    }, [actions, pageSize]);
+    const select = useCallback((e, index) => {
+        if (e.ctrlKey && !e.shiftKey)
+            return actions.setActive(e, index);
+
+        return actions.select(e, index);
+    }, [actions]);
 
     const handleShortcuts = useCallback(e => {
         if (placeholderShown) return false;
         if (onKeyDown(e, getSelectionArg()) === false) return false;
 
+        const isPageFirst = pageIndex === 0;
+        const isPageLast = pageIndex === pageCount - 1;
+        const isActiveFirst = activeIndex === 0;
+        const isActiveLast = activeIndex === itemCount - 1;
+
         switch (e.keyCode) {
-            case 65: //A
-                if (!e.ctrlKey || e.shiftKey || !options.multiSelect) return;
-                actions.selectAll();
-                break;
             case 38: //Up
-                if (isActiveItemFirst) break;
-                actions.selectRelative(e, -1);
+                if (!isActiveFirst) select(e, activeIndex - 1);
                 break;
             case 40: //Down
-                if (isActiveItemLast) break;
-                actions.selectRelative(e, 1);
+                if (!isActiveLast) select(e, activeIndex + 1);
+                break;
+            case 37: //Left
+                if (!isPageFirst) select(e, activeIndex - pageSize);
+                break;
+            case 39: //Right
+                if (!isPageLast) select(e, Math.min(activeIndex + pageSize, itemCount - 1));
                 break;
             case 36: //Home
-                if (isActiveItemFirst) break;
-                actions.selectRelative(e, 0, specialValues.FirstItem);
+                if (!isActiveFirst) select(e, 0);
                 break;
             case 35: //End
-                if (isActiveItemLast) break;
-                actions.selectRelative(e, 0, specialValues.LastItem);
+                if (!isActiveLast) select(e, itemCount - 1);
                 break;
             case 13: //Enter
                 if (!e.ctrlKey && !e.shiftKey && selection.has(activeValue))
                     onItemsOpen(getSelectionArg(), true);
                 else
-                    actions.select(e, activeRowIndex);
+                    actions.select(e, activeIndex);
 
                 break;
-            case 37: //Left
-                if (isPageFirst) break;
-                offsetPage(e, true);
-                break;
-            case 39: //Right
-                if (isPageLast) break;
-                offsetPage(e, false);
+            case 65: //A
+                if (e.ctrlKey && !e.shiftKey && options.multiSelect)
+                    actions.selectAll();
                 break;
             default:
                 return;
@@ -128,10 +122,9 @@ function Root(props) {
         return false;
     }, [
         actions, options, onKeyDown, placeholderShown,
-        activeRowIndex, selection, activeValue, //Redux props
-        isPageFirst, isPageLast, isActiveItemLast, isActiveItemFirst, //Redux props
+        activeIndex, itemCount, selection, activeValue, pageSize, //Redux props
         getSelectionArg, //Redux selectors
-        offsetPage, //Component methods
+        select, //Component methods
         onItemsOpen, //Event handlers
     ]);
 

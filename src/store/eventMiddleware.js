@@ -27,6 +27,7 @@ const eventMiddleware = store => next => action => {
         case types.CLEAR_ITEMS:
         case types.SET_ITEM_FILTER:
         case types.SELECT:
+        case types.SET_ACTIVE:
         case types.CLEAR_SELECTION:
         case types.SET_SELECTED:
         case types.SELECT_ALL:

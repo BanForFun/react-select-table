@@ -16,11 +16,12 @@ function ScrollingContainer(props) {
     } = props;
 
     const {
-        utils: { options, hooks },
+        utils: { options, hooks, selectors },
         actions
     } = props;
 
     const rowValues = hooks.useSelector(s => s.rowValues);
+    const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
 
     const [mode, setMode] = useState(null);
 
@@ -75,7 +76,7 @@ function ScrollingContainer(props) {
             originRelPos: relPos,
             pendingFrames: 0
         });
-    }, [options, applyRectStyles, rowValues]);
+    }, [options, applyRectStyles, rowValues.length]);
 
     const dragSelectEnd = useCallback(() => {
         applyRectStyles({ display: "none" });
@@ -89,10 +90,11 @@ function ScrollingContainer(props) {
 
             actions.setSelected(
                 _.mapKeys(selected, (_, index) => rowValues[index]),
-                active, rowValues[pivot]
+                active + indexOffset,
+                pivot + indexOffset
             );
         });
-    }, [applyRectStyles, actions, rowValues, setMode]);
+    }, [applyRectStyles, actions, rowValues, indexOffset]);
 
     const updateSelection = useCallback(relY => {
         const prevRelY = dragSelectionRef.prevRelPos[1];

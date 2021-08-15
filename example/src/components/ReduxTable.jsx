@@ -1,7 +1,6 @@
 import React, {useCallback, useState, useMemo, useEffect, useRef} from 'react'
 import _ from "lodash";
 import { Table, getTableUtils } from 'react-select-table';
-import columns from '../columns';
 import { useDispatch, useSelector } from 'react-redux';
 import { tableNamespace } from "../store";
 import allItems from "../data/comments";
@@ -27,6 +26,32 @@ function ReduxTable() {
     useEffect(() => {
         dispatch(actions.setItems(oddItems));
     }, [dispatch]);
+
+    const columns = useMemo(() => {
+        return [
+            {
+                title: "A/A",
+                isHeader: true
+            },
+            {
+                title: "#",
+                path: "id",
+                isHeader: true
+            },
+            {
+                title: "Post id",
+                path: "postId"
+            },
+            {
+                title: "Name",
+                path: "name"
+            },
+            {
+                title: "Email",
+                path: "email"
+            },
+        ]
+    }, []);
 
     const buttonActions = useMemo(() => ({
         "Add even": actions.addItems(...evenItems),
@@ -106,7 +131,7 @@ function ReduxTable() {
             emptyPlaceholder="No items"
             namespace={tableNamespace}
             className="rst-table"
-            initColumnWidths={[10, 10, 40, 40]}
+            initColumnWidths={[10, 10, 10, 40, 30]}
             // tableClass="table table-striped table-hover table-dark"
             theadClass=""
             columns={columns}

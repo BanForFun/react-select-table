@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback} from 'react';
 import _ from "lodash";
 import classNames from "classnames";
 
@@ -16,52 +16,31 @@ function TableRow({
     active,
     data,
     value,
-    index,
-    bodyContainerRef,
+    rowIndex,
     className,
-    utils: { hooks }
+    indexOffset
 }) {
-    const trRef = useRef();
-    const visibleItemCount = hooks.useSelector(s => s.visibleItemCount);
+    const index = rowIndex + indexOffset;
 
-    useLayoutEffect(() => {
-        if (!active) return;
-
-        //Get elements
-        const bodyContainer = bodyContainerRef.current;
-        const scrollingContainer = bodyContainer.offsetParent;
-        const tr = trRef.current;
-
-        //Scroll up
-        const scrollUp = tr.offsetTop < scrollingContainer.scrollTop;
-        if (scrollUp)
-            scrollingContainer.scrollTop = tr.offsetTop;
-
-        //Scroll down
-        const visibleHeight = scrollingContainer.clientHeight - bodyContainer.offsetTop;
-        const rowBottom = tr.offsetTop + tr.offsetHeight;
-        const scrollDown = rowBottom > (scrollingContainer.scrollTop + visibleHeight);
-        if (scrollDown)
-            scrollingContainer.scrollTop = rowBottom - visibleHeight;
-
-        //visibleItemCount is a dependency so that when items are added or removed, the active row stays visible
-    }, [active, visibleItemCount]);
+    const startDrag = useCallback(e => {
+        dragSelectStart([e.clientX, e.clientY], rowIndex);
+    }, [rowIndex, dragSelectStart]);
 
     const handleContextMenu = useCallback(e => {
         if (isTouchingRef.current) {
             actions.baseSelect(index, true, false);
-            dragSelectStart([e.clientX, e.clientY], index);
+            startDrag(e);
         } else {
             actions.select(e, index);
         }
-    }, [index, actions]);
+    }, [index, startDrag, actions, isTouchingRef]);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
 
         actions.select(e, index);
-        dragSelectStart([e.clientX, e.clientY], index);
-    }, [index, actions]);
+        startDrag(e);
+    }, [index, startDrag, actions]);
 
     const renderColumn = (column) => {
         const { _id, path, render, isHeader } = column;
@@ -69,7 +48,7 @@ function TableRow({
         const options = {
             className: null
         };
-        const defaultContent = _.getOrSource(data, path);
+        const defaultContent = _.get(data, path, index);
         const content = render(defaultContent, data, options);
 
         const CellType = isHeader ? 'th' : 'td';
@@ -86,7 +65,6 @@ function TableRow({
 
     return <tr
         className={trClass}
-        ref={trRef}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
     >

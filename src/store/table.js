@@ -2,7 +2,7 @@
 
 import _ from "lodash";
 import produce, {enableMapSet} from "immer";
-import {specialValues, relativePos, types} from "../models/Actions";
+import {types} from "../models/Actions";
 import {setOptions} from "../utils/tableUtils";
 import {compareAscending} from "../utils/sortUtils";
 
@@ -22,17 +22,17 @@ export default function createTable(namespace, options = {}) {
 
     const {
         getActiveValue,
+        getActiveRowIndex,
         getPageCount,
-        isPageLast,
         getPageIndex,
-        getActiveRowIndex
+        getPageIndexOffset,
+        getItemPageIndex
     } = _.mapValues(utils.private.selectors, selector =>
-        (state = draft) => selector(state));
+        (state = draft, ...rest) => selector(state, ...rest));
 
     const {
         valueProperty,
         searchProperty,
-        listBox,
         multiSelect
     } = options;
 
@@ -53,11 +53,30 @@ export default function createTable(namespace, options = {}) {
         rowValues: [],
         visibleItemCount: 0,
         activeIndex: 0,
-        pivotValue: null,
+        pivotIndex: 0,
         resetPivotForRelative: false,
 
         ...options.initState
     };
+
+    //#region Validation
+
+    function isIndexValid(index) {
+        return index != null && _.inRange(index, draft.visibleItemCount);
+    }
+
+    function validateValue(value, checkVisible = false) {
+        if (value == null) return null;
+
+        const item = draft.sortedItems[value];
+
+        if (!item) return null;
+        if (checkVisible && !item.visible) return null;
+
+        return getDataValue(item.data);
+    }
+
+    //#endregion
 
     //#region Visibility
 
@@ -134,7 +153,7 @@ export default function createTable(namespace, options = {}) {
 
         setItemOrder(prevValue, undefined);
 
-        firstPage();
+        resetPage();
         clearSelection();
     }
 
@@ -147,89 +166,97 @@ export default function createTable(namespace, options = {}) {
     }
 
     function* createValueIterator(onlyVisible = false, forward = true, originValue = null) {
-        originValue ??= draft.headValue;
-        const nextProperty = forward ? "next" : "prev";
-
-        let value = originValue;
+        let value = originValue ?? (forward ? draft.headValue : draft.tailValue);
         while (value !== undefined) {
             const item = draft.sortedItems[value];
             if (!onlyVisible || item.visible)
                 yield value;
 
-            value = item[nextProperty];
+            value = item[forward ? "next" : "prev"];
         }
-    }
-
-    function validateValue(value, checkVisible = false) {
-        if (value == null) return null;
-
-        const item = draft.sortedItems[value];
-
-        if (!item) return null;
-        if (checkVisible && !item.visible) return null;
-
-        return getDataValue(item.data);
     }
 
     //#endregion
 
     //#region Pagination
 
-    function getCurrentPageSize() {
-        const {pageSize, visibleItemCount} = draft;
-
-        if (!pageSize)
-            return visibleItemCount;
-
-        const lastPageSize = visibleItemCount % pageSize
-        return isPageLast() && lastPageSize || pageSize;
+    function resetPage() {
+        setActiveItem(() => true, true);
     }
 
-    function paginateItems(originValue, forward, skipOrigin) {
-        draft.rowValues = [];
+    function setActiveItem(callback, searchForward, originRowIndex = -1) {
+        let { rowValues } = draft;
+        let originValue, index;
 
-        const pageSize = getCurrentPageSize();
-        const startIndex = forward ? 0 : pageSize - 1;
-        const step = forward ? 1 : -1;
-        let index = startIndex;
-
-        const values = createValueIterator(true, forward, originValue);
-        for (let value of values) {
-            if (Math.abs(startIndex - index) >= pageSize) break;
-            if (skipOrigin && value === originValue) continue;
-
-            draft.rowValues[index] = value;
-            index += step;
+        if (originRowIndex < 0) {
+            rowValues = [];
+            index = searchForward ? 0 : draft.visibleItemCount - 1;
+        } else {
+            originValue = rowValues[originRowIndex];
+            index = getPageIndexOffset() + originRowIndex;
         }
-    }
 
-    function setPageIndex(pageIndex) {
-        if (!_.inRange(pageIndex, 0, getPageCount())) return false;
+        let setActive = null;
+        const pageEnd = searchForward ? draft.pageSize - 1 : 0;
 
-        draft.activeIndex = draft.pageSize * pageIndex;
+        const values = createValueIterator(true, searchForward, originValue);
+        for (let value of values) {
+            const rowIndex = index % draft.pageSize;
+            rowValues[rowIndex] = value;
+
+            if (value !== originValue && callback({ value, index }))
+                setActive ??= index;
+
+            index += searchForward ? 1 : -1;
+
+            if (rowIndex !== pageEnd) continue;
+            if (setActive != null) break;
+
+            rowValues = [];
+        }
+
+        if (setActive == null) return false;
+
+        draft.activeIndex = setActive;
+        draft.rowValues = rowValues;
         return true;
     }
 
-    function firstPage() {
-        setPageIndex(0);
-        paginateItems(draft.headValue, true, false);
+    function setActiveValue(value, searchForward, searchAll = false) {
+        value = validateValue(value, true);
+        if (value == null) return false;
+
+        const originRow = searchAll ? -1 : getActiveRowIndex();
+        return setActiveItem(item => item.value === value, searchForward, originRow);
     }
 
-    function lastPage() {
-        setPageIndex(getPageCount() - 1);
-        paginateItems(draft.tailValue, false, false)
+    function goToActiveValue() {
+        const activeValue = validateValue(getActiveValue(), true);
+        if (activeValue == null) return resetPage();
+
+        return setActiveItem(item => item.value === activeValue, true);
     }
 
-    function nextPage() {
-        if (!setPageIndex(getPageIndex() + 1)) return false;
-        paginateItems(_.last(draft.rowValues), true, true);
-        return true;
-    }
+    function setActiveIndex(index, fromStart = false) {
+        if (!isIndexValid(index)) return false;
 
-    function prevPage() {
-        if (!setPageIndex(getPageIndex() - 1)) return false;
-        paginateItems(draft.rowValues[0], false, true)
-        return true;
+        const currentPage = fromStart ? NaN : getPageIndex();
+        const targetPage = getItemPageIndex(draft, index);
+        if (currentPage === targetPage) {
+            draft.activeIndex = index;
+            return true;
+        }
+
+        const afterCurrent = targetPage > currentPage;
+        const pageEnd = afterCurrent ? draft.rowValues.length - 1 : 0;
+        const origins = [
+            { page: currentPage,           forward: afterCurrent,   row: pageEnd },
+            { page: 0,                     forward: true,           row: -1      },
+            { page: getPageCount() - 1,    forward: false,          row: -1      }
+        ];
+
+        const [origin] = _.sortBy(origins, origin => Math.abs(targetPage - origin.page));
+        return setActiveItem(item => item.index === index, origin.forward, origin.row);
     }
 
     //#endregion
@@ -356,7 +383,7 @@ export default function createTable(namespace, options = {}) {
         for (; dataIndex < itemData.length; dataIndex++)
             addedValues.push(addItem(itemData[dataIndex], draft.tailValue));
 
-        draft.pivotValue = goToActiveValue();
+        goToActiveValue();
 
         return addedValues;
     }
@@ -388,7 +415,7 @@ export default function createTable(namespace, options = {}) {
             isLoading: false,
             error: null,
             activeIndex: 0,
-            pivotValue: null,
+            pivotIndex: 0,
             selection: new Set()
         });
     }
@@ -397,69 +424,13 @@ export default function createTable(namespace, options = {}) {
 
     //#region Selection
 
-    function nudgeActiveIndex(forward) {
-        const nextIndex = draft.activeIndex + (forward ? 1 : -1);
-
-        const rowIndex = getActiveRowIndex();
-        const maxRowIndex = draft.rowValues.length - 1;
-
-        let success = true;
-        if (rowIndex === 0 && !forward)
-            success = prevPage();
-        else if (rowIndex === maxRowIndex && forward)
-            success = nextPage();
-
-        if (success)
-            draft.activeIndex = nextIndex;
-
-        return success;
-    }
-
-    function setActiveValue(value) {
-        const originValue = getActiveValue();
-        const activeValue = validateValue(value, true);
-        if (activeValue == null) return originValue;
-
-        const forward = draft.activeIndex === 0 || compareItems(activeValue, originValue) > 0;
-        while (getActiveValue() !== activeValue && nudgeActiveIndex(forward));
-        return activeValue;
-    }
-
-    function goToActiveValue() {
-        const activeValue = getActiveValue();
-        firstPage();
-        return setActiveValue(activeValue);
-    }
-
-    function setActiveRowIndex(rowIndex) {
-        if (!_.inRange(rowIndex, 0, draft.rowValues.length)) return false;
-
-        draft.activeIndex = draft.pageSize * getPageIndex() + rowIndex;
-        return true;
-    }
-
-    function setActiveSpecial(specialValue) {
-        switch (specialValue) {
-            case specialValues.FirstItem:
-                firstPage();
-                break;
-            case specialValues.FirstRow:
-                setActiveRowIndex(0);
-                break;
-            case specialValues.LastItem:
-                lastPage();
-                //Fallthrough
-            case specialValues.LastRow:
-                setActiveRowIndex(draft.rowValues.length - 1);
-                break;
-            default:
-                break;
-        }
+    function resetPivot() {
+        draft.pivotIndex = draft.activeIndex;
     }
 
     function clearSelection() {
         draft.selection.clear();
-        draft.pivotValue = getActiveValue();
+        resetPivot();
     }
 
     function setSelection(values) {
@@ -482,16 +453,14 @@ export default function createTable(namespace, options = {}) {
             selection.delete(value);
     }
 
-    function setRangeSelected(fromValue, toValue, selected) {
-        if (!multiSelect)
-            return setValueSelected(selected ? toValue : fromValue, selected)
+    function setRangeSelected(state, selected) {
+        const offset = draft.pivotIndex - state.activeIndex;
+        const values = createValueIterator(true, offset > 0, getActiveValue(state));
 
-        const forward = compareItems(fromValue, toValue) < 0;
-        const values = createValueIterator(true, forward, fromValue);
-
+        let distance = 0;
         for (let value of values) {
             setValueSelected(value, selected);
-            if (value === toValue) break;
+            if (distance++ === Math.abs(offset)) break;
         }
     }
 
@@ -507,7 +476,6 @@ export default function createTable(namespace, options = {}) {
 
             const { payload } = action;
 
-            // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
                 //Items
                 case types.SET_ITEMS: {
@@ -539,7 +507,7 @@ export default function createTable(namespace, options = {}) {
                         }
                     }
 
-                    draft.pivotValue = setActiveValue(setActive);
+                    setActiveValue(setActive);
                     break;
                 }
                 case types.PATCH_ITEM_VALUES: {
@@ -579,7 +547,7 @@ export default function createTable(namespace, options = {}) {
 
                     let ascending = nextSortOrder[sortAscending.get(path)];
 
-                    if (!payload.shiftKey) {
+                    if (!payload.addToPrev) {
                         sortAscending.clear();
                         ascending ??= true;
                     }
@@ -599,7 +567,7 @@ export default function createTable(namespace, options = {}) {
                     for (let value of values)
                         setItemVisibility(value)
 
-                    firstPage();
+                    resetPage();
                     clearSelection();
                     break;
                 }
@@ -620,57 +588,41 @@ export default function createTable(namespace, options = {}) {
                 }
 
                 //Selection
-                case types.SELECT_RELATIVE: {
-                    const { offset } = payload;
-
-                    setActiveSpecial(payload.origin);
-                    const originValue = getActiveValue();
-
-                    let distance = 0;
-                    while (distance++ < Math.abs(offset) && nudgeActiveIndex(offset > 0));
-
-                    if (payload.ctrlKey && !payload.shiftKey) {
-                        draft.resetPivotForRelative = true;
-                        break;
-                    }
-
-                    if (draft.resetPivotForRelative)
-                        draft.pivotValue = originValue;
-
-                    //Deliberate fall-through
+                case types.SET_ACTIVE: {
+                    if (!setActiveIndex(payload.index)) break;
+                    draft.resetPivotForRelative = true;
+                    break;
                 }
                 case types.SELECT: {
-                    const { ctrlKey, shiftKey } = payload;
-                    if (payload.contextMenu && ctrlKey) break;
+                    const { addToPrev, index } = payload;
+                    if (!setActiveIndex(index)) break;
 
-                    setActiveRowIndex(payload.rowIndex);
+                    if (draft.resetPivotForRelative) {
+                        draft.pivotIndex = state.activeIndex;
+                        draft.resetPivotForRelative = false;
+                    }
 
-                    const prevActiveValue = getActiveValue(state);
-                    const value = getActiveValue();
-
-                    draft.resetPivotForRelative = false;
-
-                    if (!ctrlKey)
+                    if (!addToPrev)
                         draft.selection.clear();
 
-                    if (shiftKey) {
-                        if (ctrlKey)
+                    if (payload.isRange) {
+                        if (addToPrev)
                             //Clear previous selection
-                            setRangeSelected(draft.pivotValue, prevActiveValue, false)
+                            setRangeSelected(state, false);
 
-                        setRangeSelected(draft.pivotValue, value, true);
+                        setRangeSelected(draft, true);
                         break;
                     }
 
-                    draft.pivotValue = value;
+                    draft.pivotIndex = index;
 
-                    const selected = !ctrlKey || !draft.selection.has(value);
+                    const value = getActiveValue();
+                    const selected = !addToPrev || !draft.selection.has(value);
                     setValueSelected(value, selected);
 
                     break;
                 }
                 case types.CLEAR_SELECTION: {
-                    if (payload.ctrlKey || listBox) break;
                     clearSelection();
                     break;
                 }
@@ -678,12 +630,12 @@ export default function createTable(namespace, options = {}) {
                     if (!multiSelect) break;
 
                     //Active index
-                    setActiveRowIndex(payload.activeRowIndex);
+                    setActiveIndex(payload.activeIndex);
 
-                    //Pivot value
-                    const pivotValue = validateValue(payload.pivotValue, true);
-                    if (pivotValue !== null) {
-                        draft.pivotValue = pivotValue;
+                    //Pivot index
+                    const { pivotIndex } = payload;
+                    if (isIndexValid(pivotIndex)) {
+                        draft.pivotIndex = pivotIndex;
                         draft.resetPivotForRelative = false;
                     }
 
@@ -716,21 +668,20 @@ export default function createTable(namespace, options = {}) {
                     phrase = options.searchValueParser(phrase);
 
                     addMatches(draft.searchIndex, phrase,  0);
-                    draft.matches.sort(compareItems);
+                    const [value] = draft.matches.sort(compareItems);
 
-                    firstPage();
-                    //Fallthrough
+                    setActiveValue(value, true, true);
+                    draft.resetPivotForRelative = true;
+                    break;
                 }
                 case types.GO_TO_MATCH: {
                     const { index } = payload;
                     const { matches } = draft;
 
-                    if (index !== undefined) {
-                        if (!_.inRange(index, matches.length)) break;
-                        draft.matchIndex = index;
-                    }
+                    if (!_.inRange(index, matches.length)) break;
+                    setActiveValue(matches[index], index > draft.matchIndex);
 
-                    setActiveValue(matches[draft.matchIndex]);
+                    draft.matchIndex = index;
                     draft.resetPivotForRelative = true;
                     break;
                 }
@@ -742,26 +693,8 @@ export default function createTable(namespace, options = {}) {
                     if (!(newSize >= 0)) break;
 
                     draft.pageSize = newSize;
-                    goToActiveValue();
+                    setActiveIndex(state.activeIndex, true);
                     break;
-                }
-                case types.GO_TO_PAGE_RELATIVE: {
-                    switch (payload.position) {
-                        case relativePos.Next:
-                            nextPage();
-                            break;
-                        case relativePos.Prev:
-                            prevPage();
-                            break;
-                        case relativePos.First:
-                            firstPage();
-                            break;
-                        case relativePos.Last:
-                            lastPage();
-                            break;
-                    }
-
-                    draft.resetPivotForRelative = true;
                 }
                 default: {
                     break;

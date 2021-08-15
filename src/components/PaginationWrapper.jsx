@@ -1,5 +1,5 @@
-import React, {useMemo} from 'react';
-import {relativePos} from "../models/Actions";
+import _ from "lodash";
+import React, {useCallback} from 'react';
 
 //Child of Root
 function PaginationWrapper({
@@ -7,26 +7,21 @@ function PaginationWrapper({
     actions,
     utils: { hooks, selectors }
 }) {
-    const pageIndex = hooks.useSelector(selectors.getPageIndex);
     const pageCount = hooks.useSelector(selectors.getPageCount);
+    const pageIndex = hooks.useSelector(selectors.getPageIndex);
+    const pageSize = hooks.useSelector(s => s.pageSize);
 
-    const actionAliases = useMemo(() => {
-        const createAlias = pos => () => actions.goToPageRelative(pos);
+    const goToPage = useCallback(page => {
+        if (!_.inRange(--page, pageCount)) return false;
+        actions.baseSetActive(page * pageSize);
+        return true;
+    }, [actions, pageCount, pageSize]);
 
-        return {
-            nextPage: createAlias(relativePos.Next),
-            prevPage: createAlias(relativePos.Prev),
-            firstPage: createAlias(relativePos.First),
-            lastPage: createAlias(relativePos.Last),
-        }
-    }, [actions]);
-
-    const paginationProps = {
-        page: pageIndex + 1,
-        pageCount
-    };
-
-    return <Pagination {...paginationProps} {...actionAliases} />;
+    return <Pagination
+        page={pageIndex + 1}
+        pageCount={pageCount}
+        goToPage={goToPage}
+    />;
 }
 
 export default React.memo(PaginationWrapper);

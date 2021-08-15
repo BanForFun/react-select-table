@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useLayoutEffect} from 'react';
 import TableRow from "./TableRow";
 
 //Child of BodyContainer
@@ -6,26 +6,46 @@ function TableBody(props) {
     const {
         tableBodyRef,
         getRowClassName,
+        bodyContainerRef,
+        utils: { hooks, selectors },
         ...rowCommonProps
-    } = props;
-
-    const {
-        utils: { hooks, selectors }
     } = props;
 
     const sortedItems = hooks.useSelector(s => s.sortedItems);
     const rowValues = hooks.useSelector(s => s.rowValues);
     const selection = hooks.useSelector(s => s.selection);
+    const visibleItemCount = hooks.useSelector(s => s.visibleItemCount);
     const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex);
+    const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
 
-    const renderRow = (value, index) => {
-        const active = index === activeRowIndex;
+    useLayoutEffect(() => {
+        //Get elements
+        const activeRow = tableBodyRef.current.children[activeRowIndex];
+        const bodyContainer = bodyContainerRef.current;
+        const scrollingContainer = bodyContainer.offsetParent;
+
+        //Scroll up
+        const scrollUp = activeRow.offsetTop < scrollingContainer.scrollTop;
+        if (scrollUp)
+            scrollingContainer.scrollTop = activeRow.offsetTop;
+
+        //Scroll down
+        const visibleHeight = scrollingContainer.clientHeight - bodyContainer.offsetTop;
+        const rowBottom = activeRow.offsetTop + activeRow.offsetHeight;
+        const scrollDown = rowBottom > (scrollingContainer.scrollTop + visibleHeight);
+        if (scrollDown)
+            scrollingContainer.scrollTop = rowBottom - visibleHeight;
+
+    }, [visibleItemCount, activeRowIndex, bodyContainerRef]);
+
+    const renderRow = (value, rowIndex) => {
         const { data } = sortedItems[value];
 
         const rowProps = {
             ...rowCommonProps,
             key: `row_${props.name}_${value}`,
-            data, index, value, active,
+            data, value, rowIndex, indexOffset,
+            active: rowIndex === activeRowIndex,
             selected: selection.has(value),
             className: getRowClassName(data)
         };

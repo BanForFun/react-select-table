@@ -54,7 +54,7 @@ export default function createTable(namespace, options = {}) {
         visibleItemCount: 0,
         activeIndex: 0,
         pivotIndex: 0,
-        resetPivotForRelative: false,
+        resetPivot: false,
 
         ...options.initState
     };
@@ -424,13 +424,9 @@ export default function createTable(namespace, options = {}) {
 
     //#region Selection
 
-    function resetPivot() {
-        draft.pivotIndex = draft.activeIndex;
-    }
-
     function clearSelection() {
         draft.selection.clear();
-        resetPivot();
+        draft.pivotIndex = draft.activeIndex;
     }
 
     function setSelection(values) {
@@ -590,16 +586,16 @@ export default function createTable(namespace, options = {}) {
                 //Selection
                 case types.SET_ACTIVE: {
                     if (!setActiveIndex(payload.index)) break;
-                    draft.resetPivotForRelative = true;
+                    draft.resetPivot = true;
                     break;
                 }
                 case types.SELECT: {
                     const { addToPrev, index } = payload;
                     if (!setActiveIndex(index)) break;
 
-                    if (draft.resetPivotForRelative) {
+                    if (draft.resetPivot) {
                         draft.pivotIndex = state.activeIndex;
-                        draft.resetPivotForRelative = false;
+                        draft.resetPivot = false;
                     }
 
                     if (!addToPrev)
@@ -636,7 +632,7 @@ export default function createTable(namespace, options = {}) {
                     const { pivotIndex } = payload;
                     if (isIndexValid(pivotIndex)) {
                         draft.pivotIndex = pivotIndex;
-                        draft.resetPivotForRelative = false;
+                        draft.resetPivot = false;
                     }
 
                     //Selection
@@ -671,18 +667,21 @@ export default function createTable(namespace, options = {}) {
                     const [value] = draft.matches.sort(compareItems);
 
                     setActiveValue(value, true, true);
-                    draft.resetPivotForRelative = true;
+                    draft.resetPivotForRelaxtive = true;
                     break;
                 }
                 case types.GO_TO_MATCH: {
                     const { index } = payload;
                     const { matches } = draft;
 
-                    if (!_.inRange(index, matches.length)) break;
-                    setActiveValue(matches[index], index > draft.matchIndex);
+                    const safeIndex = _.wrapIndex(index, matches.length);
+                    setActiveValue(
+                        matches[safeIndex],
+                        index > draft.matchIndex,
+                        index !== safeIndex //Wrapped around
+                    );
 
-                    draft.matchIndex = index;
-                    draft.resetPivotForRelative = true;
+                    draft.matchIndex = safeIndex;
                     break;
                 }
 

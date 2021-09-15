@@ -25,6 +25,7 @@ export default function createTable(namespace, options = {}) {
         getActiveRowIndex,
         getPageCount,
         getPageIndex,
+        getPageSize,
         getPageIndexOffset,
         getItemPageIndex
     } = _.mapValues(utils.private.selectors, selector =>
@@ -153,7 +154,7 @@ export default function createTable(namespace, options = {}) {
 
         setItemOrder(prevValue, undefined);
 
-        resetPage();
+        setActiveValue(null);
         clearSelection();
     }
 
@@ -166,7 +167,8 @@ export default function createTable(namespace, options = {}) {
     }
 
     function* createValueIterator(onlyVisible = false, forward = true, originValue = null) {
-        let value = originValue ?? (forward ? draft.headValue : draft.tailValue);
+        const fallbackOrigin = forward ? draft.headValue : draft.tailValue;
+        let value = originValue ?? fallbackOrigin;
         while (value !== undefined) {
             const item = draft.sortedItems[value];
             if (!onlyVisible || item.visible)
@@ -180,38 +182,47 @@ export default function createTable(namespace, options = {}) {
 
     //#region Pagination
 
-    function resetPage() {
-        setActiveItem(() => true, true);
-    }
+    const specialOriginRows = Object.freeze({
+        TableBoundary: -1,
+        PageBoundary: -2
+    });
 
-    function setActiveItem(callback, searchForward, originRowIndex = -1) {
+    function setActiveItem(callback, searchForward, originRow) {
+        const pageSize = getPageSize();
+        const pageBoundary = searchForward ? pageSize - 1 : 0;
+
+        if (originRow === specialOriginRows.PageBoundary)
+            originRow = pageBoundary;
+
         let { rowValues } = draft;
         let originValue, index;
 
-        if (originRowIndex < 0) {
+        if (originRow < 0) {
             rowValues = [];
             index = searchForward ? 0 : draft.visibleItemCount - 1;
         } else {
-            originValue = rowValues[originRowIndex];
-            index = getPageIndexOffset() + originRowIndex;
+            originValue = rowValues[originRow];
+            index = getPageIndexOffset() + originRow;
         }
 
         let setActive = null;
-        const pageEnd = searchForward ? draft.pageSize - 1 : 0;
 
         const values = createValueIterator(true, searchForward, originValue);
         for (let value of values) {
-            const rowIndex = index % draft.pageSize;
+            const rowIndex = index % pageSize;
             rowValues[rowIndex] = value;
 
-            if (value !== originValue && callback({ value, index }))
+            if (value !== originValue && callback({ value, index })) {
                 setActive ??= index;
+                if (rowValues === draft.rowValues) break;
+            }
+
+            console.log(value);
 
             index += searchForward ? 1 : -1;
 
-            if (rowIndex !== pageEnd) continue;
+            if (rowIndex !== pageBoundary) continue;
             if (setActive != null) break;
-
             rowValues = [];
         }
 
@@ -219,22 +230,14 @@ export default function createTable(namespace, options = {}) {
 
         draft.activeIndex = setActive;
         draft.rowValues = rowValues;
+
         return true;
     }
 
-    function setActiveValue(value, searchForward, searchAll = false) {
+    function setActiveValue(value, searchForward = true, originRow = specialOriginRows.TableBoundary) {
         value = validateValue(value, true);
-        if (value == null) return false;
-
-        const originRow = searchAll ? -1 : getActiveRowIndex();
-        return setActiveItem(item => item.value === value, searchForward, originRow);
-    }
-
-    function goToActiveValue() {
-        const activeValue = validateValue(getActiveValue(), true);
-        if (activeValue == null) return resetPage();
-
-        return setActiveItem(item => item.value === activeValue, true);
+        const callback = item => item.value === (value ?? item.value);
+        return setActiveItem(callback, searchForward, originRow);
     }
 
     function setActiveIndex(index, fromStart = false) {
@@ -248,11 +251,10 @@ export default function createTable(namespace, options = {}) {
         }
 
         const afterCurrent = targetPage > currentPage;
-        const pageEnd = afterCurrent ? draft.rowValues.length - 1 : 0;
         const origins = [
-            { page: currentPage,           forward: afterCurrent,   row: pageEnd },
-            { page: 0,                     forward: true,           row: -1      },
-            { page: getPageCount() - 1,    forward: false,          row: -1      }
+            { page: currentPage,           forward: afterCurrent,   row: specialOriginRows.PageBoundary  },
+            { page: 0,                     forward: true,           row: specialOriginRows.TableBoundary },
+            { page: getPageCount() - 1,    forward: false,          row: specialOriginRows.TableBoundary }
         ];
 
         const [origin] = _.sortBy(origins, origin => Math.abs(targetPage - origin.page));
@@ -383,7 +385,7 @@ export default function createTable(namespace, options = {}) {
         for (; dataIndex < itemData.length; dataIndex++)
             addedValues.push(addItem(itemData[dataIndex], draft.tailValue));
 
-        goToActiveValue();
+        setActiveValue(getActiveValue());
 
         return addedValues;
     }
@@ -472,6 +474,7 @@ export default function createTable(namespace, options = {}) {
 
             const { payload } = action;
 
+            // noinspection FallThroughInSwitchStatementJS
             switch (action.type) {
                 //Items
                 case types.SET_ITEMS: {
@@ -563,7 +566,7 @@ export default function createTable(namespace, options = {}) {
                     for (let value of values)
                         setItemVisibility(value)
 
-                    resetPage();
+                    setActiveValue(null);
                     clearSelection();
                     break;
                 }
@@ -664,22 +667,19 @@ export default function createTable(namespace, options = {}) {
                     phrase = options.searchValueParser(phrase);
 
                     addMatches(draft.searchIndex, phrase,  0);
-                    const [value] = draft.matches.sort(compareItems);
+                    const { length } = draft.matches.sort(compareItems);
+                    payload.index = length;
 
-                    setActiveValue(value, true, true);
-                    draft.resetPivotForRelaxtive = true;
-                    break;
+                    //Fallthrough
                 }
                 case types.GO_TO_MATCH: {
                     const { index } = payload;
-                    const { matches } = draft;
+                    const { matches, pageSize } = draft;
 
                     const safeIndex = _.wrapIndex(index, matches.length);
-                    setActiveValue(
-                        matches[safeIndex],
-                        index > draft.matchIndex,
-                        index !== safeIndex //Wrapped around
-                    );
+                    const wrapOrigin = pageSize ? specialOriginRows.TableBoundary : specialOriginRows.PageBoundary;
+                    const origin = index === safeIndex ? getActiveRowIndex() : wrapOrigin;
+                    setActiveValue(matches[safeIndex], index > draft.matchIndex, origin);
 
                     draft.matchIndex = safeIndex;
                     break;

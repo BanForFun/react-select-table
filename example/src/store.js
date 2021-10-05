@@ -20,7 +20,7 @@ const reducer = createTable(tableNamespace, {
     multiSelect: true,
     multiSort: true,
     initState: {
-        // pageSize: 10,
+        pageSize: 10
         // filter: {
         //     completed: true
         // }

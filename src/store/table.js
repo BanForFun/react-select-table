@@ -182,42 +182,59 @@ export default function createTable(namespace, options = {}) {
 
     //#region Pagination
 
-    const specialOriginRows = Object.freeze({
-        TableBoundary: -1,
-        PageBoundary: -2
+    const originRows = Object.freeze({
+        TableBoundary: "table",
+        PageBoundary: "page",
+        ActiveRow: "active"
     });
 
-    function setActiveItem(callback, searchForward, originRow) {
-        const pageSize = getPageSize();
-        const pageBoundary = searchForward ? pageSize - 1 : 0;
+    const getPageBoundary = forward =>
+        forward ? draft.pageSize - 1 : 0;
 
-        if (originRow === specialOriginRows.PageBoundary)
-            originRow = pageBoundary;
-
-        let { rowValues } = draft;
-        let originValue, index;
-
-        if (originRow < 0) {
-            rowValues = [];
-            index = searchForward ? 0 : draft.visibleItemCount - 1;
-        } else {
-            originValue = rowValues[originRow];
-            index = getPageIndexOffset() + originRow;
+    const resolveOrigin = (origin, forward) => {
+        let rowIndex = 0;
+        switch (origin) {
+            case originRows.TableBoundary:
+                return {
+                    index: forward ? 0 : draft.visibleItemCount - 1,
+                    value: null
+                };
+            case originRows.PageBoundary:
+                rowIndex = getPageBoundary();
+                break;
+            case originRows.ActiveRow:
+                rowIndex = getActiveRowIndex();
+                break;
+            default:
+                break;
         }
 
-        let setActive = null;
+        return {
+            index: rowIndex + getPageIndexOffset(),
+            value: draft.rowValues[rowIndex],
+            isRowIndex: true
+        };
+    }
 
-        const values = createValueIterator(true, searchForward, originValue);
+    function setActiveItem(callback, searchForward, rowOrigin) {
+        let origin = resolveOrigin(rowOrigin, searchForward);
+        let rowValues = origin.isRowIndex ? draft.rowValues : [];
+
+        const pageBoundary = getPageBoundary();
+        const pageSize = getPageSize();
+
+        let setActive = null;
+        let { index } = origin;
+
+        const values = createValueIterator(true, searchForward, origin.value);
         for (let value of values) {
             const rowIndex = index % pageSize;
             rowValues[rowIndex] = value;
 
-            if (value !== originValue && callback({ value, index })) {
+            if (value !== origin.value && callback({ value, index })) {
                 setActive ??= index;
                 if (rowValues === draft.rowValues) break;
             }
-
-            console.log(value);
 
             index += searchForward ? 1 : -1;
 
@@ -234,7 +251,7 @@ export default function createTable(namespace, options = {}) {
         return true;
     }
 
-    function setActiveValue(value, searchForward = true, originRow = specialOriginRows.TableBoundary) {
+    function setActiveValue(value, searchForward = true, originRow = originRows.TableBoundary) {
         value = validateValue(value, true);
         const callback = item => item.value === (value ?? item.value);
         return setActiveItem(callback, searchForward, originRow);
@@ -252,10 +269,12 @@ export default function createTable(namespace, options = {}) {
 
         const afterCurrent = targetPage > currentPage;
         const origins = [
-            { page: currentPage,           forward: afterCurrent,   row: specialOriginRows.PageBoundary  },
-            { page: 0,                     forward: true,           row: specialOriginRows.TableBoundary },
-            { page: getPageCount() - 1,    forward: false,          row: specialOriginRows.TableBoundary }
+            { page: currentPage,           forward: afterCurrent,   row: originRows.PageBoundary  },
+            { page: 0,                     forward: true,           row: originRows.TableBoundary },
+            { page: getPageCount() - 1,    forward: false,          row: originRows.TableBoundary }
         ];
+
+        console.log("Setting active index", index);
 
         const [origin] = _.sortBy(origins, origin => Math.abs(targetPage - origin.page));
         return setActiveItem(item => item.index === index, origin.forward, origin.row);
@@ -677,8 +696,8 @@ export default function createTable(namespace, options = {}) {
                     const { matches, pageSize } = draft;
 
                     const safeIndex = _.wrapIndex(index, matches.length);
-                    const wrapOrigin = pageSize ? specialOriginRows.TableBoundary : specialOriginRows.PageBoundary;
-                    const origin = index === safeIndex ? getActiveRowIndex() : wrapOrigin;
+                    const wrapOrigin = pageSize ? originRows.TableBoundary : originRows.PageBoundary;
+                    const origin = index === safeIndex ? originRows.ActiveRow : wrapOrigin;
                     setActiveValue(matches[safeIndex], index > draft.matchIndex, origin);
 
                     draft.matchIndex = safeIndex;

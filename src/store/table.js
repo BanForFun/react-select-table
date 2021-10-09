@@ -194,19 +194,14 @@ export default function createTable(namespace, options = {}) {
     const resolveOrigin = (origin, forward) => {
         let rowIndex = 0;
         switch (origin) {
-            case originRows.TableBoundary:
-                return {
-                    index: forward ? 0 : draft.visibleItemCount - 1,
-                    value: null
-                };
             case originRows.PageBoundary:
-                rowIndex = getPageBoundary();
+                rowIndex = getPageBoundary(forward);
                 break;
             case originRows.ActiveRow:
                 rowIndex = getActiveRowIndex();
                 break;
             default:
-                break;
+                return { index: forward ? 0 : draft.visibleItemCount - 1 };
         }
 
         return {
@@ -220,7 +215,7 @@ export default function createTable(namespace, options = {}) {
         let origin = resolveOrigin(rowOrigin, searchForward);
         let rowValues = origin.isRowIndex ? draft.rowValues : [];
 
-        const pageBoundary = getPageBoundary();
+        const pageBoundary = getPageBoundary(searchForward);
         const pageSize = getPageSize();
 
         let setActive = null;
@@ -231,7 +226,8 @@ export default function createTable(namespace, options = {}) {
             const rowIndex = index % pageSize;
             rowValues[rowIndex] = value;
 
-            if (value !== origin.value && callback({ value, index })) {
+            const isOrigin = origin.isRowIndex && value === origin.value;
+            if (!isOrigin && callback({ value, index })) {
                 setActive ??= index;
                 if (rowValues === draft.rowValues) break;
             }
@@ -273,8 +269,6 @@ export default function createTable(namespace, options = {}) {
             { page: 0,                     forward: true,           row: originRows.TableBoundary },
             { page: getPageCount() - 1,    forward: false,          row: originRows.TableBoundary }
         ];
-
-        console.log("Setting active index", index);
 
         const [origin] = _.sortBy(origins, origin => Math.abs(targetPage - origin.page));
         return setActiveItem(item => item.index === index, origin.forward, origin.row);

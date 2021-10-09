@@ -182,7 +182,7 @@ export default function createTable(namespace, options = {}) {
 
     //#region Pagination
 
-    const originRows = Object.freeze({
+    const searchOrigins = Object.freeze({
         TableBoundary: "table",
         PageBoundary: "page",
         ActiveRow: "active"
@@ -191,13 +191,13 @@ export default function createTable(namespace, options = {}) {
     const getPageBoundary = forward =>
         forward ? draft.pageSize - 1 : 0;
 
-    const resolveOrigin = (origin, forward) => {
+    const resolveSearchOrigin = (origin, forward) => {
         let rowIndex = 0;
         switch (origin) {
-            case originRows.PageBoundary:
+            case searchOrigins.PageBoundary:
                 rowIndex = getPageBoundary(forward);
                 break;
-            case originRows.ActiveRow:
+            case searchOrigins.ActiveRow:
                 rowIndex = getActiveRowIndex();
                 break;
             default:
@@ -211,8 +211,8 @@ export default function createTable(namespace, options = {}) {
         };
     }
 
-    function setActiveItem(callback, searchForward, rowOrigin) {
-        let origin = resolveOrigin(rowOrigin, searchForward);
+    function setActiveItem(callback, searchForward, searchOrigin) {
+        let origin = resolveSearchOrigin(searchOrigin, searchForward);
         let rowValues = origin.isRowIndex ? draft.rowValues : [];
 
         const pageBoundary = getPageBoundary(searchForward);
@@ -247,10 +247,10 @@ export default function createTable(namespace, options = {}) {
         return true;
     }
 
-    function setActiveValue(value, searchForward = true, originRow = originRows.TableBoundary) {
+    function setActiveValue(value, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
         value = validateValue(value, true);
         const callback = item => item.value === (value ?? item.value);
-        return setActiveItem(callback, searchForward, originRow);
+        return setActiveItem(callback, searchForward, searchOrigin);
     }
 
     function setActiveIndex(index, fromStart = false) {
@@ -265,9 +265,9 @@ export default function createTable(namespace, options = {}) {
 
         const afterCurrent = targetPage > currentPage;
         const origins = [
-            { page: currentPage,           forward: afterCurrent,   row: originRows.PageBoundary  },
-            { page: 0,                     forward: true,           row: originRows.TableBoundary },
-            { page: getPageCount() - 1,    forward: false,          row: originRows.TableBoundary }
+            { page: currentPage,           forward: afterCurrent,   row: searchOrigins.PageBoundary  },
+            { page: 0,                     forward: true,           row: searchOrigins.TableBoundary },
+            { page: getPageCount() - 1,    forward: false,          row: searchOrigins.TableBoundary }
         ];
 
         const [origin] = _.sortBy(origins, origin => Math.abs(targetPage - origin.page));
@@ -281,7 +281,7 @@ export default function createTable(namespace, options = {}) {
     function getItemSearchValue(itemValue) {
         const item = draft.sortedItems[itemValue];
         const searchValue = _.get(item.data, searchProperty);
-        return options.searchValueParser(searchValue);
+        return options.searchPhraseParser(searchValue);
     }
 
     function searchIndexAdd(value) {
@@ -325,13 +325,13 @@ export default function createTable(namespace, options = {}) {
         _searchIndexRemove(draft.searchIndex, value, searchValue, 0);
     }
 
-    function addMatches(root, searchPhrase, index) {
+    function _addMatches(root, searchPhrase, index) {
         if (index < searchPhrase.length) {
             const char = searchPhrase[index];
             const child = root[char];
             if (!child) return;
 
-            addMatches(child, searchPhrase, index + 1);
+            _addMatches(child, searchPhrase, index + 1);
         } else {
             for (let value of root.values) {
                 const item = draft.sortedItems[value];
@@ -342,9 +342,15 @@ export default function createTable(namespace, options = {}) {
 
             for (let char in root) {
                 if (char.length > 1) continue;
-                addMatches(root[char], searchPhrase, index + 1);
+                _addMatches(root[char], searchPhrase, index + 1);
             }
         }
+    }
+
+    function reloadMatches() {
+        draft.matches = [];
+        _addMatches(draft.searchIndex, options.searchPhraseParser(draft.searchPhrase), 0);
+        return draft.matches.sort(compareItems);
     }
 
     //#endregion
@@ -669,20 +675,8 @@ export default function createTable(namespace, options = {}) {
 
                 //Search
                 case types.SEARCH: {
-                    let { phrase } = payload;
-                    Object.assign(draft, {
-                        searchPhrase: phrase,
-                        matches: [],
-                        matchIndex: 0
-                    });
-
-                    if (!phrase) break;
-                    phrase = options.searchValueParser(phrase);
-
-                    addMatches(draft.searchIndex, phrase,  0);
-                    const { length } = draft.matches.sort(compareItems);
-                    payload.index = length;
-
+                    if (!(draft.searchPhrase = payload.phrase)) break;
+                    payload.index = reloadMatches().length;
                     //Fallthrough
                 }
                 case types.GO_TO_MATCH: {
@@ -690,11 +684,12 @@ export default function createTable(namespace, options = {}) {
                     const { matches, pageSize } = draft;
 
                     const safeIndex = _.wrapIndex(index, matches.length);
-                    const wrapOrigin = pageSize ? originRows.TableBoundary : originRows.PageBoundary;
-                    const origin = index === safeIndex ? originRows.ActiveRow : wrapOrigin;
-                    setActiveValue(matches[safeIndex], index > draft.matchIndex, origin);
-
                     draft.matchIndex = safeIndex;
+                    if (!matches.length) break;
+
+                    const wrapOrigin = pageSize ? searchOrigins.TableBoundary : searchOrigins.PageBoundary;
+                    const origin = index === safeIndex ? searchOrigins.ActiveRow : wrapOrigin;
+                    setActiveValue(matches[safeIndex], index >= draft.matchIndex, origin);
                     break;
                 }
 
@@ -712,6 +707,9 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
             }
+
+            if (!action.type.startsWith("RST_SEARCH"))
+                draft.searchPhrase = null;
         });
     }
 }

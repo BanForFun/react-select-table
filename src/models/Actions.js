@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export const types = {
     //Items
     SET_ITEMS: "",
@@ -21,8 +23,8 @@ export const types = {
     SET_ACTIVE: "",
 
     //Search
-    SEARCH: "",
-    GO_TO_MATCH: "",
+    SEARCH: "SEARCH_SET_PHRASE",
+    GO_TO_MATCH: "SEARCH_GO_TO_MATCH",
 
     //Pagination
     SET_PAGE_SIZE: "",
@@ -31,10 +33,8 @@ export const types = {
 };
 
 //Set action type strings
-for (let name in types)
-    types[name] = `RST_${name}`;
-
-Object.freeze(types);
+Object.freeze(_.each(types, (type, name) =>
+    types[name] = `RST_${type || name}`));
 
 export default function Actions(namespace) {
     function Action(type, payload = {}) {

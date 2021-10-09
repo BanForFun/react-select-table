@@ -27,7 +27,7 @@ tableModules.Selection |= tableModules.Rows;
 const defaultOptions = {
     itemPredicate: _.isMatch,
     itemComparators: {},
-    searchValueParser: str => str.normalize("NFD").toLowerCase(),
+    searchPhraseParser: str => str.normalize("NFD").toLowerCase(),
     searchProperty: null,
     multiSelect: true,
     listBox: false,

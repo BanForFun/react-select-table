@@ -44,19 +44,12 @@ function SearchContainer(props) {
         e.preventDefault();
     }, [actions, goToAdjacentMatch, isVisible]);
 
-    const handleBlur = useCallback(e => {
-        if (!isVisible) return;
-        if (e.currentTarget.contains(e.relatedTarget)) return;
-
-        actions.search(null);
-    }, [actions, isVisible]);
-
     const className = classNames({
         "rst-searchContainer": true,
         "is-visible": isVisible
     });
 
-    return <div className={className} onBlur={handleBlur}>
+    return <div className={className}>
         <div className="rst-search">
             <input
                 value={phrase || ""}

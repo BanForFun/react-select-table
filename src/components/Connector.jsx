@@ -2,13 +2,12 @@ import React, {useContext, useEffect} from 'react';
 import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultPagination from "./DefaultPagination";
-import {tableUtils, defaultEvents} from '../utils/tableUtils';
+import {tableUtils, defaultEventHandlers} from '../utils/tableUtils';
 import Root from "./Root";
 
 function Connector(props) {
     const {
         name, namespace,
-        onSelectionChange,
         ...rootProps
     } = props;
 
@@ -21,13 +20,14 @@ function Connector(props) {
     const contextValue = useContext(context);
 
     //Register redux event handlers
-    const { events } = utils.private;
+    const { eventHandlers } = utils.private;
+    for (let handlerName in eventHandlers) {
+        const handler = props[handlerName];
+        delete rootProps[handlerName];
 
-    for (let event in events) {
-        const handler = props[event];
         useEffect(() => {
-            events[event] = handler;
-        }, [handler, events]);
+            eventHandlers[handlerName] = handler;
+        }, [handler, eventHandlers]);
     }
 
     rootProps.utils = utils.public;
@@ -80,9 +80,6 @@ Connector.propTypes = {
 };
 
 Connector.defaultProps = {
-    onItemsOpen: () => { },
-    onColumnsResizeEnd: () => { },
-    onKeyDown: () => { },
     getRowClassName: () => null,
     className: "rst-table rst-hover",
     initColumnWidths: [],
@@ -94,5 +91,5 @@ Connector.defaultProps = {
     emptyPlaceholder: null,
     showSelectionRect: true,
     autoFocus: false,
-    ...defaultEvents
+    ...defaultEventHandlers
 };

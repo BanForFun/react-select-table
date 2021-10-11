@@ -7,8 +7,6 @@ import SearchContainer from "./SearchContainer";
 function Root(props) {
     const {
         Pagination, //PaginationContainer
-        onContextMenu,
-        onKeyDown,
         containerRef,
         id,
         className,
@@ -20,8 +18,7 @@ function Root(props) {
     } = props;
 
     const {
-        utils: { hooks, options, selectors },
-        onItemsOpen
+        utils: { hooks, options, selectors, eventRaisers },
     } = props;
 
     useEffect(() => {
@@ -44,11 +41,13 @@ function Root(props) {
     const error = hooks.useSelector(s => s.error);
     const itemCount = hooks.useSelector(s => s.visibleItemCount);
 
-    const getSelectionArg = hooks.useSelectorGetter(selectors.getSelectionArg);
+    const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen);
+    const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
+    const raiseKeyDown = hooks.useSelectorGetter(eventRaisers.keyDown);
 
     const isEmpty = !itemCount;
     const placeholder = useMemo(() => {
-        const props = {
+        const placeholderProps = {
             className: "rst-bodyPlaceholder"
         };
         let content;
@@ -59,12 +58,12 @@ function Root(props) {
             content = <Error>{error}</Error>;
         else if (isEmpty) {
             content = emptyPlaceholder;
-            props.onContextMenu = () => onContextMenu(null);
+            placeholderProps.onContextMenu = () => raiseContextMenu();
         } else
             return;
 
-        return <div {...props}>{content}</div>
-    }, [isLoading, error, isEmpty, onContextMenu]);
+        return <div {...placeholderProps}>{content}</div>
+    }, [isLoading, error, isEmpty, raiseContextMenu]);
 
     const placeholderShown = !!placeholder;
 
@@ -77,7 +76,7 @@ function Root(props) {
 
     const handleShortcuts = useCallback(e => {
         if (placeholderShown) return false;
-        if (onKeyDown(e, getSelectionArg()) === false) return false;
+        if (raiseKeyDown(e) === false) return false;
 
         const isPageFirst = pageIndex === 0;
         const isPageLast = pageIndex === pageCount - 1;
@@ -105,7 +104,7 @@ function Root(props) {
                 break;
             case 13: //Enter
                 if (!e.ctrlKey && !e.shiftKey && selection.has(activeValue))
-                    onItemsOpen(getSelectionArg(), true);
+                    raiseItemsOpen(true);
                 else
                     actions.select(e, activeIndex);
 
@@ -121,11 +120,10 @@ function Root(props) {
         e.preventDefault();
         return false;
     }, [
-        actions, options, onKeyDown, placeholderShown,
+        actions, options, placeholderShown,
         activeIndex, itemCount, selection, activeValue, pageSize, //Redux props
-        getSelectionArg, //Redux selectors
         select, //Component methods
-        onItemsOpen, //Event handlers
+        raiseItemsOpen, raiseKeyDown //Event handlers
     ]);
 
     const handleKeyDown = useCallback(e => {

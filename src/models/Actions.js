@@ -104,13 +104,7 @@ export default function Actions(namespace) {
             actions.baseSelect(index, e.ctrlKey, e.shiftKey, e.type === "contextmenu"),
 
         setActive: (e, index) =>
-            actions.baseSetActive(index, e.type === "contextmenu"),
-
-        clearSelection: (e) =>
-            actions.baseClearSelection(e.ctrlKey, e.type === "contextmenu"),
-
-        sortItems: (e, path) =>
-            actions.baseSortItems(path, e.shiftKey)
+            actions.baseSetActive(index, e.type === "contextmenu")
     }
 
     return Object.assign(actions, aliases);

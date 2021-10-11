@@ -2,12 +2,17 @@ import _ from "lodash";
 import Hooks from "../models/Hooks";
 import SimpleSelectors from "../models/SimpleSelectors";
 import Actions from "../models/Actions";
+import EventRaisers from "../models/EventRaisers";
 
 export const tableUtils = {};
 
-export const defaultEvents = {
-    onContextMenu: () => { },
-    onSelectionChange: () => { }
+const noop = () => {};
+export const defaultEventHandlers = {
+    onContextMenu: noop,
+    onSelectionChange: noop,
+    onItemsOpen: noop,
+    onColumnsResizeEnd: noop,
+    onKeyDown: noop
 }
 
 let moduleIndex = 0;
@@ -50,16 +55,20 @@ export function setOptions(namespace, options) {
     const simpleSelectors = SimpleSelectors(options);
     const hooks = Hooks(options, actions, simpleSelectors);
 
+    const eventHandlers = {...defaultEventHandlers};
+    const eventRaisers = EventRaisers(eventHandlers, options, simpleSelectors);
+
     return tableUtils[namespace] = {
         public: {
             actions,
             hooks,
             selectors: simpleSelectors,
             options,
+            eventRaisers
         },
         private: {
             selectors: simpleSelectors,
-            events: {...defaultEvents}
+            eventHandlers
         }
     };
 }

@@ -22,14 +22,12 @@ function ResizingContainer(props) {
         columns: _columns,
         columnOrder,
         initColumnWidths,
-        onColumnsResizeEnd,
         setMode,
         columnResizingScrollFactor: scrollFactor,
         bodyContainerRef,
         getRowClassName, //BodyContainer
         selectionRectRef, //BodyContainer
         tableBodyRef, //BodyContainer
-        onItemsOpen, //BodyContainer
         dragSelectStart, //BodyContainer
         placeholder, //BodyContainer
 
@@ -37,9 +35,11 @@ function ResizingContainer(props) {
     } = props;
 
     const {
-        utils: { options },
+        utils: { options, hooks, eventRaisers },
         name,
     } = props;
+
+    const raiseColumnsResizeEnd = hooks.useSelectorGetter(eventRaisers.columnsResizeEnd);
 
     const parseWidths = useCallback((widths) => {
         const min = _.min(widths);
@@ -96,9 +96,9 @@ function ResizingContainer(props) {
             const percentWidths = _.initial(resizing.colWidths).map(px => px / clientWidth * 100);
             setWidths(parseWidths(percentWidths));
 
-            onColumnsResizeEnd(percentWidths);
+            raiseColumnsResizeEnd(percentWidths);
         });
-    }, [onColumnsResizeEnd])
+    }, [raiseColumnsResizeEnd])
 
     const updateWidth = useCallback((ctrlKey, mouseX = null) => {
         if (mouseX)
@@ -223,7 +223,6 @@ function ResizingContainer(props) {
         ...commonProps,
         tableBodyRef,
         selectionRectRef,
-        onItemsOpen,
         dragSelectStart,
         bodyContainerRef,
         getRowClassName,

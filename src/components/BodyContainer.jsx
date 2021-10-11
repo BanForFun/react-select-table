@@ -6,7 +6,6 @@ import useEvent from "../hooks/useEvent";
 //Child of ResizingContainer
 function BodyContainer(props) {
     const {
-        onItemsOpen,
         tableClass,
         selectionRectRef,
         placeholder,
@@ -14,7 +13,7 @@ function BodyContainer(props) {
     } = props;
 
     const {
-        utils: { hooks, selectors },
+        utils: { hooks, eventRaisers },
         actions,
         dragSelectStart,
         bodyContainerRef
@@ -22,7 +21,7 @@ function BodyContainer(props) {
 
     const isTouchingRef = useRef(false);
 
-    const getSelectionArg = hooks.useSelectorGetter(selectors.getSelectionArg);
+    const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen);
 
     const noSelection = hooks.useSelector(s => !s.selection.size);
 
@@ -33,7 +32,7 @@ function BodyContainer(props) {
         if (e.currentTarget !== e.target) return;
         if (e.button !== 0) return;
 
-        actions.clearSelection(e);
+        actions.baseClearSelection();
         dragSelectStart([e.clientX, e.clientY]);
     }, [dragSelectStart, actions]);
 
@@ -43,13 +42,13 @@ function BodyContainer(props) {
         if (isTouchingRef.current)
             dragSelectStart([e.clientX, e.clientY]);
         else
-            actions.clearSelection(e);
+            actions.baseClearSelection(true);
     }, [dragSelectStart, actions]);
 
     const handleDoubleClick = useCallback(() => {
         if (noSelection) return;
-        onItemsOpen(getSelectionArg(), false);
-    }, [onItemsOpen, getSelectionArg, noSelection]);
+        raiseItemsOpen(false);
+    }, [raiseItemsOpen, noSelection]);
 
     useEvent(window, "touchend", useCallback(() => {
         isTouchingRef.current = false;

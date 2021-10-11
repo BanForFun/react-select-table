@@ -33,12 +33,8 @@ const eventMiddleware = store => next => action => {
         case types.SELECT_ALL:
         case types.SET_ERROR:
         case types.START_LOADING:
-            //Get table options, events and utils
-            const {
-                public: { options },
-                private: { events, selectors }
-            } = tableUtils[namespace];
-
+            //Get table events and selectors
+            const { eventRaisers, selectors } = tableUtils[namespace].public;
             const getSlice = () => selectors.getStateSlice(store.getState());
 
             //Get previous and current state
@@ -48,14 +44,11 @@ const eventMiddleware = store => next => action => {
 
             //Raise onSelectionChange
             if (!compareSets(prevSlice.selection, slice.selection))
-                events.onSelectionChange(selectors.getSelectionArg(slice));
+                eventRaisers.selectionChanged(slice);
 
             //Raise onContextMenu
             if (payload.contextMenu)
-                events.onContextMenu(options.listBox
-                    ? selectors.getActiveValue(slice)
-                    : selectors.getSelectionArg(slice)
-                );
+                eventRaisers.contextMenu(slice);
 
             return result;
         default:

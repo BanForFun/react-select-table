@@ -12,11 +12,12 @@ function TableHeader({
     actions,
     sortAscending,
     sortPriority,
-    showPriority
+    showPriority,
+    utils: { options }
 }) {
     const handleTitleMouseDown = useCallback(e => {
-        if (e.button !== 0) return;
-        if (path) actions.sortItems(e, path);
+        if (e.button !== 0 || !path) return;
+        actions.baseSortItems(path, options.multiSort && e.shiftKey);
     }, [path, actions]);
 
     const handleResizeStart = useCallback((e) => {

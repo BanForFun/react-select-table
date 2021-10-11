@@ -33,8 +33,7 @@ export default function createTable(namespace, options = {}) {
 
     const {
         valueProperty,
-        searchProperty,
-        multiSelect
+        searchProperty
     } = options;
 
     const initState = {
@@ -212,11 +211,10 @@ export default function createTable(namespace, options = {}) {
     }
 
     function setActiveItem(callback, searchForward, searchOrigin) {
-        let origin = resolveSearchOrigin(searchOrigin, searchForward);
-        let rowValues = origin.isRowIndex ? draft.rowValues : [];
-
         const pageBoundary = getPageBoundary(searchForward);
         const pageSize = getPageSize();
+        const origin = resolveSearchOrigin(searchOrigin, searchForward);
+        let rowValues = origin.isRowIndex ? draft.rowValues : [];
 
         let setActive = null;
         let { index } = origin;
@@ -236,6 +234,7 @@ export default function createTable(namespace, options = {}) {
 
             if (rowIndex !== pageBoundary) continue;
             if (setActive != null) break;
+
             rowValues = [];
         }
 
@@ -243,7 +242,6 @@ export default function createTable(namespace, options = {}) {
 
         draft.activeIndex = setActive;
         draft.rowValues = rowValues;
-
         return true;
     }
 
@@ -451,8 +449,6 @@ export default function createTable(namespace, options = {}) {
     }
 
     function setSelection(values) {
-        if (!multiSelect) return;
-
         clearSelection();
         for (let value of values)
             draft.selection.add(value);
@@ -460,9 +456,6 @@ export default function createTable(namespace, options = {}) {
 
     function setValueSelected(value, selected) {
         const { selection } = draft;
-
-        if (!multiSelect)
-            selection.clear();
 
         if (selected)
             selection.add(value);
@@ -613,6 +606,7 @@ export default function createTable(namespace, options = {}) {
                 }
                 case types.SELECT: {
                     const { addToPrev, index } = payload;
+
                     if (!setActiveIndex(index)) break;
 
                     if (draft.resetPivot) {
@@ -645,8 +639,6 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SET_SELECTED: {
-                    if (!multiSelect) break;
-
                     //Active index
                     setActiveIndex(payload.activeIndex);
 

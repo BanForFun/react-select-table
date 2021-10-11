@@ -13,7 +13,7 @@ function BodyContainer(props) {
     } = props;
 
     const {
-        utils: { hooks, eventRaisers },
+        utils: { hooks, eventRaisers, options },
         actions,
         dragSelectStart,
         bodyContainerRef
@@ -22,6 +22,7 @@ function BodyContainer(props) {
     const isTouchingRef = useRef(false);
 
     const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen);
+    const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
 
     const noSelection = hooks.useSelector(s => !s.selection.size);
 
@@ -36,19 +37,34 @@ function BodyContainer(props) {
         dragSelectStart([e.clientX, e.clientY]);
     }, [dragSelectStart, actions]);
 
+    const contextMenu = useCallback(e => {
+        if (options.listBox || e.ctrlKey)
+            return raiseContextMenu();
+
+        actions.baseClearSelection(true);
+    }, [actions, options, raiseContextMenu]);
+
     const handleContextMenu = useCallback(e => {
         if (e.currentTarget !== e.target) return;
 
         if (isTouchingRef.current)
             dragSelectStart([e.clientX, e.clientY]);
         else
-            actions.baseClearSelection(true);
-    }, [dragSelectStart, actions]);
+            contextMenu(e);
+    }, [dragSelectStart, contextMenu]);
 
     const handleDoubleClick = useCallback(() => {
         if (noSelection) return;
         raiseItemsOpen(false);
     }, [raiseItemsOpen, noSelection]);
+
+    const handleTouchStart = useCallback(e => {
+        isTouchingRef.current = true;
+
+        if (e.currentTarget !== e.target) return;
+        if (e.targetTouches.length < 2) return;
+        contextMenu(e);
+    }, [contextMenu]);
 
     useEvent(window, "touchend", useCallback(() => {
         isTouchingRef.current = false;
@@ -62,9 +78,9 @@ function BodyContainer(props) {
         className="rst-bodyContainer"
         ref={bodyContainerRef}
         onDoubleClick={handleDoubleClick}
-        onMouseDown={handleMouseDown}
+        onClick={handleMouseDown}
         onContextMenu={handleContextMenu}
-        onTouchStart={() => isTouchingRef.current = true}
+        onTouchStart={handleTouchStart}
     >
         <div className="rst-dragSelection" ref={selectionRectRef} />
         {placeholder || <table className={tableClass}>

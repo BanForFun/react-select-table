@@ -18,29 +18,49 @@ function TableRow({
     value,
     rowIndex,
     className,
-    indexOffset
+    indexOffset,
+    utils: {options}
 }) {
     const index = rowIndex + indexOffset;
+
+    // const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
 
     const startDrag = useCallback(e => {
         dragSelectStart([e.clientX, e.clientY], rowIndex);
     }, [rowIndex, dragSelectStart]);
 
+    const contextMenu = useCallback(e => {
+        if (options.listBox || selected)
+            actions.baseSetActive(index, true);
+        else
+            actions.baseSelect(index, e.ctrlKey, e.shiftKey, true);
+    }, [index, options, actions, selected])
+
     const handleContextMenu = useCallback(e => {
-        if (isTouchingRef.current) {
-            actions.baseSelect(index, true, false);
-            startDrag(e);
-        } else {
-            actions.select(e, index);
-        }
-    }, [index, startDrag, actions, isTouchingRef]);
+        if (!isTouchingRef.current)
+            return contextMenu(e);
+
+        actions.baseSelect(index, true, false);
+        startDrag(e);
+    }, [index, contextMenu, startDrag]);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
 
         actions.select(e, index);
+        if (isTouchingRef.current) return;
+
         startDrag(e);
     }, [index, startDrag, actions]);
+
+    const handleTouchStart = useCallback(e => {
+        //Td is touch target
+        const withinRow = [...e.touches].filter(touch =>
+            touch.target.parentNode === e.currentTarget);
+        if (withinRow.length < 2) return;
+
+        contextMenu(e);
+    }, [contextMenu]);
 
     const renderColumn = (column) => {
         const { _id, path, render, isHeader } = column;
@@ -67,6 +87,7 @@ function TableRow({
         className={trClass}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
     >
         {columns.map(renderColumn)}
         <td/>

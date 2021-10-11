@@ -139,7 +139,7 @@ function ReduxTable() {
             autoFocus={true}
             onKeyDown={handleTableKeyDown}
             showSelectionRect={true}
-            onContextMenu={logEvent("ContextMenu")}
+            onContextMenu={(selection) => console.log([...selection])}
             onSelectionChange={logEvent("Selection")}
             onItemsOpen={logEvent("Open")}
         />

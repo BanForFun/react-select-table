@@ -6,14 +6,14 @@ import SearchContainer from "./SearchContainer";
 //Child of Connector
 function Root(props) {
     const {
-        Pagination, //PaginationContainer
+        paginationComponent, //PaginationContainer
         containerRef,
         id,
         className,
         autoFocus,
         loadingIndicator,
         emptyPlaceholder,
-        Error,
+        errorComponent,
         ...scrollingProps
     } = props;
 
@@ -24,7 +24,7 @@ function Root(props) {
     useEffect(() => {
         if (!autoFocus) return;
         containerRef.current.focus();
-    }, []);
+    }, [containerRef, autoFocus]);
 
     const actions = hooks.useActions();
 
@@ -46,24 +46,32 @@ function Root(props) {
     const raiseKeyDown = hooks.useSelectorGetter(eventRaisers.keyDown);
 
     const isEmpty = !itemCount;
-    const placeholder = useMemo(() => {
-        const placeholderProps = {
-            className: "rst-bodyPlaceholder"
-        };
-        let content;
 
+    const placeholderContent = useMemo(() => {
         if (isLoading)
-            content = loadingIndicator;
-        else if (error)
-            content = <Error>{error}</Error>;
-        else if (isEmpty) {
-            content = emptyPlaceholder;
-            placeholderProps.onContextMenu = () => raiseContextMenu();
-        } else
-            return;
+            return loadingIndicator;
 
-        return <div {...placeholderProps}>{content}</div>
-    }, [isLoading, error, isEmpty, raiseContextMenu]);
+        if (error) {
+            const Error = errorComponent;
+            return <Error>{error}</Error>
+        }
+
+        if (isEmpty)
+            return emptyPlaceholder;
+    }, [
+        isLoading, error, isEmpty,
+        loadingIndicator, emptyPlaceholder, errorComponent
+    ]);
+
+    const placeholder = useMemo(() => {
+        if (!placeholderContent) return;
+
+        const props = { className: "rst-bodyPlaceholder" };
+        if (isEmpty)
+            props.onContextMenu = () => raiseContextMenu();
+
+        return <div {...props}>{placeholderContent}</div>
+    }, [placeholderContent, isEmpty, raiseContextMenu]);
 
     const placeholderShown = !!placeholder;
 
@@ -121,7 +129,8 @@ function Root(props) {
         return false;
     }, [
         actions, options, placeholderShown,
-        activeIndex, itemCount, selection, activeValue, pageSize, //Redux props
+        activeIndex, itemCount, selection, activeValue, //Redux props
+        pageSize, pageCount, pageIndex, //Redux props
         select, //Component methods
         raiseItemsOpen, raiseKeyDown //Event handlers
     ]);
@@ -142,7 +151,7 @@ function Root(props) {
     const paginationProps = {
         utils: props.utils,
         actions,
-        Pagination,
+        paginationComponent,
         placeholderShown
     }
 

@@ -1,3 +1,3 @@
-import lodashSetup from "./lodash"
+import lodashSetup from "./lodash";
 
 lodashSetup();

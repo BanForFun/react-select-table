@@ -17,7 +17,7 @@ function TableHead(props) {
         const orders = {}
 
         let index = 0;
-        for (let [path, ascending] of sortAscending)
+        for (const [path, ascending] of sortAscending)
             orders[path] = { ascending, priority: ++index }
 
         return { orders, maxIndex: index };

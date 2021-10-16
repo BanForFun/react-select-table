@@ -3,7 +3,7 @@ $rst-striped-order:     even !default;
 $rst-config:            () !default;
 
 $rst-config: map-merge((
-    //Naming convention: element_state.property
+    //Naming convention: element_state1_stateN.property
     "body-placeholder.color":                   #616161,
     "body-placeholder.padding":                 1rem,
     "body-placeholder.text-align":              center,

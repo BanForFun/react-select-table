@@ -1,14 +1,14 @@
 import _ from "lodash";
 
 const getOrSource = (source, path) =>
-    path ? _.get(source, path) : source;
+    (path ? _.get(source, path) : source);
 
 const wrapIndex = (index, length) =>
     ((index % length) + length) % length;
 
-export default function() {
+export default function () {
     _.mixin({
         getOrSource,
-        wrapIndex
+        wrapIndex,
     });
 }

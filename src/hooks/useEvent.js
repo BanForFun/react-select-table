@@ -1,16 +1,15 @@
-import _ from "lodash";
 import { useEffect } from "react";
+import useDecoupledCallback from "./useDecoupledCallback";
 
-export default function useEvent(target, event, listener, passive = true, throttle = 0) {
+export default function useEvent(target, event, listener, passive = true) {
+    const decoupledListener = useDecoupledCallback(listener);
+
     useEffect(() => {
         if (!target) return;
         const options = { passive };
-        const callback = throttle > 0 ? _.throttle(listener, throttle) : listener;
 
-        target.addEventListener(event, callback, options);
-        return () => target.removeEventListener(event, callback, options);
-    }, [
-        target, event, listener,
-        passive, throttle
-    ]);
+        target.addEventListener(event, decoupledListener, options);
+        return () =>
+            target.removeEventListener(event, decoupledListener, options);
+    }, [target, event, decoupledListener, passive]);
 }

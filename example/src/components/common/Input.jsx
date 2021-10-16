@@ -1,7 +1,7 @@
 import React from "react";
 
 const Input = ({ id, label, onChange, value, ...rest }) => {
-    const handleChange = e => onChange(e.target.value);
+    const handleChange = (e) => onChange(e.target.value);
 
     return (
         <div className="form-group">

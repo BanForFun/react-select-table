@@ -102,7 +102,7 @@ export default function createTable(namespace, options = {}) {
 
         //Make it so that reversing the sort order of a column with all equal values, reverses the item order
         let factor = 1;
-        for (let [path, ascending] of draft.sortAscending) {
+        for (const [path, ascending] of draft.sortAscending) {
             factor = ascending ? 1 : -1
 
             const comparator = _.get(options.itemComparators, path, compareAscending);
@@ -146,7 +146,7 @@ export default function createTable(namespace, options = {}) {
         const itemValues = [...createValueIterator()].sort(compareItems);
 
         let prevValue = undefined;
-        for (let value of itemValues) {
+        for (const value of itemValues) {
             setItemOrder(prevValue, value);
             prevValue = value;
         }
@@ -220,7 +220,7 @@ export default function createTable(namespace, options = {}) {
         let { index } = origin;
 
         const values = createValueIterator(true, searchForward, origin.value);
-        for (let value of values) {
+        for (const value of values) {
             const rowIndex = index % pageSize;
             rowValues[rowIndex] = value;
 
@@ -288,7 +288,7 @@ export default function createTable(namespace, options = {}) {
         const searchValue = getItemSearchValue(value);
 
         let parent = draft.searchIndex;
-        for (let letter of searchValue)
+        for (const letter of searchValue)
             parent = parent[letter] ??= { values: new Set() };
 
         parent.values.add(value);
@@ -308,7 +308,7 @@ export default function createTable(namespace, options = {}) {
         if (child.values.size) return;
 
         let propertyCount = 0;
-        for (let prop in child) {
+        for (const prop in child) {
             //If other words depend on this character, don't delete
             if (++propertyCount > 1) return; //All nodes have a 'values' property
         }
@@ -331,14 +331,14 @@ export default function createTable(namespace, options = {}) {
 
             _addMatches(child, searchPhrase, index + 1);
         } else {
-            for (let value of root.values) {
+            for (const value of root.values) {
                 const item = draft.sortedItems[value];
                 if (!item.visible) continue;
 
                 draft.matches.push(value);
             }
 
-            for (let char in root) {
+            for (const char in root) {
                 if (char.length > 1) continue;
                 _addMatches(root[char], searchPhrase, index + 1);
             }
@@ -377,7 +377,7 @@ export default function createTable(namespace, options = {}) {
     }
 
     function addItems(itemData) {
-        for (let data of itemData.sort(compareItemData))
+        for (const data of itemData.sort(compareItemData))
             deleteItem(getDataValue(data), true);
 
         const values = createValueIterator();
@@ -450,7 +450,7 @@ export default function createTable(namespace, options = {}) {
 
     function setSelection(values) {
         clearSelection();
-        for (let value of values)
+        for (const value of values)
             draft.selection.add(value);
     }
 
@@ -468,7 +468,7 @@ export default function createTable(namespace, options = {}) {
         const values = createValueIterator(true, offset > 0, getActiveValue(state));
 
         let distance = 0;
-        for (let value of values) {
+        for (const value of values) {
             setValueSelected(value, selected);
             if (distance++ === Math.abs(offset)) break;
         }
@@ -509,7 +509,7 @@ export default function createTable(namespace, options = {}) {
                     let finalizedActive = false;
 
                     const values = createValueIterator(true);
-                    for (let value of values) {
+                    for (const value of values) {
                         if (valuesToDelete.has(value)) {
                             finalizedActive = true;
                             deleteItem(value);
@@ -544,7 +544,7 @@ export default function createTable(namespace, options = {}) {
                 case types.PATCH_ITEMS: {
                     const { patches } = payload;
 
-                    for (let patch of patches) {
+                    for (const patch of patches) {
                         const value = getDataValue(patch);
                         _.defaultsDeep(patch, draft.sortedItems[value].data);
                     }
@@ -575,7 +575,7 @@ export default function createTable(namespace, options = {}) {
                     draft.filter = payload.filter;
 
                     const values = createValueIterator();
-                    for (let value of values)
+                    for (const value of values)
                         setItemVisibility(value)
 
                     setActiveValue(null);
@@ -600,7 +600,9 @@ export default function createTable(namespace, options = {}) {
 
                 //Selection
                 case types.SET_ACTIVE: {
-                    if (!setActiveIndex(payload.index)) break;
+                    const { index } = payload;
+                    if (draft.activeIndex === index) break;
+                    if (!setActiveIndex(index)) break;
                     draft.resetPivot = true;
                     break;
                 }

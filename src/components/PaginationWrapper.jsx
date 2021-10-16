@@ -3,7 +3,7 @@ import React, {useCallback} from 'react';
 
 //Child of Root
 function PaginationWrapper({
-    Pagination,
+    paginationComponent: Pagination,
     actions,
     utils: { hooks, selectors }
 }) {

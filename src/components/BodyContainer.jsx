@@ -38,11 +38,16 @@ function BodyContainer(props) {
     }, [dragSelectStart, actions]);
 
     const contextMenu = useCallback(e => {
-        if (options.listBox || e.ctrlKey)
-            return raiseContextMenu();
+        if (options.listBox || e.shiftKey)
+            raiseContextMenu(true);
+        else if (e.ctrlKey)
+            raiseContextMenu();
+        else
+            actions.baseClearSelection(true);
 
-        actions.baseClearSelection(true);
-    }, [actions, options, raiseContextMenu]);
+        if (eventRaisers.isHandlerDefined("onContextMenu"))
+            e.preventDefault();
+    }, [actions, options, raiseContextMenu, eventRaisers]);
 
     const handleContextMenu = useCallback(e => {
         if (e.currentTarget !== e.target) return;
@@ -78,7 +83,7 @@ function BodyContainer(props) {
         className="rst-bodyContainer"
         ref={bodyContainerRef}
         onDoubleClick={handleDoubleClick}
-        onClick={handleMouseDown}
+        onMouseDown={handleMouseDown}
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
     >

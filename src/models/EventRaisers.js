@@ -1,28 +1,51 @@
-export default function EventRaisers(handlers, options, selectors) {
-    const getSelectionArg = state =>
-        options.multiSelect
-        ? state.selection
-        : state.selection.values().next().value ?? null;
+const noopEventHandler = () => {};
 
-    const getContextMenuArg = state =>
-        options.listBox
-        ? selectors.getActiveValue(state)
-        : getSelectionArg(state);
+export const defaultEventHandlers = {
+    onContextMenu: noopEventHandler,
+    onSelectionChange: noopEventHandler,
+    onItemsOpen: noopEventHandler,
+    onColumnsResizeEnd: noopEventHandler,
+    onKeyDown: noopEventHandler,
+};
+
+export default function EventRaisers(handlers, options, selectors) {
+    const getSelectionArg = (state) =>
+        options.multiSelect
+            ? new Set(state.selection) // Make a copy so the handler can't modify the state
+            : state.selection.values().next().value ?? null;
+
+    const getContextMenuArg = (state, forceEmpty) => {
+        if (forceEmpty) return parseSelectedValue(null);
+        return options.listBox
+            ? parseSelectedValue(selectors.getActiveValue(state))
+            : getSelectionArg(state);
+    };
+
+    const parseSelectedValue = (value) => {
+        if (!options.multiSelect) return value;
+
+        const selection = new Set();
+        if (value != null) selection.add(value);
+        return selection;
+    };
 
     return {
-        selectionChanged: state =>
+        isHandlerDefined: (name) =>
+            handlers[name] !== noopEventHandler,
+
+        selectionChanged: (state) =>
             handlers.onSelectionChange(getSelectionArg(state)),
 
         itemsOpen: (state, fromKeyboard) =>
             handlers.onItemsOpen(getSelectionArg(state), fromKeyboard),
 
-        contextMenu: state =>
-            handlers.onContextMenu(getContextMenuArg(state)),
+        contextMenu: (state, forceEmpty = false) =>
+            handlers.onContextMenu(getContextMenuArg(state, forceEmpty)),
 
         keyDown: (state, e) =>
             handlers.onKeyDown(e, getSelectionArg(state)),
 
         columnsResizeEnd: (state, widths) =>
-            handlers.onColumnsResizeEnd(widths)
+            handlers.onColumnsResizeEnd(widths),
     };
 }

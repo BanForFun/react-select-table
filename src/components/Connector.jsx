@@ -2,8 +2,9 @@ import React, {useContext, useEffect} from 'react';
 import {ReactReduxContext} from "react-redux";
 import PropTypes from "prop-types";
 import DefaultPagination from "./DefaultPagination";
-import {tableUtils, defaultEventHandlers} from '../utils/tableUtils';
+import {tableUtils} from '../utils/tableUtils';
 import Root from "./Root";
+import {defaultEventHandlers} from "../models/EventRaisers";
 
 function Connector(props) {
     const {
@@ -21,13 +22,14 @@ function Connector(props) {
 
     //Register redux event handlers
     const { eventHandlers } = utils.private;
-    for (let handlerName in eventHandlers) {
+    for (const handlerName in eventHandlers) {
         const handler = props[handlerName];
         delete rootProps[handlerName];
 
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         useEffect(() => {
             eventHandlers[handlerName] = handler;
-        }, [handler, eventHandlers]);
+        }, [handler, eventHandlers, handlerName]);
     }
 
     rootProps.utils = utils.public;
@@ -56,8 +58,8 @@ const columnShape = PropTypes.shape({
 Connector.propTypes = {
     namespace: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
-    Error: PropTypes.elementType,
-    Pagination: PropTypes.elementType,
+    errorComponent: PropTypes.elementType,
+    paginationComponent: PropTypes.elementType,
     loadingIndicator: PropTypes.node,
     emptyPlaceholder: PropTypes.node,
     name: PropTypes.string,
@@ -85,8 +87,8 @@ Connector.defaultProps = {
     initColumnWidths: [],
     dragSelectionScrollFactor: 0.5,
     columnResizingScrollFactor: 0.2,
-    Error: 'span',
-    Pagination: DefaultPagination,
+    errorComponent: 'span',
+    paginationComponent: DefaultPagination,
     loadingIndicator: null,
     emptyPlaceholder: null,
     showSelectionRect: true,

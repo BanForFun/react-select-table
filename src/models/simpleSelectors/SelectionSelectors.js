@@ -3,9 +3,9 @@ export default class SelectionSelectors {
         this._pgSelectors = paginationSelectors;
     }
 
-    getActiveRowIndex = state =>
+    getActiveRowIndex = (state) =>
         state.activeIndex % this._pgSelectors.getPageSize(state);
 
-    getActiveValue = state =>
+    getActiveValue = (state) =>
         state.rowValues[this.getActiveRowIndex(state)];
 }

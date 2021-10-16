@@ -3,7 +3,7 @@ import React, {useState, useMemo, useRef, useCallback, useEffect} from 'react';
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
 import useEvent from "../hooks/useEvent";
-import useObjectMemo from "../hooks/useObjectMemo";
+import useObjectShallowMemo from "../hooks/useObjectShallowMemo";
 import {ColumnGroupContext} from "./ColumnGroup";
 
 const defaultColumnRenderer = value => value;
@@ -88,7 +88,7 @@ function ResizingContainer(props) {
             pendingFrames: 0,
             waitForRender: false
         });
-    }, [setMode]);
+    }, [setMode, resizing]);
 
     const columnResizeEnd = useCallback(() => {
         setTimeout(() => {
@@ -98,15 +98,16 @@ function ResizingContainer(props) {
 
             raiseColumnsResizeEnd(percentWidths);
         });
-    }, [raiseColumnsResizeEnd])
+    }, [raiseColumnsResizeEnd, bodyContainerRef, parseWidths, resizing])
 
     const updateWidth = useCallback((ctrlKey, mouseX = null) => {
+        const {index, colWidths, offsetLeft} = resizing;
+        if (index == null) return false;
+
         if (mouseX)
             resizing.mouseX = mouseX;
         else
             mouseX = resizing.mouseX;
-
-        const { index, colWidths, offsetLeft } = resizing;
 
         //Start resizing if pointer is more that 5 pixels away from origin position
         if (!widths.resizing && !resizing.waitForRender && Math.abs(resizing.originX - mouseX) > 5) {
@@ -176,7 +177,10 @@ function ResizingContainer(props) {
             if (!--resizing.pendingFrames && resizing.index === null)
                 columnResizeEnd();
         });
-    }, [options, scrollFactor, columnResizeEnd, widths]);
+    }, [
+        options, scrollFactor, columnResizeEnd, widths, resizing,
+        bodyContainerRef, colGroupRefs
+    ]);
 
     const handleDragEnd = useCallback(() => {
         if (resizing.index === null) return;
@@ -185,24 +189,21 @@ function ResizingContainer(props) {
         if (widths.resizing && !resizing.pendingFrames)
             columnResizeEnd();
 
-    }, [columnResizeEnd, widths]);
+    }, [columnResizeEnd, widths, resizing]);
 
     //#region Window events
 
     useEvent(bodyContainerRef.current?.offsetParent, "scroll", useCallback(e => {
-        if (resizing.index === null) return;
         updateWidth(e.ctrlKey);
     }, [updateWidth]));
 
     useEvent(window, "mousemove", useCallback(e => {
-        if (resizing.index === null) return;
         updateWidth(e.ctrlKey, e.clientX)
     },[updateWidth]));
 
     useEvent(window, "touchmove", useCallback(e => {
-        if (resizing.index === null) return;
+        if (updateWidth(e.ctrlKey, e.touches[0].clientX) === false) return;
         e.preventDefault();
-        updateWidth(e.ctrlKey, e.touches[0].clientX);
     }, [updateWidth]), false);
 
     useEvent(window, "mouseup", handleDragEnd);
@@ -237,7 +238,7 @@ function ResizingContainer(props) {
             minWidth: widths.minContainer + "px"
         }}
     >
-        <ColumnGroupContext.Provider value={useObjectMemo({
+        <ColumnGroupContext.Provider value={useObjectShallowMemo({
             refs: colGroupRefs,
             name,
             columns,

@@ -12,6 +12,7 @@ function TableRow({
     actions,
     isTouchingRef,
     dragSelectStart,
+    selection,
     selected,
     active,
     data,
@@ -26,8 +27,10 @@ function TableRow({
     const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
 
     const startDrag = useCallback(e => {
-        dragSelectStart([e.clientX, e.clientY], rowIndex);
-    }, [rowIndex, dragSelectStart]);
+        selection.absX = e.clientX;
+        selection.absY = e.clientY;
+        dragSelectStart(rowIndex);
+    }, [rowIndex, dragSelectStart, selection]);
 
     const contextMenu = useCallback(e => {
         if (e.shiftKey)

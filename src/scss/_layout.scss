@@ -34,8 +34,32 @@
 
         &:last-child {
             //The spacer column
-            border-right: inherit;
+            border-left: inherit;
         }
+    }
+
+    &[data-mode] {
+        z-index: 5000;
+
+        .rst-scrollingContainer {
+            z-index: 2;
+
+            * {
+                cursor: inherit !important;
+            }
+        }
+
+        .rst-cursorOverlay {
+            display: block;
+        }
+    }
+
+    &[data-mode=resizing] {
+        cursor: col-resize;
+    }
+
+    &[data-mode=selecting] {
+        cursor: default;
     }
 }
 
@@ -76,20 +100,13 @@
 }
 
 .rst-cursorOverlay {
+    display: none;
     position: fixed;
-    z-index: 5000;
-    left: 0;
     top: 0;
-    width: 100vw;
-    height: 100vh;
-
-    &[data-mode=resizing] {
-        cursor: col-resize;
-    }
-
-    &[data-mode=selecting] {
-        cursor: default;
-    }
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
 }
 
 .rst-scrollingContainer {
@@ -130,6 +147,7 @@
 .rst-bodyContainer {
     position: relative;
     flex: auto;
+    align-self: stretch;
     z-index: 0;
 }
 

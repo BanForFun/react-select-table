@@ -13,12 +13,13 @@ function TableHeader({
     sortAscending,
     sortPriority,
     showPriority,
+    isLast,
     utils: { options }
 }) {
     const handleTitleMouseDown = useCallback(e => {
         if (e.button !== 0 || !path) return;
         actions.baseSortItems(path, options.multiSort && e.shiftKey);
-    }, [path, actions]);
+    }, [path, actions, options]);
 
     const handleResizeStart = useCallback((e) => {
         e.preventDefault();
@@ -49,11 +50,13 @@ function TableHeader({
             {showPriority && <small>{sortPriority}</small>}
         </Fragment>}
 
-        <div
-            className="rst-columnResizer"
-            onMouseDown={handleResizeStart}
-            onTouchStart={handleResizeStart}
-        />
+        {(!options.constantWidth || !isLast) &&
+            <div
+                className="rst-columnResizer"
+                onMouseDown={handleResizeStart}
+                onTouchStart={handleResizeStart}
+            />
+        }
     </th>;
 }
 

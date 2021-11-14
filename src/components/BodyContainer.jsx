@@ -16,7 +16,8 @@ function BodyContainer(props) {
         utils: { hooks, eventRaisers, options },
         actions,
         dragSelectStart,
-        bodyContainerRef
+        bodyContainerRef,
+        selection
     } = props;
 
     const isTouchingRef = useRef(false);
@@ -26,6 +27,12 @@ function BodyContainer(props) {
 
     const noSelection = hooks.useSelector(s => !s.selection.size);
 
+    const startDrag = useCallback(e => {
+        selection.absX = e.clientX;
+        selection.absY = e.clientY;
+        dragSelectStart();
+    }, [dragSelectStart, selection]);
+
     const handleMouseDown = useCallback(e => {
         //Checking currentTarget instead of stopping propagation at rows for two reasons:
         //- Weird chrome bug that doesn't fire a mousedown event on the row, when clicking in an area where its children are clipped
@@ -34,8 +41,8 @@ function BodyContainer(props) {
         if (e.button !== 0) return;
 
         actions.baseClearSelection();
-        dragSelectStart([e.clientX, e.clientY]);
-    }, [dragSelectStart, actions]);
+        startDrag(e);
+    }, [startDrag, actions]);
 
     const contextMenu = useCallback(e => {
         if (options.listBox || e.shiftKey)
@@ -53,10 +60,10 @@ function BodyContainer(props) {
         if (e.currentTarget !== e.target) return;
 
         if (isTouchingRef.current)
-            dragSelectStart([e.clientX, e.clientY]);
+            startDrag(e);
         else
             contextMenu(e);
-    }, [dragSelectStart, contextMenu]);
+    }, [startDrag, contextMenu]);
 
     const handleDoubleClick = useCallback(() => {
         if (noSelection) return;

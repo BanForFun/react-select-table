@@ -25,11 +25,16 @@ function ResizingContainer(props) {
         setMode,
         columnResizingScrollFactor: scrollFactor,
         bodyContainerRef,
-        getRowClassName, //BodyContainer
-        selectionRectRef, //BodyContainer
-        tableBodyRef, //BodyContainer
-        dragSelectStart, //BodyContainer
-        placeholder, //BodyContainer
+
+        //BodyContainer props
+        getRowClassName,
+        selectionRectRef,
+        tableBodyRef,
+        dragSelectStart,
+        selection,
+        updateSelection,
+        dragSelectEnd,
+        placeholder,
 
         ...commonProps
     } = props;
@@ -76,7 +81,7 @@ function ResizingContainer(props) {
         index: null
     }).current;
 
-    const columnResizeStart = useCallback((index, mouseX, offsetLeft, colWidths) => {
+    const startResizing = useCallback((index, mouseX, offsetLeft, colWidths) => {
         setMode("resizing");
         Object.assign(resizing, {
             index,
@@ -90,7 +95,7 @@ function ResizingContainer(props) {
         });
     }, [setMode, resizing]);
 
-    const columnResizeEnd = useCallback(() => {
+    const endResizing = useCallback(() => {
         setTimeout(() => {
             const { clientWidth } = bodyContainerRef.current.offsetParent;
             const percentWidths = _.initial(resizing.colWidths).map(px => px / clientWidth * 100);
@@ -100,7 +105,7 @@ function ResizingContainer(props) {
         });
     }, [raiseColumnsResizeEnd, bodyContainerRef, parseWidths, resizing])
 
-    const updateWidth = useCallback((ctrlKey, mouseX = null) => {
+    const updateSize = useCallback((ctrlKey, mouseX = null) => {
         const {index, colWidths, offsetLeft} = resizing;
         if (index == null) return false;
 
@@ -173,13 +178,14 @@ function ResizingContainer(props) {
             })
 
             scrollingContainer.scrollLeft = setScroll;
+            resizingContainerRef.current.style.width = Math.max(resizing.totalWidth, clientWidth) + "px";
 
             if (!--resizing.pendingFrames && resizing.index === null)
-                columnResizeEnd();
+                endResizing();
         });
     }, [
-        options, scrollFactor, columnResizeEnd, widths, resizing,
-        bodyContainerRef, colGroupRefs
+        options, scrollFactor, endResizing, widths, resizing,
+        bodyContainerRef, resizingContainerRef, colGroupRefs
     ]);
 
     const handleDragEnd = useCallback(() => {
@@ -187,24 +193,24 @@ function ResizingContainer(props) {
         resizing.index = null;
 
         if (widths.resizing && !resizing.pendingFrames)
-            columnResizeEnd();
+            endResizing();
 
-    }, [columnResizeEnd, widths, resizing]);
+    }, [endResizing, widths, resizing]);
 
     //#region Window events
 
     useEvent(bodyContainerRef.current?.offsetParent, "scroll", useCallback(e => {
-        updateWidth(e.ctrlKey);
-    }, [updateWidth]));
+        updateSize(e.ctrlKey);
+    }, [updateSize]));
 
     useEvent(window, "mousemove", useCallback(e => {
-        updateWidth(e.ctrlKey, e.clientX)
-    },[updateWidth]));
+        updateSize(e.ctrlKey, e.clientX)
+    },[updateSize]));
 
     useEvent(window, "touchmove", useCallback(e => {
-        if (updateWidth(e.ctrlKey, e.touches[0].clientX) === false) return;
+        if (updateSize(e.ctrlKey, e.touches[0].clientX) === false) return;
         e.preventDefault();
-    }, [updateWidth]), false);
+    }, [updateSize]), false);
 
     useEvent(window, "mouseup", handleDragEnd);
     useEvent(window, "touchend", handleDragEnd);
@@ -217,7 +223,7 @@ function ResizingContainer(props) {
 
     const headProps = {
         ...commonProps,
-        columnResizeStart
+        columnResizeStart: startResizing
     }
 
     const bodyProps = {
@@ -227,6 +233,9 @@ function ResizingContainer(props) {
         dragSelectStart,
         bodyContainerRef,
         getRowClassName,
+        selection,
+        updateSelection,
+        dragSelectEnd,
         placeholder
     }
 
@@ -235,7 +244,7 @@ function ResizingContainer(props) {
         ref={resizingContainerRef}
         style={{
             width: widths.container + "%",
-            minWidth: widths.minContainer + "px"
+            // minWidth: widths.minContainer + "px"
         }}
     >
         <ColumnGroupContext.Provider value={useObjectShallowMemo({

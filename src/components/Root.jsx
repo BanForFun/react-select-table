@@ -1,4 +1,4 @@
-import React, {useRef, useEffect, useCallback, useMemo} from 'react';
+import React, {useRef, useEffect, useCallback, useMemo, useState} from 'react';
 import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationWrapper";
 import SearchContainer from "./SearchContainer";
@@ -20,6 +20,8 @@ function Root(props) {
     const {
         utils: { hooks, options, selectors, eventRaisers },
     } = props;
+
+    const [mode, setMode] = useState(null);
 
     useEffect(() => {
         if (!autoFocus) return;
@@ -144,7 +146,8 @@ function Root(props) {
     Object.assign(scrollingProps, {
         actions,
         tableBodyRef,
-        placeholder
+        placeholder,
+        setMode
     });
 
     //Pagination container props
@@ -166,9 +169,11 @@ function Root(props) {
         id={id}
         ref={containerRef}
         onKeyDown={handleKeyDown}
+        data-mode={mode}
         className={"rst-container " + className}
         // onFocus={() => }
     >
+        <div className="rst-cursorOverlay" />
         <SearchContainer {...searchProps} />
         <ScrollingContainer {...scrollingProps} />
         {!placeholderShown && !!pageSize && <PaginationContainer {...paginationProps} />}

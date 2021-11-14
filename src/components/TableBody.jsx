@@ -39,7 +39,7 @@ function TableBody(props) {
         if (scrollDown)
             scrollingContainer.scrollTop = rowBottom - visibleHeight;
 
-    }, [visibleItemCount, activeRowIndex, bodyContainerRef]);
+    }, [visibleItemCount, activeRowIndex, bodyContainerRef, tableBodyRef]);
 
     const renderRow = (value, rowIndex) => {
         const { data } = sortedItems[value];

@@ -9,7 +9,7 @@ function TableHead(props) {
         ...commonHeaderProps
     } = props;
 
-    const {hooks} = props.utils;
+    const {hooks, options} = props.utils;
 
     const sortAscending = hooks.useSelector(s => s.sortAscending);
 
@@ -34,6 +34,7 @@ function TableHead(props) {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
             path, title, index,
+            isLast: index === columns.length - 1,
             sortAscending: sortOrder?.ascending,
             sortPriority: sortOrder?.priority,
             showPriority: sorting.maxIndex > 1

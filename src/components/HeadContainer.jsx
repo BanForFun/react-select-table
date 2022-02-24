@@ -4,11 +4,11 @@ import ColumnGroup from "./ColumnGroup";
 
 // Child of ResizingContainer
 function HeadContainer(props) {
-    const { tableClass, ...headProps } = props;
+    const { tableClass, headColGroupRef, ...headProps } = props;
 
     return <div className="rst-headContainer">
         <table className={tableClass}>
-            <ColumnGroup id="head" />
+            <ColumnGroup ref={headColGroupRef} />
             <TableHead {...headProps} />
         </table>
     </div>

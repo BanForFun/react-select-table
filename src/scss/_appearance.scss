@@ -5,50 +5,53 @@
         );
     }
 
-    $partProperties: "color", "vertical-align", "text-align", "border";
+    $partProperties: "color", "vertical-align", "text-align";
+
+    //Applied on container to fill available height when not enough items in body
     $containerProperties: "background-color";
 
     td, th {
-        padding: rst-get("cell", "padding");
+        @include rst-apply-properties("cell", "padding", "border");
     }
 
     .rst-headContainer {
-        @include rst-apply-properties("header", $containerProperties...)
+        @include rst-apply-properties("head", $containerProperties...);
+
+        border-bottom: rst-get("header", "border");
+
+        .rst-icon {
+            margin-left: rst-get("header", "icon-spacing");
+        }
+    }
+
+    .rst-scrollingContainer[data-dragmode="resize"] .rst-headContainer {
+        @include rst-apply-properties("header-resizing", "border-image");
     }
 
     .rst-bodyContainer {
-        @include rst-apply-properties("body", $containerProperties...)
+        @include rst-apply-properties("body", $containerProperties...);
+
+        tr {
+            border-bottom: rst-get("row", "border");
+        }
+    }
+
+    .rst-headerContent {
+        @include rst-apply-properties("cell", "padding");
     }
 
     thead {
-        @include rst-apply-properties("header", $partProperties...);
+        @include rst-apply-properties("head", $partProperties...);
     }
 
     tbody {
         @include rst-apply-properties("body", $partProperties...);
     }
 
-    thead > tr:last-child {
-        border-bottom-width: rst-get("head", "border-width");
-    }
-
-    thead .rst-icon {
-        margin-left: rst-get("header", "icon-spacing");
-    }
-
-    .rst-columnResizer {
-        @include rst-apply-properties("column-resizer",
-            "width",
-            "background-color"
-        );
-    }
-
-    .rst-container {
-        @include rst-apply-properties("root-container",
-            "margin",
-            "background-color"
-        );
-    }
+    @include rst-apply-properties("root-container",
+        "margin",
+        "background-color"
+    );
 }
 
 %rst-placeholder {
@@ -82,11 +85,11 @@
 %rst-rowActive {
     $properties: "underline";
 
-    tbody tr.is-active {
+    tbody tr.rst-active {
         @include rst-apply-properties("row-active", $properties...);
     }
 
-    &:focus-within tbody tr.is-active {
+    &:focus-within tbody tr.rst-active {
         @include rst-apply-properties("row-active-focused", $properties...);
     }
 }
@@ -94,20 +97,26 @@
 %rst-rowSelected {
     $properties: "overlay" "color" "border-color";
 
-    tbody tr.is-selected {
+    tbody tr.rst-selected {
         @include rst-apply-properties("row-selected", $properties...);
     }
 
-    &:focus-within tbody tr.is-selected {
+    &:focus-within tbody tr.rst-selected {
         @include rst-apply-properties("row-selected-focused", $properties...);
     }
 }
 
 %rst-columnResizer {
-    .rst-columnResizer:active {
-        @include rst-apply-properties("column-resizer-active",
-            "background-color"
-        );
+    .rst-columnResizer {
+        @include rst-apply-properties("column-resizer", "width");
+    }
+
+    .rst-resizing .rst-columnResizer {
+        border-right: rst-get("column-resizer-resizing", "border");
+    }
+
+    .rst-columnSeparator {
+        border-left: rst-get("column-separator", "border");
     }
 }
 

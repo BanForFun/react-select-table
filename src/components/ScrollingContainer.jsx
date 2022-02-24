@@ -1,303 +1,364 @@
 import _ from "lodash";
-import React, {Fragment, useCallback, useRef, useState} from 'react';
-import useEvent from "../hooks/useEvent";
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ResizingContainer from "./ResizingContainer";
-import {ActiveClass, SelectedClass} from "./TableRow";
+import {ColumnGroupContext} from "./ColumnGroup";
+import {DragModes} from "../utils/tableUtils";
 
 const px = n => `${n}px`;
+const pc = n => `${n}%`;
+
+const defaultColumnRenderer = value => value;
+
+function parseColumn(col) {
+    return {
+        render: defaultColumnRenderer,
+        ...col,
+        _id: col.key ?? col.path
+    }
+}
+
+const cancelScrollListener = e => e.preventDefault();
+const cancelScrollOptions = { passive: false };
+
+const Point = (x, y) => ({x, y});
+
+const getClientX = element => element.getBoundingClientRect().x;
+const getClientY = element => element.getBoundingClientRect().y;
+
+function getRelativeOffset(
+    absolute, origin,
+    shrinkThreshold, expandThreshold, scrollFactor
+) {
+    const reference = _.clamp(absolute, shrinkThreshold, expandThreshold);
+    const scrollOffset = (absolute - reference) * scrollFactor;
+
+    return  {
+        relative: Math.floor(reference - origin + scrollOffset),
+        scrollOffset
+    };
+}
 
 //Child of Root
 function ScrollingContainer(props) {
     const {
         showSelectionRect,
-        dragSelectionScrollFactor: scrollFactor,
+        dragSelectScrollFactor,
+        columnResizeScrollFactor,
+        columns: unorderedColumns,
+        columnOrder,
+        initColumnWidths,
         ...resizingProps
     } = props;
 
     const {
-        utils: { options, hooks, selectors },
+        utils: { options, hooks, selectors, eventRaisers },
         actions,
-        setMode
+        name
     } = props;
+
+    //#region Column group
+
+    const columns = useMemo(() =>
+        (columnOrder?.map(index => unorderedColumns[index]) ?? unorderedColumns).map(parseColumn),
+        [unorderedColumns, columnOrder]);
+
+    const validateWidths = useCallback(widths => {
+        const columnCount = columns.length;
+        if (widths.length !== columnCount)
+            widths = _.times(columnCount, _.constant(100 / columnCount));
+
+        return widths;
+    }, [columns])
+
+    const getColumnGroup = useCallback(widths => {
+        const columnsWidth = _.sum(widths);
+        const spacerWidth = Math.max(0, 100 - columnsWidth);
+        const containerWidth = columnsWidth + spacerWidth;
+        const containerMinWidth = containerWidth / _.min(widths) * options.minColumnWidth
+
+        return {
+            columns, name,
+            widths: widths.map(pc),
+            spacerWidth: pc(spacerWidth),
+            containerWidth: pc(containerWidth),
+            containerMinWidth: px(containerMinWidth),
+        }
+    }, [columns, name, options]);
+
+    const [columnGroup, setColumnGroup] = useState(getColumnGroup(validateWidths(initColumnWidths)));
+
+    useEffect(() => {
+        const validatedWidths = validateWidths(columnGroup.widths);
+        if (validatedWidths !== columnGroup.widths)
+            setColumnGroup(getColumnGroup(validatedWidths));
+    }, [getColumnGroup, validateWidths, columnGroup])
+
+    //#endregion
+
+
+    const [dragMode, setDragMode] = useState(null);
+
+    const raiseColumnResizeEnd = hooks.useSelectorGetter(eventRaisers.columnResizeEnd);
+
+    //Cancel scroll by touch when dragging
+    useEffect(() => {
+        const changeEventListener = dragMode ? window.addEventListener : window.removeEventListener;
+        changeEventListener("touchmove", cancelScrollListener, cancelScrollOptions);
+    }, [dragMode]);
 
     const rowValues = hooks.useSelector(s => s.rowValues);
     const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
-
-    //#region Drag selection
 
     //Element refs
     const tableBodyRef = useRef();
     const selectionRectRef = useRef();
     const bodyContainerRef = useRef();
     const scrollingContainerRef = useRef();
+    const headColGroupRef = useRef();
+    const resizingContainerRef = useRef();
 
-    //Variables refs
-    const selection = useRef({
-        enabled: false
+
+    //#region Dragging
+
+    const drag = useRef({
+        animationId: null,
+        pointerPos: Point()
     }).current;
+
+    const dragStart = useCallback((e, dragMode) => {
+        drag.pointerPos = Point(e.clientX, e.clientY);
+
+        setDragMode(dragMode);
+        scrollingContainerRef.current.setPointerCapture(e.pointerId);
+    }, [drag]);
+
+    //#endregion
+
+    //#region Selection
+
+    const dragSelection = useRef({
+        selection: {
+            selected: {},
+            active: null,
+            pivot: null
+        },
+        origin: {
+            relX: null,
+            relY: null,
+            rowIndex: null
+        },
+        prevRowIndex: null
+    }).current;
+
+    const setDragSelectionOriginIndex = useCallback(index =>
+        dragSelection.origin.index = index, [dragSelection]);
 
     const applyRectStyles = useCallback(styles => {
         Object.assign(selectionRectRef.current.style, styles);
     }, [selectionRectRef]);
 
-    const getRelX = useCallback((absX, inset = 0) => {
-        const container = scrollingContainerRef.current;
-        const { left, width } = container.getBoundingClientRect();
-
-        return _.clamp(absX - left, inset, width) - inset + container.scrollLeft
-    }, [scrollingContainerRef]);
-
-    const getRelY = useCallback((absY, inset = 0) => {
-        const container = scrollingContainerRef.current;
-        const { top, height } = container.getBoundingClientRect();
-
-        return _.clamp(absY - top, inset, height) - inset + container.scrollTop
-    }, [scrollingContainerRef])
-
-    const getScrollLeftOffset = useCallback((absX, scrollFactor, inset = 0) => {
-        const bounds = scrollingContainerRef.current.getBoundingClientRect();
-
-        const offset =
-            Math.min(0, absX - bounds.left - inset) +
-            Math.max(0, absX - bounds.right)
-
-        return offset * scrollFactor;
-    }, []);
-
-    const getScrollTopOffset = useCallback((absY, scrollFactor, inset = 0) => {
-        const bounds = scrollingContainerRef.current.getBoundingClientRect();
-
-        const offset =
-            Math.min(0, absY - bounds.top - inset) +
-            Math.max(0, absY - bounds.bottom)
-
-        return offset * scrollFactor;
-    }, []);
-
-    const getOffsetRelX = useCallback((absX, offset, inset = 0) => {
-        const { scrollWidth } = scrollingContainerRef.current;
-        const relX = getRelX(absX, inset);
-
-        return _.clamp(relX + offset, 0, scrollWidth - inset);
-    }, [getRelX]);
-
-    const getOffsetRelY = useCallback((absY, offset, inset = 0) => {
-        const { scrollHeight } = scrollingContainerRef.current;
-        const relY = getRelY(absY, inset);
-
-        return _.clamp(relY + offset, 0, scrollHeight - inset);
-    }, [getRelY]);
-
-    //State
-    const dragSelectStart = useCallback((rowIndex = null) => {
-        //Return if multiSelect is disabled
-        if (!options.multiSelect) return;
-
-        //Return if below items and multiSelect listBox
-        if (rowIndex === null && options.listBox) return;
-
-        setMode("selecting");
-
-        const { offsetLeft, offsetTop } = bodyContainerRef.current;
-        const { absX, absY } = selection;
-        const relX = getRelX(absX, offsetLeft);
-        const relY = getRelY(absY, offsetTop);
-
-        rowIndex ??= rowValues.length;
-
-        Object.assign(selection, {
-            enabled: true,
-            selected: {},
-            active: -1,
-            pivot: -1,
-            prevIndex: rowIndex,
-            originIndex: rowIndex,
-            prevRelX: relX,
-            prevRelY: relY,
-            originRelX: relX,
-            originRelY: relY,
-            pendingFrames: 0
-        });
-    }, [
-        options, rowValues.length, selection, getRelX, getRelY,
-        bodyContainerRef
-    ]);
-
-    const updateSelectionState = useCallback(() => {
-        applyRectStyles({ display: "none" });
-
-        //0 length timeout to avoid delaying the frame when called from within requestAnimationFrame
-        setTimeout(() => {
-            setMode(null);
-
-            const { selected, active, pivot } = selection;
-            if (active < 0) return;
-
-            actions.setSelected(
-                _.mapKeys(selected, (_, index) => rowValues[index]),
-                active + indexOffset,
-                pivot + indexOffset
-            );
-        });
-    }, [applyRectStyles, actions, rowValues, indexOffset, selection]);
-
-    const getSelectionPatch = useCallback((boundedRelY, boundedPrevRelY) => {
-        const {
-            offsetHeight: tableHeight,
-            children: rows
-        } = tableBodyRef.current;
-
-        const { originIndex, prevIndex } = selection;
-        const upwards = boundedRelY < boundedPrevRelY;
-        const fallbackIndex = rows.length;
-        const newlySelected = {};
-        let index = prevIndex;
-
-        while (true) {
-            if (index === fallbackIndex) {
-                if (boundedRelY > tableHeight) break;
-
-                selection.pivot = rows.length - 1;
-            } else {
-                const row = rows[index];
-                if (upwards && boundedRelY >= row.offsetTop) break;
-                if (!upwards && boundedRelY <= row.offsetTop + row.offsetHeight) break;
-
-                const abovePivot = index < originIndex;
-                newlySelected[index] = index === originIndex || abovePivot === upwards;
-            }
-
-            index += upwards ? -1 : 1;
-            if (index === fallbackIndex) break;
-
-            newlySelected[index] = true;
-            selection.active = index;
+    const dragSelectUpdate = useCallback((movement) => {
+        if (movement) {
+            const container = scrollingContainerRef.current;
+            container.scrollLeft -= movement.x;
+            container.scrollTop -= movement.y;
         }
-
-        if (index === prevIndex) return;
-
-        Object.assign(selection.selected, newlySelected);
-        selection.prevIndex = index;
-
-        return newlySelected;
-    }, [selection, tableBodyRef]);
-
-    const updateSelection = useCallback(() => {
-        if (!selection.enabled) return false;
-
-        const { absX, absY, prevRelX, prevRelY } = selection;
-
-        const {
-            offsetLeft: headerWidth,
-            offsetTop: headerHeight
-        } = bodyContainerRef.current;
-
-        const scrollLeftOffset = getScrollLeftOffset(absX, scrollFactor, headerWidth);
-        const scrollTopOffset = getScrollTopOffset(absY, scrollFactor, headerHeight);
-
-        const relX = getOffsetRelX(absX, scrollLeftOffset, headerWidth);
-        const relY = getOffsetRelY(absY, scrollTopOffset, headerHeight);
-
-        //Update selection
-        let selectionPatch;
-        if (prevRelY !== relY)
-            selectionPatch = getSelectionPatch(relY, prevRelY);
-        else if (prevRelX === relX)
-            return;
-
-        Object.assign(selection, {
-            prevRelX: relX,
-            prevRelY: relY
-        });
-
-        const { originRelX, originRelY, active } = selection;
-
-        const rectBounds = showSelectionRect && {
-            left: px(Math.min(relX, originRelX)),
-            top: px(Math.min(relY, originRelY)),
-            width: px(Math.abs(relX - originRelX)),
-            height: px(Math.abs(relY - originRelY))
-        };
-
-        selection.pendingFrames++;
-        requestAnimationFrame(() => {
-            if (selectionPatch) {
-                const tableBody = tableBodyRef.current;
-                const getClassList = index => tableBody.children[index].classList;
-
-                const [activeRow] = tableBody.getElementsByClassName(ActiveClass);
-                activeRow.classList.remove(ActiveClass);
-
-                getClassList(active).add(ActiveClass);
-
-                _.forEach(selectionPatch, (selected, index) => {
-                    getClassList(index).toggle(SelectedClass, selected);
-                });
-            }
-
-            const scrollingContainer = scrollingContainerRef.current;
-            scrollingContainer.scrollLeft += scrollLeftOffset;
-            scrollingContainer.scrollTop += scrollTopOffset;
-
-            if (rectBounds) {
-                applyRectStyles({ display: "block" });
-                applyRectStyles(rectBounds);
-            }
-
-            if (!--selection.pendingFrames && !selection.enabled)
-                //Give time for current frame to be rendered
-                requestAnimationFrame(updateSelectionState);
-        });
-    }, [
-        selection,
-        applyRectStyles,
-        getSelectionPatch,
-        showSelectionRect,
-        getScrollLeftOffset,
-        getScrollTopOffset,
-        getOffsetRelY,
-        getOffsetRelX,
-        scrollFactor,
-        updateSelectionState,
-        scrollingContainerRef,
-        bodyContainerRef
-    ]);
-
-    //Event handlers
-
-    const handleScroll = updateSelection;
+    }, []);
 
     const dragSelectEnd = useCallback(() => {
-        if (!selection.enabled)
-            return setMode(null);
 
-        selection.enabled = false;
+    }, []);
 
-        if (!selection.pendingFrames)
-            updateSelectionState();
 
-    }, [selection, setMode, updateSelectionState]);
+    //#endregion
 
-    //Window events
-    useEvent(window, "mousemove", useCallback(e => {
-        selection.absX = e.clientX;
-        selection.absY = e.clientY;
+    //#region Column resizing
 
-        updateSelection();
-    }, [updateSelection, selection]));
+    const columnResizing = useRef({
+        widths: [],
+        waitForRender: false,
+        initialWidth: 0,
+        movementBuffer: 0
+    }).current;
 
-    useEvent(window, "touchmove", useCallback(e => {
-        const [touch] = e.touches;
+    useEffect(() => {
+        columnResizing.waitForRender = false;
+    }, [columnGroup, columnResizing]);
 
-        selection.absX = touch.clientX;
-        selection.absY = touch.clientY;
+    const columnResizeStart = useCallback((e, index) => {
+        if (!e.isPrimary) return;
+        dragStart(e, { name: DragModes.Resize, index });
 
-        if (updateSelection() === false) return;
-        e.preventDefault();
-    }, [updateSelection, selection]), false);
+        columnResizing.waitForRender = true;
+        /* clientWidth instead of clientRect.width to ensure that the same amount of the column resizer is visible
+        when automatically scrolling right */
+        columnResizing.widths = _.initial(_.map(headColGroupRef.current.children, "clientWidth"));
+        columnResizing.initialWidth = scrollingContainerRef.current.scrollWidth;
+        columnResizing.movementBuffer = 0;
 
-    useEvent(window, "mouseup", dragSelectEnd);
-    useEvent(window, "touchend", dragSelectEnd);
+        setColumnGroup(columnGroup => ({
+            ...columnGroup,
+            widths: columnResizing.widths.map(px),
+            spacerWidth: "100%",
+            containerWidth: "fit-content",
+            containerMinWidth: "0px"
+        }));
+    }, [dragStart, columnResizing]);
+
+    const columnResizeEnd = useCallback(() => {
+        const container = scrollingContainerRef.current;
+        const widths = columnResizing.widths.map(px => 100 * px / container.clientWidth);
+        raiseColumnResizeEnd(widths);
+        setColumnGroup(getColumnGroup(widths));
+
+        bodyContainerRef.current.style.width = "100%";
+    }, [columnResizing, setColumnGroup, getColumnGroup, raiseColumnResizeEnd]);
+
+    const columnResizeAnimate = useCallback((changedWidths, scrollLeft) =>
+    requestAnimationFrame(() => {
+        const colGroup = headColGroupRef.current;
+        const container = scrollingContainerRef.current;
+
+        for (let index in changedWidths)
+            colGroup.children[index].width = px(changedWidths[index]);
+
+        container.scrollLeft = scrollLeft;
+
+        bodyContainerRef.current.style.width = (
+            columnResizing.initialWidth <= container.clientWidth ||
+            columnResizing.initialWidth <= _.sum(columnResizing.widths)
+        ) ? "100%" : 0;
+
+        columnResizing.movementBuffer = 0;
+
+        if (drag.animationId == null)
+            columnResizeEnd();
+        else drag.animationId = null;
+    }), [drag, columnResizeEnd, columnResizing]);
+
+    const columnResizeUpdate = useCallback((movement = null) => {
+        if (columnResizing.waitForRender) return;
+
+        const container = scrollingContainerRef.current;
+
+        const { index } = dragMode;
+        const { widths } = columnResizing;
+        const { constantWidth, minColumnWidth: minWidth } = options;
+
+        //Auto-scroll
+        const distanceToEnd = _.sum(_.slice(widths, index + 1));
+        const shrinkThresholdColumn = container.scrollLeft && widths[index] > minWidth
+            ? container.clientWidth - distanceToEnd : 0
+        const expandThreshold = getClientX(container) + container.clientWidth;
+        const shrinkThreshold = getClientX(container) + Math.max(0, shrinkThresholdColumn);
+
+        const { relative: relX, scrollOffset } = getRelativeOffset(
+            drag.pointerPos.x, getClientX(headColGroupRef.current),
+            shrinkThreshold, expandThreshold, columnResizeScrollFactor
+        );
+
+        //Scroll with second finger
+        let movementOffset = 0;
+        if (relX + distanceToEnd > container.clientWidth) {
+            const availableScroll = constantWidth ?
+                columnResizing.initialWidth - container.clientWidth - container.scrollLeft : Infinity;
+
+            movementOffset = _.clamp(
+                columnResizing.movementBuffer -= movement?.x ?? 0,
+                -container.scrollLeft, availableScroll
+            );
+        }
+
+        //Set column widths
+        const availableWidth = constantWidth ? widths[index] + widths[index + 1] : Infinity;
+        const left = _.sum(_.take(widths, index));
+        const targetWidth = relX + movementOffset - left;
+
+        const changedWidths = {};
+        changedWidths[index] = _.clamp(targetWidth, minWidth, availableWidth - minWidth);
+
+        if (constantWidth)
+            changedWidths[index + 1] = availableWidth - changedWidths[index];
+
+        //Handle overscroll
+        const overscroll = targetWidth !== changedWidths[index];
+        const absPos = _.clamp(drag.pointerPos.x - getClientX(container), 0, container.clientWidth);
+        const scrollLeft = !overscroll && (scrollOffset || movementOffset)
+            ? left + changedWidths[index] - absPos
+            : container.scrollLeft + scrollOffset + movementOffset;
+
+        Object.assign(columnResizing.widths, changedWidths);
+
+        cancelAnimationFrame(drag.animationId);
+        drag.animationId = columnResizeAnimate(changedWidths, scrollLeft);
+    }, [
+        drag,
+        columnResizing,
+        columnResizeAnimate,
+        columnResizeScrollFactor,
+        options,
+        dragMode
+    ]);
+
+
+    //#endregion
+
+    //#region Routers
+
+    const dragUpdate = useCallback((movement) => {
+        const update = ({
+            [DragModes.Resize]: columnResizeUpdate,
+            [DragModes.Select]: dragSelectUpdate
+        })[dragMode.name];
+
+        return update?.(movement);
+    }, [dragMode, columnResizeUpdate, dragSelectUpdate]);
+
+    const dragEnd = useCallback(() => {
+        const end = ({
+            [DragModes.Resize]: columnResizeEnd,
+            [DragModes.Select]: dragSelectEnd
+        })[dragMode.name];
+
+        return end?.();
+    }, [dragMode, columnResizeEnd, dragSelectEnd]);
+
+    //#endregion
+
+    //#region Event handlers
+
+    const handleContextMenu = useCallback(e => {
+
+    }, []);
+
+    const handleScroll = useCallback(e => {
+        if (!dragMode) return;
+
+        dragUpdate();
+    }, [dragMode, dragUpdate]);
+
+    const handlePointerMove = useCallback(e => {
+        if (!dragMode) return;
+
+        if (e.isPrimary) {
+            drag.pointerPos = Point(e.clientX, e.clientY);
+            dragUpdate();
+        } else {
+            dragUpdate(Point(e.movementX, e.movementY));
+        }
+    }, [dragMode, drag, dragUpdate]);
+
+    const handlePointerStop = useCallback(e => {
+        if (!dragMode) return;
+        e.currentTarget.releasePointerCapture(e.pointerId);
+
+        if (!e.isPrimary) return;
+        setDragMode(null);
+
+        if (drag.animationId == null)
+            dragEnd();
+        else drag.animationId = null;
+    }, [dragMode, dragEnd, drag]);
 
     //#endregion
 
@@ -306,20 +367,31 @@ function ScrollingContainer(props) {
         bodyContainerRef,
         tableBodyRef,
         selectionRectRef,
-        dragSelectStart,
-        updateSelection,
-        dragSelectEnd,
-        selection
+        scrollingContainerRef,
+        resizingContainerRef,
+        headColGroupRef,
+
+        dragMode,
+        columns,
+
+        setDragSelectionOriginIndex,
+        columnResizeStart
     });
 
-    return <Fragment>
-        <div className="rst-scrollingContainer"
-             onScroll={handleScroll}
-             ref={scrollingContainerRef}
-        >
+    return <div
+        className="rst-scrollingContainer"
+        ref={scrollingContainerRef}
+        data-dragmode={dragMode?.name}
+        onContextMenu={handleContextMenu}
+        onScroll={handleScroll}
+        onPointerMove={handlePointerMove}
+        onPointerCancel={handlePointerStop}
+        onPointerUp={handlePointerStop}
+    >
+        <ColumnGroupContext.Provider value={columnGroup}>
             <ResizingContainer {...resizingProps} />
-        </div>
-    </Fragment>
+        </ColumnGroupContext.Provider>
+    </div>
 }
 
 export default React.memo(ScrollingContainer);

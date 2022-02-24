@@ -10,56 +10,7 @@
         width: 100%;
         table-layout: fixed;
         user-select: none;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    td, th {
-        white-space: nowrap;
-        overflow: hidden;
-        border-bottom: inherit;
-    }
-
-    tr {
-        border: inherit;
-    }
-
-    thead > tr > * {
-        //Doing this in a weird way, because we don't want the right border of the last header to be visible by default
-        //We also don't want to offset the header text (if we set the left border)
-        &:not(:last-of-type) {
-            //Headers except last
-            border-right: inherit;
-        }
-
-        &:last-child {
-            //The spacer column
-            border-left: inherit;
-        }
-    }
-
-    &[data-mode] {
-        z-index: 5000;
-
-        .rst-scrollingContainer {
-            z-index: 2;
-
-            * {
-                cursor: inherit !important;
-            }
-        }
-
-        .rst-cursorOverlay {
-            display: block;
-        }
-    }
-
-    &[data-mode=resizing] {
-        cursor: col-resize;
-    }
-
-    &[data-mode=selecting] {
-        cursor: default;
+        border-collapse: collapse;
     }
 }
 
@@ -99,26 +50,26 @@
     }
 }
 
-.rst-cursorOverlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 1;
-}
-
 .rst-scrollingContainer {
     position: relative;
     flex: auto;
     overflow: auto;
+
+    &[data-dragmode=resize] {
+        cursor: col-resize;
+    }
+
+    &[data-dragmode=select] {
+        cursor: default;
+    }
 }
 
 .rst-resizingContainer {
     box-sizing: content-box;
     display: flex;
     flex-direction: column;
+    contain: paint;
+
     min-height: 100%;
 }
 
@@ -126,15 +77,56 @@
     flex: none;
     position: sticky;
     top: 0;
+    margin: 0;
     z-index: 1;
 
     th {
-        white-space: nowrap;
+        padding: 0;
         position: relative;
+        overflow: visible;
+        border-bottom: inherit;
+    }
+}
 
-        span.is-sortable {
-            cursor: pointer;
-        }
+.rst-header {
+    &:last-child .rst-columnResizer {
+        display: none;
+    }
+
+    &.rst-sortable .rst-headerText {
+        cursor: pointer;
+    }
+}
+
+.rst-headerText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rst-headerContent {
+    height: 100%;
+    display: flex;
+    align-items: baseline;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.rst-bodyContainer {
+    position: relative;
+    flex: auto;
+    z-index: 0;
+
+    //Hack to crop body container based on head container (Part 1)
+    max-width: 100%;
+
+    tr:first-child > * {
+        border-top: none;
+    }
+
+    td, th {
+        white-space: nowrap;
+        overflow: hidden;
+        border-bottom: inherit;
     }
 }
 
@@ -144,19 +136,46 @@
     position: absolute;
 }
 
-.rst-bodyContainer {
-    position: relative;
-    flex: auto;
-    align-self: stretch;
-    z-index: 0;
-}
-
 .rst-columnResizer {
     position: absolute;
     top: 0;
     right: 0;
-    height: 100%;
     cursor: col-resize;
+    touch-action: none;
+    height: 100%;
+    z-index: 1;
+    transform: translateX(50%);
+}
+
+.rst-resizing .rst-columnResizer {
+    transform: none;
+}
+
+.rst-spacer {
+    .rst-columnSeparator {
+        left: unset;
+        right: 100%;
+    }
+
+    .rst-columnResizer {
+        transform: none;
+    }
+}
+
+.rst-columnResizerHider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2;
+}
+
+.rst-columnSeparator {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
 }
 
 .rst-dragSelection {

@@ -18,10 +18,11 @@
         $module: rst-join($module_parts, $module-separator);
 
         @if $value != null {
-            @if $property == "border" {
-                //Auto generate border-color property from border, to be used as a fallback for more specific values
-                $color: rst-nth-or-default($value, 3, currentColor);
-                @include rst-set($module, "border-color", $color);
+            @if index($property, "border") == 1 and length($value) == 3 {
+                //Auto generate properties from border, to be used as a fallback for more specific values
+                @include rst-set($module, $property + "-color", nth($value, 3));
+                @include rst-set($module, $property + "-style", nth($value, 2));
+                @include rst-set($module, $property + "-width", nth($value, 1));
             }
         } @else if length($module_parts) >= 2 {
             //Fallback to less specific value
@@ -62,5 +63,14 @@
     & > td, th {
         //-1px is used to prevent anti-aliasing on the clipping mask resulting in spaces
         clip-path: inset(-1px -1px $width -1px);
+    }
+}
+
+@mixin rst-border-sides($sides) {
+    $all-sides: top, left, right, bottom;
+    @each $side in $all-sides {
+        @if index($sides, $side) == null {
+            border-#{$side}: none;
+        }
     }
 }

@@ -4,7 +4,7 @@ export const defaultEventHandlers = {
     onContextMenu: noopEventHandler,
     onSelectionChange: noopEventHandler,
     onItemsOpen: noopEventHandler,
-    onColumnsResizeEnd: noopEventHandler,
+    onColumnResizeEnd: noopEventHandler,
     onKeyDown: noopEventHandler,
 };
 
@@ -45,7 +45,7 @@ export default function EventRaisers(handlers, options, selectors) {
         keyDown: (state, e) =>
             handlers.onKeyDown(e, getSelectionArg(state)),
 
-        columnsResizeEnd: (state, widths) =>
-            handlers.onColumnsResizeEnd(widths),
+        columnResizeEnd: (state, widths) =>
+            handlers.onColumnResizeEnd(widths),
     };
 }

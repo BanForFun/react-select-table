@@ -16,7 +16,7 @@
     "sass": "^1.30.0"
   },
   "scripts": {
-    "start": "PORT=2000 node ../node_modules/react-scripts/bin/react-scripts.js start",
+    "start": "./waitforfile.sh ../dist/index.js && PORT=2000 node ../node_modules/react-scripts/bin/react-scripts.js start",
     "build": "node ../node_modules/react-scripts/bin/react-scripts.js build",
     "test": "node ../node_modules/react-scripts/bin/react-scripts.js test",
     "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"

@@ -1,6 +1,5 @@
-import React, {Fragment, useCallback} from 'react';
+import React, {Fragment, useCallback, useMemo} from 'react';
 import AngleIcon, {angleRotation} from "./AngleIcon";
-import _ from "lodash";
 import classNames from "classnames";
 
 //Child of TableHead
@@ -13,51 +12,45 @@ function TableHeader({
     sortAscending,
     sortPriority,
     showPriority,
-    isLast,
+    isResizing,
+    scrollingContainerRef,
     utils: { options }
 }) {
+    const resizerHeight = useMemo(() =>
+        isResizing ? scrollingContainerRef.current.clientHeight : undefined,
+        [scrollingContainerRef, isResizing])
+
     const handleTitleMouseDown = useCallback(e => {
         if (e.button !== 0 || !path) return;
         actions.baseSortItems(path, options.multiSort && e.shiftKey);
     }, [path, actions, options]);
 
-    const handleResizeStart = useCallback((e) => {
-        e.preventDefault();
-
-        const isMouse = e.type === "mousedown";
-        if (isMouse && e.button !== 0) return;
-
-        const header = e.currentTarget.offsetParent;
-        const row = header.parentElement;
-        const widths = _.map(row.children, th => th.offsetWidth);
-        const {clientX} = isMouse ? e : e.touches[0];
-
-        columnResizeStart(index, clientX, header.offsetLeft, widths);
+    const handlePointerDown = useCallback(e => {
+        columnResizeStart(e, index);
     }, [columnResizeStart, index]);
 
-    const spanClass = classNames({
-        "is-sortable": path
+    const className = classNames({
+        "rst-header": true,
+        "rst-sortable": !!path,
+        "rst-resizing": isResizing,
     });
 
-    return <th scope="col">
-        <span
-            className={spanClass}
-            onMouseDown={handleTitleMouseDown}
-        >{title}</span>
+    return <th scope="col" className={className}>
+        <div className="rst-columnSeparator" />
 
-        {sortPriority >= 0 && <Fragment>
-            <AngleIcon rotation={sortAscending ? angleRotation.Up : angleRotation.Down}/>
-            {showPriority && <small>{sortPriority}</small>}
-        </Fragment>}
-
-        {(!options.constantWidth || !isLast) &&
-            <div
-                className="rst-columnResizer"
-                onMouseDown={handleResizeStart}
-                onTouchStart={handleResizeStart}
-            />
-        }
-    </th>;
+        <div className="rst-headerContent">
+            <span className="rst-headerText" onMouseDown={handleTitleMouseDown}>{title}</span>
+            {sortPriority >= 0 && <Fragment>
+                <AngleIcon rotation={sortAscending ? angleRotation.Up : angleRotation.Down}/>
+                {showPriority && <small>{sortPriority}</small>}
+            </Fragment>}
+        </div>
+        <div
+            className="rst-columnResizer"
+            style={{ height: resizerHeight }}
+            onPointerDown={handlePointerDown}
+        />
+    </th>
 }
 
 export default React.memo(TableHeader);

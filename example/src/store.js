@@ -18,7 +18,7 @@ const reducer = createTable(tableNamespace, {
     searchProperty: "name",
     constantWidth: false,
     multiSelect: true,
-    multiSort: false,
+    multiSort: true,
     initState: {
         // pageSize: 10
         // filter: {

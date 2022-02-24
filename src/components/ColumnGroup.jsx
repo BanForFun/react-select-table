@@ -1,4 +1,4 @@
-import React, {useContext, useCallback} from 'react';
+import React, {useContext, forwardRef} from 'react';
 
 export const ColumnGroupContext = React.createContext(null);
 ColumnGroupContext.displayName = "ColumnGroupContext";
@@ -6,24 +6,15 @@ ColumnGroupContext.displayName = "ColumnGroupContext";
 //Child of HeadContainer
 //Child of BodyContainer
 
-function ColumnGroup({ id }) {
-    const { widths, columns, name, refs } = useContext(ColumnGroupContext);
+function ColumnGroup(props, ref) {
+    const { widths, spacerWidth, name, columns } = useContext(ColumnGroupContext);
 
-    const setRef = useCallback(ref => {
-        refs[id] = ref;
-    }, [refs, id]);
-
-    const Column = useCallback(({ width }) => {
-        const units = widths.resizing ? "px" : "%";
-        return <col style={{ width: width + units }} />
-    }, [widths]);
-
-    return <colgroup ref={setRef}>
+    return <colgroup ref={ref}>
         {columns.map((col, index) =>
-            <Column key={`header_${name}_${col._id}`} width={widths.headers[index]} />)}
+            <col key={`header_${name}_${col._id}`} width={widths[index]} />)}
 
-        <Column width={widths.spacer} />
+        <col width={spacerWidth} />
     </colgroup>;
 }
 
-export default ColumnGroup;
+export default forwardRef(ColumnGroup);

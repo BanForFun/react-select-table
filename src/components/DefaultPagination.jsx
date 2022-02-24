@@ -1,7 +1,6 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import AngleIcon, {angleRotation} from "./AngleIcon";
 import _ from "lodash";
-import useEvent from "../hooks/useEvent";
 import classNames from "classnames";
 
 const startDelay = 600
@@ -31,9 +30,13 @@ function DefaultPagination({
         return () => repeatAction(startDelay);
     }, [repeatTimeoutRef, page, goToPage]);
 
-    useEvent(window, "mouseup", useCallback(() => {
-        clearTimeout(repeatTimeoutRef.current);
-    }, [repeatTimeoutRef]));
+    useEffect(() => {
+        const handler = () => clearTimeout(repeatTimeoutRef.current);
+        window.addEventListener("pointerup", handler);
+
+        return () =>
+            window.removeEventListener("pointerup", handler);
+    }, [repeatTimeoutRef]);
 
     function Page({ number, ...rest }) {
         const buttonClass = classNames({

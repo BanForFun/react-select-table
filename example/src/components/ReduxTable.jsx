@@ -111,8 +111,8 @@ function ReduxTable() {
         }
     }, [dispatch, clipboard, items]);
 
-    return <div id="example">
-        <div>
+    return <>
+        <div id="buttons">
             {_.map(buttonActions, (action, text) => {
                 function handleClick() {
                     dispatch(action);
@@ -121,7 +121,7 @@ function ReduxTable() {
 
                 return <button
                     key={text}
-                    className="btn btn-sm btn-primary mr-1 mb-2"
+                    className="btn btn-sm btn-primary"
                     onClick={handleClick}
                 >{text}</button>
             })}
@@ -131,7 +131,7 @@ function ReduxTable() {
             emptyPlaceholder="No items"
             namespace={tableNamespace}
             className="rst-table"
-            initColumnWidths={[10, 10, 10, 40, 30]}
+            initColumnWidths={[10, 10, 50, 20, 50]}
             // tableClass="table table-striped table-hover table-dark"
             theadClass=""
             columns={columns}
@@ -140,10 +140,11 @@ function ReduxTable() {
             onKeyDown={handleTableKeyDown}
             showSelectionRect={true}
             onContextMenu={(selection) => console.log([...selection])}
+            onColumnResizeEnd={logEvent("Columns Resized")}
             onSelectionChange={logEvent("Selection")}
             onItemsOpen={logEvent("Open")}
         />
-    </div>
+    </>
 }
 
 export default ReduxTable;

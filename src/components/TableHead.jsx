@@ -1,15 +1,20 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useCallback} from 'react';
 import TableHeader from "./TableHeader";
+import {DragModes} from "../utils/tableUtils";
 
 //Child of HeadContainer
 function TableHead(props) {
     const {
         columns,
         name,
+        dragMode,
         ...commonHeaderProps
     } = props;
 
-    const {hooks, options} = props.utils;
+    const {
+        columnResizeStart,
+        utils: { hooks, options }
+    } = props;
 
     const sortAscending = hooks.useSelector(s => s.sortAscending);
 
@@ -25,28 +30,37 @@ function TableHead(props) {
 
     //Redux state
 
-    const renderHeader = (column, index) => {
+    const getHeaderProps = (column, index) => {
         const { _id, path, title } = column;
-
         const sortOrder = sorting.orders[path];
 
-        const headerProps = {
+        return {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
             path, title, index,
-            isLast: index === columns.length - 1,
+            isResizing: dragMode?.name === DragModes.Resize && dragMode.index === index,
             sortAscending: sortOrder?.ascending,
             sortPriority: sortOrder?.priority,
             showPriority: sorting.maxIndex > 1
         }
-
-        return <TableHeader {...headerProps} />
     }
+
+    const handleSpacerPointerDown = useCallback(e => {
+        columnResizeStart(e, columns.length - 1);
+    }, [columnResizeStart, columns]);
 
     return <thead>
         <tr>
-            {columns.map(renderHeader)}
-            <td/>
+            {columns.map((col, idx) =>
+                <TableHeader {...getHeaderProps(col, idx)}/>)}
+
+            {!options.constantWidth && <th className="rst-spacer">
+                <div className="rst-columnSeparator"/>
+                {/* Second column resizer for last header, to ensure that the full column resizer width
+                is visible even when the spacer is fully collapsed */}
+                <div className="rst-columnResizer" onPointerDown={handleSpacerPointerDown} />
+                <div className="rst-columnResizerHider"/>
+            </th>}
         </tr>
     </thead>
 }

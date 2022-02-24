@@ -2,6 +2,7 @@ $rst-prefix:            rst !default;
 $rst-striped-order:     even !default;
 $rst-config:            () !default;
 
+//noinspection CssInvalidFunction
 $rst-config: map-merge((
     //Naming convention: element_state1_stateN.property
     "body-placeholder.color":                   #616161,
@@ -39,35 +40,39 @@ $rst-config: map-merge((
     "search-btn_hover.color":                   null,
 
     "cell.padding":                             0.75rem,
+    "cell.border":                              none,
 
-    "header.border":                            1px solid rgba(#a3a5a5, 0.5),
-    "header.vertical-align":                    middle,
-    "header.text-align":                        left,
-    "header.background-color":                  #f7f7f7,
-    "header.color":                             #616161,
+    "head.vertical-align":                      middle,
+    "head.text-align":                          left,
+    "head.background-color":                    #f7f7f7,
+    "head.color":                               #616161,
+
     "header.icon-spacing":                      0.25rem,
+    "header.border":                            2px solid rgba(#bdc5cd, 0.5),
+    "header-resizing.border-image":             repeating-linear-gradient(
+            to right, rst-get("header", "border-color") 0px 10px, transparent 10px 20px
+    ) 1 stretch,
 
-    "head.border-width":                        2px,
+    "column-separator.border":                  5px solid #89b363,
 
-    "body.border":                              1px solid rgba(#bdc5cd, 0.5),
+    "column-resizer.width":                     30px,
+    "column-resizer-resizing.border":           2px solid #a3a5a5,
+
     "body.vertical-align":                      middle,
     "body.text-align":                          left,
     "body.background-color":                    transparent,
     "body.color":                               #333333,
 
-    "column-resizer.width":                     0.75rem,
-    "column-resizer.background-color":          transparent,
-    "column-resizer_active.background-color":   rgba(#afafaf, 0.5),
+    "row.border":                               1px solid rgba(#bdc5cd, 0.5),
+
+    "row_selected.border-color":                rgba(#f5f5f5, 0.5),
+    "row_selected_focused.border-color":        null,
 
     "row-selected.overlay":                     rgba(#a7b79b, 0.5),
     "row-selected_focused.overlay":             rgba(#89b363, 0.5),
 
     "row-selected.color":                       null,
     "row-selected_focused.color":               null,
-
-    "row.border-color":                         rst-get("body", "border-color"), //For fallback only
-    "row_selected.border-color":                rgba(#f5f5f5, 0.5),
-    "row_selected_focused.border-color":        null,
 
     "row.underline-width":                      3px,
 

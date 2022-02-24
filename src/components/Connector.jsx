@@ -71,13 +71,13 @@ Connector.propTypes = {
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     autoFocus: PropTypes.bool,
     showSelectionRect: PropTypes.bool,
-    dragSelectionScrollFactor: PropTypes.number,
-    columnResizingScrollFactor: PropTypes.number,
+    dragSelectScrollFactor: PropTypes.number,
+    columnResizeScrollFactor: PropTypes.number,
     getRowClassName: PropTypes.func,
     onContextMenu: PropTypes.func,
     onItemsOpen: PropTypes.func,
     onSelectionChange: PropTypes.func,
-    onColumnsResizeEnd: PropTypes.func,
+    onColumnResizeEnd: PropTypes.func,
     onKeyDown: PropTypes.func
 };
 
@@ -85,8 +85,8 @@ Connector.defaultProps = {
     getRowClassName: () => null,
     className: "rst-table rst-hover",
     initColumnWidths: [],
-    dragSelectionScrollFactor: 0.5,
-    columnResizingScrollFactor: 0.2,
+    dragSelectScrollFactor: 0.5,
+    columnResizeScrollFactor: 0.2,
     errorComponent: 'span',
     paginationComponent: DefaultPagination,
     loadingIndicator: null,

@@ -2,20 +2,23 @@ $head-cell-padding: 5rem;
 
 @use "~react-select-table/src/scss";
 
-@import "~bootstrap/scss/bootstrap";
+//@import "~bootstrap/scss/bootstrap";
 
 #app {
     height: 100vh;
     background-color: #f5f5f5;
-}
-
-#example {
-    padding: 1rem 4rem 4rem;
-    height: 100%;
     display: flex;
     flex-direction: column;
+    padding: 3rem;
+    box-sizing: border-box;
+}
+
+#buttons button {
+    margin: 0 0.25rem 1rem 0;
+    user-select: none;
 }
 
 .rst-container {
     flex: auto;
 }
+

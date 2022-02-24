@@ -2,7 +2,12 @@ import _ from "lodash";
 import Hooks from "../models/Hooks";
 import SimpleSelectors from "../models/SimpleSelectors";
 import Actions from "../models/Actions";
-import EventRaisers, { defaultEventHandlers } from "../models/EventRaisers";
+import EventRaisers, {defaultEventHandlers} from "../models/EventRaisers";
+
+export const DragModes = Object.freeze({
+    Resize: "resize",
+    Select: "select"
+});
 
 export const tableUtils = {};
 
@@ -24,7 +29,7 @@ const defaultOptions = {
     listBox: false,
     valueProperty: "id",
     constantWidth: false,
-    minColumnWidth: 20,
+    minColumnWidth: 50,
     path: null,
     initState: {},
     context: null,

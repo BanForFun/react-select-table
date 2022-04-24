@@ -1,4 +1,4 @@
-import React, {useMemo, useCallback} from 'react';
+import React, {Fragment, useMemo, useCallback} from 'react';
 import TableHeader from "./TableHeader";
 import {DragModes} from "../utils/tableUtils";
 
@@ -38,6 +38,7 @@ function TableHead(props) {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
             path, title, index,
+            isResizable: !options.constantWidth || index < columns.length - 1,
             isResizing: dragMode?.name === DragModes.Resize && dragMode.index === index,
             sortAscending: sortOrder?.ascending,
             sortPriority: sortOrder?.priority,
@@ -54,13 +55,15 @@ function TableHead(props) {
             {columns.map((col, idx) =>
                 <TableHeader {...getHeaderProps(col, idx)}/>)}
 
-            {!options.constantWidth && <th className="rst-spacer">
+            <th className="rst-spacer">
                 <div className="rst-columnSeparator"/>
                 {/* Second column resizer for last header, to ensure that the full column resizer width
                 is visible even when the spacer is fully collapsed */}
-                <div className="rst-columnResizer" onPointerDown={handleSpacerPointerDown} />
-                <div className="rst-columnResizerHider"/>
-            </th>}
+                {!options.constantWidth && <Fragment>
+                    <div className="rst-columnResizer" onPointerDown={handleSpacerPointerDown} />
+                    <div className="rst-columnResizerHider"/>
+                </Fragment>}
+            </th>
         </tr>
     </thead>
 }

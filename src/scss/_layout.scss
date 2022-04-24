@@ -30,10 +30,6 @@
         line-height: 0;
     }
 
-    .rst-icon {
-        align-items: center;
-    }
-
     .rst-separator {
         align-self: stretch;
     }
@@ -88,14 +84,8 @@
     }
 }
 
-.rst-header {
-    &:last-child .rst-columnResizer {
-        display: none;
-    }
-
-    &.rst-sortable .rst-headerText {
-        cursor: pointer;
-    }
+.rst-sortable .rst-headerText {
+    cursor: pointer;
 }
 
 .rst-headerText {
@@ -187,7 +177,7 @@
 .rst-icon {
     height: 1rem;
     display: inline-flex;
-    align-items: flex-end;
+    align-items: center;
     fill: currentColor;
 
     svg {
@@ -209,4 +199,5 @@
     text-align: center;
     box-sizing: content-box;
     color: inherit;
+    display: block;
 }

@@ -9,6 +9,11 @@ export const DragModes = Object.freeze({
     Select: "select"
 });
 
+export const GestureTargets = Object.freeze({
+    Header: -2,
+    BelowItems: -1
+});
+
 export const tableUtils = {};
 
 export const tableModules = {

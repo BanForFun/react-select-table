@@ -1,7 +1,6 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import _ from "lodash";
 import classNames from "classnames";
-import {DragModes} from "../utils/tableUtils";
 
 export const ActiveClass = "rst-active";
 export const SelectedClass = "rst-selected";
@@ -10,71 +9,17 @@ export const SelectedClass = "rst-selected";
 function TableRow({
     columns,
     name,
-    actions,
     setGestureTarget,
+    targetTouchStart,
     selected,
     active,
     data,
     value,
     rowIndex,
     className,
-    indexOffset,
-    utils: { options, eventRaisers, hooks }
+    indexOffset
 }) {
     const index = rowIndex + indexOffset;
-
-    // const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
-    //
-    // const startDrag = useCallback(e => {
-    //     selection.absX = e.clientX;
-    //     selection.absY = e.clientY;
-    //     dragSelectStart(rowIndex);
-    // }, [rowIndex, dragSelectStart, selection]);
-    //
-    // const contextMenu = useCallback(e => {
-    //     if (e.shiftKey)
-    //         raiseContextMenu(true);
-    //     else if (e.ctrlKey)
-    //         raiseContextMenu();
-    //     else if (options.listBox || selected)
-    //         actions.baseSetActive(index, true);
-    //     else
-    //         actions.baseSelect(index, false, false, true);
-    //
-    //     // if (eventRaisers.isHandlerDefined("onContextMenu"))
-    //     //     e.preventDefault();
-    //
-    // }, [raiseContextMenu, options, selected, actions, index])
-
-    // const handleContextMenu = useCallback(e => {
-    //     if (!isTouchingRef.current)
-    //         return contextMenu(e);
-    //
-    //     actions.baseSelect(index, true, false);
-    //     startDrag(e);
-    // }, [isTouchingRef, contextMenu, actions, index, startDrag]);
-
-    // const handleMouseDown = useCallback(e => {
-    //     if (e.button !== 0) return;
-    //
-    //     actions.select(e, index);
-    //     if (isTouchingRef.current) return;
-    //
-    //     startDrag(e);
-    // }, [actions, index, isTouchingRef, startDrag]);
-
-    // const handleTouchStart = useCallback(e => {
-    //     //Td is touch target
-    //     const withinRow = [...e.touches].filter(touch =>
-    //         touch.target.parentNode === e.currentTarget);
-    //     if (withinRow.length < 2) return;
-    //
-    //     contextMenu(e);
-    // }, [contextMenu]);
-
-    const handlePointerDownCapture = useCallback(() => {
-        setGestureTarget(rowIndex)
-    }, [setGestureTarget, rowIndex]);
 
     const renderColumn = (column) => {
         const { _id, path, render, isHeader } = column;
@@ -98,13 +43,13 @@ function TableRow({
         [ActiveClass]: active
     });
 
-    return <tr
-        className={trClass}
-        onPointerDownCapture={handlePointerDownCapture}
+    return <tr className={trClass}
+               onPointerDownCapture={() => setGestureTarget(rowIndex)}
+               onTouchStart={e => targetTouchStart(e, true)}
     >
         {columns.map(renderColumn)}
         <td/>
-    </tr>;
+    </tr>
 }
 
 export default React.memo(TableRow);

@@ -13,6 +13,7 @@ function TableHeader({
     sortPriority,
     showPriority,
     isResizing,
+    isResizable,
     scrollingContainerRef,
     utils: { options }
 }) {
@@ -30,7 +31,6 @@ function TableHeader({
     }, [columnResizeStart, index]);
 
     const className = classNames({
-        "rst-header": true,
         "rst-sortable": !!path,
         "rst-resizing": isResizing,
     });
@@ -45,11 +45,11 @@ function TableHeader({
                 {showPriority && <small>{sortPriority}</small>}
             </Fragment>}
         </div>
-        <div
+        {isResizable && <div
             className="rst-columnResizer"
             style={{ height: resizerHeight }}
             onPointerDown={handlePointerDown}
-        />
+        />}
     </th>
 }
 

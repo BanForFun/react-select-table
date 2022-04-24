@@ -7,7 +7,7 @@ const startDelay = 600
 const repeatDelay = 100
 
 function PageSpacer({children}) {
-    return <span className="rst-page">{children}</span>
+    return <div className="rst-page">{children}</div>
 }
 
 //Child of PaginationContainer

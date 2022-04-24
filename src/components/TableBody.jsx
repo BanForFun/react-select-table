@@ -7,11 +7,8 @@ function TableBody(props) {
         tableBodyRef,
         getRowClassName,
         bodyContainerRef,
+        utils: { hooks, selectors },
         ...rowCommonProps
-    } = props;
-
-    const {
-        utils: { hooks, selectors }
     } = props;
 
     const sortedItems = hooks.useSelector(s => s.sortedItems);

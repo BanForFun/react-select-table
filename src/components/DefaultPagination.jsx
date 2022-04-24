@@ -11,32 +11,23 @@ function PageSpacer({children}) {
 }
 
 //Child of PaginationContainer
-function DefaultPagination({
-    page,
-    pageCount,
-    goToPage
-}) {
-    const repeatTimeoutRef = useRef(null);
-
+function DefaultPagination({ page, pageCount, goToPage }) {
     const repeatOffsetPage = useCallback(offset => {
-        let nextPage = page;
-
+        let timeoutId, nextPage = page;
         const repeatAction = (delay = repeatDelay) => {
-            nextPage += offset;
-            if (!goToPage(nextPage)) return;
-            repeatTimeoutRef.current = setTimeout(repeatAction, delay);
+            if (!goToPage(nextPage += offset)) return;
+            timeoutId = setTimeout(repeatAction, delay);
         }
 
-        return () => repeatAction(startDelay);
-    }, [repeatTimeoutRef, page, goToPage]);
-
-    useEffect(() => {
-        const handler = () => clearTimeout(repeatTimeoutRef.current);
-        window.addEventListener("pointerup", handler);
-
-        return () =>
-            window.removeEventListener("pointerup", handler);
-    }, [repeatTimeoutRef]);
+        return e => {
+            repeatAction(startDelay);
+            e.currentTarget.setPointerCapture(e.pointerId);
+            e.currentTarget.addEventListener("pointerup", e => {
+                e.currentTarget.releasePointerCapture(e.pointerId);
+                clearTimeout(timeoutId);
+            }, { once: true });
+        }
+    }, [page, goToPage]);
 
     function Page({ number, ...rest }) {
         const buttonClass = classNames({
@@ -77,7 +68,7 @@ function DefaultPagination({
         <button
             tabIndex="-1"
             disabled={page === 1}
-            onMouseDown={repeatOffsetPage(-1)}
+            onPointerDown={repeatOffsetPage(-1)}
         >
             <AngleIcon rotation={angleRotation.Left} />
         </button>
@@ -93,7 +84,7 @@ function DefaultPagination({
         <button
             tabIndex="-1"
             disabled={page === pageCount}
-            onMouseDown={repeatOffsetPage(1)}
+            onPointerDown={repeatOffsetPage(1)}
         >
             <AngleIcon rotation={angleRotation.Right} />
         </button>

@@ -1,12 +1,18 @@
-import React from "react";
+import React, {useCallback} from "react";
 import TableHead from "./TableHead";
 import ColumnGroup from "./ColumnGroup";
 
 // Child of ResizingContainer
 function HeadContainer(props) {
-    const { tableClass, headColGroupRef, ...headProps } = props;
+    const { tableClass, headColGroupRef, setGestureTarget, ...headProps } = props;
 
-    return <div className="rst-headContainer">
+    const handlePointerDownCapture = useCallback(() => {
+        setGestureTarget(-2);
+    }, [setGestureTarget])
+
+    return <div className="rst-headContainer"
+                onPointerDownCapture={handlePointerDownCapture}
+    >
         <table className={tableClass}>
             <ColumnGroup ref={headColGroupRef} />
             <TableHead {...headProps} />

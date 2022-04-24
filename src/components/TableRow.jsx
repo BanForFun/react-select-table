@@ -11,8 +11,7 @@ function TableRow({
     columns,
     name,
     actions,
-    dragSelectStart,
-    setDragSelectionOriginIndex,
+    setGestureTarget,
     selected,
     active,
     data,
@@ -20,7 +19,6 @@ function TableRow({
     rowIndex,
     className,
     indexOffset,
-    dragMode,
     utils: { options, eventRaisers, hooks }
 }) {
     const index = rowIndex + indexOffset;
@@ -43,10 +41,10 @@ function TableRow({
     //     else
     //         actions.baseSelect(index, false, false, true);
     //
-    //     if (eventRaisers.isHandlerDefined("onContextMenu"))
-    //         e.preventDefault();
+    //     // if (eventRaisers.isHandlerDefined("onContextMenu"))
+    //     //     e.preventDefault();
     //
-    // }, [raiseContextMenu, options, selected, actions, index, eventRaisers])
+    // }, [raiseContextMenu, options, selected, actions, index])
 
     // const handleContextMenu = useCallback(e => {
     //     if (!isTouchingRef.current)
@@ -74,11 +72,11 @@ function TableRow({
     //     contextMenu(e);
     // }, [contextMenu]);
 
-    const handlePointerDown = useCallback(() => {
-        setDragSelectionOriginIndex(rowIndex)
-    }, [setDragSelectionOriginIndex, rowIndex]);
+    const handlePointerDownCapture = useCallback(() => {
+        setGestureTarget(rowIndex)
+    }, [setGestureTarget, rowIndex]);
 
-    const renderColumn = (column, colIndex) => {
+    const renderColumn = (column) => {
         const { _id, path, render, isHeader } = column;
 
         const options = {
@@ -102,8 +100,7 @@ function TableRow({
 
     return <tr
         className={trClass}
-        data-index={rowIndex}
-        onPointerDownCapture={handlePointerDown}
+        onPointerDownCapture={handlePointerDownCapture}
     >
         {columns.map(renderColumn)}
         <td/>

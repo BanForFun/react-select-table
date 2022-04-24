@@ -1,10 +1,11 @@
-import React, {useMemo, useContext} from 'react';
+import React, {useRef, useContext, useCallback} from 'react';
 import _ from "lodash";
 import HeadContainer from "./HeadContainer";
 import BodyContainer from "./BodyContainer";
 import {ColumnGroupContext} from "./ColumnGroup";
 
 //Child of ScrollingContainer
+//Handles gestures
 function ResizingContainer(props) {
     const {
         resizingContainerRef,
@@ -19,13 +20,50 @@ function ResizingContainer(props) {
         selectionRectRef,
         tableBodyRef,
         bodyContainerRef,
-        setDragSelectionOriginIndex,
         placeholder,
 
         ...commonProps
     } = props;
 
-    const {minColumnWidth} = props.utils.options;
+    const {
+        actions,
+        utils: { hooks, selectors }
+    } = props;
+
+    const gestureRef = useRef({
+        rowIndex: null,
+        type: null
+    }).current;
+
+    const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
+
+    const setGestureTarget = useCallback(rowIndex => {
+        gestureRef.rowIndex = rowIndex;
+    }, [gestureRef]);
+
+    const handlePointerDown = useCallback(e => {
+        gestureRef.type = e.pointerType;
+        console.log(gestureRef);
+    }, [gestureRef]);
+
+    const handleTouchStart = useCallback(e => {
+        if (e.targetTouches.length === 2) {
+            console.log("Context menu");
+        }
+    }, []);
+
+    const handleContextMenu = useCallback(e => {
+        if (gestureRef.type === "touch") {
+            actions.baseSelect(gestureRef.rowIndex + indexOffset, true, false);
+            console.log("Drag start");
+        }
+        else
+            console.log("Context menu");
+    }, [gestureRef, indexOffset, actions]);
+
+    Object.assign(commonProps, {
+        setGestureTarget
+    })
 
     const headProps = {
         ...commonProps,
@@ -42,7 +80,6 @@ function ResizingContainer(props) {
         bodyContainerRef,
 
         getRowClassName,
-        setDragSelectionOriginIndex,
         placeholder
     }
 
@@ -52,6 +89,9 @@ function ResizingContainer(props) {
         className="rst-resizingContainer"
         ref={resizingContainerRef}
         style={{ width: containerWidth, minWidth: containerMinWidth }}
+        onPointerDown={handlePointerDown}
+        onTouchStart={handleTouchStart}
+        onContextMenu={handleContextMenu}
     >
         <HeadContainer {...headProps} />
         <BodyContainer {...bodyProps} />

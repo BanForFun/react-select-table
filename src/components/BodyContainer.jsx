@@ -15,7 +15,7 @@ function BodyContainer(props) {
         utils: { hooks, eventRaisers, options },
         actions,
         bodyContainerRef,
-        setDragSelectionOriginIndex,
+        setGestureTarget,
     } = props;
 
     // const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen);
@@ -79,8 +79,8 @@ function BodyContainer(props) {
     // }, []));
 
     const handlePointerDown = useCallback(() => {
-        setDragSelectionOriginIndex(-1)
-    }, [setDragSelectionOriginIndex]);
+        setGestureTarget(-1);
+    }, [setGestureTarget]);
 
     return <div
         className="rst-bodyContainer"

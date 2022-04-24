@@ -39,6 +39,7 @@ function getRelativeOffset(
 }
 
 //Child of Root
+//Handles drag selection and column resizing
 function ScrollingContainer(props) {
     const {
         showSelectionRect,
@@ -95,21 +96,8 @@ function ScrollingContainer(props) {
 
     //#endregion
 
+    //#region Element refs
 
-    const [dragMode, setDragMode] = useState(null);
-
-    const raiseColumnResizeEnd = hooks.useSelectorGetter(eventRaisers.columnResizeEnd);
-
-    //Cancel scroll by touch when dragging
-    useEffect(() => {
-        const changeEventListener = dragMode ? window.addEventListener : window.removeEventListener;
-        changeEventListener("touchmove", cancelScrollListener, cancelScrollOptions);
-    }, [dragMode]);
-
-    const rowValues = hooks.useSelector(s => s.rowValues);
-    const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
-
-    //Element refs
     const tableBodyRef = useRef();
     const selectionRectRef = useRef();
     const bodyContainerRef = useRef();
@@ -117,8 +105,17 @@ function ScrollingContainer(props) {
     const headColGroupRef = useRef();
     const resizingContainerRef = useRef();
 
+    //#endregion
 
     //#region Dragging
+
+    const [dragMode, setDragMode] = useState(null);
+
+    //Cancel scroll by touch when dragging
+    useEffect(() => {
+        const changeEventListener = dragMode ? window.addEventListener : window.removeEventListener;
+        changeEventListener("touchmove", cancelScrollListener, cancelScrollOptions);
+    }, [dragMode]);
 
     const drag = useRef({
         animationId: null,
@@ -132,9 +129,19 @@ function ScrollingContainer(props) {
         scrollingContainerRef.current.setPointerCapture(e.pointerId);
     }, [drag]);
 
+    const dragAnimationFinished = useCallback(dragEndCallback => {
+        if (drag.animationId == null)
+            setTimeout(dragEndCallback, 0);
+
+        drag.animationId = null;
+    }, [drag]);
+
     //#endregion
 
     //#region Selection
+
+    const rowValues = hooks.useSelector(s => s.rowValues);
+    const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
 
     const dragSelection = useRef({
         selection: {
@@ -150,12 +157,9 @@ function ScrollingContainer(props) {
         prevRowIndex: null
     }).current;
 
-    const setDragSelectionOriginIndex = useCallback(index =>
-        dragSelection.origin.index = index, [dragSelection]);
-
-    const applyRectStyles = useCallback(styles => {
-        Object.assign(selectionRectRef.current.style, styles);
-    }, [selectionRectRef]);
+    // const applyRectStyles = useCallback(styles => {
+    //     Object.assign(selectionRectRef.current.style, styles);
+    // }, [selectionRectRef]);
 
     const dragSelectUpdate = useCallback((movement) => {
         if (movement) {
@@ -205,6 +209,7 @@ function ScrollingContainer(props) {
         }));
     }, [dragStart, columnResizing]);
 
+    const raiseColumnResizeEnd = hooks.useSelectorGetter(eventRaisers.columnResizeEnd);
     const columnResizeEnd = useCallback(() => {
         const container = scrollingContainerRef.current;
         const widths = columnResizing.widths.map(px => 100 * px / container.clientWidth);
@@ -231,10 +236,8 @@ function ScrollingContainer(props) {
 
         columnResizing.movementBuffer = 0;
 
-        if (drag.animationId == null)
-            columnResizeEnd();
-        else drag.animationId = null;
-    }), [drag, columnResizeEnd, columnResizing]);
+        dragAnimationFinished(columnResizeEnd);
+    }), [dragAnimationFinished, columnResizeEnd, columnResizing]);
 
     const columnResizeUpdate = useCallback((movement = null) => {
         if (columnResizing.waitForRender) return;
@@ -326,14 +329,8 @@ function ScrollingContainer(props) {
     //#endregion
 
     //#region Event handlers
-
-    const handleContextMenu = useCallback(e => {
-
-    }, []);
-
-    const handleScroll = useCallback(e => {
+    const handleScroll = useCallback(() => {
         if (!dragMode) return;
-
         dragUpdate();
     }, [dragMode, dragUpdate]);
 
@@ -355,10 +352,8 @@ function ScrollingContainer(props) {
         if (!e.isPrimary) return;
         setDragMode(null);
 
-        if (drag.animationId == null)
-            dragEnd();
-        else drag.animationId = null;
-    }, [dragMode, dragEnd, drag]);
+        dragAnimationFinished(dragEnd);
+    }, [dragMode, dragEnd, dragAnimationFinished]);
 
     //#endregion
 
@@ -374,7 +369,6 @@ function ScrollingContainer(props) {
         dragMode,
         columns,
 
-        setDragSelectionOriginIndex,
         columnResizeStart
     });
 
@@ -382,7 +376,6 @@ function ScrollingContainer(props) {
         className="rst-scrollingContainer"
         ref={scrollingContainerRef}
         data-dragmode={dragMode?.name}
-        onContextMenu={handleContextMenu}
         onScroll={handleScroll}
         onPointerMove={handlePointerMove}
         onPointerCancel={handlePointerStop}

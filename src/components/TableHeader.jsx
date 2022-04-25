@@ -27,7 +27,7 @@ function TableHeader({
     }, [path, actions, options]);
 
     const handlePointerDown = useCallback(e => {
-        columnResizeStart(e, index);
+        columnResizeStart(e.clientX, e.clientY, e.pointerId, index);
     }, [columnResizeStart, index]);
 
     const className = classNames({

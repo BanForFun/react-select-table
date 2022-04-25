@@ -51,6 +51,10 @@
     flex: auto;
     overflow: auto;
 
+    &[data-dragmode] {
+        touch-action: none;
+    }
+
     &[data-dragmode=resize] {
         cursor: col-resize;
     }

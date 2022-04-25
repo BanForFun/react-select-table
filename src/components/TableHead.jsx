@@ -47,7 +47,7 @@ function TableHead(props) {
     }
 
     const handleSpacerPointerDown = useCallback(e => {
-        columnResizeStart(e, columns.length - 1);
+        columnResizeStart(e.clientX, e.clientY, e.pointerId, columns.length - 1);
     }, [columnResizeStart, columns]);
 
     return <thead>

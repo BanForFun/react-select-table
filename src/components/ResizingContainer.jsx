@@ -9,7 +9,9 @@ import {GestureTargets} from "../utils/tableUtils";
 //Handles gestures
 function ResizingContainer(props) {
     const {
+        //Own props
         resizingContainerRef,
+        dragSelectStart,
 
         //HeadContainer props
         scrollingContainerRef,
@@ -31,10 +33,11 @@ function ResizingContainer(props) {
         utils: { hooks, selectors, eventRaisers, options }
     } = props;
 
-    const gestureRef = useRef({
+    const gesture = useRef({
+        pointerId: null,
         rowIndex: null,
         itemIndex: null,
-        type: null
+        pointerType: null
     }).current;
 
     const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
@@ -44,19 +47,11 @@ function ResizingContainer(props) {
     const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen);
     const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
 
-    const setGestureTarget = useCallback(rowIndex => {
-        gestureRef.rowIndex = rowIndex;
-
-        gestureRef.itemIndex = rowIndex;
-        if (rowIndex >= 0)
-            gestureRef.itemIndex += indexOffset
-    }, [gestureRef, indexOffset]);
-
     const contextMenu = useCallback(e => {
-        const { itemIndex, rowIndex } = gestureRef;
+        const { itemIndex, rowIndex } = gesture;
 
         if (e.altKey)
-            raiseContextMenu(e.ctrlKey);
+            raiseContextMenu(!e.ctrlKey);
         else if (itemIndex === GestureTargets.Header)
             raiseContextMenu(true);
         else if (itemIndex === GestureTargets.BelowItems) {
@@ -70,7 +65,11 @@ function ResizingContainer(props) {
             actions.baseSetActive(itemIndex, true);
         else
             actions.baseSelect(itemIndex, e.ctrlKey, e.shiftKey, true);
-    }, [gestureRef, raiseContextMenu, options, selection, rowValues, actions, indexOffset]);
+    }, [gesture, raiseContextMenu, options, selection, rowValues, actions, indexOffset]);
+
+    const dragSelect = useCallback(e => {
+        dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.rowIndex);
+    }, [gesture, dragSelectStart]);
 
     const targetTouchStart = useCallback((e, includeChildren) => {
         if (!_.every(e.touches, t => includeChildren
@@ -81,16 +80,24 @@ function ResizingContainer(props) {
         if (e.touches.length === 2) contextMenu(e);
     }, [contextMenu]);
 
+    const setGestureTarget = useCallback((rowIndex) => {
+        gesture.rowIndex = rowIndex;
+        gesture.itemIndex = rowIndex;
+        if (rowIndex >= 0)
+            gesture.itemIndex += indexOffset
+    }, [gesture, indexOffset]);
+
     //#region Event handlers
 
     const handlePointerDown = useCallback(e => {
-        gestureRef.type = e.pointerType;
-    }, [gestureRef]);
+        gesture.pointerType = e.pointerType;
+        gesture.pointerId = e.pointerId;
+    }, [gesture]);
 
     const handleMouseDown = useCallback(e => {
         if (e.button !== 0) return;
 
-        const { itemIndex } = gestureRef;
+        const { itemIndex } = gesture;
         switch(itemIndex) {
             case GestureTargets.Header: return;
             case GestureTargets.BelowItems:
@@ -105,27 +112,27 @@ function ResizingContainer(props) {
                 break;
         }
 
-        console.log("Drag select");
-    }, [gestureRef, actions, options, indexOffset, rowValues]);
+        if (gesture.pointerType === "mouse")
+            dragSelect(e);
+    }, [gesture, actions, options, indexOffset, rowValues, dragSelect]);
 
     const handleContextMenu = useCallback(e => {
-        const { itemIndex } = gestureRef;
-        if (gestureRef.type === "touch") {
+        const { itemIndex } = gesture;
+        if (gesture.pointerType !== "mouse") {
             //Don't do anything if the header is the target
             if (itemIndex === GestureTargets.Header) return;
 
             if (itemIndex >= 0)
                 actions.baseSelect(itemIndex, true, false);
 
-            console.log("Drag start");
-            return;
+            return dragSelect(e);
         }
 
         if (eventRaisers.isHandlerDefined("onContextMenu"))
             e.preventDefault();
 
         contextMenu(e);
-    }, [gestureRef, contextMenu, actions, eventRaisers]);
+    }, [gesture, contextMenu, actions, eventRaisers, dragSelect]);
 
     const handleDoubleClick = useCallback(() => {
         if (!selection.size) return;

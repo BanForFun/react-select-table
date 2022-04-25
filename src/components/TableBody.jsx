@@ -1,5 +1,8 @@
-import React, {useLayoutEffect} from 'react';
+import React, {Fragment, useRef, useEffect, useLayoutEffect, useState} from 'react';
+import _ from "lodash";
 import TableRow from "./TableRow";
+import {DragModes} from "../utils/tableUtils";
+import {ColumnGroupContext} from "./ColumnGroup";
 
 //Child of BodyContainer
 function TableBody(props) {
@@ -7,6 +10,8 @@ function TableBody(props) {
         tableBodyRef,
         getRowClassName,
         bodyContainerRef,
+        scrollingContainerRef,
+        dragMode,
         utils: { hooks, selectors },
         ...rowCommonProps
     } = props;
@@ -18,25 +23,68 @@ function TableBody(props) {
     const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex);
     const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
 
+    //Ensure active value visible after dragging ends
+    const [dragEnded, setDragEnded] = useState(false);
+    const prevDragging = useRef(false);
+    useEffect(() => {
+        if (prevDragging.current && !dragMode)
+            setDragEnded(d => !d);
+
+        prevDragging.current = !!dragMode;
+    }, [dragMode]);
+
+    //Autoscroll to ensure active value is visible
     useLayoutEffect(() => {
-        //Get elements
-        const activeRow = tableBodyRef.current.children[activeRowIndex];
+        const scrollingContainer = scrollingContainerRef.current;
         const bodyContainer = bodyContainerRef.current;
-        const scrollingContainer = bodyContainer.offsetParent;
+        const tableBody = tableBodyRef.current;
 
-        //Scroll up
-        const scrollUp = activeRow.offsetTop < scrollingContainer.scrollTop;
-        if (scrollUp)
-            scrollingContainer.scrollTop = activeRow.offsetTop;
+        const activeRowBounds = tableBody.children[activeRowIndex].getBoundingClientRect();
+        const containerTop = scrollingContainer.getBoundingClientRect().top;
+        const headerHeight = bodyContainer.offsetTop;
 
-        //Scroll down
-        const visibleHeight = scrollingContainer.clientHeight - bodyContainer.offsetTop;
-        const rowBottom = activeRow.offsetTop + activeRow.offsetHeight;
-        const scrollDown = rowBottom > (scrollingContainer.scrollTop + visibleHeight);
-        if (scrollDown)
-            scrollingContainer.scrollTop = rowBottom - visibleHeight;
+        const distanceToTop = activeRowBounds.top - (containerTop + headerHeight);
+        const distanceToBottom = activeRowBounds.bottom - (containerTop + scrollingContainer.clientHeight);
 
-    }, [visibleItemCount, activeRowIndex, bodyContainerRef, tableBodyRef]);
+        const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom);
+        scrollingContainer.scrollTop += scrollOffset;
+    }, [
+        visibleItemCount, activeRowIndex,
+        rowValues, dragEnded,
+        tableBodyRef, bodyContainerRef, scrollingContainerRef
+    ]);
+
+    // const [spacer, setSpacer] = useState();
+
+    // useEffect(() => {
+    //     if (dragMode?.name !== DragModes.Resize) {
+    //         setSpacer(null);
+    //         return;
+    //     }
+    //
+    //     const scrollingContainer = scrollingContainerRef.current;
+    //     const rows = tableBodyRef.current.children;
+    //
+    //     let topVisibleIndex = 0, bottomVisibleIndex;
+    //     _.forEach(rows, (row, index) => {
+    //         if ((row.offsetTop + row.offsetHeight) < scrollingContainer.scrollTop) {
+    //             topVisibleIndex = index;
+    //         } else if (row.offsetTop < (scrollingContainer.scrollTop + scrollingContainer.clientHeight)) {
+    //             bottomVisibleIndex = index;
+    //         } else return false;
+    //     });
+    //
+    //     const topVisibleRow = rows[topVisibleIndex];
+    //     const bottomVisibleRow = rows[bottomVisibleIndex];
+    //
+    //     setSpacer({
+    //         topVisibleIndex,
+    //         bottomVisibleIndex,
+    //         topSpacerHeight: topVisibleRow.offsetTop,
+    //         bottomSpacerHeight: scrollingContainer.scrollHeight -
+    //             (bottomVisibleRow.offsetTop + bottomVisibleRow.offsetHeight)
+    //     });
+    // }, [dragMode, tableBodyRef, scrollingContainerRef]);
 
     const renderRow = (value, rowIndex) => {
         const { data } = sortedItems[value];
@@ -55,7 +103,7 @@ function TableBody(props) {
 
     return <tbody ref={tableBodyRef}>
         {rowValues.map(renderRow)}
-    </tbody>;
+    </tbody>
 }
 
 export default React.memo(TableBody);

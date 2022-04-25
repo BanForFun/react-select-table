@@ -51,10 +51,6 @@
     flex: auto;
     overflow: auto;
 
-    &[data-dragmode] {
-        touch-action: none;
-    }
-
     &[data-dragmode=resize] {
         cursor: col-resize;
     }
@@ -84,7 +80,17 @@
         padding: 0;
         position: relative;
         overflow: visible;
-        border-bottom: inherit;
+    }
+
+    .rst-spacer {
+        .rst-columnSeparator {
+            left: unset;
+            right: 100%;
+        }
+
+        .rst-columnResizer {
+            transform: none;
+        }
     }
 }
 
@@ -118,9 +124,8 @@
     }
 
     td, th {
-        white-space: nowrap;
-        overflow: hidden;
-        border-bottom: inherit;
+        //white-space: nowrap;
+        //overflow: hidden;
     }
 }
 
@@ -143,17 +148,6 @@
 
 .rst-resizing .rst-columnResizer {
     transform: none;
-}
-
-.rst-spacer {
-    .rst-columnSeparator {
-        left: unset;
-        right: 100%;
-    }
-
-    .rst-columnResizer {
-        transform: none;
-    }
 }
 
 .rst-columnResizerHider {

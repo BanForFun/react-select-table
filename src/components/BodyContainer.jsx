@@ -13,9 +13,9 @@ function BodyContainer(props) {
     } = props;
 
     const {
-        bodyContainerRef,
         setGestureTarget,
-        targetTouchStart
+        targetTouchStart,
+        bodyContainerRef
     } = props;
 
     return <div

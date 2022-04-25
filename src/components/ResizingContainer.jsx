@@ -14,7 +14,6 @@ function ResizingContainer(props) {
         dragSelectStart,
 
         //HeadContainer props
-        scrollingContainerRef,
         headColGroupRef,
         columnResizeStart,
 
@@ -149,7 +148,6 @@ function ResizingContainer(props) {
     const headProps = {
         ...commonProps,
         headColGroupRef,
-        scrollingContainerRef,
 
         columnResizeStart
     }

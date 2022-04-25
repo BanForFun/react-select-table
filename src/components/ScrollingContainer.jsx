@@ -21,6 +21,10 @@ function parseColumn(col) {
 const cancelScrollType = "touchmove";
 const cancelScrollOptions = { passive: false };
 
+const cancelWheelType = "wheel";
+const cancelWheelOptions = { passive: false };
+const cancelWheelHandler = e => e.preventDefault();
+
 const Point = (x, y) => ({x, y});
 
 const getClientX = element => element.getBoundingClientRect().x;
@@ -307,23 +311,28 @@ function ScrollingContainer(props) {
         drag.pointerPos = Point(x, y);
         drag.pointerId = pointerId;
 
-        scrollingContainerRef.current.setPointerCapture(pointerId);
-        window.addEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions);
+        const container = scrollingContainerRef.current;
+        container.setPointerCapture(pointerId);
+        container.addEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions);
 
         setDragMode({ name: dragMode, ...extra });
     }, [drag, cancelScrollHandler]);
 
     useEffect(() => {
         if (dragMode) return;
-        window.removeEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions);
-    }, [dragMode, cancelScrollHandler]);
 
+        const container = scrollingContainerRef.current;
+        container.removeEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions);
+        container.removeEventListener(cancelWheelType, cancelWheelHandler, cancelWheelOptions);
+    }, [dragMode, cancelScrollHandler]);
 
     //Column resizing
     const columnResizeStart = useCallback((x, y, pointerId, index) => {
+        const container = scrollingContainerRef.current;
+
         columnResizing.widths = _.initial(_.map(headColGroupRef.current.children, col =>
             col.getBoundingClientRect().width));
-        columnResizing.initialWidth = scrollingContainerRef.current.scrollWidth;
+        columnResizing.initialWidth = container.scrollWidth;
         columnResizing.movementBuffer = 0;
 
         setColumnGroup(columnGroup => ({
@@ -333,6 +342,8 @@ function ScrollingContainer(props) {
             containerWidth: "fit-content",
             containerMinWidth: "0px"
         }));
+
+        container.addEventListener(cancelWheelType, cancelWheelHandler, cancelWheelOptions);
 
         dragStart(x, y, pointerId, DragModes.Resize, { index });
     }, [dragStart, columnResizing]);
@@ -347,7 +358,7 @@ function ScrollingContainer(props) {
 
     //#region Event handlers
 
-    const handleScroll = useCallback(() => {
+    const handleScroll = useCallback(e => {
         if (drag.pointerId == null) return;
         dragUpdate?.();
     }, [drag, dragUpdate]);

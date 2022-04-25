@@ -1,7 +1,7 @@
 import React from 'react';
 import TableBody from "./TableBody";
 import ColumnGroup from "./ColumnGroup";
-import {GestureTargets} from "../utils/tableUtils";
+import {DragModes, GestureTargets} from "../utils/tableUtils";
 
 //Child of ResizingContainer
 function BodyContainer(props) {
@@ -15,7 +15,8 @@ function BodyContainer(props) {
     const {
         setGestureTarget,
         targetTouchStart,
-        bodyContainerRef
+        bodyContainerRef,
+        dragMode
     } = props;
 
     return <div
@@ -24,7 +25,9 @@ function BodyContainer(props) {
         onPointerDownCapture={() => setGestureTarget(GestureTargets.BelowItems)}
         onTouchStart={e => targetTouchStart(e, false)}
     >
-        <div className="rst-dragSelection" ref={selectionRectRef} />
+        {dragMode?.name === DragModes.Select &&
+            <div className="rst-dragSelection" ref={selectionRectRef} />}
+
         {placeholder || <table className={tableClass}>
             <ColumnGroup />
             <TableBody {...bodyProps} />

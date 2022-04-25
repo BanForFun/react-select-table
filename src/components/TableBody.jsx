@@ -25,12 +25,13 @@ function TableBody(props) {
     const getContainerBounds = useCallback(() => {
         const scrollingContainer = scrollingContainerRef.current;
         const bodyContainer = bodyContainerRef.current;
+        const tableBody = tableBodyRef.current;
         return {
             visibleTop: scrollingContainer.scrollTop,
             visibleBottom: scrollingContainer.scrollTop + scrollingContainer.clientHeight - bodyContainer.offsetTop,
-            scrollBottom: scrollingContainer.scrollHeight
+            scrollBottom: tableBody.offsetHeight
         }
-    }, [scrollingContainerRef, bodyContainerRef]);
+    }, [scrollingContainerRef, bodyContainerRef, tableBodyRef]);
 
     const getRowBounds = useCallback(index => {
         const row = tableBodyRef.current.children[index];

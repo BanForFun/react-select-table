@@ -125,17 +125,11 @@ function ScrollingContainer(props) {
     }).current;
 
     const dragSelection = useRef({
-        selection: {
-            selected: {},
-            active: null,
-            pivot: null
-        },
-        origin: {
-            relX: null,
-            relY: null,
-            rowIndex: null
-        },
-        prevRowIndex: null
+        selected: {},
+        active: -1,
+        pivot: -1,
+        originIndex: -1,
+        prevRowIndex: -1
     }).current;
 
     //#endregion
@@ -327,8 +321,6 @@ function ScrollingContainer(props) {
 
     //Column resizing
     const columnResizeStart = useCallback((x, y, pointerId, index) => {
-
-
         columnResizing.widths = _.initial(_.map(headColGroupRef.current.children, col =>
             col.getBoundingClientRect().width));
         columnResizing.initialWidth = scrollingContainerRef.current.scrollWidth;

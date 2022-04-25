@@ -50,6 +50,7 @@
     position: relative;
     flex: auto;
     overflow: auto;
+    touch-action: pan-x pan-y;
 
     &[data-dragmode=resize] {
         cursor: col-resize;
@@ -172,6 +173,7 @@
 .rst-dragSelection {
     position: absolute;
     pointer-events: none;
+    box-sizing: border-box;
 }
 
 .rst-icon {

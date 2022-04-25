@@ -111,7 +111,6 @@ function ScrollingContainer(props) {
     //#region Drag states
 
     const [dragMode, setDragMode] = useState(null);
-
     const drag = useRef({
         animationId: null,
         pointerPos: Point(),
@@ -143,6 +142,7 @@ function ScrollingContainer(props) {
 
     //#region Drag ending
 
+    //Column resizing
     const raiseColumnResizeEnd = hooks.useSelectorGetter(eventRaisers.columnResizeEnd);
     const columnResizeEnd = useCallback(() => {
         const container = scrollingContainerRef.current;
@@ -153,10 +153,12 @@ function ScrollingContainer(props) {
         bodyContainerRef.current.style.width = "100%";
     }, [columnResizing, setColumnGroup, getColumnGroup, raiseColumnResizeEnd]);
 
+    //Drag selection
     const dragSelectEnd = useCallback(() => {
 
     }, []);
 
+    //Common
     const dragEnd = useMemo(() => ({
         [DragModes.Resize]: columnResizeEnd,
         [DragModes.Select]: dragSelectEnd
@@ -178,16 +180,19 @@ function ScrollingContainer(props) {
 
     //#region Drag animation
 
+    //Common
     const dragAnimate = useCallback((animation, ...params) => {
         cancelAnimationFrame(drag.animationId);
         drag.animationId = requestAnimationFrame(() => {
             animation(...params);
             drag.animationId = null;
-            if (drag.pointerId == null) //Drag ended while doing animation
-                setTimeout(dragStop, 0);
+
+            //Drag ended while doing animation
+            if (drag.pointerId == null) setTimeout(dragStop, 0);
         });
     }, [drag, dragStop]);
 
+    //Column resizing
     const columnResizeAnimation = useCallback((changedWidths, scrollLeft) => {
         const colGroup = headColGroupRef.current;
         const container = scrollingContainerRef.current;
@@ -205,6 +210,7 @@ function ScrollingContainer(props) {
         columnResizing.movementBuffer = 0;
     }, [columnResizing]);
 
+    //Drag selection
     // const applyRectStyles = useCallback(styles => {
     //     Object.assign(selectionRectRef.current.style, styles);
     // }, [selectionRectRef]);
@@ -213,14 +219,7 @@ function ScrollingContainer(props) {
 
     //#region Drag updating
 
-    const dragSelectUpdate = useCallback((movement) => {
-        if (movement) {
-            const container = scrollingContainerRef.current;
-            container.scrollLeft -= movement.x;
-            container.scrollTop -= movement.y;
-        }
-    }, []);
-
+    //Column resizing
     const columnResizeUpdate = useCallback((movement = null) => {
         const { index } = dragMode;
         const { widths } = columnResizing;
@@ -283,6 +282,16 @@ function ScrollingContainer(props) {
         dragMode
     ]);
 
+    //Drag selection
+    const dragSelectUpdate = useCallback((movement) => {
+        if (movement) {
+            const container = scrollingContainerRef.current;
+            container.scrollLeft -= movement.x;
+            container.scrollTop -= movement.y;
+        }
+    }, []);
+
+    //Common
     const dragUpdate = useMemo(() => ({
         [DragModes.Resize]: columnResizeUpdate,
         [DragModes.Select]: dragSelectUpdate
@@ -292,10 +301,11 @@ function ScrollingContainer(props) {
 
     //#region Drag starting
 
+    //Common
     const cancelScrollHandler = useDecoupledCallback(useCallback(e => {
         if (e.cancelable)
             e.preventDefault();
-        else if (drag.pointerId != null)
+        else if (drag.pointerId != null) //Stop dragging if browser gesture is in progress
             dragStop();
     }, [drag, dragStop]));
 
@@ -305,6 +315,7 @@ function ScrollingContainer(props) {
 
         scrollingContainerRef.current.setPointerCapture(pointerId);
         window.addEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions);
+
         setDragMode({ name: dragMode, ...extra });
     }, [drag, cancelScrollHandler]);
 
@@ -313,11 +324,11 @@ function ScrollingContainer(props) {
         window.removeEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions);
     }, [dragMode, cancelScrollHandler]);
 
-    const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
-        dragStart(x, y, pointerId, DragModes.Select);
-    }, [dragStart]);
 
+    //Column resizing
     const columnResizeStart = useCallback((x, y, pointerId, index) => {
+
+
         columnResizing.widths = _.initial(_.map(headColGroupRef.current.children, col =>
             col.getBoundingClientRect().width));
         columnResizing.initialWidth = scrollingContainerRef.current.scrollWidth;
@@ -333,6 +344,12 @@ function ScrollingContainer(props) {
 
         dragStart(x, y, pointerId, DragModes.Resize, { index });
     }, [dragStart, columnResizing]);
+
+
+    //Drag selection
+    const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
+        dragStart(x, y, pointerId, DragModes.Select);
+    }, [dragStart]);
 
     //#endregion
 

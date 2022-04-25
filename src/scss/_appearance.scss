@@ -24,8 +24,14 @@
         }
     }
 
-    .rst-scrollingContainer[data-dragmode="resize"] .rst-headContainer {
-        @include rst-apply-properties("header-resizing", "border-image");
+    .rst-scrollingContainer[data-dragmode="resize"] {
+        .rst-headContainer {
+            @include rst-apply-properties("header-resizing", "border-image");
+        }
+
+        .rst-bodyContainer {
+            @include rst-apply-properties("body-resizing", "opacity");
+        }
     }
 
     .rst-bodyContainer {

@@ -106,7 +106,7 @@ function TableBody(props) {
              {!!spacers.topSpacerHeight &&
                 <tr className="rst-spacer" style={{ height: spacers.topSpacerHeight }}/>}
 
-             {rowValues.slice(spacers.topVisibleIndex, spacers.bottomVisibleIndex)
+             {rowValues.slice(spacers.topVisibleIndex, spacers.bottomVisibleIndex + 1)
                  .map((row, index) => renderRow(row, index + spacers.topVisibleIndex))}
 
              <tr className="rst-spacer" style={{ height: spacers.bottomSpacerHeight }}/>

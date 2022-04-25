@@ -67,6 +67,7 @@ function ResizingContainer(props) {
     }, [gesture, raiseContextMenu, options, selection, rowValues, actions, indexOffset]);
 
     const dragSelect = useCallback(e => {
+        if (gesture.pointerId == null) return;
         dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.rowIndex);
     }, [gesture, dragSelectStart]);
 
@@ -90,7 +91,7 @@ function ResizingContainer(props) {
 
     const handlePointerDown = useCallback(e => {
         gesture.pointerType = e.pointerType;
-        gesture.pointerId = e.pointerId;
+        gesture.pointerId = e.isPrimary ? e.pointerId : null;
     }, [gesture]);
 
     const handleMouseDown = useCallback(e => {

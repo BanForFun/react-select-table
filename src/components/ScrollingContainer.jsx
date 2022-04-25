@@ -29,7 +29,7 @@ const Point = (x, y) => ({x, y});
 const getClientX = element => element.getBoundingClientRect().x;
 const getClientY = element => element.getBoundingClientRect().y;
 
-const getLine = (pointA, pointB) => {
+function getLine(pointA, pointB) {
     const min = pointA < pointB ? pointA : pointB;
     const max = pointA > pointB ? pointA : pointB;
 
@@ -39,10 +39,7 @@ const getLine = (pointA, pointB) => {
     };
 }
 
-function getRelativeOffset(
-    absolute, origin,
-    minVisible, maxVisible, scrollFactor
-) {
+function getRelativeOffset(absolute, origin, minVisible, maxVisible, scrollFactor) {
     const reference = _.clamp(absolute, minVisible, maxVisible);
     const scrollOffset = (absolute - reference) * scrollFactor;
 
@@ -269,10 +266,7 @@ function ScrollingContainer(props) {
             const availableScroll = constantWidth ?
                 columnResizing.initialWidth - containerWidth - containerScroll : Infinity;
 
-            movementOffset = _.clamp(
-                columnResizing.movement += drag.movement.x,
-                -containerScroll, availableScroll
-            );
+            movementOffset = _.clamp(drag.movement.x, -containerScroll, availableScroll);
         }
 
         //Set column widths

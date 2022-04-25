@@ -112,6 +112,24 @@ function ReduxTable() {
     }, [dispatch, clipboard, items]);
 
     return <>
+        <Table
+            containerRef={containerRef}
+            emptyPlaceholder="No items"
+            namespace={tableNamespace}
+            className="rst-table"
+            initColumnWidths={[10, 10, 50, 50]}
+            columnOrder={[0, 1, 3, 4]}
+            // tableClass="table table-striped table-hover table-dark"
+            columns={columns}
+            loadingIndicator="Loading..."
+            autoFocus={true}
+            onKeyDown={handleTableKeyDown}
+            showSelectionRect={true}
+            onContextMenu={logEvent("Context menu")}
+            onColumnResizeEnd={logEvent("Columns Resized")}
+            onSelectionChange={logEvent("Selection")}
+            onItemsOpen={logEvent("Open")}
+        />
         <div id="buttons">
             {_.map(buttonActions, (action, text) => {
                 function handleClick() {
@@ -126,23 +144,6 @@ function ReduxTable() {
                 >{text}</button>
             })}
         </div>
-        <Table
-            containerRef={containerRef}
-            emptyPlaceholder="No items"
-            namespace={tableNamespace}
-            className="rst-table"
-            initColumnWidths={[10, 10, 50, 20, 50]}
-            // tableClass="table table-striped table-hover table-dark"
-            columns={columns}
-            loadingIndicator="Loading..."
-            autoFocus={true}
-            onKeyDown={handleTableKeyDown}
-            showSelectionRect={true}
-            onContextMenu={logEvent("Context menu")}
-            onColumnResizeEnd={logEvent("Columns Resized")}
-            onSelectionChange={logEvent("Selection")}
-            onItemsOpen={logEvent("Open")}
-        />
     </>
 }
 

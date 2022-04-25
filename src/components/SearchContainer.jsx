@@ -74,4 +74,4 @@ function SearchContainer(props) {
     </div>
 }
 
-export default React.memo(SearchContainer);
+export default SearchContainer;

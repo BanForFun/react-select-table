@@ -12,6 +12,7 @@ function ResizingContainer(props) {
         //Own props
         resizingContainerRef,
         dragSelectStart,
+        actions,
 
         //HeadContainer props
         headColGroupRef,
@@ -28,7 +29,6 @@ function ResizingContainer(props) {
     } = props;
 
     const {
-        actions,
         utils: { hooks, selectors, eventRaisers, options }
     } = props;
 
@@ -178,4 +178,4 @@ function ResizingContainer(props) {
     </div>
 }
 
-export default React.memo(ResizingContainer);
+export default ResizingContainer;

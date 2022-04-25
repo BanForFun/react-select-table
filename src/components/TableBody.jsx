@@ -1,4 +1,4 @@
-import React, {Fragment, useRef, useEffect, useLayoutEffect, useState} from 'react';
+import React, {Fragment, useRef, useEffect, useLayoutEffect, useState, useCallback} from 'react';
 import _ from "lodash";
 import TableRow from "./TableRow";
 import {DragModes} from "../utils/tableUtils";
@@ -19,72 +19,72 @@ function TableBody(props) {
     const sortedItems = hooks.useSelector(s => s.sortedItems);
     const rowValues = hooks.useSelector(s => s.rowValues);
     const selection = hooks.useSelector(s => s.selection);
-    const visibleItemCount = hooks.useSelector(s => s.visibleItemCount);
     const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex);
     const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
 
-    //Ensure active value visible after dragging ends
-    const [dragEnded, setDragEnded] = useState(false);
-    const prevDragging = useRef(false);
-    useEffect(() => {
-        if (prevDragging.current && !dragMode)
-            setDragEnded(d => !d);
+    const getContainerBounds = useCallback(() => {
+        const scrollingContainer = scrollingContainerRef.current;
+        const bodyContainer = bodyContainerRef.current;
+        return {
+            visibleTop: scrollingContainer.scrollTop,
+            visibleBottom: scrollingContainer.scrollTop + scrollingContainer.clientHeight - bodyContainer.offsetTop,
+            scrollBottom: scrollingContainer.scrollHeight
+        }
+    }, [scrollingContainerRef, bodyContainerRef]);
 
-        prevDragging.current = !!dragMode;
-    }, [dragMode]);
+    const getRowBounds = useCallback(index => {
+        const row = tableBodyRef.current.children[index];
+        return {
+            top: row.offsetTop,
+            bottom: row.offsetTop + row.offsetHeight
+        }
+    }, [tableBodyRef])
 
     //Autoscroll to ensure active value is visible
     useLayoutEffect(() => {
-        const scrollingContainer = scrollingContainerRef.current;
-        const bodyContainer = bodyContainerRef.current;
-        const tableBody = tableBodyRef.current;
+        const rowBounds = getRowBounds(activeRowIndex);
+        const containerBounds = getContainerBounds();
 
-        const activeRowBounds = tableBody.children[activeRowIndex].getBoundingClientRect();
-        const containerTop = scrollingContainer.getBoundingClientRect().top;
-        const headerHeight = bodyContainer.offsetTop;
-
-        const distanceToTop = activeRowBounds.top - (containerTop + headerHeight);
-        const distanceToBottom = activeRowBounds.bottom - (containerTop + scrollingContainer.clientHeight);
+        const distanceToTop = rowBounds.top - containerBounds.visibleTop;
+        const distanceToBottom = rowBounds.bottom - containerBounds.visibleBottom;
 
         const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom);
-        scrollingContainer.scrollTop += scrollOffset;
+        scrollingContainerRef.current.scrollTop += scrollOffset;
     }, [
-        visibleItemCount, activeRowIndex,
-        rowValues, dragEnded,
-        tableBodyRef, bodyContainerRef, scrollingContainerRef
+        activeRowIndex,
+        rowValues,
+        scrollingContainerRef, getContainerBounds, getRowBounds
     ]);
 
-    // const [spacer, setSpacer] = useState();
+    const [spacers, setSpacers] = useState();
 
-    // useEffect(() => {
-    //     if (dragMode?.name !== DragModes.Resize) {
-    //         setSpacer(null);
-    //         return;
-    //     }
-    //
-    //     const scrollingContainer = scrollingContainerRef.current;
-    //     const rows = tableBodyRef.current.children;
-    //
-    //     let topVisibleIndex = 0, bottomVisibleIndex;
-    //     _.forEach(rows, (row, index) => {
-    //         if ((row.offsetTop + row.offsetHeight) < scrollingContainer.scrollTop) {
-    //             topVisibleIndex = index;
-    //         } else if (row.offsetTop < (scrollingContainer.scrollTop + scrollingContainer.clientHeight)) {
-    //             bottomVisibleIndex = index;
-    //         } else return false;
-    //     });
-    //
-    //     const topVisibleRow = rows[topVisibleIndex];
-    //     const bottomVisibleRow = rows[bottomVisibleIndex];
-    //
-    //     setSpacer({
-    //         topVisibleIndex,
-    //         bottomVisibleIndex,
-    //         topSpacerHeight: topVisibleRow.offsetTop,
-    //         bottomSpacerHeight: scrollingContainer.scrollHeight -
-    //             (bottomVisibleRow.offsetTop + bottomVisibleRow.offsetHeight)
-    //     });
-    // }, [dragMode, tableBodyRef, scrollingContainerRef]);
+    //Don't render invisible rows when resizing columns
+    useEffect(() => {
+        if (dragMode?.name !== DragModes.Resize)
+            return setSpacers(null);
+
+        const containerBounds = getContainerBounds();
+
+        let topVisibleIndex = 0, bottomVisibleIndex;
+        _.forEach(tableBodyRef.current.children, (row, index) => {
+            if ((row.offsetTop + row.offsetHeight) <= containerBounds.visibleTop) {
+                topVisibleIndex = index;
+            } else if (row.offsetTop <= containerBounds.visibleBottom) {
+                bottomVisibleIndex = index;
+            } else return false;
+        });
+
+        //Preserve stripped pattern
+        if (topVisibleIndex && topVisibleIndex % 2 === 0)
+            topVisibleIndex--;
+
+        setSpacers({
+            topVisibleIndex,
+            bottomVisibleIndex,
+            topSpacerHeight: getRowBounds(topVisibleIndex).top,
+            bottomSpacerHeight: containerBounds.scrollBottom - getRowBounds(bottomVisibleIndex).bottom
+        });
+    }, [dragMode, tableBodyRef, getContainerBounds, getRowBounds]);
 
     const renderRow = (value, rowIndex) => {
         const { data } = sortedItems[value];
@@ -102,7 +102,15 @@ function TableBody(props) {
     };
 
     return <tbody ref={tableBodyRef}>
-        {rowValues.map(renderRow)}
+         {spacers ? <Fragment>
+             {!!spacers.topSpacerHeight &&
+                <tr className="rst-spacer" style={{ height: spacers.topSpacerHeight }}/>}
+
+             {rowValues.slice(spacers.topVisibleIndex, spacers.bottomVisibleIndex)
+                 .map((row, index) => renderRow(row, index + spacers.topVisibleIndex))}
+
+             <tr className="rst-spacer" style={{ height: spacers.bottomSpacerHeight }}/>
+         </Fragment> : rowValues.map(renderRow)}
     </tbody>
 }
 

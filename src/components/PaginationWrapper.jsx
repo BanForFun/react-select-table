@@ -24,4 +24,4 @@ function PaginationWrapper({
     />;
 }
 
-export default React.memo(PaginationWrapper);
+export default PaginationWrapper;

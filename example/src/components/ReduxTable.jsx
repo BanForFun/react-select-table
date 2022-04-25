@@ -133,7 +133,6 @@ function ReduxTable() {
             className="rst-table"
             initColumnWidths={[10, 10, 50, 20, 50]}
             // tableClass="table table-striped table-hover table-dark"
-            theadClass=""
             columns={columns}
             loadingIndicator="Loading..."
             autoFocus={true}

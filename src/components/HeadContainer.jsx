@@ -24,4 +24,4 @@ function HeadContainer(props) {
     </div>
 }
 
-export default React.memo(HeadContainer);
+export default HeadContainer;

@@ -318,9 +318,8 @@ function ScrollingContainer(props) {
     }, [dragStart]);
 
     const columnResizeStart = useCallback((x, y, pointerId, index) => {
-        /* clientWidth instead of clientRect.width to ensure that the same amount of the column resizer is visible
-        when automatically scrolling right */
-        columnResizing.widths = _.initial(_.map(headColGroupRef.current.children, "clientWidth"));
+        columnResizing.widths = _.initial(_.map(headColGroupRef.current.children, col =>
+            col.getBoundingClientRect().width));
         columnResizing.initialWidth = scrollingContainerRef.current.scrollWidth;
         columnResizing.movementBuffer = 0;
 
@@ -392,4 +391,4 @@ function ScrollingContainer(props) {
     </div>
 }
 
-export default React.memo(ScrollingContainer);
+export default ScrollingContainer;

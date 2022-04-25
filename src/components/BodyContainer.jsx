@@ -32,4 +32,4 @@ function BodyContainer(props) {
     </div>
 }
 
-export default React.memo(BodyContainer);
+export default BodyContainer;

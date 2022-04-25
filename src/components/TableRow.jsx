@@ -1,6 +1,6 @@
 import React from 'react';
-import _ from "lodash";
 import classNames from "classnames";
+import TableCell from "./TableCell";
 
 export const ActiveClass = "rst-active";
 export const SelectedClass = "rst-selected";
@@ -8,35 +8,22 @@ export const SelectedClass = "rst-selected";
 //Child of TableBody
 function TableRow({
     columns,
-    name,
     setGestureTarget,
     targetTouchStart,
     selected,
     active,
-    data,
-    value,
     rowIndex,
+    indexOffset,
     className,
-    indexOffset
+    name,
+    value,
+    data
 }) {
-    const index = rowIndex + indexOffset;
-
-    const renderColumn = (column) => {
-        const { _id, path, render, isHeader } = column;
-
-        const options = {
-            className: null
-        };
-
-        const defaultContent = _.get(data, path, index);
-        const content = render(defaultContent, data, options);
-
-        const CellType = isHeader ? 'th' : 'td';
-        return <CellType
-            key={`cell_${name}_${value}_${_id}`}
-            className={options.className}
-        >{content}</CellType>
-    };
+    const renderColumn = ({_id: id, ...column}) =>
+        <TableCell {...column} data={data}
+                   index={rowIndex + indexOffset}
+                   key={`cell_${name}_${value}_${id}`}
+        />
 
     const trClass = classNames(className, {
         [SelectedClass]: selected,

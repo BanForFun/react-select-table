@@ -2,11 +2,9 @@ import _ from "lodash";
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import ResizingContainer from "./ResizingContainer";
 import {ColumnGroupContext} from "./ColumnGroup";
-import {DragModes} from "../utils/tableUtils";
+import {DragModes, pc, px} from "../utils/tableUtils";
 import useDecoupledCallback from "../hooks/useDecoupledCallback";
-
-const px = n => `${n}px`;
-const pc = n => `${n}%`;
+import {SelectedClass} from "./TableRow";
 
 const defaultColumnRenderer = value => value;
 
@@ -109,7 +107,7 @@ function ScrollingContainer(props) {
 
     //#endregion
 
-    //#region Element refs
+    //#region Elements
 
     const tableBodyRef = useRef();
     const selectionRectRef = useRef();
@@ -117,6 +115,16 @@ function ScrollingContainer(props) {
     const scrollingContainerRef = useRef();
     const headColGroupRef = useRef();
     const resizingContainerRef = useRef();
+
+    const getRowBounds = useCallback(index => {
+        const row = tableBodyRef.current.children[index];
+        if (!row) return null;
+
+        return {
+            top: row.offsetTop,
+            bottom: row.offsetTop + row.offsetHeight
+        };
+    }, []);
 
     //#endregion
 
@@ -138,10 +146,10 @@ function ScrollingContainer(props) {
     }).current;
 
     const dragSelection = useRef({
-        selected: {},
+        selection: {},
+        selectionBuffer: {},
         activeIndex: null,
         pivotIndex: null,
-        originIndex: -1,
         prevRowIndex: -1,
         prevRelY: 0
     }).current;
@@ -218,13 +226,16 @@ function ScrollingContainer(props) {
         ) ? "100%" : 0;
     }, [columnResizing]);
 
-    const dragSelectAnimate = useCallback((relX, relY, scrollLeftOffset, scrollTopOffset) => {
+    const dragSelectAnimate = useCallback((
+        relX, relY, scrollLeftOffset, scrollTopOffset
+    ) => {
+        //Animate scrolling
         const container = scrollingContainerRef.current;
         container.scrollLeft += scrollLeftOffset;
         container.scrollTop += scrollTopOffset;
 
+        //Animate rectangle
         const {originRel} = dragSelection;
-
         const lineX = getLine(relX, originRel.x);
         const lineY = getLine(relY, originRel.y);
 
@@ -232,6 +243,15 @@ function ScrollingContainer(props) {
             left: lineX.origin, width: lineX.size,
             top: lineY.origin, height: lineY.size
         }, px));
+
+        //Animate selection
+        const body = tableBodyRef.current;
+        const getRowClassList = index => body.children[index].classList;
+        _.forEach(dragSelection.selectionBuffer, (selected, index) => {
+            getRowClassList(index).toggle(SelectedClass, selected);
+        });
+
+        dragSelection.selectionBuffer = {};
     }, [dragSelection]);
 
     //#endregion
@@ -252,8 +272,8 @@ function ScrollingContainer(props) {
         const distanceToEnd = _.sum(_.slice(widths, index + 1));
         const shrinkThresholdColumn = containerScroll && widths[index] > minWidth
             ? containerWidth - distanceToEnd : 0
-        const expandThreshold = containerX + containerWidth;
         const shrinkThreshold = containerX + Math.max(0, shrinkThresholdColumn);
+        const expandThreshold = containerX + containerWidth;
 
         const { relToOrigin: relX, scrollOffset } = getRelativeOffset(
             drag.pointerPos.x, getClientX(headColGroupRef.current),
@@ -302,12 +322,12 @@ function ScrollingContainer(props) {
 
     //Drag selection
     const dragSelectUpdate = useCallback(() => {
+        //Calculate selection rectangle
+        const bodyContainer = bodyContainerRef.current;
         const container = scrollingContainerRef.current;
-
-        const body = bodyContainerRef.current;
         const containerBounds = container.getBoundingClientRect();
 
-        const visibleTop = containerBounds.top + body.offsetTop;
+        const visibleTop = containerBounds.top + bodyContainer.offsetTop;
         const visibleLeft = containerBounds.left;
         const visibleRight = containerBounds.left + container.clientWidth;
         const visibleBottom = containerBounds.top + container.clientHeight
@@ -315,19 +335,62 @@ function ScrollingContainer(props) {
         const { pointerPos, movement } = drag;
 
         const { relToOrigin: relX, scrollOffset: scrollLeftOffset, relToMin: left, relToMax: right } =
-            getRelativeOffset(pointerPos.x, getClientX(body), visibleLeft, visibleRight, dragSelectScrollFactor);
+            getRelativeOffset(pointerPos.x, getClientX(bodyContainer),
+            visibleLeft, visibleRight, dragSelectScrollFactor);
 
         const { relToOrigin: relY, scrollOffset: scrollTopOffset, relToMin: top, relToMax: bottom } =
-            getRelativeOffset(pointerPos.y, getClientY(body), visibleTop, visibleBottom, dragSelectScrollFactor);
+            getRelativeOffset(pointerPos.y, getClientY(bodyContainer),
+            visibleTop, visibleBottom, dragSelectScrollFactor);
+
+        //Calculate selection
+        const newRelY = _.clamp(relY + movement.y, top, bodyContainer.clientHeight - bottom);
+
+        const { selectionBuffer } = dragSelection;
+        const direction = Math.sign(newRelY - dragSelection.prevRelY);
+
+        if (direction) {
+            const doSelect = Math.sign(newRelY - dragSelection.originRel.y) === direction;
+
+            const tableBody = tableBodyRef.current;
+            const shouldBeSelected = (index) => {
+                if (index === tableBody.children.length)
+                    return (!doSelect && newRelY > tableBody.offsetHeight);
+
+                const bounds = getRowBounds(index);
+                return bounds && (direction > 0 ? bounds.top <= newRelY : bounds.bottom >= newRelY);
+            }
+
+            //Start checking from next row (in the direction the pointer has moved)
+            for (let rowIndex = dragSelection.prevRowIndex + direction;
+                shouldBeSelected(rowIndex);
+                rowIndex += direction
+            ) {
+                //rowIndex is the last row that should be selected
+                const rowToUpdate = doSelect ? rowIndex : dragSelection.prevRowIndex;
+                selectionBuffer[rowToUpdate] = doSelect;
+                dragSelection.prevRowIndex = rowIndex;
+
+                getSelection().removeAllRanges();
+            }
+
+            dragSelection.prevRelY = newRelY;
+            Object.assign(dragSelection.selection, selectionBuffer);
+
+            // console.log(selectionBuffer);
+        }
 
         dragAnimate(dragSelectAnimate,
-            _.clamp(relX + movement.x, left, body.clientWidth - right),
-            _.clamp(relY + movement.y, top, body.clientHeight - bottom),
+            _.clamp(relX + movement.x, left, bodyContainer.clientWidth - right),
+            newRelY,
             scrollLeftOffset + movement.x,
             scrollTopOffset + movement.y
         );
 
-    }, [drag, dragAnimate, dragSelectAnimate, dragSelectScrollFactor]);
+    }, [
+        drag, dragAnimate,
+        dragSelectAnimate, dragSelection, dragSelectScrollFactor,
+        getRowBounds
+    ]);
 
     //Common
     const dragUpdate = useMemo(() => ({
@@ -401,16 +464,15 @@ function ScrollingContainer(props) {
 
     //Drag selection
     const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
-        const body = bodyContainerRef.current;
+        const body = tableBodyRef.current;
         const relX = x - getClientX(body);
         const relY = y - getClientY(body);
 
         Object.assign(dragSelection, {
-            originIndex: rowIndex,
             activeIndex: null,
             pivotIndex: null,
             selected: {},
-            prevRowIndex: rowIndex,
+            prevRowIndex: rowIndex < 0 ? body.children.length : rowIndex,
             prevRelY: relY,
             originRel: Point(relX, relY)
         });
@@ -460,7 +522,8 @@ function ScrollingContainer(props) {
         columns,
 
         columnResizeStart,
-        dragSelectStart
+        dragSelectStart,
+        getRowBounds
     });
 
     return <div

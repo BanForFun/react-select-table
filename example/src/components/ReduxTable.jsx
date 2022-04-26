@@ -24,7 +24,7 @@ function ReduxTable() {
     const containerRef = useRef();
 
     useEffect(() => {
-        dispatch(actions.setItems(oddItems));
+        dispatch(actions.setItems(allItems));
     }, [dispatch]);
 
     const columns = useMemo(() => {

@@ -75,7 +75,6 @@ function TableBody(props) {
     const hideInvisibleRows = useCallback(() => {
         //Get visible rows
         const visibleRows = getVisibleRows();
-        console.log(visibleRows);
 
         //Save invisible rows
         const body = tableBodyRef.current;
@@ -130,7 +129,6 @@ function TableBody(props) {
             hideInvisibleRows();
         else if (hiddenRows.current)
             restoreInvisibleRows();
-
     }, [dragMode, hideInvisibleRows, restoreInvisibleRows, rowValues]);
     //#endregion
 

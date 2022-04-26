@@ -12,11 +12,11 @@ function ResizingContainer(props) {
         //Own props
         resizingContainerRef,
         dragSelectStart,
-        actions,
 
         //HeadContainer props
         headColGroupRef,
         columnResizeStart,
+        actions,
 
         //BodyContainer props
         getRowClassName,
@@ -24,6 +24,7 @@ function ResizingContainer(props) {
         tableBodyRef,
         bodyContainerRef,
         placeholder,
+        getRowBounds,
 
         ...commonProps
     } = props;
@@ -149,6 +150,7 @@ function ResizingContainer(props) {
     const headProps = {
         ...commonProps,
         headColGroupRef,
+        actions,
 
         columnResizeStart
     }
@@ -160,6 +162,7 @@ function ResizingContainer(props) {
         bodyContainerRef,
 
         getRowClassName,
+        getRowBounds,
         placeholder
     }
 

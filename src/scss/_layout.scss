@@ -3,13 +3,11 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    user-select: none;
     outline: none;
 
     table {
         width: 100%;
         table-layout: fixed;
-        user-select: none;
         border-collapse: collapse;
     }
 }
@@ -102,6 +100,7 @@
 .rst-headerText {
     overflow: hidden;
     text-overflow: ellipsis;
+    user-select: none;
 }
 
 .rst-headerContent {
@@ -130,6 +129,7 @@
 
     .rst-spacer {
         box-sizing: border-box;
+        width: 0;
     }
 }
 

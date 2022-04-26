@@ -119,7 +119,6 @@ function ScrollingContainer(props) {
     const getRowBounds = useCallback(index => {
         const row = tableBodyRef.current.children[index];
         if (!row) return null;
-
         return {
             top: row.offsetTop,
             bottom: row.offsetTop + row.offsetHeight
@@ -195,8 +194,8 @@ function ScrollingContainer(props) {
         //Animation hasn't yet finished, we will be called again when it does
         if (drag.animationId != null) return;
 
-        setDragMode(null);
         dragEnd();
+        setDragMode(null);
     }, [drag, dragEnd]);
 
     //#endregion
@@ -360,30 +359,33 @@ function ScrollingContainer(props) {
         //Calculate selection
         const newRelY = _.clamp(relY + movement.y, top, bodyContainer.clientHeight - bottom);
 
-        const { selectionBuffer } = dragSelection;
+        const { selectionBuffer, originRel: { y: originRelY } } = dragSelection;
         const direction = Math.sign(newRelY - dragSelection.prevRelY);
 
         if (direction) {
-            const doSelect = Math.sign(newRelY - dragSelection.originRel.y) === direction;
+            const shouldBeSelected = top =>
+                Math.sign(top - originRelY) === direction &&
+                Math.sign(newRelY - originRelY) === direction;
 
             const tableBody = tableBodyRef.current;
             const rowCount = tableBody.children.length;
-            const shouldBeSelected = (index) => {
+            const couldBeSelected = (index, bounds) => {
                 if (index === rowCount)
-                    return (!doSelect && newRelY > tableBody.offsetHeight);
+                    //Can't use _.inRange as it swaps the limits
+                    return newRelY > tableBody.offsetHeight && newRelY < originRelY;
 
-                const bounds = getRowBounds(index);
                 return bounds && (direction > 0 ? bounds.top <= newRelY : bounds.bottom >= newRelY);
             }
 
-            //Start checking from next row (in the direction the pointer has moved)
-            for (let rowIndex = dragSelection.prevRowIndex + direction;
-                shouldBeSelected(rowIndex);
+            for (
+                let rowBounds, rowIndex = dragSelection.prevRowIndex + direction;
+                couldBeSelected(rowIndex,rowBounds = getRowBounds(rowIndex));
                 rowIndex += direction
             ) {
                 //rowIndex is the last row that should be selected
-                const rowToUpdate = doSelect ? rowIndex : dragSelection.prevRowIndex;
-                selectionBuffer[rowToUpdate] = doSelect;
+                const selected = rowBounds && shouldBeSelected(rowBounds.top);
+                const rowToUpdate = selected ? rowIndex : dragSelection.prevRowIndex;
+                selectionBuffer[rowToUpdate] = selected;
                 dragSelection.prevRowIndex = rowIndex;
 
                 getSelection().removeAllRanges();

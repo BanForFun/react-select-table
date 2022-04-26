@@ -52,6 +52,7 @@
 
     &[data-dragmode=resize] {
         cursor: col-resize;
+        user-select: none;
     }
 
     &[data-dragmode=select] {

@@ -118,6 +118,8 @@ function ResizingContainer(props) {
     }, [gesture, actions, options, indexOffset, rowValues, dragSelect]);
 
     const handleContextMenu = useCallback(e => {
+        if (e.shiftKey) return; //Show browser context menu when holding shift
+
         const { itemIndex } = gesture;
         if (gesture.pointerType !== "mouse") {
             //Don't do anything if the header is the target

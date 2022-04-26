@@ -125,7 +125,7 @@ function Root(props) {
                     actions.selectAll();
                 break;
             default:
-                if (e.ctrlKey) return false;
+                if (e.ctrlKey || e.shiftKey) return false;
                 return;
         }
 

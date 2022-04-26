@@ -14,6 +14,9 @@ export const GestureTargets = Object.freeze({
     BelowItems: -1
 });
 
+export const px = n => `${n}px`;
+export const pc = n => `${n}%`;
+
 export const tableUtils = {};
 
 export const tableModules = {

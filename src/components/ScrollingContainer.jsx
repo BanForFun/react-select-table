@@ -4,7 +4,7 @@ import ResizingContainer from "./ResizingContainer";
 import {ColumnGroupContext} from "./ColumnGroup";
 import {DragModes, pc, px} from "../utils/tableUtils";
 import useDecoupledCallback from "../hooks/useDecoupledCallback";
-import {SelectedClass} from "./TableRow";
+import {ActiveClass, SelectedClass} from "./TableRow";
 
 const defaultColumnRenderer = value => value;
 
@@ -170,9 +170,16 @@ function ScrollingContainer(props) {
     }, [columnResizing, setColumnGroup, getColumnGroup, raiseColumnResizeEnd]);
 
     //Drag selection
+    const rowValues = hooks.useSelector(s => s.rowValues);
+    const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
     const dragSelectEnd = useCallback(() => {
-
-    }, []);
+        if (dragSelection.activeIndex == null) return;
+        actions.setSelected(
+            _.mapKeys(dragSelection.selection, (_, rowIndex) => rowValues[rowIndex]),
+            dragSelection.activeIndex + indexOffset,
+            dragSelection.pivotIndex + indexOffset
+        );
+    }, [dragSelection, actions, rowValues, indexOffset]);
 
     //Common
     const dragEnd = useMemo(() => ({
@@ -246,12 +253,20 @@ function ScrollingContainer(props) {
 
         //Animate selection
         const body = tableBodyRef.current;
-        const getRowClassList = index => body.children[index].classList;
+        const rows = body.children;
         _.forEach(dragSelection.selectionBuffer, (selected, index) => {
-            getRowClassList(index).toggle(SelectedClass, selected);
+            rows[index].classList.toggle(SelectedClass, selected);
         });
-
         dragSelection.selectionBuffer = {};
+
+        //Animate active row
+        if (dragSelection.activeIndex == null) return;
+
+        const prevActiveRow = body.getElementsByClassName(ActiveClass)[0];
+        prevActiveRow.classList.remove(ActiveClass);
+
+        const newActiveRow = rows[dragSelection.activeIndex];
+        newActiveRow.classList.add(ActiveClass);
     }, [dragSelection]);
 
     //#endregion
@@ -352,8 +367,9 @@ function ScrollingContainer(props) {
             const doSelect = Math.sign(newRelY - dragSelection.originRel.y) === direction;
 
             const tableBody = tableBodyRef.current;
+            const rowCount = tableBody.children.length;
             const shouldBeSelected = (index) => {
-                if (index === tableBody.children.length)
+                if (index === rowCount)
                     return (!doSelect && newRelY > tableBody.offsetHeight);
 
                 const bounds = getRowBounds(index);
@@ -371,12 +387,14 @@ function ScrollingContainer(props) {
                 dragSelection.prevRowIndex = rowIndex;
 
                 getSelection().removeAllRanges();
+
+                if (rowIndex >= rowCount) continue;
+                dragSelection.activeIndex = rowIndex;
+                dragSelection.pivotIndex ??= rowIndex;
             }
 
             dragSelection.prevRelY = newRelY;
             Object.assign(dragSelection.selection, selectionBuffer);
-
-            // console.log(selectionBuffer);
         }
 
         dragAnimate(dragSelectAnimate,
@@ -469,9 +487,9 @@ function ScrollingContainer(props) {
         const relY = y - getClientY(body);
 
         Object.assign(dragSelection, {
+            selection: {},
             activeIndex: null,
-            pivotIndex: null,
-            selected: {},
+            pivotIndex: rowIndex < 0 ? null : rowIndex,
             prevRowIndex: rowIndex < 0 ? body.children.length : rowIndex,
             prevRelY: relY,
             originRel: Point(relX, relY)
@@ -484,7 +502,7 @@ function ScrollingContainer(props) {
 
     //#region Event handlers
 
-    const handleScroll = useCallback(e => {
+    const handleScroll = useCallback(() => {
         if (drag.pointerId == null) return;
         dragUpdate?.();
     }, [drag, dragUpdate]);

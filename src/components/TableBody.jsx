@@ -1,8 +1,7 @@
-import React, {Fragment, useRef, useEffect, useLayoutEffect, useState, useCallback} from 'react';
+import React, {useRef, useLayoutEffect, useCallback} from 'react';
 import _ from "lodash";
 import TableRow from "./TableRow";
 import {DragModes, px} from "../utils/tableUtils";
-import {ColumnGroupContext} from "./ColumnGroup";
 
 const SpacerClass = "rst-spacer";
 
@@ -152,4 +151,4 @@ function TableBody(props) {
     </tbody>
 }
 
-export default React.memo(TableBody);
+export default TableBody;

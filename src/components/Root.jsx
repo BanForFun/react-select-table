@@ -93,6 +93,7 @@ function Root(props) {
         const isActiveFirst = activeIndex === 0;
         const isActiveLast = activeIndex === itemCount - 1;
 
+        //React doesn't have a code property, and the key property is case sensitive so keyCode it is
         switch (e.keyCode) {
             case 38: //Up
                 if (!isActiveFirst) select(e, activeIndex - 1);
@@ -124,6 +125,7 @@ function Root(props) {
                     actions.selectAll();
                 break;
             default:
+                if (e.ctrlKey) return false;
                 return;
         }
 

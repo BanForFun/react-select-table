@@ -1,9 +1,9 @@
 import React, {useRef, useContext, useCallback} from 'react';
 import _ from "lodash";
-import HeadContainer from "./HeadContainer";
-import BodyContainer from "./BodyContainer";
-import {ColumnGroupContext} from "./ColumnGroup";
 import {GestureTargets} from "../utils/tableUtils";
+import TableBody from "./TableBody";
+import TableHead from "./TableHead";
+import ColumnGroupContext from "../context/ColumnGroup";
 
 //Child of ScrollingContainer
 //Handles gestures
@@ -14,7 +14,7 @@ function ResizingContainer(props) {
         dragSelectStart,
 
         //HeadContainer props
-        headColGroupRef,
+        tableHeaderRowRef,
         columnResizeStart,
         actions,
 
@@ -22,9 +22,9 @@ function ResizingContainer(props) {
         getRowClassName,
         selectionRectRef,
         tableBodyRef,
-        bodyContainerRef,
         placeholder,
         getRowBounds,
+        chunkIntersectionObserver,
 
         ...commonProps
     } = props;
@@ -41,8 +41,10 @@ function ResizingContainer(props) {
     }).current;
 
     const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
-    const rowValues = hooks.useSelector(s => s.rowValues);
-    const selection = hooks.useSelector(s => s.selection);
+    const rowCount = hooks.useSelector(s => s.rowValues.length);
+    const noSelection = hooks.useSelector(s => !s.selection.size);
+
+    const getSelected = hooks.useSelectorGetter(selectors.getSelected);
 
     const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen);
     const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
@@ -56,16 +58,16 @@ function ResizingContainer(props) {
             raiseContextMenu(true);
         else if (itemIndex === GestureTargets.BelowItems) {
             if (e.shiftKey)
-                actions.baseSelect(indexOffset + rowValues.length - 1, e.ctrlKey, e.shiftKey, true);
+                actions.baseSelect(indexOffset + rowCount - 1, e.ctrlKey, e.shiftKey, true);
             else if (!options.listBox && !e.ctrlKey)
                 actions.baseClearSelection(true)
             else
                 raiseContextMenu(!e.ctrlKey);
-        } else if (options.listBox || (selection.has(rowValues[rowIndex]) && !e.ctrlKey))
+        } else if (options.listBox || (getSelected(rowIndex) && !e.ctrlKey))
             actions.baseSetActive(itemIndex, true);
         else
             actions.baseSelect(itemIndex, e.ctrlKey, e.shiftKey, true);
-    }, [gesture, raiseContextMenu, options, selection, rowValues, actions, indexOffset]);
+    }, [gesture, raiseContextMenu, options, rowCount, actions, indexOffset, getSelected]);
 
     const dragSelect = useCallback(e => {
         if (gesture.pointerId == null) return;
@@ -103,7 +105,7 @@ function ResizingContainer(props) {
             case GestureTargets.Header: return;
             case GestureTargets.BelowItems:
                 if (e.shiftKey)
-                    actions.select(e, indexOffset + rowValues.length - 1);
+                    actions.select(e, indexOffset + rowCount);
                 else if (!options.listBox && !e.ctrlKey)
                     actions.baseClearSelection();
 
@@ -115,7 +117,7 @@ function ResizingContainer(props) {
 
         if (gesture.pointerType === "mouse")
             dragSelect(e);
-    }, [gesture, actions, options, indexOffset, rowValues, dragSelect]);
+    }, [gesture, actions, options, indexOffset, rowCount, dragSelect]);
 
     const handleContextMenu = useCallback(e => {
         if (e.shiftKey) return; //Show browser context menu when holding shift
@@ -138,9 +140,9 @@ function ResizingContainer(props) {
     }, [gesture, contextMenu, actions, eventRaisers, dragSelect]);
 
     const handleDoubleClick = useCallback(() => {
-        if (!selection.size) return;
+        if (noSelection) return;
         raiseItemsOpen(false);
-    }, [selection.size, raiseItemsOpen]);
+    }, [noSelection, raiseItemsOpen]);
 
     //#endregion
 
@@ -151,7 +153,7 @@ function ResizingContainer(props) {
 
     const headProps = {
         ...commonProps,
-        headColGroupRef,
+        tableHeaderRowRef,
         actions,
 
         columnResizeStart
@@ -161,8 +163,8 @@ function ResizingContainer(props) {
         ...commonProps,
         tableBodyRef,
         selectionRectRef,
-        bodyContainerRef,
 
+        chunkIntersectionObserver,
         getRowClassName,
         getRowBounds,
         placeholder
@@ -174,13 +176,15 @@ function ResizingContainer(props) {
         className="rst-resizingContainer"
         ref={resizingContainerRef}
         style={{ width: containerWidth, minWidth: containerMinWidth }}
+        onPointerDownCapture={() => setGestureTarget(GestureTargets.BelowItems)}
+        onTouchStart={e => targetTouchStart(e, false)}
         onPointerDown={handlePointerDown}
         onContextMenu={handleContextMenu}
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
     >
-        <HeadContainer {...headProps} />
-        <BodyContainer {...bodyProps} />
+        <TableHead {...headProps} />
+        <TableBody {...bodyProps} />
     </div>
 }
 

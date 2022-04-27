@@ -7,6 +7,7 @@ function TableHeader({
     path,
     title,
     index,
+    width,
     columnResizeStart,
     actions,
     sortAscending,
@@ -32,13 +33,12 @@ function TableHeader({
     }, [columnResizeStart, index]);
 
     const className = classNames({
+        "rst-header": true,
         "rst-sortable": !!path,
         "rst-resizing": isResizing,
     });
 
-    return <th scope="col" className={className}>
-        <div className="rst-columnSeparator" />
-
+    return <th className={className} style={{ width }}>
         <div className="rst-headerContent">
             <span className="rst-headerText" onMouseDown={handleTitleMouseDown}>{title}</span>
             {sortPriority >= 0 && <Fragment>

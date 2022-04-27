@@ -39,30 +39,7 @@
 @mixin rst-apply-properties($module, $properties...) {
     @each $property in $properties {
         $value: rst-get($module, $property);
-
-        @if $property == "overlay" {
-            @include rst-row-overlay($value);
-        } @else if $property == "underline" {
-            @include rst-row-underline($value);
-        } @else {
-            #{$property}: $value;
-        }
-    }
-}
-
-@mixin rst-row-overlay($color) {
-    & > td, th {
-        background-color: $color;
-    }
-}
-
-@mixin rst-row-underline($color) {
-    $width: rst-get("row", "underline-width");
-    box-shadow: inset 0 calc(#{$width} * -1) 0 0 $color;
-
-    & > td, th {
-        //-1px is used to prevent anti-aliasing on the clipping mask resulting in spaces
-        clip-path: inset(-1px -1px $width -1px);
+        #{$property}: $value;
     }
 }
 

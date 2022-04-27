@@ -12,8 +12,6 @@ $rst-config: map-merge((
     "root-container.margin":                    0 0 1rem 0,
     "root-container.background-color":          transparent,
 
-    "th.font-weight":                           bold,
-
     "search-container.padding":                 2px 12px 12px 2px,
     "search-container.width":                   400px,
 
@@ -34,26 +32,26 @@ $rst-config: map-merge((
     "search-btn.border-radius":                 50%,
     "search-btn.color":                         null,
     "search-btn.background-color":              transparent,
-
     "search-btn_hover.background-color":        #dee2e6,
     "search-btn_hover.border-color":            null,
     "search-btn_hover.color":                   null,
 
     "cell.padding":                             0.75rem,
-    "cell.border":                              none,
 
     "head.vertical-align":                      middle,
     "head.text-align":                          left,
     "head.background-color":                    #f7f7f7,
     "head.color":                               #616161,
-
-    "header.icon-spacing":                      0.25rem,
-    "header.border":                            2px solid rgba(#bdc5cd, 0.5),
-    "header-resizing.border-image":             repeating-linear-gradient(
-            to right, rst-get("header", "border-color") 0px 10px, transparent 10px 20px
+    "head.icon-spacing":                        0.25rem,
+    "head.border":                              2px solid rgba(#bdc5cd, 0.5),
+    "head-resizing.border-image":               repeating-linear-gradient(
+            to right, rst-get("head", "border-color") 0px 10px, transparent 10px 20px
     ) 1 stretch,
 
-    "column-separator.border":                  5px solid #89b363,
+    "header.font-weight":                       bold,
+
+    "column-separator.width":                   5px,
+    "column-separator.color":                   #89b363,
 
     "column-resizer.width":                     30px,
     "column-resizer-resizing.border":           2px solid #a3a5a5,
@@ -64,26 +62,27 @@ $rst-config: map-merge((
     "body.color":                               #333333,
     "body-resizing.opacity":                    0.5,
 
+    "column.border":                            none,
+
     "row.border":                               1px solid rgba(#bdc5cd, 0.5),
 
     "row_selected.border-color":                rgba(#f5f5f5, 0.5),
     "row_selected_focused.border-color":        null,
 
-    "row-selected.overlay":                     rgba(#a7b79b, 0.5),
-    "row-selected_focused.overlay":             rgba(#89b363, 0.5),
+    "row-selected.overlay-color":               rgba(#a7b79b, 0.5),
+    "row-selected_focused.overlay-color":       rgba(#89b363, 0.5),
 
     "row-selected.color":                       null,
     "row-selected_focused.color":               null,
 
-    "row.underline-width":                      3px,
+    "row-active.underline-width":               3px,
+    "row-active.underline-color":               rgba(#a7b79b, 0.875),
+    "row-active_focused.underline-color":       rgba(#89b363, 0.875),
 
-    "row-active.underline":                     rgba(#a7b79b, 0.875),
-    "row-active_focused.underline":             rgba(#89b363, 0.875),
-
-    "row-striped.overlay":                      rgba(#afafaf, 0.1),
+    "row-striped.overlay-color":                rgba(#afafaf, 0.1),
     "row-striped.color":                        null,
 
-    "row-hover.overlay":                        rgba(#7d7d7d, 0.1),
+    "row-hover.overlay-color":                  rgba(#7d7d7d, 0.1),
     "row-hover.color":                          null,
 
     "drag-selection.border":                    1px solid rgba(#89b363, 0.5),

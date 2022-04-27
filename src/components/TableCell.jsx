@@ -1,16 +1,17 @@
 import _ from "lodash";
 import React from "react";
+import classNames from "classnames";
 
-function TableCell({ render, data, index, path, isHeader }) {
+function TableCell({ render, rowData, rowIndex, path, isHeader }) {
     const options = {
         className: null
     };
 
-    const defaultContent = _.get(data, path, index);
-    const content = render(defaultContent, data, options);
+    const defaultContent = _.get(rowData, path, rowIndex);
+    const content = render(defaultContent, rowData, options);
+    const className = classNames(options.className, isHeader ? "rst-header" : "rst-cell");
 
-    const CellType = isHeader ? 'th' : 'td';
-    return <CellType className={options.className}>{content}</CellType>
+    return <td className={className}>{content}</td>
 }
 
 export default React.memo(TableCell);

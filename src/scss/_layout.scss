@@ -3,12 +3,15 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    outline: none;
 
     table {
         width: 100%;
         table-layout: fixed;
         border-collapse: collapse;
+    }
+
+    th, td {
+        box-sizing: border-box;
     }
 }
 
@@ -17,16 +20,6 @@
     grid-template-columns: 1fr;
     grid-auto-flow: column;
     align-items: center;
-
-    input {
-        border: none;
-        outline: none;
-        background: none;
-    }
-
-    button {
-        line-height: 0;
-    }
 
     .rst-separator {
         align-self: stretch;
@@ -53,6 +46,17 @@
     &[data-dragmode=resize] {
         cursor: col-resize;
         user-select: none;
+
+        .rst-body {
+            max-width: 0;
+            overflow: visible;
+            position: sticky;
+            left: var(--stick-left);
+
+            .rst-spacer {
+                width: 200vw;
+            }
+        }
     }
 
     &[data-dragmode=select] {
@@ -62,34 +66,68 @@
 
 .rst-resizingContainer {
     box-sizing: content-box;
-    display: flex;
-    flex-direction: column;
-    contain: paint;
-
     min-height: 100%;
+    contain: paint;
 }
 
-.rst-headContainer {
-    flex: none;
+.rst-head {
     position: sticky;
     top: 0;
     margin: 0;
     z-index: 1;
 
-    th {
-        padding: 0;
-        position: relative;
+    .rst-header {
         overflow: visible;
+        position: relative;
     }
 
     .rst-spacer {
-        .rst-columnSeparator {
-            left: unset;
-            right: 100%;
+        .rst-columnResizer {
+            z-index: 1;
+            transform: none;
+        }
+    }
+}
+
+.rst-spacer {
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2; //Above column resizer
+    }
+}
+
+.rst-body {
+    position: relative;
+    overflow: hidden;
+
+    tr, td {
+        overflow: hidden;
+    }
+}
+
+.rst-chunk {
+    position: relative;
+    contain: layout;
+
+    .rst-rows {
+        display: none;
+    }
+
+    &.rst-visible {
+        &.rst-heightInvalid {
+            contain: none;
+            height: auto !important;
         }
 
-        .rst-columnResizer {
-            transform: none;
+        .rst-rows {
+            display: revert;
         }
     }
 }
@@ -105,33 +143,10 @@
 }
 
 .rst-headerContent {
-    height: 100%;
     display: flex;
     align-items: baseline;
     white-space: nowrap;
     overflow: hidden;
-}
-
-.rst-bodyContainer {
-    position: relative;
-    flex: auto;
-    z-index: 0;
-
-    //Hack to crop body container based on head container (Part 1)
-    max-width: 100%;
-
-    tr:first-child > * {
-        border-top: none;
-    }
-
-    td, th {
-        overflow: hidden;
-    }
-
-    .rst-spacer {
-        box-sizing: border-box;
-        width: 0;
-    }
 }
 
 .rst-bodyPlaceholder {
@@ -143,38 +158,18 @@
 .rst-columnResizer {
     position: absolute;
     top: 0;
-    right: 0;
+    left: 100%;
     cursor: col-resize;
     touch-action: none;
     height: 100%;
-    z-index: 1;
-    transform: translateX(50%);
-}
-
-.rst-resizing .rst-columnResizer {
-    transform: none;
-}
-
-.rst-columnResizerHider {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 2;
-}
-
-.rst-columnSeparator {
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
+    z-index: 3;
 }
 
 .rst-dragSelection {
     position: absolute;
     pointer-events: none;
     box-sizing: border-box;
+    contain: strict;
 }
 
 .rst-icon {

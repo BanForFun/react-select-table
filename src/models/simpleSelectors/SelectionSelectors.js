@@ -8,4 +8,7 @@ export default class SelectionSelectors {
 
     getActiveValue = (state) =>
         state.rowValues[this.getActiveRowIndex(state)];
+
+    getSelected = (state, rowIndex) =>
+        state.selection.has(state.rowValues[rowIndex]);
 }

@@ -39,3 +39,13 @@
     @return str-slice($result, 1, -1 - str-length($separator));
 }
 
+@function rst-inset-border($width, $color, $side) {
+    $offsets: (
+        top: 0 $width,
+        right: calc(#{$width} * -1) 0,
+        bottom: 0 calc(#{$width} * -1),
+        left: $width 0
+    );
+
+    @return inset map-get($offsets, $side) 0 0 $color;
+}

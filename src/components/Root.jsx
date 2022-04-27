@@ -30,18 +30,17 @@ function Root(props) {
 
     const actions = hooks.useActions();
 
-    const tableBodyRef = useRef();
     const searchInputRef = useRef();
 
     const pageIndex = hooks.useSelector(selectors.getPageIndex);
     const pageCount = hooks.useSelector(selectors.getPageCount);
-    const activeValue = hooks.useSelector(selectors.getActiveValue);
     const activeIndex = hooks.useSelector(s => s.activeIndex);
     const pageSize = hooks.useSelector(s => s.pageSize);
-    const selection = hooks.useSelector(s => s.selection);
     const isLoading = hooks.useSelector(s => s.isLoading);
     const error = hooks.useSelector(s => s.error);
     const itemCount = hooks.useSelector(s => s.visibleItemCount);
+
+    const getSelected = hooks.useSelectorGetter(selectors.getSelected);
 
     const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen);
     const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu);
@@ -114,7 +113,7 @@ function Root(props) {
                 if (!isActiveLast) select(e, itemCount - 1);
                 break;
             case 13: //Enter
-                if (!e.ctrlKey && !e.shiftKey && selection.has(activeValue))
+                if (!e.ctrlKey && !e.shiftKey && getSelected(activeIndex))
                     raiseItemsOpen(true);
                 else
                     actions.select(e, activeIndex);
@@ -133,7 +132,7 @@ function Root(props) {
         return false;
     }, [
         actions, options, placeholderShown,
-        activeIndex, itemCount, selection, activeValue, //Redux props
+        activeIndex, itemCount, getSelected, //Redux props
         pageSize, pageCount, pageIndex, //Redux props
         select, //Component methods
         raiseItemsOpen, raiseKeyDown //Event handlers
@@ -147,7 +146,6 @@ function Root(props) {
     //Scrolling container props
     Object.assign(scrollingProps, {
         actions,
-        tableBodyRef,
         placeholder
     });
 

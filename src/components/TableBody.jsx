@@ -1,154 +1,81 @@
-import React, {useRef, useLayoutEffect, useCallback} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo} from 'react';
 import _ from "lodash";
-import TableRow from "./TableRow";
-import {DragModes, px} from "../utils/tableUtils";
-
-const SpacerClass = "rst-spacer";
+import TableChunk from "./TableChunk";
+import {DragModes} from "../utils/tableUtils";
 
 //Child of BodyContainer
 function TableBody(props) {
     const {
-        tableBodyRef,
-        getRowClassName,
-        bodyContainerRef,
+        selectionRectRef,
         scrollingContainerRef,
-        dragMode,
         getRowBounds,
-        utils: { hooks, selectors },
-        ...rowCommonProps
+        tableBodyRef,
+        placeholder,
+        dragMode,
+        ...chunkCommonProps
     } = props;
 
-    const sortedItems = hooks.useSelector(s => s.sortedItems);
+    const {
+        utils: { hooks, options, selectors }
+    } = props;
+
     const rowValues = hooks.useSelector(s => s.rowValues);
-    const selection = hooks.useSelector(s => s.selection);
+    const sortedItems = hooks.useSelector(s => s.sortedItems);
     const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex);
-    const indexOffset = hooks.useSelector(selectors.getPageIndexOffset);
 
-    //#region Autoscroll to active row
-    const getContainerBounds = useCallback(() => {
-        const scrollingContainer = scrollingContainerRef.current;
-        const bodyContainer = bodyContainerRef.current;
+    const getContainerVisibleBounds = useCallback(() => {
+        const container = scrollingContainerRef.current;
+        const body = tableBodyRef.current;
         return {
-            visibleTop: scrollingContainer.scrollTop,
-            visibleBottom: scrollingContainer.scrollTop + scrollingContainer.clientHeight - bodyContainer.offsetTop
+            top: container.scrollTop,
+            bottom: container.scrollTop + container.clientHeight - body.offsetTop
         }
-    }, [scrollingContainerRef, bodyContainerRef]);
+    }, [scrollingContainerRef, tableBodyRef]);
 
-    //Autoscroll to ensure active value is visible
     useLayoutEffect(() => {
         const rowBounds = getRowBounds(activeRowIndex);
-        const containerBounds = getContainerBounds();
+        if (!rowBounds) return;
 
-        const distanceToTop = rowBounds.top - containerBounds.visibleTop;
-        const distanceToBottom = rowBounds.bottom - containerBounds.visibleBottom;
+        const containerBounds = getContainerVisibleBounds();
+        const distanceToTop = rowBounds.top - containerBounds.top;
+        const distanceToBottom = rowBounds.bottom - containerBounds.bottom;
 
         const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom);
         scrollingContainerRef.current.scrollTop += scrollOffset;
     }, [
         activeRowIndex,
-        rowValues,
-        scrollingContainerRef, getContainerBounds, getRowBounds
+        scrollingContainerRef, getContainerVisibleBounds, getRowBounds
     ]);
-    //#endregion
 
-    //#region Hide invisible rows
-    const getVisibleRows = useCallback(() => {
-        const containerBounds = getContainerBounds();
+    const clipPath = useMemo(() => {
+        if (dragMode !== DragModes.Resize) return null;
+        return getContainerVisibleBounds();
+    }, [dragMode, getContainerVisibleBounds]);
 
-        let minVisible = 0, maxVisible;
-        _.forEach(tableBodyRef.current.children, (row, index) => {
-            if ((row.offsetTop + row.offsetHeight) <= containerBounds.visibleTop) {
-                minVisible = index;
-            } else if (row.offsetTop <= containerBounds.visibleBottom) {
-                maxVisible = index;
-            } else return false;
-        });
+    const chunks = useMemo(() => {
+        const chunks = _.chunk(rowValues, options.chunkSize);
+        for (let chunk of chunks)
+            //Mutate chunk instead of creating yet another copy
+            chunk.forEach((value, index) => chunk[index] = sortedItems[value].data);
 
-        //Preserve stripped pattern
-        if (minVisible && minVisible % 2 === 0)
-            minVisible--;
+        return chunks;
+    }, [rowValues, sortedItems, options]);
 
-        return { min: minVisible, max: maxVisible };
-    }, [getContainerBounds, tableBodyRef]);
-
-    const hideInvisibleRows = useCallback(() => {
-        //Get visible rows
-        const visibleRows = getVisibleRows();
-
-        //Save invisible rows
-        const body = tableBodyRef.current;
-        const rows = body.children;
-        hiddenRows.current = {
-            top: _.slice(rows, 0, visibleRows.min),
-            bottom: _.slice(rows, visibleRows.max + 1)
-        };
-
-        //Calculate spacer heights
-        const topSpacerHeight = getRowBounds(visibleRows.min).top;
-        const bottomSpacerHeight = body.offsetHeight - getRowBounds(visibleRows.max).bottom;
-
-        //Remove invisible rows
-        hiddenRows.current.top.forEach(row => row.remove());
-        hiddenRows.current.bottom.forEach(row => row.remove());
-
-        //Add top spacer
-        if (topSpacerHeight) {
-            const topSpacer = body.insertRow(0);
-            topSpacer.classList.add(SpacerClass);
-            topSpacer.style.height = px(topSpacerHeight);
-        }
-
-        //Add bottom spacer
-        if (bottomSpacerHeight) {
-            const bottomSpacer = body.insertRow();
-            bottomSpacer.classList.add(SpacerClass);
-            bottomSpacer.style.height = px(bottomSpacerHeight);
-        }
-    }, [getRowBounds, getVisibleRows, tableBodyRef]);
-
-    const restoreInvisibleRows = useCallback(() => {
-        const body = tableBodyRef.current;
-        const spacers = body.getElementsByClassName(SpacerClass);
-
-        //Restore saved rows
-        const { top, bottom } = hiddenRows.current;
-        top.forEach(row => body.insertBefore(row, spacers[0]));
-        bottom.forEach(row => body.appendChild(row));
-
-        //Remove spacers
-        _.forEach(spacers,() => spacers[0].remove());
-
-        hiddenRows.current = null;
-    }, [tableBodyRef]);
-
-    //Don't render invisible rows when resizing columns
-    const hiddenRows = useRef();
-    useLayoutEffect(() => {
-        if (dragMode?.name === DragModes.Resize)
-            hideInvisibleRows();
-        else if (hiddenRows.current)
-            restoreInvisibleRows();
-    }, [dragMode, hideInvisibleRows, restoreInvisibleRows, rowValues]);
-    //#endregion
-
-    const renderRow = (value, rowIndex) => {
-        const { data } = sortedItems[value];
-
-        const rowProps = {
-            ...rowCommonProps,
-            key: `row_${props.name}_${value}`,
-            data, value, rowIndex, indexOffset,
-            active: rowIndex === activeRowIndex,
-            selected: selection.has(value),
-            className: getRowClassName(data)
-        };
-
-        return <TableRow {...rowProps} />;
+    const renderChunk = (rows, index) => {
+        return <TableChunk {...chunkCommonProps}
+                           key={`chunk_${props.name}_${index}`}
+                           rows={rows}
+                           index={index} />
     };
 
-    return <tbody ref={tableBodyRef}>
-        {rowValues.map(renderRow)}
-    </tbody>
+    chunkCommonProps.clipPath = clipPath;
+
+    return <div className="rst-body" ref={tableBodyRef}>
+        {placeholder || chunks.map(renderChunk)}
+
+        {dragMode === DragModes.Select &&
+            <div className="rst-dragSelection" ref={selectionRectRef} />}
+    </div>
 }
 
 export default TableBody;

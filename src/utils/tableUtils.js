@@ -38,6 +38,7 @@ const defaultOptions = {
     valueProperty: "id",
     constantWidth: false,
     minColumnWidth: 50,
+    chunkSize: 100,
     path: null,
     initState: {},
     context: null,

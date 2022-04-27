@@ -65,7 +65,6 @@ Connector.propTypes = {
     name: PropTypes.string,
     id: PropTypes.string,
     className: PropTypes.string,
-    tableClass: PropTypes.string,
     containerRef: refType,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
     initColumnWidths: PropTypes.arrayOf(PropTypes.number),
@@ -83,7 +82,7 @@ Connector.propTypes = {
 
 Connector.defaultProps = {
     getRowClassName: () => null,
-    className: "rst-table rst-hover",
+    className: "rst-default",
     initColumnWidths: [],
     dragSelectScrollFactor: 0.5,
     columnResizeScrollFactor: 0.2,

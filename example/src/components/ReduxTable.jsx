@@ -116,10 +116,8 @@ function ReduxTable() {
             containerRef={containerRef}
             emptyPlaceholder="No items"
             namespace={tableNamespace}
-            className="rst-table"
-            initColumnWidths={[10, 10, 50, 50]}
+            initColumnWidths={[10, 10, 30, 30]}
             columnOrder={[0, 1, 3, 4]}
-            // tableClass="table table-striped table-hover table-dark"
             columns={columns}
             loadingIndicator="Loading..."
             autoFocus={true}

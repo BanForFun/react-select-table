@@ -12,30 +12,31 @@ function TableRow({
     targetTouchStart,
     selected,
     active,
-    rowIndex,
-    indexOffset,
+    index,
     className,
     name,
     value,
     data
 }) {
     const renderColumn = ({_id: id, ...column}) =>
-        <TableCell {...column} data={data}
-                   index={rowIndex + indexOffset}
+        <TableCell {...column}
+                   rowData={data}
+                   rowIndex={index}
                    key={`cell_${name}_${value}_${id}`}
         />
 
     const trClass = classNames(className, {
+        "rst-row": true,
         [SelectedClass]: selected,
         [ActiveClass]: active
     });
 
     return <tr className={trClass}
-               onPointerDownCapture={() => setGestureTarget(rowIndex)}
-               onTouchStart={e => targetTouchStart(e, true)}
+                onPointerDownCapture={() => setGestureTarget(index)}
+                onTouchStart={e => targetTouchStart(e, true)}
     >
         {columns.map(renderColumn)}
-        <td/>
+        <td className="rst-spacer"/>
     </tr>
 }
 

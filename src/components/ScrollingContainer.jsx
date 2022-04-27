@@ -1,10 +1,10 @@
 import _ from "lodash";
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import ResizingContainer from "./ResizingContainer";
-import {ColumnGroupContext} from "./ColumnGroup";
 import {DragModes, pc, px} from "../utils/tableUtils";
 import useDecoupledCallback from "../hooks/useDecoupledCallback";
 import {ActiveClass, SelectedClass} from "./TableRow";
+import ColumnGroupContext from "../context/ColumnGroup";
 
 const defaultColumnRenderer = value => value;
 
@@ -64,8 +64,7 @@ function ScrollingContainer(props) {
 
     const {
         utils: { options, hooks, selectors, eventRaisers },
-        actions,
-        name
+        actions
     } = props;
 
     //#region Column group
@@ -83,19 +82,15 @@ function ScrollingContainer(props) {
     }, [columns])
 
     const getColumnGroup = useCallback(widths => {
-        const columnsWidth = _.sum(widths);
-        const spacerWidth = Math.max(0, 100 - columnsWidth);
-        const containerWidth = columnsWidth + spacerWidth;
+        const containerWidth = Math.max(100, _.sum(widths));
         const containerMinWidth = containerWidth / _.min(widths) * options.minColumnWidth
 
         return {
-            columns, name,
             widths: widths.map(pc),
-            spacerWidth: pc(spacerWidth),
             containerWidth: pc(containerWidth),
             containerMinWidth: px(containerMinWidth),
         }
-    }, [columns, name, options]);
+    }, [options]);
 
     const [columnGroup, setColumnGroup] = useState(getColumnGroup(validateWidths(initColumnWidths)));
 
@@ -110,20 +105,29 @@ function ScrollingContainer(props) {
     //#region Elements
 
     const tableBodyRef = useRef();
+    const tableHeaderRowRef = useRef();
     const selectionRectRef = useRef();
-    const bodyContainerRef = useRef();
     const scrollingContainerRef = useRef();
-    const headColGroupRef = useRef();
     const resizingContainerRef = useRef();
 
+    const getRowElement = useCallback(index => {
+        const rowIndex = index % options.chunkSize;
+        const chunkIndex = (index - rowIndex) / options.chunkSize;
+
+        const chunk = tableBodyRef.current.children[chunkIndex];
+        if (!chunk?.classList.contains("rst-chunk")) return;
+
+        return chunk.lastChild.children[rowIndex];
+    }, [options]);
+
     const getRowBounds = useCallback(index => {
-        const row = tableBodyRef.current.children[index];
-        if (!row) return null;
-        return {
-            top: row.offsetTop,
-            bottom: row.offsetTop + row.offsetHeight
-        };
-    }, []);
+        const row = getRowElement(index);
+        //offsetParent is null when chunk hasn't loaded yet
+        if (!row?.offsetParent) return null;
+
+        const top = row.offsetParent.offsetTop + row.offsetTop;
+        return { top, bottom: top + row.offsetHeight };
+    }, [getRowElement]);
 
     //#endregion
 
@@ -140,8 +144,9 @@ function ScrollingContainer(props) {
     const columnResizing = useRef({
         widths: [],
         initialWidth: 0,
-        movement: 0,
-        index: -1
+        index: -1,
+        borderLeft: 0,
+        borderRight: 0
     }).current;
 
     const dragSelection = useRef({
@@ -160,12 +165,17 @@ function ScrollingContainer(props) {
     //Column resizing
     const raiseColumnResizeEnd = hooks.useSelectorGetter(eventRaisers.columnResizeEnd);
     const columnResizeEnd = useCallback(() => {
-        const container = scrollingContainerRef.current;
-        const widths = columnResizing.widths.map(px => 100 * px / container.clientWidth);
+        //Account for collapsed border
+        const {
+            clientWidth: availableWidth,
+            offsetParent: { clientWidth: fullWidth }
+        } = tableHeaderRowRef.current;
+
+        const bodyWidthPc = fullWidth / scrollingContainerRef.current.clientWidth * 100;
+        const widths = columnResizing.widths.map(px => px / availableWidth * bodyWidthPc);
+
         raiseColumnResizeEnd(widths);
         setColumnGroup(getColumnGroup(widths));
-
-        bodyContainerRef.current.style.width = "100%";
     }, [columnResizing, setColumnGroup, getColumnGroup, raiseColumnResizeEnd]);
 
     //Drag selection
@@ -184,7 +194,7 @@ function ScrollingContainer(props) {
     const dragEnd = useMemo(() => ({
         [DragModes.Resize]: columnResizeEnd,
         [DragModes.Select]: dragSelectEnd
-    })[dragMode?.name], [dragMode, columnResizeEnd, dragSelectEnd]);
+    })[dragMode], [dragMode, columnResizeEnd, dragSelectEnd]);
 
     const dragStop = useCallback(() => {
         if (drag.pointerId != null) {
@@ -218,19 +228,16 @@ function ScrollingContainer(props) {
 
     //Column resizing
     const columnResizeAnimation = useCallback((changedWidths, scrollLeft) => {
-        const colGroup = headColGroupRef.current;
+        const headerRow = tableHeaderRowRef.current;
         const container = scrollingContainerRef.current;
 
         for (let index in changedWidths)
-            colGroup.children[index].width = px(changedWidths[index]);
+            headerRow.children[index].style.width = px(changedWidths[index]);
+
+        // resizingContainerRef.current.style.width = px(Math.max(100, _.sum(columnResizing.widths)));
 
         container.scrollLeft = scrollLeft;
-
-        bodyContainerRef.current.style.width = (
-            columnResizing.initialWidth <= container.clientWidth ||
-            columnResizing.initialWidth <= _.sum(columnResizing.widths)
-        ) ? "100%" : 0;
-    }, [columnResizing]);
+    }, []);
 
     const dragSelectAnimate = useCallback((
         relX, relY, scrollLeftOffset, scrollTopOffset
@@ -251,22 +258,20 @@ function ScrollingContainer(props) {
         }, px));
 
         //Animate selection
-        const body = tableBodyRef.current;
-        const rows = body.children;
         _.forEach(dragSelection.selectionBuffer, (selected, index) => {
-            rows[index].classList.toggle(SelectedClass, selected);
+            getRowElement(index).classList.toggle(SelectedClass, selected);
         });
         dragSelection.selectionBuffer = {};
 
         //Animate active row
         if (dragSelection.activeIndex == null) return;
 
-        const prevActiveRow = body.getElementsByClassName(ActiveClass)[0];
+        const [prevActiveRow] = tableBodyRef.current.getElementsByClassName(ActiveClass);
         prevActiveRow.classList.remove(ActiveClass);
 
-        const newActiveRow = rows[dragSelection.activeIndex];
+        const newActiveRow = getRowElement(dragSelection.activeIndex);
         newActiveRow.classList.add(ActiveClass);
-    }, [dragSelection]);
+    }, [dragSelection, getRowElement]);
 
     //#endregion
 
@@ -274,23 +279,26 @@ function ScrollingContainer(props) {
 
     //Column resizing
     const columnResizeUpdate = useCallback(() => {
-        const { index } = dragMode;
-        const { widths } = columnResizing;
+        const index = columnGroup.resizingIndex;
+        if (index == null) return;
+
+        const { widths, borderLeft, borderRight } = columnResizing;
         const { constantWidth, minColumnWidth: minWidth } = options;
 
         const container = scrollingContainerRef.current;
-        const containerX = getClientX(container);
-        const { clientWidth: containerWidth, scrollLeft: containerScroll } = container;
+        let { clientWidth: containerWidth, scrollLeft } = container;
+        containerWidth -= borderLeft + borderRight;
+        const containerX = getClientX(container) + borderLeft;
 
         //Auto-scroll
         const distanceToEnd = _.sum(_.slice(widths, index + 1));
-        const shrinkThresholdColumn = containerScroll && widths[index] > minWidth
+        const shrinkThresholdColumn = scrollLeft && widths[index] > minWidth
             ? containerWidth - distanceToEnd : 0
         const shrinkThreshold = containerX + Math.max(0, shrinkThresholdColumn);
         const expandThreshold = containerX + containerWidth;
 
         const { relToOrigin: relX, scrollOffset } = getRelativeOffset(
-            drag.pointerPos.x, getClientX(headColGroupRef.current),
+            drag.pointerPos.x, getClientX(tableHeaderRowRef.current),
             shrinkThreshold, expandThreshold, columnResizeScrollFactor
         );
 
@@ -298,9 +306,9 @@ function ScrollingContainer(props) {
         let movementOffset = 0;
         if (relX + distanceToEnd > containerWidth) {
             const availableScroll = constantWidth ?
-                columnResizing.initialWidth - containerWidth - containerScroll : Infinity;
+                columnResizing.initialWidth - containerWidth - scrollLeft : Infinity;
 
-            movementOffset = _.clamp(drag.movement.x, -containerScroll, availableScroll);
+            movementOffset = _.clamp(drag.movement.x, -scrollLeft, availableScroll);
         }
 
         //Set column widths
@@ -317,31 +325,32 @@ function ScrollingContainer(props) {
         //Handle overscroll
         const overscroll = targetWidth !== changedWidths[index];
         const absPos = _.clamp(drag.pointerPos.x - containerX, 0, containerWidth);
-        const scrollLeft = !overscroll && (scrollOffset || movementOffset)
+        scrollLeft = !overscroll && (scrollOffset || movementOffset)
             ? left + changedWidths[index] - absPos
-            : containerScroll + scrollOffset + movementOffset;
+            : scrollLeft + scrollOffset + movementOffset;
 
         Object.assign(columnResizing.widths, changedWidths);
 
         dragAnimate(columnResizeAnimation, changedWidths, scrollLeft);
     }, [
         drag,
+        columnGroup,
         columnResizing,
         columnResizeAnimation,
         columnResizeScrollFactor,
         dragAnimate,
-        options,
-        dragMode
+        options
     ]);
 
     //Drag selection
+    const rowCount = hooks.useSelector(s => s.rowValues.length);
     const dragSelectUpdate = useCallback(() => {
         //Calculate selection rectangle
-        const bodyContainer = bodyContainerRef.current;
+        const body = tableBodyRef.current;
         const container = scrollingContainerRef.current;
         const containerBounds = container.getBoundingClientRect();
 
-        const visibleTop = containerBounds.top + bodyContainer.offsetTop;
+        const visibleTop = containerBounds.top + body.offsetTop;
         const visibleLeft = containerBounds.left;
         const visibleRight = containerBounds.left + container.clientWidth;
         const visibleBottom = containerBounds.top + container.clientHeight
@@ -349,15 +358,16 @@ function ScrollingContainer(props) {
         const { pointerPos, movement } = drag;
 
         const { relToOrigin: relX, scrollOffset: scrollLeftOffset, relToMin: left, relToMax: right } =
-            getRelativeOffset(pointerPos.x, getClientX(bodyContainer),
+            getRelativeOffset(pointerPos.x, getClientX(body),
             visibleLeft, visibleRight, dragSelectScrollFactor);
 
         const { relToOrigin: relY, scrollOffset: scrollTopOffset, relToMin: top, relToMax: bottom } =
-            getRelativeOffset(pointerPos.y, getClientY(bodyContainer),
+            getRelativeOffset(pointerPos.y, getClientY(body),
             visibleTop, visibleBottom, dragSelectScrollFactor);
 
         //Calculate selection
-        const newRelY = _.clamp(relY + movement.y, top, bodyContainer.clientHeight - bottom);
+        const availableHeight = container.scrollHeight - body.offsetTop;
+        const newRelY = _.clamp(relY + movement.y, top, availableHeight - bottom);
 
         const { selectionBuffer, originRel: { y: originRelY } } = dragSelection;
         const direction = Math.sign(newRelY - dragSelection.prevRelY);
@@ -367,12 +377,10 @@ function ScrollingContainer(props) {
                 Math.sign(top - originRelY) === direction &&
                 Math.sign(newRelY - originRelY) === direction;
 
-            const tableBody = tableBodyRef.current;
-            const rowCount = tableBody.children.length;
             const couldBeSelected = (index, bounds) => {
                 if (index === rowCount)
                     //Can't use _.inRange as it swaps the limits
-                    return newRelY > tableBody.offsetHeight && newRelY < originRelY;
+                    return newRelY > body.offsetHeight && newRelY < originRelY;
 
                 return bounds && (direction > 0 ? bounds.top <= newRelY : bounds.bottom >= newRelY);
             }
@@ -400,7 +408,7 @@ function ScrollingContainer(props) {
         }
 
         dragAnimate(dragSelectAnimate,
-            _.clamp(relX + movement.x, left, bodyContainer.clientWidth - right),
+            _.clamp(relX + movement.x, left, body.clientWidth - right),
             newRelY,
             scrollLeftOffset + movement.x,
             scrollTopOffset + movement.y
@@ -409,14 +417,14 @@ function ScrollingContainer(props) {
     }, [
         drag, dragAnimate,
         dragSelectAnimate, dragSelection, dragSelectScrollFactor,
-        getRowBounds
+        getRowBounds, rowCount
     ]);
 
     //Common
     const dragUpdate = useMemo(() => ({
         [DragModes.Resize]: columnResizeUpdate,
         [DragModes.Select]: dragSelectUpdate
-    })[dragMode?.name], [dragMode, columnResizeUpdate, dragSelectUpdate]);
+    })[dragMode], [dragMode, columnResizeUpdate, dragSelectUpdate]);
 
     //#endregion
 
@@ -439,18 +447,21 @@ function ScrollingContainer(props) {
         dragUpdate();
     }, [drag, dragUpdate]))
 
-    const dragStart = useCallback((x, y, pointerId, dragMode, extra = null) => {
-        Object.assign(drag, {
-            pointerPos: Point(x, y),
-            pointerId
-        });
+    const dragStart = useCallback((x, y, pointerId, mode) => {
+        Object.assign(drag, { pointerPos: Point(x, y), pointerId });
 
         const container = scrollingContainerRef.current;
-        container.setPointerCapture(pointerId);
+        try {
+            container.setPointerCapture(pointerId);
+        } catch {
+            drag.pointerId = null;
+            return false;
+        }
         container.addEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions);
         container.addEventListener(cancelWheelType, cancelWheelHandler, cancelWheelOptions);
 
-        setDragMode({ name: dragMode, ...extra });
+        setDragMode(mode);
+        return true;
     }, [drag, cancelScrollHandler, cancelWheelHandler]);
 
     useEffect(() => {
@@ -463,27 +474,35 @@ function ScrollingContainer(props) {
 
     //Column resizing
     const columnResizeStart = useCallback((x, y, pointerId, index) => {
-        const container = scrollingContainerRef.current;
+        if (!dragStart(x, y, pointerId, DragModes.Resize)) return;
+
+        const { offsetWidth: initialWidth, children: headers } = tableHeaderRowRef.current;
+
+        const widths = _.initial(_.map(headers, h => h.offsetWidth));
+        const { clientLeft, clientWidth } = headers[index];
 
         Object.assign(columnResizing, {
-            widths: _.initial(_.map(headColGroupRef.current.children, col => col.getBoundingClientRect().width)),
-            initialWidth: container.scrollWidth,
-            movement: 0
+            widths, initialWidth,
+            borderLeft: clientLeft,
+            borderRight: widths[index] - clientWidth - clientLeft
         });
+
+        const body = tableBodyRef.current;
+        body.style.setProperty("--stick-left", px(-body.offsetWidth));
 
         setColumnGroup(columnGroup => ({
             ...columnGroup,
             widths: columnResizing.widths.map(px),
-            spacerWidth: "100%",
             containerWidth: "fit-content",
-            containerMinWidth: "0px"
+            containerMinWidth: "0px",
+            resizingIndex: index
         }));
-
-        dragStart(x, y, pointerId, DragModes.Resize, { index });
     }, [dragStart, columnResizing]);
 
     //Drag selection
     const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
+        if (!dragStart(x, y, pointerId, DragModes.Select)) return;
+
         const body = tableBodyRef.current;
         const relX = x - getClientX(body);
         const relY = y - getClientY(body);
@@ -492,13 +511,11 @@ function ScrollingContainer(props) {
             selection: {},
             activeIndex: null,
             pivotIndex: rowIndex < 0 ? null : rowIndex,
-            prevRowIndex: rowIndex < 0 ? body.children.length : rowIndex,
+            prevRowIndex: rowIndex < 0 ? rowCount : rowIndex,
             prevRelY: relY,
             originRel: Point(relX, relY)
         });
-
-        dragStart(x, y, pointerId, DragModes.Select);
-    }, [dragStart, dragSelection]);
+    }, [dragStart, dragSelection, rowCount]);
 
     //#endregion
 
@@ -529,17 +546,39 @@ function ScrollingContainer(props) {
 
     //#endregion
 
+
+    //#region Chunk IntersectionObserver
+
+    //Chrome's content-visibility has worse performance
+    const chunkIntersectionObserver = useRef();
+    useLayoutEffect(() => {
+        // if (window.CSS?.supports("content-visibility: auto")) return;
+        chunkIntersectionObserver.current = new IntersectionObserver(entries => entries.forEach(entry => {
+            const { target: chunk, isIntersecting: visible } = entry;
+            if (!visible) {
+                chunk.style.height = px(chunk.offsetHeight);
+                chunk.classList.remove("rst-heightInvalid");
+            }
+
+            chunk.classList.toggle("rst-visible", visible);
+        }), { root: scrollingContainerRef.current, rootMargin: "500px" });
+
+        return () => chunkIntersectionObserver.current.disconnect();
+    }, []);
+
+    //#endregion
+
     //Set props
     Object.assign(resizingProps,{
-        bodyContainerRef,
         tableBodyRef,
+        tableHeaderRowRef,
         selectionRectRef,
         scrollingContainerRef,
         resizingContainerRef,
-        headColGroupRef,
 
         dragMode,
         columns,
+        chunkIntersectionObserver,
 
         columnResizeStart,
         dragSelectStart,
@@ -549,7 +588,7 @@ function ScrollingContainer(props) {
     return <div
         className="rst-scrollingContainer"
         ref={scrollingContainerRef}
-        data-dragmode={dragMode?.name}
+        data-dragmode={dragMode}
         onScroll={handleScroll}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

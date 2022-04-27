@@ -1,6 +1,7 @@
-import React, {Fragment, useMemo, useCallback} from 'react';
+import React, {useMemo, useCallback, useContext} from 'react';
 import TableHeader from "./TableHeader";
-import {DragModes} from "../utils/tableUtils";
+import {GestureTargets} from "../utils/tableUtils";
+import ColumnGroupContext from "../context/ColumnGroup";
 
 //Child of HeadContainer
 function TableHead(props) {
@@ -8,6 +9,9 @@ function TableHead(props) {
         columns,
         name,
         dragMode,
+        setGestureTarget,
+        targetTouchStart,
+        tableHeaderRowRef,
         ...commonHeaderProps
     } = props;
 
@@ -28,7 +32,7 @@ function TableHead(props) {
         return { orders, maxIndex: index };
     }, [sortAscending])
 
-    //Redux state
+    const { widths, resizingIndex } = useContext(ColumnGroupContext);
 
     const getHeaderProps = (column, index) => {
         const { _id, path, title } = column;
@@ -38,8 +42,9 @@ function TableHead(props) {
             ...commonHeaderProps,
             key: `header_${name}_${_id}`,
             path, title, index,
+            width: widths[index],
             isResizable: !options.constantWidth || index < columns.length - 1,
-            isResizing: dragMode?.name === DragModes.Resize && dragMode.index === index,
+            isResizing: resizingIndex === index,
             sortAscending: sortOrder?.ascending,
             sortPriority: sortOrder?.priority,
             showPriority: sorting.maxIndex > 1
@@ -51,22 +56,25 @@ function TableHead(props) {
         columnResizeStart(e.clientX, e.clientY, e.pointerId, columns.length - 1);
     }, [columnResizeStart, columns]);
 
-    return <thead>
-        <tr>
-            {columns.map((col, idx) =>
-                <TableHeader {...getHeaderProps(col, idx)}/>)}
+    return <div className="rst-head"
+                onPointerDownCapture={() => setGestureTarget(GestureTargets.Header)}
+                onTouchStart={e => targetTouchStart(e, true)}>
+        <table>
+            <thead>
+                <tr className="rst-row" ref={tableHeaderRowRef}>
+                    {columns.map((col, idx) =>
+                        <TableHeader {...getHeaderProps(col, idx)}/>)}
 
-            <th className="rst-spacer">
-                <div className="rst-columnSeparator"/>
-                {/* Second column resizer for last header, to ensure that the full column resizer width
-                is visible even when the spacer is fully collapsed */}
-                {!options.constantWidth && <Fragment>
-                    <div className="rst-columnResizer" onPointerDown={handleSpacerPointerDown} />
-                    <div className="rst-columnResizerHider"/>
-                </Fragment>}
-            </th>
-        </tr>
-    </thead>
+                    <th className="rst-spacer">
+                        {/* Second column resizer for last header, to ensure that the full column resizer width
+                        is visible even when the spacer is fully collapsed */}
+                        {!options.constantWidth &&
+                            <div className="rst-columnResizer" onPointerDown={handleSpacerPointerDown} />}
+                    </th>
+                </tr>
+            </thead>
+        </table>
+    </div>
 }
 
 export default React.memo(TableHead);

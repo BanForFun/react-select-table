@@ -5,7 +5,6 @@ function ColGroup({ widths, name, columns }) {
     return <colgroup>
         {columns.map((col, index) =>
             <col key={`col_${name}_${col._id}`} width={widths[index]} />)}
-        <col/>
     </colgroup>
 }
 

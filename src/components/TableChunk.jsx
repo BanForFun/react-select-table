@@ -39,13 +39,6 @@ function TableChunk(props) {
     }, [clipPath]);
 
     useLayoutEffect(() => {
-        if (isClipped) return;
-
-        const chunk = chunkRef.current;
-        chunk.classList.add("rst-heightInvalid");
-    }, [isClipped, rows, widths, columns]);
-
-    useLayoutEffect(() => {
         const chunk = chunkRef.current;
         // chunk.style.setProperty("--contain-intrinsic-size", px(chunk.offsetHeight));
 

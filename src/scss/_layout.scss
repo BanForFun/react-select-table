@@ -51,11 +51,11 @@
             max-width: 0;
             overflow: visible;
             position: sticky;
-            left: var(--stick-left);
+            left: calc(var(--spacer-left) * -1);
+        }
 
-            .rst-spacer {
-                width: 200vw;
-            }
+        .rst-visible .rst-spacer {
+            width: 100vw;
         }
     }
 
@@ -67,7 +67,7 @@
 .rst-resizingContainer {
     box-sizing: content-box;
     min-height: 100%;
-    contain: paint;
+    contain: layout;
 }
 
 .rst-head {
@@ -121,10 +121,8 @@
     }
 
     &.rst-visible {
-        &.rst-heightInvalid {
-            contain: none;
-            height: auto !important;
-        }
+        contain: none;
+        height: auto !important;
 
         .rst-rows {
             display: revert;

@@ -115,9 +115,9 @@ function ScrollingContainer(props) {
         const chunkIndex = (index - rowIndex) / options.chunkSize;
 
         const chunk = tableBodyRef.current.children[chunkIndex];
-        if (!chunk?.classList.contains("rst-chunk")) return;
+        if (chunk?.tagName !== "TABLE") return;
 
-        return chunk.lastChild.children[rowIndex];
+        return chunk.rows[rowIndex];
     }, [options]);
 
     const getRowBounds = useCallback(index => {
@@ -476,7 +476,11 @@ function ScrollingContainer(props) {
     const columnResizeStart = useCallback((x, y, pointerId, index) => {
         if (!dragStart(x, y, pointerId, DragModes.Resize)) return;
 
-        const { offsetWidth: initialWidth, children: headers } = tableHeaderRowRef.current;
+        const {
+            offsetWidth: initialWidth,
+            children: headers,
+            lastChild: spacer
+        } = tableHeaderRowRef.current;
 
         const widths = _.initial(_.map(headers, h => h.offsetWidth));
         const { clientLeft, clientWidth } = headers[index];
@@ -488,7 +492,7 @@ function ScrollingContainer(props) {
         });
 
         const body = tableBodyRef.current;
-        body.style.setProperty("--stick-left", px(-body.offsetWidth));
+        body.style.setProperty("--spacer-left", px(spacer.offsetLeft));
 
         setColumnGroup(columnGroup => ({
             ...columnGroup,
@@ -557,7 +561,7 @@ function ScrollingContainer(props) {
             const { target: chunk, isIntersecting: visible } = entry;
             if (!visible) {
                 chunk.style.height = px(chunk.offsetHeight);
-                chunk.classList.remove("rst-heightInvalid");
+                // chunk.classList.remove("rst-heightInvalid");
             }
 
             chunk.classList.toggle("rst-visible", visible);

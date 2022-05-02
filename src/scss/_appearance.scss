@@ -79,7 +79,7 @@
 }
 
 %rst-rowOverlay {
-    .rst-row {
+    .rst-body .rst-row {
         & > * {
             background-color: var(--overlay-color);
         };
@@ -87,7 +87,7 @@
 }
 
 %rst-rowUnderline {
-    .rst-row {
+    .rst-body .rst-row {
         & > * {
             //-1px is used to prevent anti-aliasing on the clipping mask resulting in spaces
             clip-path: inset(-1px -1px var(--underline-width, -1px) -1px);

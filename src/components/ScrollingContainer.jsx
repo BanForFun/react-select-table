@@ -5,6 +5,7 @@ import {DragModes, pc, px} from "../utils/tableUtils";
 import useDecoupledCallback from "../hooks/useDecoupledCallback";
 import {ActiveClass, SelectedClass} from "./TableRow";
 import ColumnGroupContext from "../context/ColumnGroup";
+import {VisibleChunkClass} from "./TableChunk";
 
 const defaultColumnRenderer = value => value;
 
@@ -482,7 +483,7 @@ function ScrollingContainer(props) {
             lastChild: spacer
         } = tableHeaderRowRef.current;
 
-        const widths = _.initial(_.map(headers, h => h.offsetWidth));
+        const widths = _.initial(_.map(headers, h => h.getBoundingClientRect().width));
         const { clientLeft, clientWidth } = headers[index];
 
         Object.assign(columnResizing, {
@@ -559,12 +560,11 @@ function ScrollingContainer(props) {
         // if (window.CSS?.supports("content-visibility: auto")) return;
         chunkIntersectionObserver.current = new IntersectionObserver(entries => entries.forEach(entry => {
             const { target: chunk, isIntersecting: visible } = entry;
-            if (!visible) {
+            if (!visible)
+                //Save previous height, just before hiding
                 chunk.style.height = px(chunk.offsetHeight);
-                // chunk.classList.remove("rst-heightInvalid");
-            }
 
-            chunk.classList.toggle("rst-visible", visible);
+            chunk.classList.toggle(VisibleChunkClass, visible);
         }), { root: scrollingContainerRef.current, rootMargin: "500px" });
 
         return () => chunkIntersectionObserver.current.disconnect();

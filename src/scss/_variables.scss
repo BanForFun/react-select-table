@@ -62,7 +62,7 @@ $rst-config: map-merge((
     "body.color":                               #333333,
     "body-resizing.opacity":                    0.5,
 
-    "column.border":                            none,
+    "column.border":                            1px solid rgba(#bdc5cd, 0.5),
 
     "row.border":                               1px solid rgba(#bdc5cd, 0.5),
 

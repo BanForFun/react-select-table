@@ -47,11 +47,6 @@ function TableBody(props) {
         scrollingContainerRef, getContainerVisibleBounds, getRowBounds
     ]);
 
-    const clipPath = useMemo(() => {
-        if (dragMode !== DragModes.Resize) return null;
-        return getContainerVisibleBounds();
-    }, [dragMode, getContainerVisibleBounds]);
-
     const chunks = useMemo(() => {
         const chunks = _.chunk(rowValues, options.chunkSize);
         for (let chunk of chunks)
@@ -68,7 +63,9 @@ function TableBody(props) {
                            index={index} />
     };
 
-    chunkCommonProps.clipPath = clipPath;
+    Object.assign(chunkCommonProps, {
+        getContainerVisibleBounds
+    });
 
     return <div className="rst-body" ref={tableBodyRef}>
         {placeholder || chunks.map(renderChunk)}

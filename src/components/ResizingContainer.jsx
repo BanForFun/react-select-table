@@ -23,7 +23,7 @@ function ResizingContainer(props) {
         selectionRectRef,
         tableBodyRef,
         placeholder,
-        getRowBounds,
+        getChunkRow,
         chunkIntersectionObserver,
 
         ...commonProps
@@ -166,7 +166,7 @@ function ResizingContainer(props) {
 
         chunkIntersectionObserver,
         getRowClassName,
-        getRowBounds,
+        getChunkRow,
         placeholder
     }
 

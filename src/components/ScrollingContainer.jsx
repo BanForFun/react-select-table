@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import ResizingContainer from "./ResizingContainer";
 import {DragModes, pc, px} from "../utils/tableUtils";
 import useDecoupledCallback from "../hooks/useDecoupledCallback";
-import {ActiveClass, SelectedClass} from "./TableRow";
+import {ActiveClass, getRowBounds, SelectedClass} from "./TableRow";
 import ColumnGroupContext from "../context/ColumnGroup";
 import {VisibleChunkClass} from "./TableChunk";
 
@@ -106,24 +106,17 @@ function ScrollingContainer(props) {
     const scrollingContainerRef = useRef();
     const resizingContainerRef = useRef();
 
-    const getRowElement = useCallback(index => {
+    const getChunkRow = useCallback(index => {
         const rowIndex = index % options.chunkSize;
         const chunkIndex = (index - rowIndex) / options.chunkSize;
 
         const chunk = tableBodyRef.current.children[chunkIndex];
-        if (chunk?.tagName !== "TABLE") return;
+        if (chunk?.tagName !== "TABLE") return null;
 
-        return chunk.rows[rowIndex];
+        return { row: chunk.rows[rowIndex], chunk };
     }, [options]);
 
-    const getRowBounds = useCallback(index => {
-        const row = getRowElement(index);
-        //offsetParent is null when chunk hasn't loaded yet
-        if (!row?.offsetParent) return null;
 
-        const top = row.offsetParent.offsetTop + row.offsetTop;
-        return { top, bottom: top + row.offsetHeight };
-    }, [getRowElement]);
 
     //#endregion
 
@@ -255,7 +248,7 @@ function ScrollingContainer(props) {
 
         //Animate selection
         _.forEach(dragSelection.selectionBuffer, (selected, index) => {
-            getRowElement(index).classList.toggle(SelectedClass, selected);
+            getChunkRow(index).row.classList.toggle(SelectedClass, selected);
         });
         dragSelection.selectionBuffer = {};
 
@@ -265,9 +258,9 @@ function ScrollingContainer(props) {
         const [prevActiveRow] = tableBodyRef.current.getElementsByClassName(ActiveClass);
         prevActiveRow.classList.remove(ActiveClass);
 
-        const newActiveRow = getRowElement(dragSelection.activeIndex);
+        const newActiveRow = getChunkRow(dragSelection.activeIndex).row;
         newActiveRow.classList.add(ActiveClass);
-    }, [dragSelection, getRowElement]);
+    }, [dragSelection, getChunkRow]);
 
     //#endregion
 
@@ -383,7 +376,7 @@ function ScrollingContainer(props) {
 
             for (
                 let rowBounds, rowIndex = dragSelection.prevRowIndex + direction;
-                couldBeSelected(rowIndex,rowBounds = getRowBounds(rowIndex));
+                couldBeSelected(rowIndex, rowBounds = getRowBounds(getChunkRow(rowIndex).row));
                 rowIndex += direction
             ) {
                 //rowIndex is the last row that should be selected
@@ -410,11 +403,7 @@ function ScrollingContainer(props) {
             scrollTopOffset + movement.y
         );
 
-    }, [
-        drag, dragAnimate,
-        dragSelectAnimate, dragSelection, dragSelectScrollFactor,
-        getRowBounds, rowCount
-    ]);
+    }, [drag, dragSelectScrollFactor, dragSelection, dragAnimate, dragSelectAnimate, rowCount, getChunkRow]);
 
     //Common
     const dragUpdate = useMemo(() => ({
@@ -552,8 +541,7 @@ function ScrollingContainer(props) {
     //Chrome's content-visibility has worse performance
     const chunkIntersectionObserver = useRef();
     useLayoutEffect(() => {
-        // if (window.CSS?.supports("content-visibility: auto")) return;
-        chunkIntersectionObserver.current = new IntersectionObserver(entries => entries.forEach(entry => {
+        const observer = new IntersectionObserver(entries => entries.forEach(entry => {
             const { target: chunk, isIntersecting: visible } = entry;
             if (!visible)
                 //Save previous height, just before hiding
@@ -562,8 +550,9 @@ function ScrollingContainer(props) {
             chunk.classList.toggle(VisibleChunkClass, visible);
         }), { root: scrollingContainerRef.current, rootMargin: "500px" });
 
-        return () => chunkIntersectionObserver.current.disconnect();
-    }, []);
+        chunkIntersectionObserver.current = observer;
+        return () => observer.disconnect();
+    });
 
     //#endregion
 
@@ -581,7 +570,7 @@ function ScrollingContainer(props) {
 
         columnResizeStart,
         dragSelectStart,
-        getRowBounds
+        getChunkRow
     });
 
     return <div

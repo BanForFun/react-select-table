@@ -6,6 +6,10 @@ import ColGroup from "./ColGroup";
 
 export const VisibleChunkClass = "rst-visible";
 
+export function loadChunk(chunk) {
+    chunk.classList.add(VisibleChunkClass);
+}
+
 function TableChunk(props) {
     const {
         utils: { options, hooks, selectors },
@@ -34,44 +38,19 @@ function TableChunk(props) {
 
     useLayoutEffect(() => {
         const chunk = chunkRef.current;
-        // chunk.style.setProperty("--contain-intrinsic-size", px(chunk.offsetHeight));
+        loadChunk(chunk);
 
         const observer = chunkIntersectionObserver.current;
-        // //observer will be null if browser supports content-visibility property
-        if (!observer) {
-            //     chunk.style["content-visibility"] = "auto";
-            return;
-        }
-
         observer.observe(chunk);
         return () => observer.unobserve(chunk);
-    }, [chunkIntersectionObserver]);
+    }, [chunkIntersectionObserver, rows]);
 
     const isClipped = useMemo(() => {
         if (resizingIndex == null) return false;
 
-        const chunk = chunkRef.current;
-        const chunkTop = chunk.offsetTop;
-        const chunkBottom = chunkTop + chunk.offsetHeight;
-
-        const clipPath = getContainerVisibleBounds();
-        return chunkBottom < clipPath.top || chunkTop > clipPath.bottom;
-    }, [resizingIndex, getContainerVisibleBounds]);
-
-    //While resizing columns, hide chunks that are not visible
-    //but would be rendered because they are in the observer's margin
-    //Note: Not just performance related. ColGroups of clipped chunks will not be updated with the pixel widths
-    //and if rendered with the .rst-visible style they become huge and break the layout
-    useLayoutEffect(() => {
-        const chunk = chunkRef.current;
-        if (!isClipped || !chunk.classList.contains(VisibleChunkClass)) return;
-
-        const observer = chunkIntersectionObserver.current;
-        observer.unobserve(chunk);
-        chunk.classList.remove(VisibleChunkClass);
-
-        return () => observer.observe(chunk);
-    }, [chunkIntersectionObserver, isClipped]);
+        //Intersection shouldn't change when resizing starts, as getBoundingClientRect is used to set the widths.
+        return !chunkRef.current.classList.contains(VisibleChunkClass);
+    }, [resizingIndex]);
 
     const renderRow = (rowData, rowIndex) => {
         const rowValue = _.get(rowData, options.valueProperty);

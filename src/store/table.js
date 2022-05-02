@@ -674,16 +674,16 @@ export default function createTable(namespace, options = {}) {
                     //Fallthrough
                 }
                 case types.GO_TO_MATCH: {
-                    const { index } = payload;
-                    const { matches, pageSize } = draft;
-
-                    const safeIndex = _.wrapIndex(index, matches.length);
-                    draft.matchIndex = safeIndex;
+                    const { matches } = draft;
                     if (!matches.length) break;
 
-                    const wrapOrigin = pageSize ? searchOrigins.TableBoundary : searchOrigins.PageBoundary;
-                    const origin = index === safeIndex ? searchOrigins.ActiveRow : wrapOrigin;
+                    const { index } = payload;
+
+                    const safeIndex = _.wrapIndex(index, matches.length);
+                    const origin = index === safeIndex ? searchOrigins.ActiveRow : searchOrigins.TableBoundary;
                     setActiveValue(matches[safeIndex], index >= draft.matchIndex, origin);
+
+                    draft.matchIndex = safeIndex;
                     break;
                 }
 

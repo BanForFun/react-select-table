@@ -1,14 +1,15 @@
 import React, {useCallback, useLayoutEffect, useMemo} from 'react';
 import _ from "lodash";
-import TableChunk from "./TableChunk";
+import TableChunk, {loadChunk} from "./TableChunk";
 import {DragModes} from "../utils/tableUtils";
+import {getRowBounds} from "./TableRow";
 
 //Child of BodyContainer
 function TableBody(props) {
     const {
         selectionRectRef,
         scrollingContainerRef,
-        getRowBounds,
+        getChunkRow,
         tableBodyRef,
         placeholder,
         dragMode,
@@ -32,20 +33,21 @@ function TableBody(props) {
         }
     }, [scrollingContainerRef, tableBodyRef]);
 
+    //Ensure active row visible
     useLayoutEffect(() => {
-        const rowBounds = getRowBounds(activeRowIndex);
-        if (!rowBounds) return;
+        const chunkRow = getChunkRow(activeRowIndex);
+        if (!chunkRow) return;
+
+        loadChunk(chunkRow.chunk);
 
         const containerBounds = getContainerVisibleBounds();
+        const rowBounds = getRowBounds(chunkRow.row);
         const distanceToTop = rowBounds.top - containerBounds.top;
         const distanceToBottom = rowBounds.bottom - containerBounds.bottom;
 
         const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom);
         scrollingContainerRef.current.scrollTop += scrollOffset;
-    }, [
-        activeRowIndex,
-        scrollingContainerRef, getContainerVisibleBounds, getRowBounds
-    ]);
+    }, [activeRowIndex, getChunkRow, getContainerVisibleBounds, scrollingContainerRef]);
 
     const chunks = useMemo(() => {
         const chunks = _.chunk(rowValues, options.chunkSize);
@@ -62,10 +64,6 @@ function TableBody(props) {
                            rows={rows}
                            index={index} />
     };
-
-    Object.assign(chunkCommonProps, {
-        getContainerVisibleBounds
-    });
 
     return <div className="rst-body" ref={tableBodyRef}>
         {placeholder || chunks.map(renderChunk)}

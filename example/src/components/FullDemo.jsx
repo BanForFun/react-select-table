@@ -5,9 +5,29 @@ import { useDispatch, useSelector } from 'react-redux';
 import comments from "../data/comments";
 import {tableNamespace} from "../store";
 
+//Column properties:
+//string title: Text shown in the header
+
+//bool isHeader: Use th tag instead of the default td
+//Default: false
+
+//number defaultWidth: Default column width percentage
+//Default: 100% / <Visible column count>
+
+//string path: The row's property path for the value to be passed as the first argument to the render function
+//If not specified: The row index will be passed to the render function
+
+//function render: Modifies the content before displaying
+//Arguments:
+//1. Explained above
+//2. The entire row
+//3. Options object: It contains a className property which you can modify to set a custom class for the cell
+//Should return the content to be displayed
+//Default: value => value
+
 const columns = [
     {
-        title: "A/A",
+        title: "A/I",
         isHeader: true,
         defaultWidth: 10
     },
@@ -25,7 +45,13 @@ const columns = [
     {
         title: "Name",
         path: "name",
-        defaultWidth: 40
+        defaultWidth: 40,
+        render: (name, comment, options) => {
+            if (comment.highlighted)
+                options.className="highlighted";
+
+            return name;
+        }
     },
     {
         title: "Email",
@@ -50,9 +76,9 @@ const buttonActions = {
 
     "Start loading": actions.startLoading(),
 
-    "Patch items": actions.patchItems(
-        { id: 11, title: "Title 11" },
-        { id: 19, email: "Email 19" }
+    "Highlight items": actions.patchItems(
+        { id: 11, highlighted: true },
+        { id: 19, highlighted: true }
     ),
 
     "Patch values": actions.patchItemValues({ 9: 14, 14: 9 })

@@ -2,6 +2,8 @@ import React from "react";
 import _ from "lodash";
 
 function ColGroup({ widths, name, columns }) {
+    console.log("render");
+
     return <colgroup>
         {columns.map((col, index) =>
             <col key={`col_${name}_${col._id}`} width={widths[index]} />)}

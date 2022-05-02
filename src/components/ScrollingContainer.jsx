@@ -54,7 +54,6 @@ function getRelativeOffset(absolute, origin, minVisible, maxVisible, scrollFacto
 //Handles drag selection and column resizing
 function ScrollingContainer(props) {
     const {
-        showSelectionRect,
         dragSelectScrollFactor,
         columnResizeScrollFactor,
         columns: unorderedColumns,

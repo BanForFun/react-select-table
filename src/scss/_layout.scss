@@ -80,18 +80,19 @@
         overflow: visible;
         position: relative;
     }
-
-    .rst-spacer {
-        .rst-columnResizer {
-            z-index: 1;
-            transform: none;
-        }
-    }
 }
 
 .rst-spacer {
     position: relative;
 
+    .rst-columnResizer {
+        left: unset;
+        right: 0;
+        z-index: 1;
+        transform: none;
+    }
+
+    //Hide column resizer when not overflowing
     &::after {
         content: '';
         position: absolute;

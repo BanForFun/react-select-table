@@ -3,7 +3,7 @@ import {createTable, eventMiddleware, setDefaultTableOptions } from "react-selec
 import {composeWithDevTools} from "redux-devtools-extension";
 import {ReactReduxContext} from "react-redux";
 
-export const tableNamespace = "todos";
+export const tableNamespace = "comments";
 
 setDefaultTableOptions({
     context: ReactReduxContext
@@ -19,13 +19,7 @@ const reducer = createTable(tableNamespace, {
     constantWidth: false,
     multiSelect: true,
     multiSort: true,
-    listBox: false,
-    initState: {
-        // pageSize: 10
-        // filter: {
-        //     completed: true
-        // }
-    }
+    listBox: false
 });
 
 

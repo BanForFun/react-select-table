@@ -68,9 +68,3 @@ yarn add react-select-table
 ## Introduction
 
 You will see the term 'value' referenced many times. The table rows are given in an array of objects, in which every object must have a property with a unique value (that would be `_id` when using MongoDB for example). That value is considered the item's value.
-
-Demos:
-
-* [Todo list with item addition and filtering](https://codesandbox.io/s/tablecore-v4-todos-99eue)
-* [Todo list with pagination](https://codesandbox.io/s/tablecore-v4-pagination-ozgqt)
-

@@ -6,7 +6,7 @@ import {tableUtils} from '../utils/tableUtils';
 import Root from "./Root";
 import {defaultEventHandlers} from "../models/EventRaisers";
 
-function Connector(props) {
+function Connector(props, ref) {
     const {
         name, namespace,
         ...rootProps
@@ -21,7 +21,7 @@ function Connector(props) {
     const contextValue = useContext(context);
 
     //Register redux event handlers
-    const { eventHandlers } = utils.private;
+    const { eventHandlers } = utils;
     for (const handlerName in eventHandlers) {
         const handler = props[handlerName];
         delete rootProps[handlerName];
@@ -33,6 +33,7 @@ function Connector(props) {
     }
 
     rootProps.utils = utils.public;
+    rootProps.containerRef = ref;
     rootProps.name ??= namespace;
 
     return <ReactReduxContext.Provider value={contextValue}>
@@ -40,12 +41,7 @@ function Connector(props) {
     </ReactReduxContext.Provider>
 }
 
-export default Connector;
-
-const refType = PropTypes.oneOfType([
-    PropTypes.func,
-    PropTypes.shape({ current: PropTypes.instanceOf(Element) })
-]);
+const Table = React.forwardRef(Connector);
 
 const columnShape = PropTypes.shape({
     title: PropTypes.string,
@@ -55,7 +51,7 @@ const columnShape = PropTypes.shape({
     isHeader: PropTypes.bool
 });
 
-Connector.propTypes = {
+Table.propTypes = {
     namespace: PropTypes.string.isRequired,
     columns: PropTypes.arrayOf(columnShape).isRequired,
     errorComponent: PropTypes.elementType,
@@ -65,9 +61,7 @@ Connector.propTypes = {
     name: PropTypes.string,
     id: PropTypes.string,
     className: PropTypes.string,
-    containerRef: refType,
     columnOrder: PropTypes.arrayOf(PropTypes.number),
-    initColumnWidths: PropTypes.arrayOf(PropTypes.number),
     autoFocus: PropTypes.bool,
     showSelectionRect: PropTypes.bool,
     dragSelectScrollFactor: PropTypes.number,
@@ -80,10 +74,9 @@ Connector.propTypes = {
     onKeyDown: PropTypes.func
 };
 
-Connector.defaultProps = {
+Table.defaultProps = {
     getRowClassName: () => null,
     className: "rst-default",
-    initColumnWidths: [],
     dragSelectScrollFactor: 0.5,
     columnResizeScrollFactor: 0.2,
     errorComponent: 'span',
@@ -94,3 +87,5 @@ Connector.defaultProps = {
     autoFocus: false,
     ...defaultEventHandlers
 };
+
+export default Table;

@@ -28,7 +28,7 @@ export default function createTable(namespace, options = {}) {
         getPageSize,
         getPageIndexOffset,
         getItemPageIndex
-    } = _.mapValues(utils.private.selectors, selector =>
+    } = _.mapValues(utils.selectors, selector =>
         (state = draft, ...rest) => selector(state, ...rest));
 
     const {

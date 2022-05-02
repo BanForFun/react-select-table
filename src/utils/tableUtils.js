@@ -38,7 +38,7 @@ const defaultOptions = {
     valueProperty: "id",
     constantWidth: false,
     minColumnWidth: 50,
-    chunkSize: 100,
+    chunkSize: 100, //Ensure multiple of 2 for striped rows
     path: null,
     initState: {},
     context: null,
@@ -59,17 +59,15 @@ export function setOptions(namespace, options) {
     const eventRaisers = EventRaisers(eventHandlers, options, simpleSelectors);
 
     return (tableUtils[namespace] = {
+        selectors: simpleSelectors,
+        eventHandlers,
         public: {
             actions,
             hooks,
             selectors: simpleSelectors,
             options,
             eventRaisers,
-        },
-        private: {
-            selectors: simpleSelectors,
-            eventHandlers,
-        },
+        }
     });
 }
 

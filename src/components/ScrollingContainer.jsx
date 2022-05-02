@@ -59,7 +59,6 @@ function ScrollingContainer(props) {
         columnResizeScrollFactor,
         columns: unorderedColumns,
         columnOrder,
-        initColumnWidths,
         ...resizingProps
     } = props;
 
@@ -74,13 +73,11 @@ function ScrollingContainer(props) {
         (columnOrder?.map(index => unorderedColumns[index]) ?? unorderedColumns).map(parseColumn),
         [unorderedColumns, columnOrder]);
 
-    const validateWidths = useCallback(widths => {
+    const defaultWidths = useMemo(() => {
         const columnCount = columns.length;
-        if (widths.length !== columnCount)
-            widths = _.times(columnCount, _.constant(100 / columnCount));
-
-        return widths;
-    }, [columns])
+        const defaultWidth = 100 / columnCount;
+        return columns.map(c => c.defaultWidth ?? defaultWidth);
+    } , [columns]);
 
     const getColumnGroup = useCallback(widths => {
         const containerWidth = Math.max(100, _.sum(widths));
@@ -93,13 +90,11 @@ function ScrollingContainer(props) {
         }
     }, [options]);
 
-    const [columnGroup, setColumnGroup] = useState(getColumnGroup(validateWidths(initColumnWidths)));
+    const [columnGroup, setColumnGroup] = useState(getColumnGroup(defaultWidths));
 
     useEffect(() => {
-        const validatedWidths = validateWidths(columnGroup.widths);
-        if (validatedWidths !== columnGroup.widths)
-            setColumnGroup(getColumnGroup(validatedWidths));
-    }, [getColumnGroup, validateWidths, columnGroup])
+        setColumnGroup(getColumnGroup(defaultWidths))
+    }, [getColumnGroup, defaultWidths])
 
     //#endregion
 

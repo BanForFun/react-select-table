@@ -3,7 +3,6 @@ import ScrollingContainer from "./ScrollingContainer";
 import PaginationContainer from "./PaginationWrapper";
 import SearchContainer from "./SearchContainer";
 
-
 //Child of Connector
 function Root(props) {
     const {

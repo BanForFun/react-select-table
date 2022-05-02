@@ -6,14 +6,11 @@
         "background-color"
     );
 
-    .rst-header {
-        @include rst-apply-properties("header",
-            "font-weight"
-        );
+    th {
+        @include rst-apply-properties("header", "font-weight");
     }
 
     $properties: "color", "vertical-align", "text-align", "background-color";
-
 
     .rst-row {
         border-color: rst-get("row", "border-color");

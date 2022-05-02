@@ -376,7 +376,7 @@ function ScrollingContainer(props) {
 
             for (
                 let rowBounds, rowIndex = dragSelection.prevRowIndex + direction;
-                couldBeSelected(rowIndex, rowBounds = getRowBounds(getChunkRow(rowIndex).row));
+                couldBeSelected(rowIndex, rowBounds = getRowBounds(getChunkRow(rowIndex)?.row));
                 rowIndex += direction
             ) {
                 //rowIndex is the last row that should be selected
@@ -527,7 +527,7 @@ function ScrollingContainer(props) {
         dragUpdate?.();
     }, [drag, dragUpdate]);
 
-    const handlePointerUp = useCallback(e => {
+    const handlePointerEnd = useCallback(e => {
         if (drag.pointerId == null) return;
         if (e.pointerId !== drag.pointerId) return;
         dragStop();
@@ -579,7 +579,8 @@ function ScrollingContainer(props) {
         data-dragmode={dragMode}
         onScroll={handleScroll}
         onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
     >
         <ColumnGroupContext.Provider value={columnGroup}>
             <ResizingContainer {...resizingProps} />

@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import comments from "../data/comments";
 import {tableNamespace} from "../store";
 
+const extraComments = comments.splice(0, 200);
+
 //Column properties:
 //string title: Text shown in the header
 
@@ -65,6 +67,8 @@ const { actions } = getTableUtils(tableNamespace);
 const buttonActions = {
     "Set items": actions.setItems(comments),
     "Clear items": actions.clearItems(),
+
+    "Add items": actions.addItems(...extraComments),
 
     "Set error": actions.setError("An error occurred"),
 

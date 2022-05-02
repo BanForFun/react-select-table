@@ -492,6 +492,8 @@ function ScrollingContainer(props) {
     const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
         if (!dragStart(x, y, pointerId, DragModes.Select)) return;
 
+        getSelection().removeAllRanges();
+
         const body = tableBodyRef.current;
         const relX = x - getClientX(body);
         const relY = y - getClientY(body);

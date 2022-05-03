@@ -24,7 +24,7 @@ function TableHeader({
 
     const handleTitleMouseDown = useCallback(e => {
         if (e.button !== 0 || !path) return;
-        actions.baseSortItems(path, options.multiSort && e.shiftKey);
+        actions.sortItems(path, options.multiSort && e.shiftKey);
     }, [path, actions, options]);
 
     const handlePointerDown = useCallback(e => {

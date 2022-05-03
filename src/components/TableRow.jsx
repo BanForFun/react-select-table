@@ -26,11 +26,11 @@ function TableRow({
     value,
     data
 }) {
-    const renderColumn = ({_id: id, ...column}) =>
+    const renderColumn = ({key, ...column}) =>
         <TableCell {...column}
                    rowData={data}
                    rowIndex={index}
-                   key={`cell_${name}_${value}_${id}`}
+                   key={`cell_${name}_${value}_${key}`}
         />
 
     const trClass = classNames(className, {

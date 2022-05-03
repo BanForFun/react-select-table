@@ -7,7 +7,7 @@ export default function SimpleSelectors(options) {
     const selection = new SelectionSelectors(pagination);
 
     const getStateSlice = (state) =>
-        _.getOrSource(state, options.path);
+        _.getOrSource(state, options.statePath);
 
     return {
         ...selection,

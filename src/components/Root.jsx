@@ -18,7 +18,7 @@ function Root(props) {
     } = props;
 
     const {
-        utils: { hooks, options, selectors, eventRaisers },
+        utils: { hooks, selectors, eventRaisers },
     } = props;
 
     //Focus on container
@@ -77,9 +77,9 @@ function Root(props) {
 
     const select = useCallback((e, index) => {
         if (e.ctrlKey && !e.shiftKey)
-            return actions.setActive(e, index);
+            return actions.setActive(index);
 
-        return actions.select(e, index);
+        return actions.select(index, e.shiftKey, e.ctrlKey);
     }, [actions]);
 
     const handleShortcuts = useCallback(e => {
@@ -115,11 +115,11 @@ function Root(props) {
                 if (!e.ctrlKey && !e.shiftKey && getSelected(activeIndex))
                     raiseItemsOpen(true);
                 else
-                    actions.select(e, activeIndex);
+                    actions.select(activeIndex, e.shiftKey, e.ctrlKey);
 
                 break;
             case 65: //A
-                if (e.ctrlKey && !e.shiftKey && options.multiSelect)
+                if (e.ctrlKey && !e.shiftKey)
                     actions.selectAll();
                 break;
             default:
@@ -130,7 +130,7 @@ function Root(props) {
         e.preventDefault();
         return false;
     }, [
-        actions, options, placeholderShown,
+        actions, placeholderShown,
         activeIndex, itemCount, getSelected, //Redux props
         pageSize, pageCount, pageIndex, //Redux props
         select, //Component methods

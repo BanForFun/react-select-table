@@ -35,12 +35,12 @@ function TableHead(props) {
     const { widths, resizingIndex } = useContext(ColumnGroupContext);
 
     const getHeaderProps = (column, index) => {
-        const { _id, path, title } = column;
+        const { key, path, title } = column;
         const sortOrder = sorting.orders[path];
 
         return {
             ...commonHeaderProps,
-            key: `header_${name}_${_id}`,
+            key: `header_${name}_${key}`,
             path, title, index,
             width: widths[index],
             isResizable: !options.constantWidth || index < columns.length - 1,

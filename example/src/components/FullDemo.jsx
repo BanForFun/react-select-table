@@ -1,7 +1,7 @@
-import React, {useCallback, useState, useMemo, useEffect, useRef} from 'react'
+import React, {useCallback, useEffect, useRef} from 'react'
 import _ from "lodash";
 import { Table, getTableUtils } from 'react-select-table';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import comments from "../data/comments";
 import {tableNamespace} from "../store";
 
@@ -43,7 +43,9 @@ const columns = [
     }
 ];
 
-const { actions } = getTableUtils(tableNamespace);
+const { actions, options } = getTableUtils(tableNamespace);
+document.title = `react-select-table (${options.title})`;
+
 const buttonActions = {
     "Set items": actions.setItems(comments),
     "Clear items": actions.clearItems(),

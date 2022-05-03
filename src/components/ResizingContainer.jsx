@@ -58,15 +58,15 @@ function ResizingContainer(props) {
             raiseContextMenu(true);
         else if (itemIndex === GestureTargets.BelowItems) {
             if (e.shiftKey)
-                actions.baseSelect(indexOffset + rowCount - 1, e.ctrlKey, e.shiftKey, true);
+                actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey, true);
             else if (!options.listBox && !e.ctrlKey)
-                actions.baseClearSelection(true)
+                actions.clearSelection(true)
             else
                 raiseContextMenu(!e.ctrlKey);
         } else if (options.listBox || (getSelected(rowIndex) && !e.ctrlKey))
-            actions.baseSetActive(itemIndex, true);
+            actions.setActive(itemIndex, true);
         else
-            actions.baseSelect(itemIndex, e.ctrlKey, e.shiftKey, true);
+            actions.select(itemIndex, e.shiftKey, e.ctrlKey, true);
     }, [gesture, raiseContextMenu, options, rowCount, actions, indexOffset, getSelected]);
 
     const dragSelect = useCallback(e => {
@@ -105,18 +105,20 @@ function ResizingContainer(props) {
             case GestureTargets.Header: return;
             case GestureTargets.BelowItems:
                 if (e.shiftKey)
-                    actions.select(e, indexOffset + rowCount);
+                    actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey);
                 else if (!options.listBox && !e.ctrlKey)
-                    actions.baseClearSelection();
+                    actions.clearSelection();
 
                 break;
             default:
-                actions.select(e, itemIndex);
+                actions.select(itemIndex, e.shiftKey, e.ctrlKey);
                 break;
         }
 
-        if (gesture.pointerType === "mouse")
+        if (gesture.pointerType === "mouse") {
+            getSelection().removeAllRanges();
             dragSelect(e);
+        }
     }, [gesture, actions, options, indexOffset, rowCount, dragSelect]);
 
     const handleContextMenu = useCallback(e => {
@@ -128,7 +130,7 @@ function ResizingContainer(props) {
             if (itemIndex === GestureTargets.Header) return;
 
             if (itemIndex >= 0)
-                actions.baseSelect(itemIndex, true, false);
+                actions.select(itemIndex, false, true);
 
             return dragSelect(e);
         }

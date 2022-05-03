@@ -1,17 +1,18 @@
 import {applyMiddleware, createStore} from "redux";
-import {createTable, eventMiddleware, setDefaultTableOptions } from "react-select-table";
+import {createTable, eventMiddleware } from "react-select-table";
 import {composeWithDevTools} from "redux-devtools-extension";
-import {ReactReduxContext} from "react-redux";
 
 export const tableNamespace = "comments";
-
-setDefaultTableOptions({
-    context: ReactReduxContext
-});
 
 const compose = composeWithDevTools({
     serialize: true
 });
+
+let customOptions = JSON.parse(sessionStorage.getItem("options"));
+if (!customOptions) {
+    customOptions = {title: "Default"};
+    sessionStorage.setItem("options", JSON.stringify(customOptions));
+}
 
 const reducer = createTable(tableNamespace, {
     valueProperty: "id",
@@ -19,7 +20,11 @@ const reducer = createTable(tableNamespace, {
     constantWidth: false,
     multiSelect: true,
     multiSort: true,
-    listBox: false
+    listBox: false,
+    initState: {
+        pageSize: 10
+    },
+    ...customOptions
 });
 
 

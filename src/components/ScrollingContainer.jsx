@@ -9,13 +9,10 @@ import {VisibleChunkClass} from "./TableChunk";
 
 const defaultColumnRenderer = value => value;
 
-function parseColumn(col) {
-    return {
-        render: defaultColumnRenderer,
-        ...col,
-        _id: col.key ?? col.path
-    }
-}
+const parseColumn = col => ({
+    render: defaultColumnRenderer,
+    key: col.path, ...col
+});
 
 const cancelScrollType = "touchmove";
 const cancelScrollOptions = { passive: false };
@@ -489,9 +486,8 @@ function ScrollingContainer(props) {
 
     //Drag selection
     const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
+        if (!options.multiSelect) return;
         if (!dragStart(x, y, pointerId, DragModes.Select)) return;
-
-        getSelection().removeAllRanges();
 
         const body = tableBodyRef.current;
         const relX = x - getClientX(body);
@@ -505,7 +501,7 @@ function ScrollingContainer(props) {
             prevRelY: relY,
             originRel: Point(relX, relY)
         });
-    }, [dragStart, dragSelection, rowCount]);
+    }, [dragStart, dragSelection, rowCount, options]);
 
     //#endregion
 

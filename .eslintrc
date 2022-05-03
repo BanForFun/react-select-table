@@ -3,10 +3,10 @@
     "extends": [
 //        "standard",
 //        "standard-react",
-        "plugin:react-hooks/recommended"
-//        "plugin:prettier/recommended",
 //        "prettier/standard",
-//        "prettier/react"
+//        "prettier/react",
+//        "plugin:prettier/recommended",
+        "plugin:react-hooks/recommended"
     ],
     "env": {
         "browser": true,

@@ -13,7 +13,7 @@ function PaginationWrapper({
 
     const goToPage = useCallback(page => {
         if (!_.inRange(--page, pageCount)) return false;
-        actions.baseSetActive(page * pageSize);
+        actions.setActive(page * pageSize);
         return true;
     }, [actions, pageCount, pageSize]);
 

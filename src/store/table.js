@@ -96,33 +96,29 @@ export default function createTable(namespace, options = {}) {
 
     //#region Sorting
 
-    function compareItemData(dataA, dataB) {
+    function compareItemData(lhs, rhs) {
         const compareProperty = (comparator, path) =>
-            comparator(_.get(dataA, path), _.get(dataB, path));
+            comparator(_.get(lhs, path), _.get(rhs, path), path);
 
-        //Make it so that reversing the sort order of a column with all equal values, reverses the item order
         let factor = 1;
         for (const [path, ascending] of draft.sortAscending) {
             factor = ascending ? 1 : -1
 
-            const comparator = _.get(options.itemComparators, path, compareAscending);
-            const result = compareProperty(comparator, path);
-
-            if (!result) continue;
-
-            return result * factor;
+            const result = compareProperty(options.itemComparator, path) ?? compareProperty(compareAscending, path);
+            if (result) return result * factor;
         }
 
+        //Ensure that reversing the sort order of a column with all equal values, reverses the item order
         return compareProperty(compareAscending, valueProperty) * factor;
     }
 
-    function compareItems(valueA, valueB) {
+    function compareItemsByValue(lhs, rhs) {
         const {
-            [valueA]: { data: dataA },
-            [valueB]: { data: dataB }
+            [lhs]: { data: lhsData },
+            [rhs]: { data: rhsData }
         } = draft.sortedItems;
 
-        return compareItemData(dataA, dataB);
+        return compareItemData(lhsData, rhsData);
     }
 
     function setItemOrder(first, second) {
@@ -143,7 +139,7 @@ export default function createTable(namespace, options = {}) {
     }
 
     function sortNative() {
-        const itemValues = [...createValueIterator()].sort(compareItems);
+        const itemValues = [...valueIterator()].sort(compareItemsByValue);
 
         let prevValue = undefined;
         for (const value of itemValues) {
@@ -165,15 +161,17 @@ export default function createTable(namespace, options = {}) {
         return _.get(data, valueProperty);
     }
 
-    function* createValueIterator(onlyVisible = false, forward = true, originValue = null) {
-        const fallbackOrigin = forward ? draft.headValue : draft.tailValue;
-        let value = originValue ?? fallbackOrigin;
-        while (value !== undefined) {
-            const item = draft.sortedItems[value];
+    function* valueIterator(
+        onlyVisible = false,
+        forward = true,
+        originValue = forward ? draft.headValue : draft.tailValue
+    ) {
+        while (originValue !== undefined) {
+            const item = draft.sortedItems[originValue];
             if (!onlyVisible || item.visible)
-                yield value;
+                yield originValue;
 
-            value = item[forward ? "next" : "prev"];
+            originValue = item[forward ? "next" : "prev"];
         }
     }
 
@@ -206,7 +204,7 @@ export default function createTable(namespace, options = {}) {
         return {
             index: rowIndex + getPageIndexOffset(),
             value: draft.rowValues[rowIndex],
-            isRowIndex: true
+            isVisible: true
         };
     }
 
@@ -214,17 +212,17 @@ export default function createTable(namespace, options = {}) {
         const pageBoundary = getPageBoundary(searchForward);
         const pageSize = getPageSize();
         const origin = resolveSearchOrigin(searchOrigin, searchForward);
-        let rowValues = origin.isRowIndex ? draft.rowValues : [];
+        let rowValues = origin.isVisible ? draft.rowValues : [];
 
         let setActive = null;
         let { index } = origin;
 
-        const values = createValueIterator(true, searchForward, origin.value);
+        const values = valueIterator(true, searchForward, origin.value);
         for (const value of values) {
             const rowIndex = index % pageSize;
             rowValues[rowIndex] = value;
 
-            const isOrigin = origin.isRowIndex && value === origin.value;
+            const isOrigin = origin.isVisible && value === origin.value;
             if (!isOrigin && callback({ value, index })) {
                 setActive ??= index;
                 if (rowValues === draft.rowValues) break;
@@ -348,7 +346,7 @@ export default function createTable(namespace, options = {}) {
     function reloadMatches() {
         draft.matches = [];
         _addMatches(draft.searchIndex, options.searchPhraseParser(draft.searchPhrase), 0);
-        return draft.matches.sort(compareItems);
+        return draft.matches.sort(compareItemsByValue);
     }
 
     //#endregion
@@ -380,7 +378,7 @@ export default function createTable(namespace, options = {}) {
         for (const data of itemData.sort(compareItemData))
             deleteItem(getDataValue(data), true);
 
-        const values = createValueIterator();
+        const values = valueIterator();
         const addedValues = [];
 
         let dataIndex = 0;
@@ -415,6 +413,7 @@ export default function createTable(namespace, options = {}) {
         const item = draft.sortedItems[value];
         if (!item) return;
 
+        //To update the visible item count
         setItemVisibility(value, false);
         setItemOrder(item.prev, item.next);
         searchIndexRemove(value);
@@ -450,22 +449,23 @@ export default function createTable(namespace, options = {}) {
 
     function setSelection(values) {
         clearSelection();
+
+        if (!options.multiSelect) {
+            draft.selection.add(values[0]);
+            return;
+        }
+
         for (const value of values)
             draft.selection.add(value);
     }
 
     function setValueSelected(value, selected) {
-        const { selection } = draft;
-
-        if (selected)
-            selection.add(value);
-        else
-            selection.delete(value);
+        draft.selection[selected ? "add" : "delete"](value);
     }
 
     function setRangeSelected(state, selected) {
         const offset = draft.pivotIndex - state.activeIndex;
-        const values = createValueIterator(true, offset > 0, getActiveValue(state));
+        const values = valueIterator(true, offset > 0, getActiveValue(state));
 
         let distance = 0;
         for (const value of values) {
@@ -508,7 +508,7 @@ export default function createTable(namespace, options = {}) {
                     let setActive = null;
                     let finalizedActive = false;
 
-                    const values = createValueIterator(true);
+                    const values = valueIterator(true);
                     for (const value of values) {
                         if (valuesToDelete.has(value)) {
                             finalizedActive = true;
@@ -574,7 +574,7 @@ export default function createTable(namespace, options = {}) {
                 case types.SET_ITEM_FILTER: {
                     draft.filter = payload.filter;
 
-                    const values = createValueIterator();
+                    const values = valueIterator();
                     for (const value of values)
                         setItemVisibility(value)
 
@@ -616,10 +616,13 @@ export default function createTable(namespace, options = {}) {
                         draft.resetPivot = false;
                     }
 
-                    if (!addToPrev)
+                    const value = getActiveValue();
+                    const selected = !addToPrev || !draft.selection.has(value);
+
+                    if (!addToPrev || !options.multiSelect)
                         draft.selection.clear();
 
-                    if (payload.isRange) {
+                    if (payload.isRange && options.multiSelect) {
                         if (addToPrev)
                             //Clear previous selection
                             setRangeSelected(state, false);
@@ -629,11 +632,7 @@ export default function createTable(namespace, options = {}) {
                     }
 
                     draft.pivotIndex = index;
-
-                    const value = getActiveValue();
-                    const selected = !addToPrev || !draft.selection.has(value);
                     setValueSelected(value, selected);
-
                     break;
                 }
                 case types.CLEAR_SELECTION: {
@@ -663,6 +662,7 @@ export default function createTable(namespace, options = {}) {
                     break;
                 }
                 case types.SELECT_ALL: {
+                    if (!options.multiSelect) return;
                     setSelection(draft.rowValues);
                     break;
                 }

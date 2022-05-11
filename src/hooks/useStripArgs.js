@@ -1,5 +1,5 @@
-import {useCallback} from "react";
+import { useCallback } from 'react'
 
 export default function useStripArgs(callback) {
-    return useCallback(() => callback(), [callback]);
+  return useCallback(() => callback(), [callback])
 }

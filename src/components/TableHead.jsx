@@ -1,80 +1,83 @@
-import React, {useMemo, useCallback, useContext} from 'react';
-import TableHeader from "./TableHeader";
-import {GestureTargets} from "../utils/tableUtils";
-import ColumnGroupContext from "../context/ColumnGroup";
+import React, { useMemo, useCallback, useContext } from 'react'
+import TableHeader from './TableHeader'
+import { GestureTargets } from '../utils/tableUtils'
+import ColumnGroupContext from '../context/ColumnGroup'
 
-//Child of HeadContainer
+// Child of HeadContainer
 function TableHead(props) {
-    const {
-        columns,
-        name,
-        dragMode,
-        setGestureTarget,
-        targetTouchStart,
-        tableHeaderRowRef,
-        ...commonHeaderProps
-    } = props;
+  const {
+    columns,
+    name,
+    dragMode,
+    setGestureTarget,
+    targetTouchStart,
+    tableHeaderRowRef,
+    ...commonHeaderProps
+  } = props
 
-    const {
-        columnResizeStart,
-        utils: { hooks, options }
-    } = props;
+  const {
+    columnResizeStart,
+    utils: { hooks, options }
+  } = props
 
-    const sortAscending = hooks.useSelector(s => s.sortAscending);
+  const sortAscending = hooks.useSelector(s => s.sortAscending)
 
-    const sorting = useMemo(() => {
-        const orders = {}
+  const sorting = useMemo(() => {
+    const orders = {}
 
-        let index = 0;
-        for (const [path, ascending] of sortAscending)
-            orders[path] = { ascending, priority: ++index }
+    let index = 0
+    for (const [path, ascending] of sortAscending)
+      orders[path] = { ascending, priority: ++index }
 
-        return { orders, maxIndex: index };
-    }, [sortAscending])
+    return { orders, maxIndex: index }
+  }, [sortAscending])
 
-    const { widths, resizingIndex } = useContext(ColumnGroupContext);
+  const { widths, resizingIndex } = useContext(ColumnGroupContext)
 
-    const getHeaderProps = (column, index) => {
-        const { key, path, title } = column;
-        const sortOrder = sorting.orders[path];
+  const getHeaderProps = (column, index) => {
+    const { path, title } = column
+    const sortOrder = sorting.orders[path]
 
-        return {
-            ...commonHeaderProps,
-            key: `header_${name}_${key}`,
-            path, title, index,
-            width: widths[index],
-            isResizable: !options.constantWidth || index < columns.length - 1,
-            isResizing: resizingIndex === index,
-            sortAscending: sortOrder?.ascending,
-            sortPriority: sortOrder?.priority,
-            showPriority: sorting.maxIndex > 1
-        }
+    return {
+      ...commonHeaderProps,
+      path,
+      title,
+      index,
+      width: widths[index],
+      isResizable: !options.constantWidth || index < columns.length - 1,
+      isResizing: resizingIndex === index,
+      sortAscending: sortOrder?.ascending,
+      sortPriority: sortOrder?.priority,
+      showPriority: sorting.maxIndex > 1
     }
+  }
 
-    const handleSpacerPointerDown = useCallback(e => {
-        if (!e.isPrimary) return;
-        columnResizeStart(e.clientX, e.clientY, e.pointerId, columns.length - 1);
-    }, [columnResizeStart, columns]);
+  const handleSpacerPointerDown = useCallback(e => {
+    if (!e.isPrimary) return
+    columnResizeStart(e.clientX, e.clientY, e.pointerId, columns.length - 1)
+  }, [columnResizeStart, columns])
 
-    return <div className="rst-head"
-                onPointerDownCapture={() => setGestureTarget(GestureTargets.Header)}
-                onTouchStart={e => targetTouchStart(e, true)}>
-        <table>
-            <thead>
-                <tr className="rst-row" ref={tableHeaderRowRef}>
-                    {columns.map((col, idx) =>
-                        <TableHeader {...getHeaderProps(col, idx)}/>)}
+  return <div
+    className='rst-head'
+    onPointerDownCapture={() => setGestureTarget(GestureTargets.Header)}
+    onTouchStart={e => targetTouchStart(e, true)}
+  >
+    <table>
+      <thead>
+        <tr className='rst-row' ref={tableHeaderRowRef}>
+          {columns.map((col, idx) =>
+            <TableHeader key={`header_${name}_${col.key}`} {...getHeaderProps(col, idx)} />)}
 
-                    <th className="rst-spacer">
-                        {/* Second column resizer for last header, to ensure that the full width of the resizer
+          <th className='rst-spacer'>
+            {/* Second column resizer for last header, to ensure that the full width of the resizer
                         is visible even when the spacer is fully collapsed */}
-                        {!options.constantWidth &&
-                            <div className="rst-columnResizer" onPointerDown={handleSpacerPointerDown} />}
-                    </th>
-                </tr>
-            </thead>
-        </table>
-    </div>
+            {!options.constantWidth &&
+              <div className='rst-columnResizer' onPointerDown={handleSpacerPointerDown} />}
+          </th>
+        </tr>
+      </thead>
+    </table>
+  </div>
 }
 
-export default React.memo(TableHead);
+export default React.memo(TableHead)

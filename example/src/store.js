@@ -1,5 +1,5 @@
-import {applyMiddleware, createStore} from "redux";
-import {createTable, eventMiddleware } from "react-select-table";
+import {applyMiddleware, legacy_createStore as createStore} from "redux";
+import {createTable, eventMiddleware} from "react-select-table";
 import {composeWithDevTools} from "redux-devtools-extension";
 
 export const tableNamespace = "comments";

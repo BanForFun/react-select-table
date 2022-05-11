@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef} from 'react'
 import _ from "lodash";
 import { Table, getTableUtils } from 'react-select-table';
 import { useDispatch } from 'react-redux';
-import comments from "../data/comments";
+import comments from "../data/comments.json";
 import {tableNamespace} from "../store";
 
 const extraComments = comments.splice(0, 200);

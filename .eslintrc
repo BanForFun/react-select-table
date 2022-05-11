@@ -1,35 +1,40 @@
 {
-    "parser": "babel-eslint",
-    "extends": [
-//        "standard",
-//        "standard-react",
-//        "prettier/standard",
-//        "prettier/react",
-//        "plugin:prettier/recommended",
-        "plugin:react-hooks/recommended"
-    ],
-    "env": {
-        "browser": true,
-        "node": true
-    },
-    "parserOptions": {
-        "ecmaVersion": 2020,
-        "ecmaFeatures": {
-            "legacyDecorators": true,
-            "jsx": true
-        }
-    },
-    "settings": {
-        "react": {
-            "version": "16"
-        }
-    },
-    "rules": {
-        "space-before-function-paren": 0,
-        "react/prop-types": 0,
-        "react/jsx-handler-names": 0,
-        "react/jsx-fragments": 0,
-        "react/no-unused-prop-types": 0,
-        "import/export": 0
+  "parser": "@babel/eslint-parser",
+  "extends": [
+    "standard",
+    "plugin:react-hooks/recommended",
+    "plugin:react/recommended",
+//    "plugin:prettier/recommended",
+    "prettier/standard",
+    "prettier/react"
+  ],
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "requireConfigFile": false,
+    "ecmaFeatures": {
+      "legacyDecorators": true,
+      "jsx": true
     }
+  },
+  "settings": {
+    "react": {
+      "version": "16"
+    }
+  },
+  "rules": {
+    "curly": ["error", "multi-or-nest"],
+    "standard/no-callback-literal": 0,
+    "space-before-function-paren": 0,
+    "react/prop-types": 0,
+    "react/jsx-handler-names": 0,
+    "react/jsx-fragments": 0,
+    "react/jsx-closing-tag-location": 0,
+    "react/jsx-closing-bracket-location": 0,
+    "react/no-unused-prop-types": 0,
+    "import/export": 0
+  }
 }

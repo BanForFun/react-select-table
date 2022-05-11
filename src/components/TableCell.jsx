@@ -1,16 +1,16 @@
-import _ from "lodash";
-import React from "react";
+import _ from 'lodash'
+import React from 'react'
 
 function TableCell({ render, rowData, rowIndex, path, isHeader }) {
-    const options = {
-        className: null
-    };
+  const options = {
+    className: null
+  }
 
-    const defaultContent = _.get(rowData, path, rowIndex);
-    const content = render(defaultContent, rowData, options);
-    const CellType = isHeader ? "th" : "td";
+  const defaultContent = _.get(rowData, path, rowIndex)
+  const content = render(defaultContent, rowData, options)
+  const CellType = isHeader ? 'th' : 'td'
 
-    return <CellType className={options.className}>{content}</CellType>
+  return <CellType className={options.className}>{content}</CellType>
 }
 
-export default React.memo(TableCell);
+export default React.memo(TableCell)

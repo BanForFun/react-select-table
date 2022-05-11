@@ -1,25 +1,26 @@
 {
   "name": "react-select-table-example",
-  "homepage": "https://BanForFun.github.io/react-select-table",
+  "homepage": ".",
   "version": "0.0.0",
   "private": true,
-  "dependencies": {
-    "bootstrap": "^4.4.1",
-    "react": "link:../node_modules/react",
-    "react-dom": "link:../node_modules/react-dom",
-    "react-redux": "^7.2.0",
-    "react-router-dom": "^5.2.0",
-    "react-scripts": "link:../node_modules/react-scripts",
-    "react-select-table": "link:..",
-    "redux": "^4.0.5",
-    "redux-devtools-extension": "^2.13.8",
-    "sass": "^1.30.0"
-  },
   "scripts": {
-    "start": "./waitforfile.sh ../dist/index.js && PORT=2000 node ../node_modules/react-scripts/bin/react-scripts.js start",
+    "waitForBuild": "./waitforfile.sh ../dist/index.js",
+    "start": "yarn waitForBuild && PORT=2000 node ../node_modules/react-scripts/bin/react-scripts.js start",
     "build": "node ../node_modules/react-scripts/bin/react-scripts.js build",
     "test": "node ../node_modules/react-scripts/bin/react-scripts.js test",
     "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
+  },
+  "dependencies": {
+    "react": "link:../node_modules/react",
+    "react-dom": "link:../node_modules/react-dom",
+    "react-redux": "^8.0.1",
+    "react-router-dom": "5.2.0",
+    "react-select-table": "link:..",
+    "redux": "^4.2.0",
+    "sass": "^1.51.0"
+  },
+  "devDependencies": {
+    "redux-devtools-extension": "^2.13.9"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -29,6 +30,5 @@
     "not dead",
     "not ie <= 11",
     "not op_mini all"
-  ],
-  "devDependencies": {}
+  ]
 }

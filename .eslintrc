@@ -27,6 +27,7 @@
   },
   "rules": {
     "curly": ["error", "multi-or-nest"],
+    "spaced-comment": 0,
     "standard/no-callback-literal": 0,
     "space-before-function-paren": 0,
     "react/prop-types": 0,

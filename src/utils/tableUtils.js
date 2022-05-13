@@ -20,7 +20,7 @@ export const pc = n => `${n}%`
 export const tableUtils = {}
 
 /**
- * @callback itemPredicate
+ * @callback ItemPredicate
  * @param {Object} row The row in question
  * @param {*} filter The item filter
  * @returns {boolean} True if the row should be visible, false otherwise
@@ -28,25 +28,26 @@ export const tableUtils = {}
  */
 
 /**
- * @callback itemComparator
- * @param {*} lhs The property of the left hand side row
- * @param {*} rhs The property of the right hand side row
+ * @callback ItemComparator
+ * @param {*} lhs The property of the left-hand side row
+ * @param {*} rhs The property of the right-hand side row
  * @param {string} path The column's path
  * @returns {?number} 1: lhs > rhs, 0: lhs == rhs, -1: lhs < rhs, null: Fallback to default comparator
  */
 
 /**
- * @callback searchPhraseParser
+ * @callback SearchPhraseParser
  * @param {string} phrase The search phrase, directly as typed by the user
  * @returns {string} The modified search phrase to be compared to the row property
  * @see actions.search
  */
 
 /**
+ * The table options
  * @typedef {Object} Options
- * @property {itemPredicate} itemPredicate Decides whether a row should be visible based on the filter.
- * @property {itemComparator} itemComparator Compares two rows based on their property at the sorting column's {@link column.path}.
- * @property {searchPhraseParser} searchPhraseParser Parses the search phrase before matching it to the start of the rows' property at {@link options.searchProperty}.
+ * @property {itemPredicate} ItemPredicate Decides whether a row should be visible based on the filter.
+ * @property {itemComparator} ItemComparator Compares two rows based on their property at the sorting column's {@link Column.path}.
+ * @property {searchPhraseParser} SearchPhraseParser Parses the search phrase before matching it to the start of the rows' property at {@link Options.searchProperty}.
  * @property {string} searchProperty The path of a row property that the search phrase is matched against
  * @property {boolean} multiSelect Allow multiple rows to be selected simultaneously
  * @property {boolean} listBox Retain selection when clicking in the space below the rows, and when right-clicking on another row
@@ -64,10 +65,6 @@ export const tableUtils = {}
  * @property {any} context If you use a custom context for your Provider, you can pass it here
  */
 
-/**
- * The default table options
- * @type {Options}
- */
 const defaultOptions = {
   itemPredicate: _.isMatch,
   itemComparator: () => null,
@@ -83,22 +80,18 @@ const defaultOptions = {
 }
 
 /**
- * Changed the default table options
- * @param {Options} options The new default options
+ * Applies a patch the default options, that will be used by all future tables created using createTable
+ * @param {Options} optionsPatch The new default options
  */
-export function setDefaultTableOptions(options) {
-  Object.assign(defaultOptions, options)
+export function setDefaultTableOptions(optionsPatch) {
+  Object.assign(defaultOptions, optionsPatch)
 }
 
-/**
- * Sets the options for a specific table
- * @param {string} namespace The table's namespace
- * @param {Options} options The new default options
- */
+// Internal
 export function setOptions(namespace, options) {
   Object.freeze(_.defaults(options, defaultOptions))
 
-  const actions = Actions(namespace)
+  const actions = new Actions(namespace)
   const simpleSelectors = SimpleSelectors(options)
   const hooks = Hooks(options, actions, simpleSelectors)
 

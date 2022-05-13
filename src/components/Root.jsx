@@ -163,7 +163,7 @@ function Root(props) {
   }
 
   return <div
-    tabIndex='0'
+    tabIndex={0}
     id={id}
     ref={containerRef}
     onKeyDown={handleKeyDown}

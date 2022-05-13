@@ -10,7 +10,6 @@ function PageSpacer({ children }) {
   return <div className='rst-page'>{children}</div>
 }
 
-// Child of PaginationContainer
 function DefaultPagination({ page, pageCount, goToPage }) {
   const repeatOffsetPage = useCallback(offset => {
     let timeoutId; let nextPage = page
@@ -91,5 +90,7 @@ function DefaultPagination({ page, pageCount, goToPage }) {
     </button>
   </div>
 }
+
+// DefaultPagination.propTypes = paginationProps
 
 export default DefaultPagination

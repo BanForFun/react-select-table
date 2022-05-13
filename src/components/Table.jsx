@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import DefaultPagination from './DefaultPagination'
 import { tableUtils } from '../utils/tableUtils'
 import Root from './Root'
-import { defaultEventHandlers } from '../models/EventRaisers'
-import tablePropTypes from '../types/TableProps'
+import tablePropTypes, { eventHandlerNames } from '../types/TableProps'
 
 /**
  * Table Component
+ *
  * @type {React.FC<import("../types/TableProps").TableProps>}
  */
 const Table = React.forwardRef((props, ref) => {
@@ -19,7 +19,7 @@ const Table = React.forwardRef((props, ref) => {
 
   // Register redux event handlers
   const { eventHandlers } = utils
-  for (const handlerName in eventHandlers) {
+  for (const handlerName of eventHandlerNames) {
     const handler = props[handlerName]
     delete rootProps[handlerName]
 
@@ -28,6 +28,9 @@ const Table = React.forwardRef((props, ref) => {
       eventHandlers[handlerName] = handler
     }, [handler, eventHandlers, handlerName])
   }
+
+  rootProps.hasEventListener = useCallback(name =>
+    eventHandlers[name] != null, [eventHandlers])
 
   return <Root
     {...rootProps}
@@ -53,8 +56,7 @@ Table.defaultProps = {
   paginationComponent: DefaultPagination,
   loadingIndicator: null,
   emptyPlaceholder: null,
-  autoFocus: false,
-  ...defaultEventHandlers
+  autoFocus: false
 }
 
 export default Table

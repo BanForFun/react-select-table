@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 
 /**
  * Pagination component props
+ *
  * @typedef {PropTypes.InferProps<paginationProps>} PaginationProps
  */
 const paginationProps = {
@@ -15,7 +16,7 @@ const paginationProps = {
   pageCount: PropTypes.number,
   /**
    * Takes the user to another page
-   * @function
+   *
    * @param {number} page The new page number
    */
   goToPage: PropTypes.func

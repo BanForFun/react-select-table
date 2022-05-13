@@ -4,6 +4,7 @@ import React from 'react'
 
 /**
  * The column properties
+ *
  * @typedef {PropTypes.InferProps<columnShape>} Column
  */
 const columnShape = {
@@ -29,9 +30,10 @@ const columnShape = {
   /**
    * Returns the content to be displayed in the cell.
    * If not defined, the defaultContent argument will be displayed directly.
+   *
    * @param {number|*} defaultContent The row's property at {@link path}, or the row index if undefined
-   * @param {Object} row The entire row object
-   * @param {Object} options Extra options you can set for the cell
+   * @param {object} row The entire row object
+   * @param {object} options Extra options you can set for the cell
    * @param {string} options.className A class to be given to the cell
    */
   render: PropTypes.func,
@@ -49,8 +51,51 @@ const columnShape = {
 
 /**
  * The props of the {@link Table} component
+ *
  * @typedef {PropTypes.InferProps<tableProps>} TableProps
  */
+
+const eventHandlerProps = {
+  /**
+   * Called on right-click or two-finger tap
+   *
+   * @param {Set|?*} target If {@link Options.listBox} is on: The active row's value, or null if Alt is held.
+   * If listBox option is off: A Set of all selected values, or an empty Set if Alt is held
+   * @see Actions.setActiveIndex
+   * @see Options.valueProperty
+   */
+  onContextMenu: PropTypes.func,
+
+  /**
+   * Called on double-click or enter-press
+   *
+   * @param {Set} selection The current row selection
+   * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
+   */
+  onItemsOpen: PropTypes.func,
+
+  /**
+   * Called when the selection changes
+   *
+   * @param {Set} selection The new row selection
+   */
+  onSelectionChange: PropTypes.func,
+
+  /**
+   * Called when column resizing ends
+   *
+   * @param {number[]} widths The new column width percentages
+   */
+  onColumnResizeEnd: PropTypes.func,
+
+  /**
+   * Pass-through of the keydown event, with added selection argument. Return false to prevent default behaviour
+   *
+   * @param {object} e The original keydown event argument
+   * @param {Set} selection The current row selection
+   */
+  onKeyDown: PropTypes.func
+}
 
 const tableProps = {
   /**
@@ -68,6 +113,7 @@ const tableProps = {
 
   /**
    * All columns
+   *
    * @see Column
    */
   columns: PropTypes.arrayOf(PropTypes.shape(columnShape)).isRequired,
@@ -79,12 +125,14 @@ const tableProps = {
 
   /**
    * Displayed instead of the table rows when there is an error, with the error as a child
+   *
    * @see Actions.setError
    */
   errorComponent: PropTypes.elementType,
 
   /**
    * Custom component for navigating between pages
+   *
    * @type {React.FC<import("./PaginationProps").PaginationProps>}
    * @see Actions.setPageSize
    */
@@ -92,6 +140,7 @@ const tableProps = {
 
   /**
    * Displayed below header when loading
+   *
    * @see Actions.startLoading
    */
   loadingIndicator: PropTypes.node,
@@ -128,44 +177,14 @@ const tableProps = {
 
   /**
    * Returns a class for the tr element
-   * @param {Object} row The row object
+   *
+   * @param {object} row The row object
    */
   getRowClassName: PropTypes.func,
 
-  /**
-   * Called on right-click or two-finger tap
-   * @param {Set|?*} target If {@link Options.listBox} is on: The active row's value, or null if Alt is held.
-   * If listBox option is off: A Set of all selected values, or an empty Set if Alt is held
-   * @see Actions.setActiveIndex
-   * @see Options.valueProperty
-   */
-  onContextMenu: PropTypes.func,
-
-  /**
-   * Called on double-click or enter-press
-   * @param {Set} selection The current row selection
-   * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
-   */
-  onItemsOpen: PropTypes.func,
-
-  /**
-   * Called when the selection changes
-   * @param {Set} selection The new row selection
-   */
-  onSelectionChange: PropTypes.func,
-
-  /**
-   * Called when column resizing ends
-   * @param {number[]} widths The new column width percentages
-   */
-  onColumnResizeEnd: PropTypes.func,
-
-  /**
-   * Pass-through of the keydown event, with added selection argument. Return false to prevent default behaviour
-   * @param {Object} e The original keydown event argument
-   * @param {Set} selection The current row selection
-   */
-  onKeyDown: PropTypes.func
+  ...eventHandlerProps
 }
+
+export const eventHandlerNames = Object.keys(eventHandlerProps)
 
 export default tableProps

@@ -1,8 +1,9 @@
 import _ from 'lodash'
 import Hooks from '../models/Hooks'
-import SimpleSelectors from '../models/SimpleSelectors'
+import DeterministicSelectors from '../models/DeterministicSelectors'
 import Actions from '../models/Actions'
-import EventRaisers, { defaultEventHandlers } from '../models/EventRaisers'
+import Events from '../models/Events'
+import React from 'react'
 
 export const DragModes = Object.freeze({
   Resize: 'resize',
@@ -21,7 +22,7 @@ export const tableUtils = {}
 
 /**
  * @callback ItemPredicate
- * @param {Object} row The row in question
+ * @param {object} row The row in question
  * @param {*} filter The item filter
  * @returns {boolean} True if the row should be visible, false otherwise
  * @see actions.setItemFilter
@@ -44,10 +45,11 @@ export const tableUtils = {}
 
 /**
  * The table options
- * @typedef {Object} Options
- * @property {itemPredicate} ItemPredicate Decides whether a row should be visible based on the filter.
- * @property {itemComparator} ItemComparator Compares two rows based on their property at the sorting column's {@link Column.path}.
- * @property {searchPhraseParser} SearchPhraseParser Parses the search phrase before matching it to the start of the rows' property at {@link Options.searchProperty}.
+ *
+ * @typedef {object} Options
+ * @property {ItemPredicate} itemPredicate Decides whether a row should be visible based on the filter.
+ * @property {ItemComparator} itemComparator Compares two rows based on their property at the sorting column's {@link Column.path}.
+ * @property {SearchPhraseParser} searchPhraseParser Parses the search phrase before matching it to the start of the rows' property at {@link Options.searchProperty}.
  * @property {string} searchProperty The path of a row property that the search phrase is matched against
  * @property {boolean} multiSelect Allow multiple rows to be selected simultaneously
  * @property {boolean} listBox Retain selection when clicking in the space below the rows, and when right-clicking on another row
@@ -61,8 +63,8 @@ export const tableUtils = {}
  * Note: Resizing a column only updates the current chunk, making scrolling using the scrollbar jerky when
  * chunks load in for the first time after resizing a column.
  * @property {string} statePath The path of the redux table state. Set to null if the table reducer is the root.
- * @property {Object} initState The initial redux state, useful for restoring a user's session
- * @property {any} context If you use a custom context for your Provider, you can pass it here
+ * @property {object} initState The initial redux state, useful for restoring a user's session
+ * @property {React.Context} context If you use a custom context for your Provider, you can pass it here
  */
 
 const defaultOptions = {
@@ -81,6 +83,7 @@ const defaultOptions = {
 
 /**
  * Applies a patch the default options, that will be used by all future tables created using createTable
+ *
  * @param {Options} optionsPatch The new default options
  */
 export function setDefaultTableOptions(optionsPatch) {
@@ -92,21 +95,21 @@ export function setOptions(namespace, options) {
   Object.freeze(_.defaults(options, defaultOptions))
 
   const actions = new Actions(namespace)
-  const simpleSelectors = SimpleSelectors(options)
-  const hooks = Hooks(options, actions, simpleSelectors)
+  const detSelectors = new DeterministicSelectors(options)
+  const hooks = new Hooks(options, actions, detSelectors)
 
-  const eventHandlers = { ...defaultEventHandlers }
-  const eventRaisers = EventRaisers(eventHandlers, options, simpleSelectors)
+  const eventHandlers = { }
+  const events = new Events(eventHandlers, options, detSelectors)
 
   return (tableUtils[namespace] = {
-    selectors: simpleSelectors,
+    selectors: detSelectors,
     eventHandlers,
     public: {
       actions,
       hooks,
-      selectors: simpleSelectors,
+      selectors: detSelectors,
       options,
-      eventRaisers
+      events
     }
   })
 }

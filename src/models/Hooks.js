@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useMemo, useCallback } from 'react'
 import {
   createDispatchHook,
@@ -15,10 +16,10 @@ export default function Hooks(options, actions, selectors) {
 
   const { getStateSlice } = selectors
 
-  const useSelector = (selector, ...args) =>
+  this.useSelector = (selector, ...args) =>
     _useSelector((state) => selector(getStateSlice(state), ...args))
 
-  const useSelectorGetter = (selector) => {
+  this.useSelectorGetter = (selector) => {
     const store = _useStore()
     return useCallback(
       (...args) => selector(getStateSlice(store.getState()), ...args),
@@ -26,14 +27,8 @@ export default function Hooks(options, actions, selectors) {
     )
   }
 
-  const useActions = () => {
+  this.useActions = () => {
     const dispatch = _useDispatch()
     return useMemo(() => bindActionCreators(actions, dispatch), [dispatch])
-  }
-
-  return {
-    useSelector,
-    useSelectorGetter,
-    useActions
   }
 }

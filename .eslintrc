@@ -4,6 +4,7 @@
     "standard",
     "plugin:react-hooks/recommended",
     "plugin:react/recommended",
+    "plugin:jsdoc/recommended",
 //    "plugin:prettier/recommended",
     "prettier/standard",
     "prettier/react"
@@ -28,6 +29,8 @@
   "rules": {
     "curly": ["error", "multi-or-nest"],
     "spaced-comment": 0,
+    "jsdoc/valid-types": 0,
+    "jsdoc/require-jsdoc": 0,
     "standard/no-callback-literal": 0,
     "space-before-function-paren": 0,
     "react/prop-types": 0,

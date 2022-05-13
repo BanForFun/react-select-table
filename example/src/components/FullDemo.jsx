@@ -107,7 +107,6 @@ function FullDemo() {
             namespace={tableNamespace}
             columnOrder={[0, 1, 3, 4]}
             columns={columns}
-            paginationComponent={(props) => props.page}
             loadingIndicator="Loading..."
             autoFocus={true}
             onKeyDown={handleTableKeyDown}

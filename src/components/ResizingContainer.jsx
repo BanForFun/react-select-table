@@ -12,6 +12,7 @@ function ResizingContainer(props) {
     // Own props
     resizingContainerRef,
     dragSelectStart,
+    hasEventListener,
 
     // HeadContainer props
     tableHeaderRowRef,
@@ -30,7 +31,7 @@ function ResizingContainer(props) {
   } = props
 
   const {
-    utils: { hooks, selectors, eventRaisers, options }
+    utils: { hooks, selectors, events, options }
   } = props
 
   const gesture = useRef({
@@ -46,8 +47,8 @@ function ResizingContainer(props) {
 
   const getSelected = hooks.useSelectorGetter(selectors.getSelected)
 
-  const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen)
-  const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu)
+  const raiseItemsOpen = hooks.useSelectorGetter(events.itemsOpen)
+  const raiseContextMenu = hooks.useSelectorGetter(events.contextMenu)
 
   const contextMenu = useCallback(e => {
     const { itemIndex, rowIndex } = gesture
@@ -135,11 +136,11 @@ function ResizingContainer(props) {
       return dragSelect(e)
     }
 
-    if (eventRaisers.isHandlerDefined('onContextMenu'))
+    if (hasEventListener('onContextMenu'))
       e.preventDefault()
 
     contextMenu(e)
-  }, [gesture, contextMenu, actions, eventRaisers, dragSelect])
+  }, [gesture, contextMenu, actions, hasEventListener, dragSelect])
 
   const handleDoubleClick = useCallback(() => {
     if (noSelection) return

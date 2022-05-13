@@ -12,7 +12,8 @@ function PageSpacer({ children }) {
 
 function DefaultPagination({ page, pageCount, goToPage }) {
   const repeatOffsetPage = useCallback(offset => {
-    let timeoutId; let nextPage = page
+    let nextPage = page
+    let timeoutId
     const repeatAction = (delay = repeatDelay) => {
       if (!goToPage(nextPage += offset)) return
       timeoutId = setTimeout(repeatAction, delay)

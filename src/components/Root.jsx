@@ -18,7 +18,7 @@ function Root(props) {
   } = props
 
   const {
-    utils: { hooks, selectors, eventRaisers }
+    utils: { hooks, selectors, events }
   } = props
 
   // Focus on container
@@ -41,9 +41,9 @@ function Root(props) {
 
   const getSelected = hooks.useSelectorGetter(selectors.getSelected)
 
-  const raiseItemsOpen = hooks.useSelectorGetter(eventRaisers.itemsOpen)
-  const raiseContextMenu = hooks.useSelectorGetter(eventRaisers.contextMenu)
-  const raiseKeyDown = hooks.useSelectorGetter(eventRaisers.keyDown)
+  const raiseItemsOpen = hooks.useSelectorGetter(events.itemsOpen)
+  const raiseContextMenu = hooks.useSelectorGetter(events.contextMenu)
+  const raiseKeyDown = hooks.useSelectorGetter(events.keyDown)
 
   const isEmpty = !itemCount
 

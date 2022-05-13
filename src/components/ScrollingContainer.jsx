@@ -60,7 +60,7 @@ function ScrollingContainer(props) {
   } = props
 
   const {
-    utils: { options, hooks, selectors, eventRaisers },
+    utils: { options, hooks, selectors, events },
     actions
   } = props
 
@@ -147,7 +147,7 @@ function ScrollingContainer(props) {
   // #region Drag ending
 
   // Column resizing
-  const raiseColumnResizeEnd = hooks.useSelectorGetter(eventRaisers.columnResizeEnd)
+  const raiseColumnResizeEnd = hooks.useSelectorGetter(events.columnResizeEnd)
   const columnResizeEnd = useCallback(() => {
     // Account for collapsed border
     const {

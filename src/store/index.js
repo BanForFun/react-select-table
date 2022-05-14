@@ -1,10 +1,9 @@
-// noinspection StatementWithEmptyBodyJS
-
 import _ from 'lodash'
 import produce, { enableMapSet } from 'immer'
 import { types } from '../models/Actions'
 import { setOptions } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
+import * as selectors from '../selectors'
 
 enableMapSet()
 
@@ -14,11 +13,10 @@ const nextSortOrder = Object.freeze({
   false: undefined
 })
 
-// noinspection StatementWithEmptyBodyJS
 export default function createTable(namespace, options = {}) {
   let draft
 
-  const utils = setOptions(namespace, options)
+  setOptions(namespace, options)
 
   const {
     getActiveValue,
@@ -28,7 +26,7 @@ export default function createTable(namespace, options = {}) {
     getPageSize,
     getPageIndexOffset,
     getItemPageIndex
-  } = _.mapValues(utils.selectors, selector =>
+  } = _.mapValues(selectors, selector =>
     (state = draft, ...rest) => selector(state, ...rest))
 
   const {
@@ -669,12 +667,12 @@ export default function createTable(namespace, options = {}) {
         }
         // eslint-disable-next-line no-fallthrough
         case types.GO_TO_MATCH: {
-          const { matches } = draft
-          if (!matches.length) break
+          const { matches, matches: { length: matchCount } } = draft
+          if (!matchCount) break
 
           const { index } = payload
 
-          const safeIndex = _.wrapIndex(index, matches.length)
+          const safeIndex = ((index % matchCount) + matchCount) % matchCount
           const origin = index === safeIndex ? searchOrigins.ActiveRow : searchOrigins.TableBoundary
           setActiveValue(matches[safeIndex], index >= draft.matchIndex, origin)
 

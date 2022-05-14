@@ -34,21 +34,21 @@ const eventMiddleware = (store) => (next) => (action) => {
     case types.SET_ERROR:
     case types.START_LOADING: {
       // Get table events and selectors
-      const { events, selectors } = tableUtils[namespace].public
-      const getSlice = () => selectors.getStateSlice(store.getState())
+      const { events, getTableState } = tableUtils[namespace].public
+      const getState = () => getTableState(store.getState())
 
       // Get previous and current state
-      const prevSlice = getSlice()
+      const prevState = getState()
       const result = next(action)
-      const slice = getSlice()
+      const newState = getState()
 
       // Raise onSelectionChange
-      if (!compareSets(prevSlice.selection, slice.selection))
-        events.selectionChanged(slice)
+      if (!compareSets(prevState.selection, newState.selection))
+        events.selectionChanged(newState)
 
       // Raise onContextMenu
       if (payload.contextMenu)
-        events.contextMenu(slice)
+        events.contextMenu(newState)
 
       return result
     }

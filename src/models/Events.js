@@ -1,4 +1,6 @@
-export default function Events(handlers, options, selectors) {
+import * as selectors from '../selectors'
+
+export default function Events(options, handlers) {
   const getSelectionArg = (state) =>
     options.multiSelect
       ? new Set(state.selection) // Make a copy so the handler can't modify the state

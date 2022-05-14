@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Hooks from '../models/Hooks'
-import DeterministicSelectors from '../models/DeterministicSelectors'
 import Actions from '../models/Actions'
 import Events from '../models/Events'
 import React from 'react'
@@ -94,22 +93,23 @@ export function setDefaultTableOptions(optionsPatch) {
 export function setOptions(namespace, options) {
   Object.freeze(_.defaults(options, defaultOptions))
 
+  const getTableState = state =>
+    options.statePath ? _.get(state, options.statePath) : state
+
   const actions = new Actions(namespace)
-  const detSelectors = new DeterministicSelectors(options)
-  const hooks = new Hooks(options, actions, detSelectors)
+  const hooks = new Hooks(options, actions, getTableState)
 
   const eventHandlers = { }
-  const events = new Events(eventHandlers, options, detSelectors)
+  const events = new Events(options, eventHandlers)
 
   return (tableUtils[namespace] = {
-    selectors: detSelectors,
     eventHandlers,
     public: {
       actions,
       hooks,
-      selectors: detSelectors,
       options,
-      events
+      events,
+      getTableState
     }
   })
 }

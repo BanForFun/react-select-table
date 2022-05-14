@@ -3,6 +3,7 @@ import _ from 'lodash'
 import TableChunk, { loadChunk } from './TableChunk'
 import { DragModes } from '../utils/tableUtils'
 import { getRowBounds } from './TableRow'
+import * as selectors from '../selectors'
 
 // Child of BodyContainer
 function TableBody(props) {
@@ -17,7 +18,7 @@ function TableBody(props) {
   } = props
 
   const {
-    utils: { hooks, options, selectors }
+    utils: { hooks, options }
   } = props
 
   const rowValues = hooks.useSelector(s => s.rowValues)

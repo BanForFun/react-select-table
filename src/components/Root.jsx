@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
+import * as selectors from '../selectors'
 
 // Child of Connector
 function Root(props) {
@@ -18,7 +19,7 @@ function Root(props) {
   } = props
 
   const {
-    utils: { hooks, selectors, events }
+    utils: { hooks, events }
   } = props
 
   // Focus on container

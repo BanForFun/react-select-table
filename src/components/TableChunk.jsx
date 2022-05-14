@@ -3,6 +3,7 @@ import _ from 'lodash'
 import TableRow from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import ColGroup from './ColGroup'
+import * as selectors from '../selectors'
 
 export const VisibleChunkClass = 'rst-visible'
 
@@ -12,7 +13,7 @@ export function loadChunk(chunk) {
 
 function TableChunk(props) {
   const {
-    utils: { options, hooks, selectors },
+    utils: { options, hooks },
     getRowClassName,
     rows,
     index,

@@ -98,6 +98,7 @@ const eventHandlerProps = {
 }
 
 const tableProps = {
+  ...eventHandlerProps,
   /**
    * Used to associate a table component with the redux store,
    * and must match to the {@link Options.namespace} given to the reducer.
@@ -180,9 +181,7 @@ const tableProps = {
    *
    * @param {object} row The row object
    */
-  getRowClassName: PropTypes.func,
-
-  ...eventHandlerProps
+  getRowClassName: PropTypes.func
 }
 
 export const eventHandlerNames = Object.keys(eventHandlerProps)

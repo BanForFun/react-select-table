@@ -6,6 +6,7 @@ import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { VisibleChunkClass } from './TableChunk'
+import * as selectors from '../selectors'
 
 const defaultColumnRenderer = value => value
 
@@ -60,7 +61,7 @@ function ScrollingContainer(props) {
   } = props
 
   const {
-    utils: { options, hooks, selectors, events },
+    utils: { options, hooks, events },
     actions
   } = props
 

@@ -1,11 +1,12 @@
 import _ from 'lodash'
 import React, { useCallback } from 'react'
+import * as selectors from '../selectors'
 
 // Child of Root
 function PaginationWrapper({
   paginationComponent: Pagination,
   actions,
-  utils: { hooks, selectors }
+  utils: { hooks }
 }) {
   const pageCount = hooks.useSelector(selectors.getPageCount)
   const pageIndex = hooks.useSelector(selectors.getPageIndex)

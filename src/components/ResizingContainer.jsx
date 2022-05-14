@@ -4,6 +4,7 @@ import { GestureTargets } from '../utils/tableUtils'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
+import * as selectors from '../selectors'
 
 // Child of ScrollingContainer
 // Handles gestures
@@ -31,7 +32,7 @@ function ResizingContainer(props) {
   } = props
 
   const {
-    utils: { hooks, selectors, events, options }
+    utils: { hooks, events, options }
   } = props
 
   const gesture = useRef({

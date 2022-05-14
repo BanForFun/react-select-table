@@ -57,7 +57,7 @@ export default function createTable(namespace, options = {}) {
     ...options.initState
   }
 
-  // #region Validation
+  //#region Validation
 
   function isIndexValid(index) {
     return index != null && _.inRange(index, draft.visibleItemCount)
@@ -74,9 +74,9 @@ export default function createTable(namespace, options = {}) {
     return getDataValue(item.data)
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Visibility
+  //#region Visibility
 
   function setItemVisibility(value, visibility = null) {
     const item = draft.sortedItems[value]
@@ -90,9 +90,9 @@ export default function createTable(namespace, options = {}) {
     return visibility
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Sorting
+  //#region Sorting
 
   function compareItemData(lhs, rhs) {
     const compareProperty = (comparator, path) =>
@@ -108,15 +108,6 @@ export default function createTable(namespace, options = {}) {
 
     // Ensure that reversing the sort order of a column with all equal values, reverses the item order
     return compareProperty(compareAscending, valueProperty) * factor
-  }
-
-  function compareItemsByValue(lhs, rhs) {
-    const {
-      [lhs]: { data: lhsData },
-      [rhs]: { data: rhsData }
-    } = draft.sortedItems
-
-    return compareItemData(lhsData, rhsData)
   }
 
   function setItemOrder(first, second) {
@@ -136,6 +127,15 @@ export default function createTable(namespace, options = {}) {
       draft.headValue = second
   }
 
+  function compareItemsByValue(lhs, rhs) {
+    const {
+      [lhs]: { data: lhsData },
+      [rhs]: { data: rhsData }
+    } = draft.sortedItems
+
+    return compareItemData(lhsData, rhsData)
+  }
+
   function sortNative() {
     const itemValues = [...valueIterator()].sort(compareItemsByValue)
 
@@ -152,9 +152,9 @@ export default function createTable(namespace, options = {}) {
     clearSelection()
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Querying
+  //#region Querying
 
   function getDataValue(data) {
     return _.get(data, valueProperty)
@@ -174,9 +174,9 @@ export default function createTable(namespace, options = {}) {
     }
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Pagination
+  //#region Pagination
 
   const searchOrigins = Object.freeze({
     TableBoundary: 'table',
@@ -269,9 +269,9 @@ export default function createTable(namespace, options = {}) {
     return setActiveItem(item => item.index === index, origin.forward, origin.row)
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Searching
+  //#region Searching
 
   function getItemSearchValue(itemValue) {
     const item = draft.sortedItems[itemValue]
@@ -345,9 +345,9 @@ export default function createTable(namespace, options = {}) {
     return draft.matches.sort(compareItemsByValue)
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Addition
+  //#region Addition
 
   function addItem(data, prev, next) {
     // Reject if value is null or undefined
@@ -400,9 +400,9 @@ export default function createTable(namespace, options = {}) {
     return addedValues
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Deletion
+  //#region Deletion
 
   function deleteItem(value, toBeReplaced = false) {
     const item = draft.sortedItems[value]
@@ -433,9 +433,9 @@ export default function createTable(namespace, options = {}) {
     })
   }
 
-  // #endregion
+  //#endregion
 
-  // #region Selection
+  //#region Selection
 
   function clearSelection() {
     draft.selection.clear()
@@ -469,7 +469,7 @@ export default function createTable(namespace, options = {}) {
     }
   }
 
-  // #endregion
+  //#endregion
 
   return (state = initState, action) => {
     if (action.namespace !== namespace)
@@ -690,12 +690,10 @@ export default function createTable(namespace, options = {}) {
           setActiveIndex(state.activeIndex, true)
           break
         }
-        default: {
-          break
-        }
+        default: return
       }
 
-      if (!action.type.startsWith('RST_SEARCH'))
+      if (action.clearSearch)
         draft.searchPhrase = null
     })
   }

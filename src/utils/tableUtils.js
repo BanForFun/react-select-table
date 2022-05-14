@@ -20,7 +20,7 @@ export const pc = n => `${n}%`
 export const tableUtils = {}
 
 /**
- * @callback ItemPredicate
+ * @function ItemPredicate
  * @param {object} row The row in question
  * @param {*} filter The item filter
  * @returns {boolean} True if the row should be visible, false otherwise
@@ -28,7 +28,7 @@ export const tableUtils = {}
  */
 
 /**
- * @callback ItemComparator
+ * @function ItemComparator
  * @param {*} lhs The property of the left-hand side row
  * @param {*} rhs The property of the right-hand side row
  * @param {string} path The column's path
@@ -36,7 +36,7 @@ export const tableUtils = {}
  */
 
 /**
- * @callback SearchPhraseParser
+ * @function SearchPhraseParser
  * @param {string} phrase The search phrase, directly as typed by the user
  * @returns {string} The modified search phrase to be compared to the row property
  * @see actions.search

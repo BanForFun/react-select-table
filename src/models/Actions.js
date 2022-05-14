@@ -23,8 +23,8 @@ export const types = {
   SET_ACTIVE: '',
 
   // Search
-  SEARCH: 'SEARCH_SET_PHRASE',
-  GO_TO_MATCH: 'SEARCH_GO_TO_MATCH',
+  SEARCH: '',
+  GO_TO_MATCH: '',
 
   // Pagination
   SET_PAGE_SIZE: '',
@@ -33,8 +33,9 @@ export const types = {
 }
 
 // Set action type strings
-Object.freeze(_.each(types, (type, name) =>
-  (types[name] = `RST_${type || name}`)))
+Object.freeze(
+  _.each(types, (type, name) => (types[name] = `RST_${name}`))
+)
 
 /**
  * A table action
@@ -43,6 +44,7 @@ Object.freeze(_.each(types, (type, name) =>
  * @property {string} type The redux action type
  * @property {object} payload The action's payload
  * @property {string} namespace The namespace of the table that the action targets
+ * @property {boolean} clearSearch Clear the search phrase and hide the search dialog as a result of this action
  */
 
 /**
@@ -52,7 +54,13 @@ Object.freeze(_.each(types, (type, name) =>
  * @param {string} namespace The namespace of the table that the actions target
  */
 export default function Actions(namespace) {
-  const getAction = (type, payload = {}) => ({ namespace, type, payload })
+  const getAction = (type, payload = {}, settings = null) => ({
+    namespace,
+    type,
+    payload,
+    clearSearch: true,
+    ...settings
+  })
 
   this.debug = () => getAction(types.DEBUG)
 
@@ -63,7 +71,7 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.search = (phrase) =>
-    getAction(types.SEARCH, { phrase })
+    getAction(types.SEARCH, { phrase }, { clearSearch: false })
 
   /**
    * Jumps to a specific search match.
@@ -73,7 +81,7 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.goToMatch = (index) =>
-    getAction(types.GO_TO_MATCH, { index })
+    getAction(types.GO_TO_MATCH, { index }, { clearSearch: false })
 
   /**
    * Changes the page size.

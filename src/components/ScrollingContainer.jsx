@@ -65,7 +65,7 @@ function ScrollingContainer(props) {
     actions
   } = props
 
-  // #region Column group
+  //#region Column group
 
   const columns = useMemo(() =>
     (columnOrder?.map(index => unorderedColumns[index]) ?? unorderedColumns).map(parseColumn),
@@ -94,9 +94,9 @@ function ScrollingContainer(props) {
     setColumnGroup(getColumnGroup(defaultWidths))
   }, [getColumnGroup, defaultWidths])
 
-  // #endregion
+  //#endregion
 
-  // #region Elements
+  //#region Elements
 
   const tableBodyRef = useRef()
   const tableHeaderRowRef = useRef()
@@ -114,9 +114,9 @@ function ScrollingContainer(props) {
     return { row: chunk.rows[rowIndex], chunk }
   }, [options])
 
-  // #endregion
+  //#endregion
 
-  // #region Drag states
+  //#region Drag states
 
   const [dragMode, setDragMode] = useState(null)
   const drag = useRef({
@@ -143,9 +143,9 @@ function ScrollingContainer(props) {
     prevRelY: 0
   }).current
 
-  // #endregion
+  //#endregion
 
-  // #region Drag ending
+  //#region Drag ending
 
   // Column resizing
   const raiseColumnResizeEnd = hooks.useSelectorGetter(events.columnResizeEnd)
@@ -193,9 +193,9 @@ function ScrollingContainer(props) {
     setDragMode(null)
   }, [drag, dragEnd])
 
-  // #endregion
+  //#endregion
 
-  // #region Drag animation
+  //#region Drag animation
 
   // Common
   const dragAnimate = useCallback((animation, ...params) => {
@@ -260,9 +260,9 @@ function ScrollingContainer(props) {
     newActiveRow.classList.add(ActiveClass)
   }, [dragSelection, getChunkRow])
 
-  // #endregion
+  //#endregion
 
-  // #region Drag updating
+  //#region Drag updating
 
   // Column resizing
   const columnResizeUpdate = useCallback(() => {
@@ -408,9 +408,9 @@ function ScrollingContainer(props) {
     [DragModes.Select]: dragSelectUpdate
   })[dragMode], [dragMode, columnResizeUpdate, dragSelectUpdate])
 
-  // #endregion
+  //#endregion
 
-  // #region Drag starting
+  //#region Drag starting
 
   // Common
   const cancelScrollHandler = useDecoupledCallback(useCallback(e => {
@@ -505,9 +505,9 @@ function ScrollingContainer(props) {
     })
   }, [dragStart, dragSelection, rowCount, options])
 
-  // #endregion
+  //#endregion
 
-  // #region Event handlers
+  //#region Event handlers
 
   const handleScroll = useCallback(() => {
     if (drag.pointerId == null) return
@@ -532,9 +532,9 @@ function ScrollingContainer(props) {
     dragStop()
   }, [drag, dragStop])
 
-  // #endregion
+  //#endregion
 
-  // #region Chunk IntersectionObserver
+  //#region Chunk IntersectionObserver
 
   // Chrome's content-visibility has worse performance
   const chunkIntersectionObserver = useRef()
@@ -552,7 +552,7 @@ function ScrollingContainer(props) {
     return () => observer.disconnect()
   })
 
-  // #endregion
+  //#endregion
 
   // Set props
   Object.assign(resizingProps, {

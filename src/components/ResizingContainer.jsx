@@ -92,7 +92,7 @@ function ResizingContainer(props) {
       gesture.itemIndex += indexOffset
   }, [gesture, indexOffset])
 
-  // #region Event handlers
+  //#region Event handlers
 
   const handlePointerDown = useCallback(e => {
     gesture.pointerType = e.pointerType
@@ -148,7 +148,7 @@ function ResizingContainer(props) {
     raiseItemsOpen(false)
   }, [noSelection, raiseItemsOpen])
 
-  // #endregion
+  //#endregion
 
   Object.assign(commonProps, {
     setGestureTarget,

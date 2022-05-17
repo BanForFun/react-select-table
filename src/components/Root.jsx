@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 // Child of Connector
 function Root(props) {

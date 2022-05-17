@@ -113,16 +113,16 @@ export default function Actions(namespace) {
    * Applies a deep patch to rows.
    *
    * @param {...object} patches Every property each object contains,
-   * will be applied to the row that has the same property at {@link Options.valueProperty}.
+   * will be applied to the row with the same {@link RowValue|value}
    * @returns {Action} The redux action object
    */
   this.patchItems = (...patches) =>
     getAction(types.PATCH_ITEMS, { patches })
 
   /**
-   * Changes row values, updates the selection with the new values for the rows that are selected.
+   * Changes row {@link RowValue|values}, updates the selection with the new values for the rows that are selected.
    *
-   * @param {object} map An object that has old row values as keys and the new ones as values
+   * @param {object} map An object with old row values as keys and the new ones as values
    * @returns {Action} The redux action object
    */
   this.patchItemValues = (map) =>
@@ -131,7 +131,7 @@ export default function Actions(namespace) {
   /**
    * Deletes rows and deselects them.
    *
-   * @param {...*} values The values of the rows to be deleted
+   * @param {...*} values The {@link RowValue|values} of the rows to be deleted
    * @returns {Action} The redux action object
    */
   this.deleteItems = (...values) =>
@@ -212,18 +212,19 @@ export default function Actions(namespace) {
   /**
    * Sets specific rows as selected or not
    *
-   * @param {Object<number,boolean>} map An object that has row indices as keys,
+   * @param {Object<number,boolean>} map An object with row indices as keys,
    * and the new selection statuses as values
-   * @param {?number} activeIndex The index of the row to be set active, or null to keep the current one
+   * @param {?number} activeIndex The index of the row to be set active, or null to leave unchanged
    * @param {?number} pivotIndex The index of the row to be set as the pivot
-   * for selecting a range of rows using the keyboard, or null to keep the current one
+   * for selecting a range of rows using the keyboard, or null to leave unchanged
    * @returns {Action} The redux action object
    */
   this.setSelected = (map, activeIndex = null, pivotIndex = null) =>
     getAction(types.SET_SELECTED, { map, activeIndex, pivotIndex })
 
   /**
-   * Displays an error message instead of the rows if truthy, until cleared.
+   * Displays an error message instead of the rows if truthy,
+   * until {@link setItems} or {@link clearItems}
    *
    * @param {*} error Set as the child of {@link TableProps.errorComponent}
    * @returns {Action} The redux action object
@@ -232,7 +233,8 @@ export default function Actions(namespace) {
     getAction(types.SET_ERROR, { error })
 
   /**
-   * Displays the {@link TableProps.loadingIndicator} instead of the rows, until reset.
+   * Displays the {@link TableProps.loadingIndicator} instead of the rows,
+   * until {@link setItems}, {@link clearItems} or {@link setError}.
    *
    * @returns {Action} The redux action object
    */

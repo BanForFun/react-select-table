@@ -4,7 +4,7 @@ import { GestureTargets } from '../utils/tableUtils'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 // Child of ScrollingContainer
 // Handles gestures

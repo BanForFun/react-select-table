@@ -3,7 +3,7 @@ import produce, { enableMapSet } from 'immer'
 import { types } from '../models/Actions'
 import { setOptions } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 enableMapSet()
 
@@ -13,6 +13,12 @@ const nextSortOrder = Object.freeze({
   false: undefined
 })
 
+/**
+ *
+ * @param {string} namespace A unique identifier for each table reducer
+ * @param {import('../utils/tableUtils').Options} options The reducer options
+ * @returns {object} The next state
+ */
 export default function createTable(namespace, options = {}) {
   let draft
 

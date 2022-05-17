@@ -28,7 +28,10 @@
   },
   "rules": {
     "curly": ["error", "multi-or-nest"],
-    "no-trailing-spaces": ["error", { "skipBlankLines": true }],
+    "no-trailing-spaces": ["error", {
+      "skipBlankLines": true,
+      "ignoreComments": true
+    }],
     "spaced-comment": ["error", "always", {
       "markers": ["#region", "#endregion"]
     }],

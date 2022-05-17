@@ -20,13 +20,15 @@
   ],
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
-  "typings": "dist/index.d.ts",
+  "typings": "dist/typings/index.d.ts",
   "source": "src/index.js",
   "engines": {
     "node": ">=10"
   },
   "scripts": {
-    "build-definitions": "tsc && rsync -a -m --include '*/' --include '*.d.ts' --exclude '*' src/ dist/",
+    "clear-definitions": "rm -rf dist/typings/",
+    "copy-definitions": "rsync -a -m --include '*/' --include '*.d.ts' --exclude '*' src/ dist/typings/",
+    "build-definitions": " yarn clear-definitions && tsc && yarn copy-definitions",
     "build": "yarn build-definitions && microbundle-crl --no-compress --format modern,cjs",
     "start": "yarn build-definitions && microbundle-crl watch --no-compress --format modern,cjs",
     "prepare": "run-s build",

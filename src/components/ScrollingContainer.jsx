@@ -6,7 +6,7 @@ import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { VisibleChunkClass } from './TableChunk'
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 const defaultColumnRenderer = value => value
 

@@ -1,4 +1,4 @@
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 export default function Events(options, handlers) {
   const getSelectionArg = (state) =>

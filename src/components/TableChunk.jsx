@@ -3,7 +3,7 @@ import _ from 'lodash'
 import TableRow from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import ColGroup from './ColGroup'
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 export const VisibleChunkClass = 'rst-visible'
 

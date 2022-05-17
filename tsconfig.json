@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "dist/typings",
     "module": "esnext",
     "lib": ["dom", "esnext"],
     "moduleResolution": "node",
@@ -22,5 +22,5 @@
   },
   "files": [
     "src/index.js",
-  ],
+  ]
 }

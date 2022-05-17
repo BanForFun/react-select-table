@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import React, { useCallback } from 'react'
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 // Child of Root
 function PaginationWrapper({

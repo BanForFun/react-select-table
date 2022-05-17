@@ -5,26 +5,26 @@ import {composeWithDevTools} from "redux-devtools-extension";
 export const tableNamespace = "comments";
 
 const compose = composeWithDevTools({
-    serialize: true
+  serialize: true
 });
 
 let customOptions = JSON.parse(sessionStorage.getItem("options"));
 if (!customOptions) {
-    customOptions = {title: "Default"};
-    sessionStorage.setItem("options", JSON.stringify(customOptions));
+  customOptions = {title: "Default"};
+  sessionStorage.setItem("options", JSON.stringify(customOptions));
 }
 
 const reducer = createTable(tableNamespace, {
-    valueProperty: "id",
-    searchProperty: "name",
-    constantWidth: false,
-    multiSelect: true,
-    multiSort: true,
-    listBox: false,
-    initState: {
-        pageSize: 10
-    },
-    ...customOptions
+  valueProperty: "id",
+  searchProperty: "name",
+  constantWidth: false,
+  multiSelect: true,
+  multiSort: true,
+  listBox: false,
+  initState: {
+      pageSize: 10
+  },
+  ...customOptions
 });
 
 

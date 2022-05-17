@@ -59,10 +59,10 @@ const eventHandlerProps = {
   /**
    * Called on right-click or two-finger tap
    *
-   * @param {Set|?*} target If {@link Options.listBox} is on: The active row's value, or null if Alt is held.
+   * @param {Set|?*} target
+   * If {@link Options.listBox} is on: The active row's {@link RowValue|value}, or null if Alt is held.
    * If listBox option is off: A Set of all selected values, or an empty Set if Alt is held
    * @see Actions.setActiveIndex
-   * @see Options.valueProperty
    */
   onContextMenu: PropTypes.func,
 
@@ -100,14 +100,13 @@ const eventHandlerProps = {
 const tableProps = {
   ...eventHandlerProps,
   /**
-   * Used to associate a table component with the redux store,
-   * and must match to the {@link Options.namespace} given to the reducer.
-   * Multiple tables can share a namespace.
+   * Used to link a table component with a reducer. Must match to the one passed to {@link createTable}.
+   * Multiple table components can share a namespace.
    */
   namespace: PropTypes.string.isRequired,
 
   /**
-   * Used to differentiate between multiple tables the share the same {@link namespace}.
+   * Used to differentiate between multiple tables within the same {@link namespace}.
    * Optional if this the only table in its namespace
    */
   name: PropTypes.string,

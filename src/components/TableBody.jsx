@@ -3,7 +3,7 @@ import _ from 'lodash'
 import TableChunk, { loadChunk } from './TableChunk'
 import { DragModes } from '../utils/tableUtils'
 import { getRowBounds } from './TableRow'
-import * as selectors from '../selectors'
+import * as selectors from '../selectors/selectors'
 
 // Child of BodyContainer
 function TableBody(props) {

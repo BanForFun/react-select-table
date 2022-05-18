@@ -3,6 +3,7 @@ import produce from 'immer'
 import { types } from '../models/Actions'
 import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
+import * as setUtils from '../utils/setUtils'
 import * as selectors from '../selectors/selectors'
 
 const nextSortOrder = Object.freeze({
@@ -295,7 +296,7 @@ export default function createTable(namespace, options = {}) {
 
   function setActiveValue(value, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
     const callback = isValueValid(value, true)
-      ? item => item.value === value
+      ? item => item.value.toString() === value.toString()
       : () => true
     return setActiveItem(callback, searchForward, searchOrigin)
   }
@@ -338,14 +339,14 @@ export default function createTable(namespace, options = {}) {
 
     let parent = draft.searchIndex
     for (const letter of searchValue)
-      parent = parent[letter] ??= { values: new Set() }
+      parent = (parent[letter] ??= { values: {} })
 
-    parent.values.add(value)
+    setUtils.addItem(parent.values, value)
   }
 
   function _searchIndexRemove(root, itemValue, searchValue, index) {
     if (index === searchValue.length)
-      return root.values.delete(itemValue)
+      return setUtils.removeItem(root.values, itemValue)
 
     const char = searchValue[index]
     const child = root[char]
@@ -354,7 +355,7 @@ export default function createTable(namespace, options = {}) {
     _searchIndexRemove(child, itemValue, searchValue, index + 1)
 
     // If any items end in this character, don't delete
-    if (child.values.size) return
+    if (!_.isEmpty(child.values)) return
 
     // If other words depend on this character, don't delete
     if (_.some(child, (value, key) => key !== 'values')) return
@@ -377,7 +378,7 @@ export default function createTable(namespace, options = {}) {
 
       _addMatches(child, searchPhrase, index + 1)
     } else {
-      for (const value of root.values) {
+      for (const value in root.values) {
         const item = draft.sortedItems[value]
         if (!item.visible) continue
 
@@ -499,16 +500,9 @@ export default function createTable(namespace, options = {}) {
     clearSelection()
 
     for (const value of values) {
-      setValueSelected(value, true)
+      setUtils.addItem(draft.selected, value)
       if (!options.multiSelect) break
     }
-  }
-
-  function setValueSelected(value, selected) {
-    if (!selected)
-      return delete draft.selected[value]
-
-    draft.selected[value] = true
   }
 
   function setRangeSelected(state, selected) {
@@ -517,7 +511,7 @@ export default function createTable(namespace, options = {}) {
 
     let distance = 0
     for (const value of values) {
-      setValueSelected(value, selected)
+      setUtils.toggleItem(draft.selected, value, selected)
       if (distance++ === Math.abs(offset)) break
     }
   }
@@ -573,8 +567,8 @@ export default function createTable(namespace, options = {}) {
           _.forEach(payload.map, (newValue, oldValue) => {
             if (!isValueValid(oldValue)) return
 
-            if (setValueSelected(oldValue, false))
-              setValueSelected(newValue, true)
+            if (setUtils.removeItem(draft.selected, oldValue))
+              setUtils.addItem(draft.selected, newValue)
 
             const { data } = draft.sortedItems[oldValue]
             patched.push(_.set(data, valueProperty, newValue))
@@ -673,7 +667,7 @@ export default function createTable(namespace, options = {}) {
           }
 
           draft.pivotIndex = index
-          setValueSelected(value, selected)
+          setUtils.toggleItem(draft.selected, value, selected)
           break
         }
         case types.CLEAR_SELECTION: {
@@ -694,7 +688,7 @@ export default function createTable(namespace, options = {}) {
           const { map } = payload
           for (const value in map) {
             if (!isValueValid(value)) continue
-            setValueSelected(value, map[value])
+            setUtils.toggleItem(draft.selected, value, map[value])
           }
 
           break

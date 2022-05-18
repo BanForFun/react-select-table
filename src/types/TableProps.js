@@ -100,7 +100,8 @@ const eventHandlerProps = {
 const tableProps = {
   ...eventHandlerProps,
   /**
-   * Used to link a table component with a reducer. Must match to the one passed to {@link createTable}.
+   * Used to link a table component with a reducer.
+   * Must match to the one passed as {@link createTable}
    * Multiple table components can share a namespace.
    */
   namespace: PropTypes.string.isRequired,

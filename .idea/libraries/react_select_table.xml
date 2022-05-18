@@ -2,11 +2,11 @@
   <library name="react-select-table" type="javaScript">
     <properties>
       <sourceFilesUrls>
-        <item url="file://$PROJECT_DIR$/dist" />
+        <item url="file://$PROJECT_DIR$/dist/typings" />
       </sourceFilesUrls>
     </properties>
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/dist" />
+      <root url="file://$PROJECT_DIR$/dist/typings" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

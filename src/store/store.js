@@ -14,16 +14,65 @@ const nextSortOrder = Object.freeze({
 })
 
 /**
+ * The value of the property at {@link Options.valueProperty}
  *
- * @param {string} namespace A unique identifier for each table reducer
+ * @typedef {string|number} RowValue
+ */
+
+/**
+ * @typedef {Object<string, SearchEntry>} SearchEntry
+ * @property {RowValue[]} values The values of the rows that match
+ */
+
+/**
+ * @typedef {object} ItemNode
+ * @property {object} data The contents of the item
+ * @property {RowValue} prev The value of the previous item
+ * @property {RowValue} next The value of the next item
+ * @property {boolean} visible True if the item should be rendered
+ */
+
+/**
+ * @typedef {object} State
+ * @property {Set.<RowValue>} selection A set containing all the selected values
+ * @property {*} filter The item filter
+ * @property {Map.<string, boolean>} sortAscending A map with property paths as keys, and true for ascending order or false for descending, as values
+ * @property {boolean} isLoading When true, a loading indicator is displayed
+ * @property {number} pageSize The maximum number of items in a page, 0 is pagination is disabled
+ * @property {*} error When truthy, an error message is displayed
+ * @property {SearchEntry} searchIndex A {@link https://en.wikipedia.org/wiki/Trie|trie} made from the value of {@link Options.searchProperty} of each row after being parsed by {@link Options.searchPhraseParser}
+ * @property {string} searchPhrase The search phrase after being parsed by {@link Options.searchPhraseParser}
+ * @property {RowValue[]} matches The values of the rows that matched the search phrase, sorted in the order they appear
+ * @property {number} matchIndex The currently highlighted match index
+ * @property {Object<RowValue, ItemNode>} sortedItems A {@link https://en.wikipedia.org/wiki/Doubly_linked_list|doubly linked list} of all items, sorted based on {@link sortAscending}
+ * @property {RowValue} headValue The head of {@link sortedItems}
+ * @property {RowValue} tailValue The tail of {@link sortedItems}
+ * @property {RowValue[]} rowValues The values of the items to be displayed, filtered and sorted
+ * @property {number} visibleItemCount The number of nodes inside {@link sortedItems} with visible being true
+ * @property {number} activeIndex The index of the active row inside {@link rowValues}
+ * @property {number} pivotIndex The index of the pivot row inside {@link rowValues}
+ */
+
+/**
+ * Takes the current state and an action, and returns the next state
+ *
+ * @callback Reducer
+ * @param {State} state
+ * @param {import("../models/Actions").Actions} action
+ * @returns {State}
+ */
+
+/**
+ * Returns a table reducer
+ *
+ * @param {string} namespace A unique identifier for the table reducer
  * @param {import('../utils/tableUtils').Options} options The reducer options
- * @returns {object} The next state
+ * @returns {Reducer} The table reducer
  */
 export default function createTable(namespace, options = {}) {
-  let draft
-
   setOptions(namespace, options)
 
+  let draft
   const {
     getActiveValue,
     getActiveRowIndex,
@@ -58,7 +107,7 @@ export default function createTable(namespace, options = {}) {
     visibleItemCount: 0,
     activeIndex: 0,
     pivotIndex: 0,
-    resetPivot: false,
+    // resetPivot: false,
 
     ...options.initState
   }
@@ -602,7 +651,9 @@ export default function createTable(namespace, options = {}) {
           const { index } = payload
           if (draft.activeIndex === index) break
           if (!setActiveIndex(index)) break
-          draft.resetPivot = true
+
+          draft.pivotIndex = draft.activeIndex
+          // draft.resetPivot = true
           break
         }
         case types.SELECT: {
@@ -610,10 +661,10 @@ export default function createTable(namespace, options = {}) {
 
           if (!setActiveIndex(index)) break
 
-          if (draft.resetPivot) {
-            draft.pivotIndex = state.activeIndex
-            draft.resetPivot = false
-          }
+          // if (draft.resetPivot) {
+          //   draft.pivotIndex = state.activeIndex
+          //   draft.resetPivot = false
+          // }
 
           const value = getActiveValue()
           const selected = !addToPrev || !draft.selection.has(value)
@@ -644,10 +695,9 @@ export default function createTable(namespace, options = {}) {
 
           // Pivot index
           const { pivotIndex } = payload
-          if (isIndexValid(pivotIndex)) {
+          if (isIndexValid(pivotIndex))
             draft.pivotIndex = pivotIndex
-            draft.resetPivot = false
-          }
+            // draft.resetPivot = false
 
           // Selection
           const { map } = payload

@@ -44,7 +44,7 @@ function ResizingContainer(props) {
 
   const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
   const rowCount = hooks.useSelector(s => s.rowValues.length)
-  const noSelection = hooks.useSelector(s => !s.selection.size)
+  const noSelection = hooks.useSelector(s => _.isEmpty(s.selected))
 
   const getSelected = hooks.useSelectorGetter(selectors.getSelected)
 

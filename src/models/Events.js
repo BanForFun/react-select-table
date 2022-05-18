@@ -1,10 +1,16 @@
 import * as selectors from '../selectors/selectors'
+import _ from 'lodash'
 
-export default function Events(options, handlers) {
-  const getSelectionArg = (state) =>
-    options.multiSelect
-      ? new Set(state.selection) // Make a copy so the handler can't modify the state
-      : state.selection.values().next().value ?? null
+export default function Events(options, handlers, utils) {
+  const getSelectionArg = (state) => {
+    const getOriginalValue = value =>
+      utils.getItemValue(state.sortedItems[value].data)
+
+    if (options.multiSelect)
+      return new Set(Object.keys(state.selected).map(getOriginalValue))
+
+    return getOriginalValue(_.findKey(state.selected)) ?? null
+  }
 
   const parseSelectedValue = (value) => {
     if (!options.multiSelect) return value

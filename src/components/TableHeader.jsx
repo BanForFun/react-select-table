@@ -15,8 +15,7 @@ function TableHeader({
   showPriority,
   isResizing,
   isResizable,
-  scrollingContainerRef,
-  utils: { options }
+  scrollingContainerRef
 }) {
   const resizerHeight = useMemo(() =>
     isResizing ? scrollingContainerRef.current.clientHeight : undefined,
@@ -24,8 +23,8 @@ function TableHeader({
 
   const handleTitleMouseDown = useCallback(e => {
     if (e.button !== 0 || !path) return
-    actions.sortItems(path, options.multiSort && e.shiftKey)
-  }, [path, actions, options])
+    actions.sortItems(path, e.shiftKey)
+  }, [path, actions])
 
   const handlePointerDown = useCallback(e => {
     if (!e.isPrimary) return

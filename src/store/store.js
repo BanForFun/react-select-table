@@ -70,7 +70,7 @@ const nextSortOrder = Object.freeze({
  * @returns {Reducer} The table reducer
  */
 export default function createTable(namespace, options = {}) {
-  setOptions(namespace, options)
+  const { getItemValue } = setOptions(namespace, options).public
 
   let draft
   const {
@@ -90,9 +90,8 @@ export default function createTable(namespace, options = {}) {
   } = options
 
   const initState = {
-    selection: new Set(),
     filter: null,
-    sortAscending: new Map(),
+    sortAscending: {},
     isLoading: false,
     pageSize: 0,
     error: null,
@@ -107,6 +106,7 @@ export default function createTable(namespace, options = {}) {
     visibleItemCount: 0,
     activeIndex: 0,
     pivotIndex: 0,
+    selected: {},
     // resetPivot: false,
 
     ...options.initState
@@ -126,7 +126,7 @@ export default function createTable(namespace, options = {}) {
     if (!item) return null
     if (checkVisible && !item.visible) return null
 
-    return getDataValue(item.data)
+    return getItemValue(item.data)
   }
 
   //#endregion
@@ -154,8 +154,8 @@ export default function createTable(namespace, options = {}) {
       comparator(_.get(lhs, path), _.get(rhs, path), path)
 
     let factor = 1
-    for (const [path, ascending] of draft.sortAscending) {
-      factor = ascending ? 1 : -1
+    for (const path in draft.sortAscending) {
+      factor = draft.sortAscending[path] ? 1 : -1
 
       const result = compareProperty(options.itemComparator, path) ?? compareProperty(compareAscending, path)
       if (result) return result * factor
@@ -210,10 +210,6 @@ export default function createTable(namespace, options = {}) {
   //#endregion
 
   //#region Querying
-
-  function getDataValue(data) {
-    return _.get(data, valueProperty)
-  }
 
   function * valueIterator(
     onlyVisible = false,
@@ -406,7 +402,7 @@ export default function createTable(namespace, options = {}) {
 
   function addItem(data, prev, next) {
     // Reject if value is null or undefined
-    const value = getDataValue(data)
+    const value = getItemValue(data)
     if (value == null) return null
 
     // Add item
@@ -427,7 +423,7 @@ export default function createTable(namespace, options = {}) {
 
   function addItems(itemData) {
     for (const data of itemData.sort(compareItemData))
-      deleteItem(getDataValue(data), true)
+      deleteItem(getItemValue(data), true)
 
     const values = valueIterator()
     const addedValues = []
@@ -470,7 +466,6 @@ export default function createTable(namespace, options = {}) {
 
     if (toBeReplaced) return
     delete draft.sortedItems[value]
-    draft.selection.delete(value)
   }
 
   function clearItems() {
@@ -484,7 +479,7 @@ export default function createTable(namespace, options = {}) {
       error: null,
       activeIndex: 0,
       pivotIndex: 0,
-      selection: new Set()
+      selected: {}
     })
   }
 
@@ -492,25 +487,27 @@ export default function createTable(namespace, options = {}) {
 
   //#region Selection
 
-  function clearSelection() {
-    draft.selection.clear()
-    draft.pivotIndex = draft.activeIndex
+  function clearSelection(resetPivot = true) {
+    draft.selected = {}
+
+    if (resetPivot)
+      draft.pivotIndex = draft.activeIndex
   }
 
   function setSelection(values) {
     clearSelection()
 
-    if (!options.multiSelect) {
-      draft.selection.add(values[0])
-      return
+    for (const value of values) {
+      setValueSelected(value, true)
+      if (!options.multiSelect) break
     }
-
-    for (const value of values)
-      draft.selection.add(value)
   }
 
   function setValueSelected(value, selected) {
-    draft.selection[selected ? 'add' : 'delete'](value)
+    if (!selected)
+      return delete draft.selected[value]
+
+    draft.selected[value] = true
   }
 
   function setRangeSelected(state, selected) {
@@ -576,9 +573,8 @@ export default function createTable(namespace, options = {}) {
             oldValue = validateValue(oldValue)
             if (oldValue === null) return
 
-            const { selection } = draft
-            if (selection.delete(oldValue))
-              selection.add(newValue)
+            if (setValueSelected(oldValue, false))
+              setValueSelected(newValue, true)
 
             const { data } = draft.sortedItems[oldValue]
             patched.push(_.set(data, valueProperty, newValue))
@@ -593,7 +589,7 @@ export default function createTable(namespace, options = {}) {
           const { patches } = payload
 
           for (const patch of patches) {
-            const value = getDataValue(patch)
+            const value = getItemValue(patch)
             _.defaultsDeep(patch, draft.sortedItems[value].data)
           }
 
@@ -602,19 +598,14 @@ export default function createTable(namespace, options = {}) {
         }
         case types.SORT_ITEMS: {
           const { path } = payload
-          const { sortAscending } = draft
 
-          let ascending = nextSortOrder[sortAscending.get(path)]
-
-          if (!payload.addToPrev) {
-            sortAscending.clear()
-            ascending ??= true
-          }
-
-          if (ascending === undefined)
-            sortAscending.delete(path)
+          const ascending = nextSortOrder[draft.sortAscending[path]]
+          if (!payload.addToPrev)
+            draft.sortAscending = { [path]: ascending ?? true }
+          else if (ascending != null)
+            draft.sortAscending[path] = ascending
           else
-            sortAscending.set(path, ascending)
+            delete draft.sortAscending[path]
 
           sortNative()
           break
@@ -667,10 +658,10 @@ export default function createTable(namespace, options = {}) {
           // }
 
           const value = getActiveValue()
-          const selected = !addToPrev || !draft.selection.has(value)
+          const selected = !addToPrev || !draft.selected[value]
 
           if (!addToPrev || !options.multiSelect)
-            draft.selection.clear()
+            clearSelection(false)
 
           if (payload.isRange && options.multiSelect) {
             if (addToPrev)

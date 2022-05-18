@@ -26,6 +26,6 @@ export const getActiveValue = (state) =>
   state.rowValues[getActiveRowIndex(state)]
 
 export const getSelected = (state, rowIndex) =>
-  state.selection.has(state.rowValues[rowIndex])
+  !!state.selected[state.rowValues[rowIndex]]
 
 //#endregion

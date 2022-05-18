@@ -1,19 +1,6 @@
 import { types } from '../models/Actions'
 import { tableUtils } from '../utils/tableUtils'
-
-function compareSets(a, b) {
-  // Compare references
-  if (a === b) return true
-
-  // Compare length
-  if (a.size !== b.size) return false
-
-  // Compare items
-  for (const entry of a)
-    if (!b.has(entry)) return false
-
-  return true
-}
+import _ from 'lodash'
 
 const eventMiddleware = (store) => (next) => (action) => {
   const { type, namespace, payload } = action
@@ -43,7 +30,7 @@ const eventMiddleware = (store) => (next) => (action) => {
       const newState = getState()
 
       // Raise onSelectionChange
-      if (!compareSets(prevState.selection, newState.selection))
+      if (!_.isEqual(prevState.selected, newState.selected))
         events.selectionChanged(newState)
 
       // Raise onContextMenu

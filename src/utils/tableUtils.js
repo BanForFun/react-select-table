@@ -86,14 +86,19 @@ export function setDefaultTableOptions(optionsPatch) {
 export function setOptions(namespace, options) {
   Object.freeze(_.defaults(options, defaultOptions))
 
-  const getTableState = state =>
-    options.statePath ? _.get(state, options.statePath) : state
+  const utils = {
+    getTableState: state =>
+      options.statePath ? _.get(state, options.statePath) : state,
+
+    getItemValue: itemData =>
+      _.get(itemData, options.valueProperty)
+  }
 
   const actions = new Actions(namespace)
-  const hooks = new Hooks(options, actions, getTableState)
+  const hooks = new Hooks(options, actions, utils)
 
   const eventHandlers = { }
-  const events = new Events(options, eventHandlers)
+  const events = new Events(options, eventHandlers, utils)
 
   return (tableUtils[namespace] = {
     eventHandlers,
@@ -102,7 +107,7 @@ export function setOptions(namespace, options) {
       hooks,
       options,
       events,
-      getTableState
+      ...utils
     }
   })
 }

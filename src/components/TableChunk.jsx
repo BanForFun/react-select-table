@@ -1,5 +1,4 @@
 import React, { useContext, useLayoutEffect, useMemo, useRef } from 'react'
-import _ from 'lodash'
 import TableRow from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import ColGroup from './ColGroup'
@@ -13,7 +12,7 @@ export function loadChunk(chunk) {
 
 function TableChunk(props) {
   const {
-    utils: { options, hooks },
+    utils: { options, hooks, getItemValue },
     getRowClassName,
     rows,
     index,
@@ -30,7 +29,7 @@ function TableChunk(props) {
   } = props
 
   const chunkIndexOffset = index * options.chunkSize
-  const selection = hooks.useSelector(s => s.selection)
+  const selected = hooks.useSelector(s => s.selected)
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
   const { widths, resizingIndex } = useContext(ColumnGroupContext)
@@ -55,7 +54,7 @@ function TableChunk(props) {
   }, [resizingIndex])
 
   const renderRow = (rowData, rowIndex) => {
-    const rowValue = _.get(rowData, options.valueProperty)
+    const rowValue = getItemValue(rowData)
     rowIndex += chunkIndexOffset
 
     const rowProps = {
@@ -65,7 +64,7 @@ function TableChunk(props) {
       value: rowValue,
       index: rowIndex,
       active: rowIndex === activeRowIndex,
-      selected: selection.has(rowValue),
+      selected: !!selected[rowValue],
       className: getRowClassName(rowData)
     }
 

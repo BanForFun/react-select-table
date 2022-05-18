@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback, useContext } from 'react'
+import _ from 'lodash'
 import TableHeader from './TableHeader'
 import { GestureTargets } from '../utils/tableUtils'
 import ColumnGroupContext from '../context/ColumnGroup'
@@ -23,13 +24,12 @@ function TableHead(props) {
   const sortAscending = hooks.useSelector(s => s.sortAscending)
 
   const sorting = useMemo(() => {
-    const orders = {}
+    let priority = 0
 
-    let index = 0
-    for (const [path, ascending] of sortAscending)
-      orders[path] = { ascending, priority: ++index }
-
-    return { orders, maxIndex: index }
+    return {
+      orders: _.mapValues(sortAscending, ascending => ({ ascending, priority: ++priority })),
+      maxPriority: priority
+    }
   }, [sortAscending])
 
   const { widths, resizingIndex } = useContext(ColumnGroupContext)
@@ -48,7 +48,7 @@ function TableHead(props) {
       isResizing: resizingIndex === index,
       sortAscending: sortOrder?.ascending,
       sortPriority: sortOrder?.priority,
-      showPriority: sorting.maxIndex > 1
+      showPriority: sorting.maxPriority > 1
     }
   }
 

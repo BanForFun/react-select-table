@@ -31,7 +31,7 @@ import { eventHandlersSymbol } from '../constants/symbols'
  *
  * @typedef {object} Options
  * @property {ItemPredicate} [itemPredicate] Takes a row and the item filter, and returns true if the row should be visible
- * @property {ItemComparator} [itemComparator] Takes two rows and the property path based on which they should be compared, and returns: <li> 1, if first row is larger than the second <li> 0, if rows are equal <li> -1, if first row is smaller than the second <li> null, to fall back to the default lodash comparator
+ * @property {ItemComparator} [itemComparator] Takes the value of a property from two rows, and the path of that property, and returns: <li> 1, if first is larger than the second <li> 0, if values are equal <li> -1, if first is smaller than the second <li> null, to fall back to the default lodash comparator
  * @property {SearchPhraseParser} [searchPhraseParser] Parses the search phrase typed by the user, and also the row property for it to be matched against.
  * @property {string} [searchProperty] The path of a row property that the search phrase is matched against
  * @property {boolean} [multiSelect] Allow multiple rows to be selected simultaneously

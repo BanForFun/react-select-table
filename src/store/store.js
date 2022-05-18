@@ -1,11 +1,9 @@
 import _ from 'lodash'
-import produce, { enableMapSet } from 'immer'
+import produce from 'immer'
 import { types } from '../models/Actions'
 import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
 import * as selectors from '../selectors/selectors'
-
-enableMapSet()
 
 const nextSortOrder = Object.freeze({
   undefined: true,
@@ -116,7 +114,7 @@ export default function createTable(namespace, options = {}) {
     selected: {},
     // resetPivot: false,
 
-    ...savedState.initState
+    ...savedState.initialState
   }
 
   //#region Validation
@@ -235,10 +233,10 @@ export default function createTable(namespace, options = {}) {
   //#region Pagination
 
   const getPageBoundary = forward =>
-    forward ? draft.pageSize - 1 : 0
+    forward ? getPageSize() - 1 : 0
 
   const resolveSearchOrigin = (origin, forward) => {
-    let rowIndex = 0
+    let rowIndex
     switch (origin) {
       case searchOrigins.PageBoundary:
         rowIndex = getPageBoundary(forward)
@@ -246,8 +244,11 @@ export default function createTable(namespace, options = {}) {
       case searchOrigins.ActiveRow:
         rowIndex = getActiveRowIndex()
         break
-      default:
-        return { index: forward ? 0 : draft.visibleItemCount - 1 }
+      default: return {
+        index: forward ? 0 : draft.visibleItemCount - 1,
+        value: undefined,
+        isVisible: false
+      }
     }
 
     return {
@@ -278,18 +279,18 @@ export default function createTable(namespace, options = {}) {
       }
 
       index += searchForward ? 1 : -1
-
       if (rowIndex !== pageBoundary) continue
       if (setActive != null) break
 
       rowValues = []
     }
 
-    if (setActive == null) return false
+    if (setActive != null) {
+      draft.activeIndex = setActive
+      draft.rowValues = rowValues
+    }
 
-    draft.activeIndex = setActive
-    draft.rowValues = rowValues
-    return true
+    return setActive
   }
 
   function setActiveValue(value, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
@@ -299,14 +300,14 @@ export default function createTable(namespace, options = {}) {
     return setActiveItem(callback, searchForward, searchOrigin)
   }
 
-  function setActiveIndex(index, fromStart = false) {
+  function setActiveIndex(index, pageInvalid = false) {
     if (!isIndexValid(index)) return false
 
-    const currentPage = fromStart ? NaN : getPageIndex()
+    const currentPage = pageInvalid ? NaN : getPageIndex()
     const targetPage = getItemPageIndex(draft, index)
     if (currentPage === targetPage) {
       draft.activeIndex = index
-      return true
+      return getActiveValue(draft)
     }
 
     const afterCurrent = targetPage > currentPage
@@ -640,7 +641,7 @@ export default function createTable(namespace, options = {}) {
         case types.SET_ACTIVE: {
           const { index } = payload
           if (draft.activeIndex === index) break
-          if (!setActiveIndex(index)) break
+          if (setActiveIndex(index) == null) break
 
           draft.pivotIndex = draft.activeIndex
           // draft.resetPivot = true
@@ -649,14 +650,14 @@ export default function createTable(namespace, options = {}) {
         case types.SELECT: {
           const { addToPrev, index } = payload
 
-          if (!setActiveIndex(index)) break
+          const value = setActiveIndex(index)
+          if (value == null) break
 
           // if (draft.resetPivot) {
           //   draft.pivotIndex = state.activeIndex
           //   draft.resetPivot = false
           // }
 
-          const value = getActiveValue()
           const selected = !addToPrev || !draft.selected[value]
 
           if (!addToPrev || !options.multiSelect)

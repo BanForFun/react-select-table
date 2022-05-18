@@ -1,193 +1,205 @@
 .rst-container {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 
-    table {
-        width: 100%;
-        table-layout: fixed;
-        border-collapse: collapse;
-    }
+  table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
 
-    th, td {
-        box-sizing: border-box;
-    }
+  th, td {
+    box-sizing: border-box;
+  }
 }
 
 .rst-search {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-auto-flow: column;
-    align-items: center;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-flow: column;
+  align-items: center;
 
-    .rst-separator {
-        align-self: stretch;
-    }
+  .rst-separator {
+    align-self: stretch;
+  }
 }
 
 .rst-searchContainer {
-    position: absolute;
-    z-index: 2;
-    transition: transform 0.25s;
-    transform: translateY(-100%);
+  position: absolute;
+  z-index: 2;
+  transition: transform 0.25s;
+  transform: translateY(-100%);
 
-    &.is-visible {
-        transform: translateY(0);
-    }
+  &.rst-visible {
+    transform: translateY(0);
+  }
 }
 
 .rst-scrollingContainer {
-    position: relative;
-    flex: auto;
-    overflow: auto;
-    touch-action: pan-x pan-y;
+  position: relative;
+  flex: auto;
+  overflow: auto;
+  touch-action: pan-x pan-y;
 
-    &[data-dragmode=resize] {
-        cursor: col-resize;
-        user-select: none;
+  &[data-dragmode=resize] {
+    cursor: col-resize;
+    user-select: none;
 
-        .rst-body {
-            max-width: 0;
-            overflow: visible;
-            position: sticky;
-            left: calc(var(--spacer-left) * -1);
-        }
-
-        .rst-visible .rst-spacer {
-            width: 100vw;
-        }
+    .rst-body {
+      max-width: 0;
+      overflow: visible;
+      position: sticky;
+      left: calc(var(--spacer-left) * -1);
     }
 
-    &[data-dragmode=select] {
-        cursor: default;
+    .rst-visible .rst-spacer {
+      width: 100vw;
     }
+  }
+
+  &[data-dragmode=select] {
+    cursor: default;
+  }
+}
+
+.rst-showPlaceholder {
+  .rst-resizingContainer {
+    min-height: 0;
+  }
+
+  .rst-body {
+    display: none;
+  }
 }
 
 .rst-resizingContainer {
-    box-sizing: content-box;
-    min-height: 100%;
-    contain: paint;
+  box-sizing: content-box;
+  min-height: 100%;
+  contain: paint;
+}
+
+.rst-placeholder {
+  box-sizing: border-box;
+  width: 100%;
+  left: -1px;
+  margin-left: -1px;
+  position: sticky;
 }
 
 .rst-head {
-    position: sticky;
-    top: 0;
-    margin: 0;
-    z-index: 1;
+  position: sticky;
+  top: 0;
+  margin: 0;
+  z-index: 1;
 
-    th {
-        overflow: visible;
-        position: relative;
+  th {
+    overflow: visible;
+    position: relative;
+  }
+
+  .rst-spacer {
+    .rst-columnResizer {
+      left: unset;
+      right: 0;
+      z-index: 1;
+      transform: none;
     }
 
-    .rst-spacer {
-        .rst-columnResizer {
-            left: unset;
-            right: 0;
-            z-index: 1;
-            transform: none;
-        }
-
-        //Hide column resizer when not overflowing
-        &::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 2; //Above column resizer
-        }
+    //Hide column resizer when not overflowing
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2; //Above column resizer
     }
+  }
 }
 
 .rst-body {
-    position: relative;
+  position: relative;
 }
 
 .rst-chunk {
-    position: relative;
-    contain: layout;
+  position: relative;
+  contain: layout;
+
+  .rst-rows {
+    display: none;
+  }
+
+  &.rst-visible {
+    contain: none;
+    height: auto !important;
 
     .rst-rows {
-        display: none;
+      display: revert;
     }
-
-    &.rst-visible {
-        contain: none;
-        height: auto !important;
-
-        .rst-rows {
-            display: revert;
-        }
-    }
+  }
 }
 
 .rst-sortable .rst-headerText {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .rst-headerText {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
 }
 
 .rst-headerContent {
-    display: flex;
-    align-items: baseline;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.rst-bodyPlaceholder {
-    width: 100%;
-    height: 100%;
-    position: absolute;
+  display: flex;
+  align-items: baseline;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .rst-columnResizer {
-    position: absolute;
-    top: 0;
-    left: 100%;
-    cursor: col-resize;
-    touch-action: none;
-    height: 100%;
-    z-index: 3;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  cursor: col-resize;
+  touch-action: none;
+  height: 100%;
+  z-index: 3;
 }
 
 .rst-dragSelection {
-    position: absolute;
-    pointer-events: none;
-    box-sizing: border-box;
-    contain: strict;
+  position: absolute;
+  pointer-events: none;
+  box-sizing: border-box;
+  contain: strict;
 }
 
 .rst-icon {
-    height: 1rem;
-    display: inline-flex;
-    align-items: center;
-    fill: currentColor;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  fill: currentColor;
 
-    svg {
-        width: 1rem;
-    }
+  svg {
+    width: 1rem;
+  }
 }
 
 .rst-paginationContainer {
-    flex: none;
+  flex: none;
 }
 
 .rst-pagination {
-    display: grid;
-    justify-content: start;
-    grid-auto-flow: column;
+  display: grid;
+  justify-content: start;
+  grid-auto-flow: column;
 }
 
 .rst-page {
-    text-align: center;
-    box-sizing: content-box;
-    color: inherit;
-    display: block;
+  text-align: center;
+  box-sizing: content-box;
+  color: inherit;
+  display: block;
 }

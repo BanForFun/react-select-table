@@ -24,7 +24,6 @@ function ResizingContainer(props) {
     getRowClassName,
     selectionRectRef,
     tableBodyRef,
-    placeholder,
     getChunkRow,
     chunkIntersectionObserver,
 
@@ -170,8 +169,7 @@ function ResizingContainer(props) {
 
     chunkIntersectionObserver,
     getRowClassName,
-    getChunkRow,
-    placeholder
+    getChunkRow
   }
 
   const { containerWidth, containerMinWidth } = useContext(ColumnGroupContext)
@@ -179,7 +177,10 @@ function ResizingContainer(props) {
   return <div
     className='rst-resizingContainer'
     ref={resizingContainerRef}
-    style={{ width: containerWidth, minWidth: containerMinWidth }}
+    style={{
+      width: containerWidth,
+      minWidth: containerMinWidth
+    }}
     onPointerDownCapture={() => setGestureTarget(GestureTargets.BelowItems)}
     onTouchStart={e => targetTouchStart(e, false)}
     onPointerDown={handlePointerDown}

@@ -43,12 +43,11 @@ function Root(props) {
   const getSelected = hooks.useSelectorGetter(selectors.getSelected)
 
   const raiseItemsOpen = hooks.useSelectorGetter(events.itemsOpen)
-  const raiseContextMenu = hooks.useSelectorGetter(events.contextMenu)
   const raiseKeyDown = hooks.useSelectorGetter(events.keyDown)
 
   const isEmpty = !itemCount
 
-  const placeholderContent = useMemo(() => {
+  const placeholder = useMemo(() => {
     if (isLoading)
       return loadingIndicator
 
@@ -63,16 +62,6 @@ function Root(props) {
     isLoading, error, isEmpty,
     loadingIndicator, emptyPlaceholder, errorComponent
   ])
-
-  const placeholder = useMemo(() => {
-    if (!placeholderContent) return
-
-    const props = { className: 'rst-bodyPlaceholder' }
-    if (isEmpty)
-      props.onContextMenu = () => raiseContextMenu()
-
-    return <div {...props}>{placeholderContent}</div>
-  }, [placeholderContent, isEmpty, raiseContextMenu])
 
   const placeholderShown = !!placeholder
 

@@ -8,6 +8,7 @@ import ColumnGroupContext from '../context/ColumnGroup'
 import { VisibleChunkClass } from './TableChunk'
 import * as selectors from '../selectors/selectors'
 import { DragModes } from '../constants/enums'
+import classNames from 'classnames'
 
 const defaultColumnRenderer = value => value
 
@@ -58,6 +59,7 @@ function ScrollingContainer(props) {
     columnResizeScrollFactor,
     columns: unorderedColumns,
     columnOrder,
+    placeholder,
     ...resizingProps
   } = props
 
@@ -572,8 +574,13 @@ function ScrollingContainer(props) {
     getChunkRow
   })
 
+  const className = classNames({
+    'rst-scrollingContainer': true,
+    'rst-showPlaceholder': !!placeholder
+  })
+
   return <div
-    className='rst-scrollingContainer'
+    className={className}
     ref={scrollingContainerRef}
     data-dragmode={dragMode}
     onScroll={handleScroll}
@@ -584,6 +591,7 @@ function ScrollingContainer(props) {
     <ColumnGroupContext.Provider value={columnGroup}>
       <ResizingContainer {...resizingProps} />
     </ColumnGroupContext.Provider>
+    {placeholder && <div className="rst-placeholder">{placeholder}</div>}
   </div>
 }
 

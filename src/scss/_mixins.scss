@@ -1,53 +1,53 @@
 @mixin rst-set($module, $property, $value) {
-    $name: rst-get-name($module, $property);
-    #{$name}: #{$value};
+  $name: rst-get-name($module, $property);
+  #{$name}: #{$value};
 }
 
 @mixin rst-load-config($config) {
-    $property-separator: ".";
-    $state-separator: "_";
-    $module-separator: "-";
+  $property-separator: ".";
+  $state-separator: "_";
+  $module-separator: "-";
 
-    @each $name, $value in $config {
-        $parts: rst-split($name, $property-separator);
+  @each $name, $value in $config {
+    $parts: rst-split($name, $property-separator);
 
-        $module: nth($parts, 1);
-        $property: nth($parts, 2);
+    $module: nth($parts, 1);
+    $property: nth($parts, 2);
 
-        $module_parts: rst-split($module, $state-separator);
-        $module: rst-join($module_parts, $module-separator);
+    $module_parts: rst-split($module, $state-separator);
+    $module: rst-join($module_parts, $module-separator);
 
-        @if $value != null {
-            @if index($property, "border") == 1 and length($value) == 3 {
-                //Auto generate properties from border, to be used as a fallback for more specific values
-                @include rst-set($module, $property + "-color", nth($value, 3));
-                @include rst-set($module, $property + "-style", nth($value, 2));
-                @include rst-set($module, $property + "-width", nth($value, 1));
-            }
-        } @else if length($module_parts) >= 2 {
-            //Fallback to less specific value
-            $parent_module: rst-join(set-nth($module_parts, -1, null), $module-separator);
-            $value: rst-get($parent-module, $property);
-        } @else {
-            $value: initial;
-        }
-
-        @include rst-set($module, $property, $value);
+    @if $value != null {
+      @if index($property, "border") == 1 and length($value) == 3 {
+        //Auto generate properties from border, to be used as a fallback for more specific values
+        @include rst-set($module, $property + "-color", nth($value, 3));
+        @include rst-set($module, $property + "-style", nth($value, 2));
+        @include rst-set($module, $property + "-width", nth($value, 1));
+      }
+    } @else if length($module_parts) >= 2 {
+      //Fallback to less specific value
+      $parent_module: rst-join(set-nth($module_parts, -1, null), $module-separator);
+      $value: rst-get($parent-module, $property);
+    } @else {
+      $value: initial;
     }
+
+    @include rst-set($module, $property, $value);
+  }
 }
 
 @mixin rst-apply-properties($module, $properties...) {
-    @each $property in $properties {
-        $value: rst-get($module, $property);
-        #{$property}: $value;
-    }
+  @each $property in $properties {
+    $value: rst-get($module, $property);
+    #{$property}: $value;
+  }
 }
 
 @mixin rst-border-sides($sides) {
-    $all-sides: top, left, right, bottom;
-    @each $side in $all-sides {
-        @if index($sides, $side) == null {
-            border-#{$side}: none;
-        }
+  $all-sides: top, left, right, bottom;
+  @each $side in $all-sides {
+    @if index($sides, $side) == null {
+      border-#{$side}: none;
     }
+  }
 }

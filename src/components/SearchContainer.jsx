@@ -46,7 +46,7 @@ function SearchContainer(props) {
 
   const className = classNames({
     'rst-searchContainer': true,
-    'is-visible': isVisible
+    'rst-visible': isVisible
   })
 
   return <div className={className}>

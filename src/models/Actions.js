@@ -33,9 +33,7 @@ export const types = {
 }
 
 // Set action type strings
-Object.freeze(
-  _.each(types, (type, name) => (types[name] = `RST_${name}`))
-)
+Object.freeze(_.each(types, (type, name) => (types[name] = `RST_${name}`)))
 
 /**
  * A table action
@@ -48,10 +46,8 @@ Object.freeze(
  */
 
 /**
- * All table actions
- *
  * @class Actions
- * @param {string} namespace The namespace of the table that the actions target
+ * @param {string} namespace The namespace passed to {@link createTable}
  */
 export default function Actions(namespace) {
   const getAction = (type, payload = {}, settings = null) => ({

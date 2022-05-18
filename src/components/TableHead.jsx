@@ -1,8 +1,8 @@
 import React, { useMemo, useCallback, useContext } from 'react'
 import _ from 'lodash'
 import TableHeader from './TableHeader'
-import { GestureTargets } from '../utils/tableUtils'
 import ColumnGroupContext from '../context/ColumnGroup'
+import { GestureTargets } from '../constants/enums'
 
 // Child of HeadContainer
 function TableHead(props) {

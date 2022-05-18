@@ -1,10 +1,10 @@
 import React, { useRef, useContext, useCallback } from 'react'
 import _ from 'lodash'
-import { GestureTargets } from '../utils/tableUtils'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
 import * as selectors from '../selectors/selectors'
+import { GestureTargets } from '../constants/enums'
 
 // Child of ScrollingContainer
 // Handles gestures

@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import produce, { enableMapSet } from 'immer'
 import { types } from '../models/Actions'
-import { setOptions } from '../utils/tableUtils'
+import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
 import * as selectors from '../selectors/selectors'
 
@@ -11,6 +11,12 @@ const nextSortOrder = Object.freeze({
   undefined: true,
   true: false,
   false: undefined
+})
+
+const searchOrigins = Object.freeze({
+  TableBoundary: 'table',
+  PageBoundary: 'page',
+  ActiveRow: 'active'
 })
 
 /**
@@ -34,9 +40,9 @@ const nextSortOrder = Object.freeze({
 
 /**
  * @typedef {object} State
- * @property {Set.<RowValue>} selection A set containing all the selected values
+ * @property {Object<string, boolean>} selection An object with all the selected values as keys, and true as values
  * @property {*} filter The item filter
- * @property {Map.<string, boolean>} sortAscending A map with property paths as keys, and true for ascending order or false for descending, as values
+ * @property {Object<string, boolean>} sortAscending An object with property paths as keys, and true for ascending order or false for descending, as values
  * @property {boolean} isLoading When true, a loading indicator is displayed
  * @property {number} pageSize The maximum number of items in a page, 0 is pagination is disabled
  * @property {*} error When truthy, an error message is displayed
@@ -44,7 +50,7 @@ const nextSortOrder = Object.freeze({
  * @property {string} searchPhrase The search phrase after being parsed by {@link Options.searchPhraseParser}
  * @property {RowValue[]} matches The values of the rows that matched the search phrase, sorted in the order they appear
  * @property {number} matchIndex The currently highlighted match index
- * @property {Object<RowValue, ItemNode>} sortedItems A {@link https://en.wikipedia.org/wiki/Doubly_linked_list|doubly linked list} of all items, sorted based on {@link sortAscending}
+ * @property {Object<string, ItemNode>} sortedItems A {@link https://en.wikipedia.org/wiki/Doubly_linked_list|doubly linked list} of all items, sorted based on {@link sortAscending}
  * @property {RowValue} headValue The head of {@link sortedItems}
  * @property {RowValue} tailValue The tail of {@link sortedItems}
  * @property {RowValue[]} rowValues The values of the items to be displayed, filtered and sorted
@@ -66,11 +72,11 @@ const nextSortOrder = Object.freeze({
  * Returns a table reducer
  *
  * @param {string} namespace A unique identifier for the table reducer
- * @param {import('../utils/tableUtils').Options} options The reducer options
+ * @param {import('../models/Utils').Options} options The reducer options
  * @returns {Reducer} The table reducer
  */
 export default function createTable(namespace, options = {}) {
-  const { getItemValue } = setOptions(namespace, options).public
+  const { getItemValue } = createTableUtils(namespace, options)
 
   let draft
   const {
@@ -86,7 +92,8 @@ export default function createTable(namespace, options = {}) {
 
   const {
     valueProperty,
-    searchProperty
+    searchProperty,
+    savedState
   } = options
 
   const initState = {
@@ -109,7 +116,7 @@ export default function createTable(namespace, options = {}) {
     selected: {},
     // resetPivot: false,
 
-    ...options.initState
+    ...savedState.initState
   }
 
   //#region Validation
@@ -118,15 +125,13 @@ export default function createTable(namespace, options = {}) {
     return index != null && _.inRange(index, draft.visibleItemCount)
   }
 
-  function validateValue(value, checkVisible = false) {
-    if (value == null) return null
+  function isValueValid(value, checkVisible = false) {
+    if (value == null) return false
 
     const item = draft.sortedItems[value]
+    if (!item) return false
 
-    if (!item) return null
-    if (checkVisible && !item.visible) return null
-
-    return getItemValue(item.data)
+    return !checkVisible || item.visible
   }
 
   //#endregion
@@ -191,7 +196,7 @@ export default function createTable(namespace, options = {}) {
     return compareItemData(lhsData, rhsData)
   }
 
-  function sortNative() {
+  function sortItems() {
     const itemValues = [...valueIterator()].sort(compareItemsByValue)
 
     // eslint-disable-next-line no-undef-init
@@ -214,7 +219,7 @@ export default function createTable(namespace, options = {}) {
   function * valueIterator(
     onlyVisible = false,
     forward = true,
-    originValue = forward ? draft.headValue : draft.tailValue
+    originValue = (forward ? draft.headValue : draft.tailValue)
   ) {
     while (originValue !== undefined) {
       const item = draft.sortedItems[originValue]
@@ -228,12 +233,6 @@ export default function createTable(namespace, options = {}) {
   //#endregion
 
   //#region Pagination
-
-  const searchOrigins = Object.freeze({
-    TableBoundary: 'table',
-    PageBoundary: 'page',
-    ActiveRow: 'active'
-  })
 
   const getPageBoundary = forward =>
     forward ? draft.pageSize - 1 : 0
@@ -294,8 +293,9 @@ export default function createTable(namespace, options = {}) {
   }
 
   function setActiveValue(value, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
-    value = validateValue(value, true)
-    const callback = item => item.value === (value ?? item.value)
+    const callback = isValueValid(value, true)
+      ? item => item.value === value
+      : () => true
     return setActiveItem(callback, searchForward, searchOrigin)
   }
 
@@ -570,8 +570,7 @@ export default function createTable(namespace, options = {}) {
           const patched = []
 
           _.forEach(payload.map, (newValue, oldValue) => {
-            oldValue = validateValue(oldValue)
-            if (oldValue === null) return
+            if (!isValueValid(oldValue)) return
 
             if (setValueSelected(oldValue, false))
               setValueSelected(newValue, true)
@@ -607,7 +606,7 @@ export default function createTable(namespace, options = {}) {
           else
             delete draft.sortAscending[path]
 
-          sortNative()
+          sortItems()
           break
         }
         case types.SET_ITEM_FILTER: {
@@ -692,10 +691,8 @@ export default function createTable(namespace, options = {}) {
 
           // Selection
           const { map } = payload
-          for (let value in map) {
-            value = validateValue(value, true)
-            if (value === null) continue
-
+          for (const value in map) {
+            if (!isValueValid(value)) continue
             setValueSelected(value, map[value])
           }
 

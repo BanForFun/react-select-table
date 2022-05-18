@@ -7,9 +7,9 @@ import {
 } from 'react-redux'
 import { bindActionCreators } from 'redux'
 
-export default function Hooks(options, actions, utils) {
+export default function Hooks(utils) {
   // Create redux hooks
-  const { context } = options
+  const { context } = utils.options
   const _useSelector = createSelectorHook(context)
   const _useDispatch = createDispatchHook(context)
   const _useStore = createStoreHook(context)
@@ -27,6 +27,6 @@ export default function Hooks(options, actions, utils) {
 
   this.useActions = () => {
     const dispatch = _useDispatch()
-    return useMemo(() => bindActionCreators(actions, dispatch), [dispatch])
+    return useMemo(() => bindActionCreators(utils.actions, dispatch), [dispatch])
   }
 }

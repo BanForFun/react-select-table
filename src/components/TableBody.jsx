@@ -1,9 +1,9 @@
 import React, { useCallback, useLayoutEffect, useMemo } from 'react'
 import _ from 'lodash'
 import TableChunk, { loadChunk } from './TableChunk'
-import { DragModes } from '../utils/tableUtils'
 import { getRowBounds } from './TableRow'
 import * as selectors from '../selectors/selectors'
+import { DragModes } from '../constants/enums'
 
 // Child of BodyContainer
 function TableBody(props) {

@@ -1,12 +1,13 @@
 import _ from 'lodash'
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import ResizingContainer from './ResizingContainer'
-import { DragModes, pc, px } from '../utils/tableUtils'
+import { pc, px } from '../utils/tableUtils'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { VisibleChunkClass } from './TableChunk'
 import * as selectors from '../selectors/selectors'
+import { DragModes } from '../constants/enums'
 
 const defaultColumnRenderer = value => value
 

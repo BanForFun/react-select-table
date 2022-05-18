@@ -1,7 +1,10 @@
 import * as selectors from '../selectors/selectors'
 import _ from 'lodash'
+import { eventHandlersSymbol } from '../constants/symbols'
 
-export default function Events(options, handlers, utils) {
+export default function Events(utils) {
+  const { options, [eventHandlersSymbol]: handlers } = utils
+
   const getSelectionArg = (state) => {
     const getOriginalValue = value =>
       utils.getItemValue(state.sortedItems[value].data)

@@ -1,5 +1,5 @@
 import { types } from '../models/Actions'
-import { tableUtils } from '../utils/tableUtils'
+import { getTableUtils } from '../utils/tableUtils'
 import _ from 'lodash'
 
 const eventMiddleware = (store) => (next) => (action) => {
@@ -21,7 +21,7 @@ const eventMiddleware = (store) => (next) => (action) => {
     case types.SET_ERROR:
     case types.START_LOADING: {
       // Get table events and selectors
-      const { events, getTableState } = tableUtils[namespace].public
+      const { events, getTableState } = getTableUtils(namespace)
       const getState = () => getTableState(store.getState())
 
       // Get previous and current state

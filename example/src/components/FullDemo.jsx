@@ -43,7 +43,8 @@ const columns = [
     }
 ];
 
-const { actions, options } = getTableUtils(tableNamespace);
+const utils = getTableUtils(tableNamespace);
+const { actions, options, hooks } = utils
 document.title = `react-select-table (${options.title})`;
 
 const buttonActions = {
@@ -81,6 +82,8 @@ function FullDemo() {
     useEffect(() => {
         dispatch(actions.setItems(comments));
     }, [dispatch]);
+
+    const getSaveState = hooks.useSelectorGetter(utils.getSaveState)
 
     const handleButtonClick = useCallback(e => {
         const action = buttonActions[e.target.innerText];
@@ -120,6 +123,7 @@ function FullDemo() {
                 <button key={`action_${text}`}
                         onClick={handleButtonClick}
                 >{text}</button>)}
+          <button onClick={() => console.log(getSaveState())}>Print save state</button>
         </div>
     </>
 }

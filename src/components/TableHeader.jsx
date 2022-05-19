@@ -15,11 +15,12 @@ function TableHeader({
   showPriority,
   isResizing,
   isResizable,
+  showPlaceholder,
   scrollingContainerRef
 }) {
   const resizerHeight = useMemo(() =>
-    isResizing ? scrollingContainerRef.current.clientHeight : undefined,
-  [scrollingContainerRef, isResizing])
+    (isResizing && !showPlaceholder) ? scrollingContainerRef.current.clientHeight : undefined,
+  [scrollingContainerRef, isResizing, showPlaceholder])
 
   const handleTitleMouseDown = useCallback(e => {
     if (e.button !== 0 || !path) return

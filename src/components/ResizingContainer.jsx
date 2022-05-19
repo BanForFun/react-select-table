@@ -156,7 +156,8 @@ function ResizingContainer(props) {
 
   Object.assign(commonProps, {
     setGestureTarget,
-    targetTouchStart
+    targetTouchStart,
+    showPlaceholder
   })
 
   const headProps = {
@@ -171,7 +172,6 @@ function ResizingContainer(props) {
     ...commonProps,
     tableBodyRef,
     selectionRectRef,
-    showPlaceholder,
 
     chunkIntersectionObserver,
 

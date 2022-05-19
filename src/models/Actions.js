@@ -50,13 +50,7 @@ Object.freeze(_.each(types, (type, name) => (types[name] = `RST_${name}`)))
  * @param {string} namespace The namespace passed to {@link createTable}
  */
 export default function Actions(namespace) {
-  const getAction = (type, payload = {}, settings = null) => ({
-    namespace,
-    type,
-    payload,
-    clearSearch: true,
-    ...settings
-  })
+  const getAction = (type, payload = {}) => ({ namespace, type, payload })
 
   this.debug = () => getAction(types.DEBUG)
 
@@ -67,7 +61,7 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.search = (phrase) =>
-    getAction(types.SEARCH, { phrase }, { clearSearch: false })
+    getAction(types.SEARCH, { phrase })
 
   /**
    * Jumps to a specific search match.
@@ -77,7 +71,7 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.goToMatch = (index) =>
-    getAction(types.GO_TO_MATCH, { index }, { clearSearch: false })
+    getAction(types.GO_TO_MATCH, { index })
 
   /**
    * Changes the page size.
@@ -161,7 +155,10 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.sortItems = (path, addToPrev = false) =>
-    getAction(types.SORT_ITEMS, { path, addToPrev })
+    getAction(types.SORT_ITEMS, {
+      path,
+      addToPrev
+    })
 
   /**
    * Selects a row or a range of rows. Selected rows have a green background with the default theme.
@@ -173,7 +170,12 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.select = (index, isRange = false, addToPrev = false, contextMenu = false) =>
-    getAction(types.SELECT, { index, addToPrev, isRange, contextMenu })
+    getAction(types.SELECT, {
+      index,
+      addToPrev,
+      isRange,
+      contextMenu
+    })
 
   /**
    * Deselects all rows.
@@ -195,7 +197,10 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.setActive = (index, contextMenu = false) =>
-    getAction(types.SET_ACTIVE, { index, contextMenu })
+    getAction(types.SET_ACTIVE, {
+      index,
+      contextMenu
+    })
 
   /**
    * Selects all rows.
@@ -216,7 +221,11 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.setSelected = (map, activeIndex = null, pivotIndex = null) =>
-    getAction(types.SET_SELECTED, { map, activeIndex, pivotIndex })
+    getAction(types.SET_SELECTED, {
+      map,
+      activeIndex,
+      pivotIndex
+    })
 
   /**
    * Displays an error message instead of the rows if truthy,

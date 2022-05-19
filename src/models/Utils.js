@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import * as stateModules from '../constants/stateModules'
+import * as saveModules from '../constants/saveModules'
 import Actions from './Actions'
 import Hooks from './Hooks'
 import Events from './Events'
@@ -30,10 +30,10 @@ import { eventHandlersSymbol } from '../constants/symbols'
  * The table options
  *
  * @typedef {object} Options
- * @property {ItemPredicate} [itemPredicate] Takes a row and the item filter, and returns true if the row should be visible
- * @property {ItemComparator} [itemComparator] Takes the value of a property from two rows, and the path of that property, and returns: <li> 1, if first is larger than the second <li> 0, if values are equal <li> -1, if first is smaller than the second <li> null, to fall back to the default lodash comparator
- * @property {SearchPhraseParser} [searchPhraseParser] Parses the search phrase typed by the user, and also the row property for it to be matched against.
- * @property {string} [searchProperty] The path of a row property that the search phrase is matched against
+ * @property {ItemPredicate} [itemPredicate] Takes a row and the item filter, and must return true if the row should be visible
+ * @property {ItemComparator} [itemComparator] Takes the value of a property of two rows, and the path of that property, and must return: <ul><li>1, if first is larger than the second</li> <li>0, if values are equal</li> <li>-1, if first is smaller than the second</li> <li>null, to fall back to the default lodash comparator</li></ul>
+ * @property {SearchPhraseParser} [searchPhraseParser] Takes the search phrase typed in by the user, or the value of the {@link searchProperty} of a row. The returned values are compared to each other
+ * @property {string} [searchProperty] The path of a row property for the search phrase to be matched against
  * @property {boolean} [multiSelect] Allow multiple rows to be selected simultaneously
  * @property {boolean} [listBox] Retain selection when clicking in the space below the rows, and when right-clicking on another row
  * @property {string} [valueProperty] The path of a row property that has a unique value for each row (must be string or number)
@@ -58,7 +58,7 @@ const defaultOptions = {
   statePath: null,
   savedState: {},
   context: undefined,
-  stateModules: stateModules.Filter | stateModules.Items | stateModules.Pagination | stateModules.SortOrder
+  saveModules: saveModules.Filter | saveModules.Items | saveModules.Pagination | saveModules.SortOrder
 }
 
 /**
@@ -84,7 +84,7 @@ export default function Utils(namespace, options) {
   this.getItemValue = itemData =>
     _.get(itemData, options.valueProperty)
 
-  this.doSaveModule = module =>
+  this.shouldSaveModule = module =>
     (options.stateModules & module) === options.stateModules
 
   this.getSaveState = state => {
@@ -95,28 +95,28 @@ export default function Utils(namespace, options) {
         save.initialState[name] = state[name]
     }
 
-    if (this.doSaveModule(stateModules.Filter))
+    if (this.shouldSaveModule(saveModules.Filter))
       saveProperties('filter')
 
-    if (this.doSaveModule(stateModules.SortOrder))
+    if (this.shouldSaveModule(saveModules.SortOrder))
       saveProperties('sortAscending')
 
-    if (this.doSaveModule(stateModules.Items)) {
+    if (this.shouldSaveModule(saveModules.Items)) {
       saveProperties('isLoading', 'error')
       save.items = _.map(state.sortedItems, item => item.data)
     }
 
-    if (this.doSaveModule(stateModules.Pagination))
+    if (this.shouldSaveModule(saveModules.Pagination))
       saveProperties('pageSize')
 
-    if (this.doSaveModule(stateModules.Search)) {
+    if (this.shouldSaveModule(saveModules.Search)) {
       saveProperties('searchPhrase')
 
-      if (this.doSaveModule(stateModules.Items | stateModules.Filter | stateModules.SortOrder))
+      if (this.shouldSaveModule(saveModules.Items | saveModules.Filter | saveModules.SortOrder))
         saveProperties('matchIndex')
     }
 
-    if (this.doSaveModule(stateModules.Selection)) {
+    if (this.shouldSaveModule(saveModules.Selection)) {
       save.selection = Object.keys(state.selected)
       saveProperties('activeIndex', 'pivotIndex')
     }

@@ -336,7 +336,6 @@ export default function createTable(namespace, options = {}) {
     if (!searchProperty) return
 
     const searchValue = getItemSearchValue(value)
-
     let parent = draft.searchIndex
     for (const letter of searchValue)
       parent = (parent[letter] ??= { values: {} })
@@ -344,15 +343,18 @@ export default function createTable(namespace, options = {}) {
     setUtils.addItem(parent.values, value)
   }
 
-  function _searchIndexRemove(root, itemValue, searchValue, index) {
-    if (index === searchValue.length)
-      return setUtils.removeItem(root.values, itemValue)
+  function searchIndexRemove(value, root = draft.searchIndex, charIndex = 0) {
+    if (!searchProperty) return
 
-    const char = searchValue[index]
+    const searchValue = getItemSearchValue(value)
+    if (charIndex === searchValue.length)
+      return setUtils.removeItem(root.values, value)
+
+    const char = searchValue[charIndex]
     const child = root[char]
     if (!child) return
 
-    _searchIndexRemove(child, itemValue, searchValue, index + 1)
+    searchIndexRemove(value, child, charIndex + 1)
 
     // If any items end in this character, don't delete
     if (!_.isEmpty(child.values)) return
@@ -363,20 +365,13 @@ export default function createTable(namespace, options = {}) {
     delete root[char]
   }
 
-  function searchIndexRemove(value) {
-    if (!searchProperty) return
-
-    const searchValue = getItemSearchValue(value)
-    _searchIndexRemove(draft.searchIndex, value, searchValue, 0)
-  }
-
-  function _addMatches(root, searchPhrase, index) {
-    if (index < searchPhrase.length) {
-      const char = searchPhrase[index]
+  function addMatches(searchValue, root = draft.searchIndex, charIndex = 0) {
+    if (charIndex < searchValue.length) {
+      const char = searchValue[charIndex]
       const child = root[char]
       if (!child) return
 
-      _addMatches(child, searchPhrase, index + 1)
+      addMatches(searchValue, child, charIndex + 1)
     } else {
       for (const value in root.values) {
         const item = draft.sortedItems[value]
@@ -387,14 +382,14 @@ export default function createTable(namespace, options = {}) {
 
       for (const char in root) {
         if (char.length > 1) continue
-        _addMatches(root[char], searchPhrase, index + 1)
+        addMatches(searchValue, root[char], charIndex + 1)
       }
     }
   }
 
-  function reloadMatches() {
+  function rebuildMatches() {
     draft.matches = []
-    _addMatches(draft.searchIndex, options.searchPhraseParser(draft.searchPhrase), 0)
+    addMatches(options.searchPhraseParser(draft.searchPhrase))
     return draft.matches.sort(compareItemsByValue)
   }
 
@@ -526,6 +521,8 @@ export default function createTable(namespace, options = {}) {
       draft = newDraft
 
       const { payload } = action
+
+      let clearSearch = true
 
       // noinspection FallThroughInSwitchStatementJS
       switch (action.type) {
@@ -701,11 +698,15 @@ export default function createTable(namespace, options = {}) {
 
         // Search
         case types.SEARCH: {
+          clearSearch = false
+
           if (!(draft.searchPhrase = payload.phrase)) break
-          payload.index = reloadMatches().length
+          payload.index = rebuildMatches().length
         }
         // eslint-disable-next-line no-fallthrough
         case types.GO_TO_MATCH: {
+          clearSearch = false
+
           const { matches, matches: { length: matchCount } } = draft
           if (!matchCount) break
 
@@ -732,7 +733,7 @@ export default function createTable(namespace, options = {}) {
         default: return
       }
 
-      if (action.clearSearch)
+      if (clearSearch)
         draft.searchPhrase = null
     })
   }

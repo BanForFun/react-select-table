@@ -15,19 +15,20 @@ export default function Events(utils) {
     return getOriginalValue(_.findKey(state.selected)) ?? null
   }
 
-  const parseSelectedValue = (value) => {
-    if (!options.multiSelect) return value
+  const getListBoxSelectionArg = (state) => {
+    const activeValue = selectors.getActiveValue(state)
+    if (!options.multiSelect) return activeValue
 
     const selection = new Set()
-    if (value != null) selection.add(value)
+    if (activeValue != null) selection.add(activeValue)
     return selection
   }
 
   const getContextMenuArg = (state, forceEmpty) => {
-    if (forceEmpty) return parseSelectedValue(null)
-    return options.listBox
-      ? parseSelectedValue(selectors.getActiveValue(state))
-      : getSelectionArg(state)
+    if (forceEmpty)
+      return options.multiSelect ? new Set() : null
+
+    return options.listBox ? getListBoxSelectionArg(state) : getSelectionArg(state)
   }
 
   this.selectionChanged = (state) =>

@@ -63,7 +63,7 @@ function Root(props) {
     loadingIndicator, emptyPlaceholder, errorComponent
   ])
 
-  const placeholderShown = !!placeholder
+  const showPlaceholder = !!placeholder
 
   const select = useCallback((e, index) => {
     if (e.ctrlKey && !e.shiftKey)
@@ -73,7 +73,7 @@ function Root(props) {
   }, [actions])
 
   const handleShortcuts = useCallback(e => {
-    if (placeholderShown) return false
+    if (showPlaceholder) return false
     if (raiseKeyDown(e) === false) return false
 
     const isPageFirst = pageIndex === 0
@@ -81,7 +81,7 @@ function Root(props) {
     const isActiveFirst = activeIndex === 0
     const isActiveLast = activeIndex === itemCount - 1
 
-    // React doesn't have a code property, and the key property is case sensitive so keyCode it is
+    // React doesn't have a code property, and the key property is case-sensitive so keyCode it is
     switch (e.keyCode) {
       case 38: // Up
         if (!isActiveFirst) select(e, activeIndex - 1)
@@ -120,7 +120,7 @@ function Root(props) {
     e.preventDefault()
     return false
   }, [
-    actions, placeholderShown,
+    actions, showPlaceholder,
     activeIndex, itemCount, getSelected, // Redux props
     pageSize, pageCount, pageIndex, // Redux props
     select, // Component methods
@@ -142,8 +142,7 @@ function Root(props) {
   const paginationProps = {
     utils: props.utils,
     actions,
-    paginationComponent,
-    placeholderShown
+    paginationComponent
   }
 
   const searchProps = {
@@ -161,7 +160,7 @@ function Root(props) {
   >
     <SearchContainer {...searchProps} />
     <ScrollingContainer {...scrollingProps} />
-    {!placeholderShown && !!pageSize && <PaginationContainer {...paginationProps} />}
+    {!showPlaceholder && !!pageSize && <PaginationContainer {...paginationProps} />}
   </div>
 }
 

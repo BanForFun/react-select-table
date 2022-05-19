@@ -40,6 +40,8 @@
 .rst-scrollingContainer {
   position: relative;
   flex: auto;
+  display: flex;
+  flex-direction: column;
   overflow: auto;
   touch-action: pan-x pan-y;
 
@@ -64,23 +66,19 @@
   }
 }
 
-.rst-showPlaceholder {
-  .rst-resizingContainer {
-    min-height: 0;
-  }
-
-  .rst-body {
-    display: none;
-  }
-}
-
 .rst-resizingContainer {
   box-sizing: content-box;
-  min-height: 100%;
+  flex: auto;
   contain: paint;
+
+  &.rst-showPlaceholder {
+    flex: none;
+    contain: none;
+  }
 }
 
 .rst-placeholder {
+  flex: auto;
   box-sizing: border-box;
   width: 100%;
   left: -1px;

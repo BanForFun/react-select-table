@@ -1,10 +1,11 @@
-import React, { useRef, useContext, useCallback } from 'react'
+import React, { useRef, useContext, useCallback, Fragment } from 'react'
 import _ from 'lodash'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
 import * as selectors from '../selectors/selectors'
 import { GestureTargets } from '../constants/enums'
+import classNames from 'classnames'
 
 // Child of ScrollingContainer
 // Handles gestures
@@ -14,6 +15,7 @@ function ResizingContainer(props) {
     resizingContainerRef,
     dragSelectStart,
     hasEventListener,
+    placeholder,
 
     // HeadContainer props
     tableHeaderRowRef,
@@ -41,6 +43,8 @@ function ResizingContainer(props) {
     pointerType: null
   }).current
 
+  const showPlaceholder = !!placeholder
+
   const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
   const rowCount = hooks.useSelector(s => s.rowValues.length)
   const noSelection = hooks.useSelector(s => _.isEmpty(s.selected))
@@ -53,7 +57,9 @@ function ResizingContainer(props) {
   const contextMenu = useCallback(e => {
     const { itemIndex, rowIndex } = gesture
 
-    if (e.altKey)
+    if (showPlaceholder)
+      raiseContextMenu(true)
+    else if (e.altKey)
       raiseContextMenu(!e.ctrlKey)
     else if (itemIndex === GestureTargets.Header)
       raiseContextMenu(true)
@@ -68,7 +74,7 @@ function ResizingContainer(props) {
       actions.setActive(itemIndex, true)
     else
       actions.select(itemIndex, e.shiftKey, e.ctrlKey, true)
-  }, [gesture, raiseContextMenu, options, rowCount, actions, indexOffset, getSelected])
+  }, [gesture, raiseContextMenu, options, rowCount, actions, indexOffset, getSelected, showPlaceholder])
 
   const dragSelect = useCallback(e => {
     if (gesture.pointerId == null) return
@@ -126,12 +132,11 @@ function ResizingContainer(props) {
     if (e.shiftKey) return // Show browser context menu when holding shift
 
     const { itemIndex } = gesture
-    if (gesture.pointerType !== 'mouse') {
-      // Don't do anything if the header is the target
-      if (itemIndex === GestureTargets.Header) return
-
+    if (gesture.pointerType !== 'mouse' && !showPlaceholder) {
       if (itemIndex >= 0)
         actions.select(itemIndex, false, true)
+      else if (itemIndex !== GestureTargets.BelowItems)
+        return
 
       return dragSelect(e)
     }
@@ -140,12 +145,12 @@ function ResizingContainer(props) {
       e.preventDefault()
 
     contextMenu(e)
-  }, [gesture, contextMenu, actions, hasEventListener, dragSelect])
+  }, [gesture, contextMenu, actions, hasEventListener, dragSelect, showPlaceholder])
 
   const handleDoubleClick = useCallback(() => {
-    if (noSelection) return
+    if (noSelection || showPlaceholder) return
     raiseItemsOpen(false)
-  }, [noSelection, raiseItemsOpen])
+  }, [noSelection, raiseItemsOpen, showPlaceholder])
 
   //#endregion
 
@@ -166,31 +171,46 @@ function ResizingContainer(props) {
     ...commonProps,
     tableBodyRef,
     selectionRectRef,
+    showPlaceholder,
 
     chunkIntersectionObserver,
+
     getRowClassName,
     getChunkRow
   }
 
   const { containerWidth, containerMinWidth } = useContext(ColumnGroupContext)
 
-  return <div
-    className='rst-resizingContainer'
-    ref={resizingContainerRef}
-    style={{
-      width: containerWidth,
-      minWidth: containerMinWidth
-    }}
-    onPointerDownCapture={() => setGestureTarget(GestureTargets.BelowItems)}
-    onTouchStart={e => targetTouchStart(e, false)}
-    onPointerDown={handlePointerDown}
-    onContextMenu={handleContextMenu}
-    onMouseDown={handleMouseDown}
-    onDoubleClick={handleDoubleClick}
-  >
-    <TableHead {...headProps} />
-    <TableBody {...bodyProps} />
-  </div>
+  const contextMenuGestureHandlers = {
+    onPointerDownCapture: () => setGestureTarget(GestureTargets.BelowItems),
+    onTouchStart: e => targetTouchStart(e, false),
+    onPointerDown: handlePointerDown,
+    onContextMenu: handleContextMenu
+  }
+
+  return <Fragment>
+    <div
+      className={classNames({
+        'rst-resizingContainer': true,
+        'rst-showPlaceholder': showPlaceholder
+      })}
+      ref={resizingContainerRef}
+      style={{
+        width: containerWidth,
+        minWidth: containerMinWidth
+      }}
+      onMouseDown={handleMouseDown}
+      onDoubleClick={handleDoubleClick}
+      {...contextMenuGestureHandlers}
+    >
+      <TableHead {...headProps} />
+      <TableBody {...bodyProps} />
+    </div>
+    {placeholder && <div
+      className="rst-placeholder"
+      {...contextMenuGestureHandlers}
+    >{placeholder}</div>}
+  </Fragment>
 }
 
 export default ResizingContainer

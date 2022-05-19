@@ -77,18 +77,6 @@ const searchOrigins = Object.freeze({
 export default function createTable(namespace, options = {}) {
   const { getItemValue } = createTableUtils(namespace, options)
 
-  let draft
-  const {
-    getActiveValue,
-    getActiveRowIndex,
-    getPageCount,
-    getPageIndex,
-    getPageSize,
-    getPageIndexOffset,
-    getItemPageIndex
-  } = _.mapValues(selectors, selector =>
-    (state = draft, ...rest) => selector(state, ...rest))
-
   const {
     valueProperty,
     searchProperty,
@@ -117,6 +105,18 @@ export default function createTable(namespace, options = {}) {
 
     ...savedState.initialState
   }
+
+  let draft = initState
+  const {
+    getActiveValue,
+    getActiveRowIndex,
+    getPageCount,
+    getPageIndex,
+    getPageSize,
+    getPageIndexOffset,
+    getItemPageIndex
+  } = _.mapValues(selectors, selector =>
+    (state = draft, ...rest) => selector(state, ...rest))
 
   //#region Validation
 

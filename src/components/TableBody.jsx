@@ -13,6 +13,7 @@ function TableBody(props) {
     getChunkRow,
     tableBodyRef,
     dragMode,
+    showPlaceholder,
     ...chunkCommonProps
   } = props
 
@@ -68,7 +69,7 @@ function TableBody(props) {
   }
 
   return <div className='rst-body' ref={tableBodyRef}>
-    {chunks.map(renderChunk)}
+    {!showPlaceholder && chunks.map(renderChunk)}
     {dragMode === DragModes.Select &&
       <div className='rst-dragSelection' ref={selectionRectRef} />}
   </div>

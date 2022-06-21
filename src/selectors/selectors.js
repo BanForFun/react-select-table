@@ -1,10 +1,12 @@
 //#region Pagination
 
+import storeSymbols from '../constants/storeSymbols'
+
 export const getPageSize = (state) =>
-  state.pageSize || state.visibleItemCount
+  state.pageSize || state[storeSymbols.visibleItemCount]
 
 export const getPageCount = (state) =>
-  Math.ceil(state.visibleItemCount / getPageSize(state))
+  Math.ceil(state[storeSymbols.visibleItemCount] / getPageSize(state))
 
 export const getItemPageIndex = (state, itemIndex) =>
   Math.floor(itemIndex / getPageSize(state))
@@ -23,9 +25,9 @@ export const getActiveRowIndex = (state) =>
   state.activeIndex % getPageSize(state)
 
 export const getActiveValue = (state) =>
-  state.rowValues[getActiveRowIndex(state)]
+  state[storeSymbols.rowValues][getActiveRowIndex(state)]
 
 export const getSelected = (state, rowIndex) =>
-  !!state.selected[state.rowValues[rowIndex]]
+  !!state.selected[state[storeSymbols.rowValues][rowIndex]]
 
 //#endregion

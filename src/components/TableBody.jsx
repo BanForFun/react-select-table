@@ -4,6 +4,7 @@ import TableChunk, { loadChunk } from './TableChunk'
 import { getRowBounds } from './TableRow'
 import * as selectors from '../selectors/selectors'
 import { DragModes } from '../constants/enums'
+import storeSymbols from '../constants/storeSymbols'
 
 // Child of BodyContainer
 function TableBody(props) {
@@ -21,8 +22,7 @@ function TableBody(props) {
     utils: { hooks, options }
   } = props
 
-  const rowValues = hooks.useSelector(s => s.rowValues)
-  const sortedItems = hooks.useSelector(s => s.sortedItems)
+  const rowValues = hooks.useSelector(s => s[storeSymbols.rowValues])
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
   const getContainerVisibleBounds = useCallback(() => {
@@ -50,20 +50,14 @@ function TableBody(props) {
     scrollingContainerRef.current.scrollTop += scrollOffset
   }, [activeRowIndex, getChunkRow, getContainerVisibleBounds, scrollingContainerRef])
 
-  const chunks = useMemo(() => {
-    const chunks = _.chunk(rowValues, options.chunkSize)
-    for (const chunk of chunks)
-      // Mutate chunk instead of creating yet another copy
-      chunk.forEach((value, index) => (chunk[index] = sortedItems[value].data))
+  const chunks = useMemo(() => _.chunk(rowValues, options.chunkSize),
+    [rowValues, options])
 
-    return chunks
-  }, [rowValues, sortedItems, options])
-
-  const renderChunk = (rows, index) => {
+  const renderChunk = (rowValues, index) => {
     return <TableChunk
       {...chunkCommonProps}
       key={`chunk_${props.name}_${index}`}
-      rows={rows}
+      rowValues={rowValues}
       index={index}
     />
   }

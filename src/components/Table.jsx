@@ -3,7 +3,7 @@ import DefaultPagination from './DefaultPagination'
 import { getTableUtils } from '../utils/tableUtils'
 import Root from './Root'
 import tablePropTypes, { eventHandlerNames } from '../types/TableProps'
-import { eventHandlersSymbol } from '../constants/symbols'
+import { handlersSymbol } from '../models/Events'
 
 /**
  * Table Component
@@ -19,7 +19,7 @@ const Table = React.forwardRef((props, ref) => {
   const utils = getTableUtils(namespace)
 
   // Register redux event handlers
-  const eventHandlers = utils[eventHandlersSymbol]
+  const eventHandlers = utils.events[handlersSymbol]
   for (const handlerName of eventHandlerNames) {
     const handler = props[handlerName]
     delete rootProps[handlerName]

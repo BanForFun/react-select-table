@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react'
 import classNames from 'classnames'
 import AngleIcon, { angleRotation } from './AngleIcon'
+import storeSymbols from '../constants/storeSymbols'
 
 function SearchContainer(props) {
   const {
@@ -10,8 +11,8 @@ function SearchContainer(props) {
   } = props
 
   const phrase = hooks.useSelector(s => s.searchPhrase)
-  const matchCount = hooks.useSelector(s => s.matches.length)
-  const matchIndex = hooks.useSelector(s => s.matchIndex)
+  const matchCount = hooks.useSelector(s => s[storeSymbols.searchMatches].length)
+  const matchIndex = hooks.useSelector(s => s[storeSymbols.searchMatchIndex])
 
   const isVisible = phrase !== null
 

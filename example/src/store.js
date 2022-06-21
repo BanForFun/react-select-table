@@ -4,9 +4,7 @@ import {composeWithDevTools} from "redux-devtools-extension";
 
 export const tableNamespace = "comments";
 
-const compose = composeWithDevTools({
-  serialize: true
-});
+const compose = composeWithDevTools({});
 
 let customOptions = JSON.parse(sessionStorage.getItem("options"));
 if (!customOptions) {

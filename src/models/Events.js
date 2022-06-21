@@ -1,18 +1,16 @@
 import * as selectors from '../selectors/selectors'
 import _ from 'lodash'
-import { eventHandlersSymbol } from '../constants/symbols'
+
+export const handlersSymbol = Symbol('Event handlers')
 
 export default function Events(utils) {
-  const { options, [eventHandlersSymbol]: handlers } = utils
+  const { options } = utils
 
   const getSelectionArg = (state) => {
-    const getOriginalValue = value =>
-      utils.getItemValue(state.sortedItems[value].data)
-
     if (options.multiSelect)
-      return new Set(Object.keys(state.selected).map(getOriginalValue))
+      return new Set(Object.keys(state.selected))
 
-    return getOriginalValue(_.findKey(state.selected)) ?? null
+    return _.findKey(state.selected) ?? null
   }
 
   const getListBoxSelectionArg = (state) => {
@@ -30,6 +28,9 @@ export default function Events(utils) {
 
     return options.listBox ? getListBoxSelectionArg(state) : getSelectionArg(state)
   }
+
+  const handlers = {}
+  this[handlersSymbol] = handlers
 
   this.selectionChanged = (state) =>
     handlers.onSelectionChange?.(getSelectionArg(state))

@@ -8,6 +8,7 @@ import ColumnGroupContext from '../context/ColumnGroup'
 import { VisibleChunkClass } from './TableChunk'
 import * as selectors from '../selectors/selectors'
 import { DragModes } from '../constants/enums'
+import storeSymbols from '../constants/storeSymbols'
 
 const defaultColumnRenderer = value => value
 
@@ -165,7 +166,7 @@ function ScrollingContainer(props) {
   }, [columnResizing, setColumnGroup, getColumnGroup, raiseColumnResizeEnd])
 
   // Drag selection
-  const rowValues = hooks.useSelector(s => s.rowValues)
+  const rowValues = hooks.useSelector(s => s[storeSymbols.rowValues])
   const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
   const dragSelectEnd = useCallback(() => {
     if (dragSelection.activeIndex == null) return
@@ -331,7 +332,7 @@ function ScrollingContainer(props) {
   ])
 
   // Drag selection
-  const rowCount = hooks.useSelector(s => s.rowValues.length)
+  const rowCount = hooks.useSelector(s => s[storeSymbols.rowValues].length)
   const dragSelectUpdate = useCallback(() => {
     // Calculate selection rectangle
     const body = tableBodyRef.current

@@ -20,6 +20,7 @@ const reducer = createTable(tableNamespace, {
   constantWidth: false,
   multiSelect: true,
   listBox: false,
+  itemPredicate: (row, filter) => filter == null || row.name.startsWith(filter),
   ...customOptions
 });
 

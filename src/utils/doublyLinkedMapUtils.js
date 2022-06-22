@@ -17,6 +17,9 @@ export const getItem = (map, key) =>
 export const getItemMetadata = (map, key) =>
   map.nodes[key].metadata
 
+export const hasItem = (map, key) =>
+  !!map.nodes[key]
+
 const getNextKey = (map, key) =>
   key == null ? map.headKey : map.nodes[key].nextKey
 
@@ -63,7 +66,7 @@ export function sortAndLinkItems(map, keys, keyComparator) {
     const key = keys[keyIndex]
     const linkedKey = linkedKeyNext.value
 
-    if (keyComparator(linkedKey, key) < 0) {
+    if (keyComparator(linkedKey, key) > 0) {
       const linkedNode = map.nodes[linkedKey]
       linkItem(map, linkedNode.prevKey, key, linkedKey)
       keyIndex++
@@ -74,26 +77,29 @@ export function sortAndLinkItems(map, keys, keyComparator) {
     linkItem(map, map.tailKey, keys[keyIndex], null)
 }
 
-export function removeItem(map, key) {
+function unlinkItem(map, key) {
   const node = map.nodes[key]
-  if (!node) return false
+  if (!node) return null
 
   setNextItem(map, node.prevKey, node.nextKey)
-  delete map.nodes[key]
+  return node
+}
 
-  return true
+export function deleteItem(map, key) {
+  return !!unlinkItem(map, key) && delete map.nodes[key]
 }
 
 export function addUnlinkedItem(map, key, item) {
-  const replaced = removeItem(map, key)
+  const replacingNode = unlinkItem(map, key)
   map.nodes[key] = {
+    metadata: {}, // Keep old metadata when replacing value
+    ...replacingNode,
     data: item,
-    metadata: {},
     prevKey: null,
     nextKey: null
   }
 
-  return replaced
+  return !!replacingNode
 }
 
 export function sortItems(map, keyComparator) {

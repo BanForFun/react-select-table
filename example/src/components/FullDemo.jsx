@@ -7,6 +7,17 @@ import {tableNamespace} from "../store";
 
 const extraComments = comments.splice(0, 200);
 
+const commentPatches = [{
+  id: 201,
+  name: "Patched"
+}, {
+  id: 202,
+  name: "Bla bla"
+}, {
+  id: 204,
+  name: "12345"
+}]
+
 const columns = [
   {
     title: "A/I",
@@ -51,12 +62,13 @@ const buttonActions = {
   "Set items": actions.setItems(comments),
   "Clear items": actions.clearItems(),
   "Add items": actions.addItems(...extraComments),
+  "Patch items": actions.patchItems(...commentPatches),
 
   "Set error": actions.setError("An error occurred"),
   "Clear error": actions.setError(null),
 
-  "Set filter": actions.setItemFilter({ completed: true }),
-  "Clear filter": actions.setItemFilter({}),
+  "Set filter": actions.setItemFilter("et"),
+  "Clear filter": actions.setItemFilter(""),
 
   "Page size 10": actions.setPageSize(10),
   "Disable pagination": actions.setPageSize(0),

@@ -161,23 +161,6 @@ export default function createTable(namespace, options = {}) {
 
   //#endregion
 
-  //#region Visibility
-
-  function setItemVisibility(key, visibility = null) {
-    const item = dlMapUtils.getItem(draft.items, key)
-    visibility ??= options.itemPredicate(item, draft.filter)
-
-    const itemMetadata = dlMapUtils.getItemMetadata(draft.items, key)
-    if (!!itemMetadata.visible !== visibility) {
-      itemMetadata.visible = visibility
-      draft.visibleItemCount += visibility ? 1 : -1
-    }
-
-    return visibility
-  }
-
-  //#endregion
-
   //#region Sorting
 
   function compareItems(lhsKey, rhsKey) {
@@ -315,6 +298,7 @@ export default function createTable(namespace, options = {}) {
 
   function searchIndexRemove(key) {
     if (!searchProperty) return
+    if (!dlMapUtils.hasItem(draft.items, key)) return
 
     const text = getItemSearchText(key)
     trieUtils.removeNode(draft.searchIndex, key, text)
@@ -336,6 +320,22 @@ export default function createTable(namespace, options = {}) {
 
   //#region Items
 
+  function setItemVisibility(key, visibility = null) {
+    const item = dlMapUtils.getItem(draft.items, key)
+    visibility ??= options.itemPredicate(item, draft.filter)
+
+    const itemMetadata = dlMapUtils.getItemMetadata(draft.items, key)
+    if (!!itemMetadata.visible !== visibility) {
+      itemMetadata.visible = visibility
+      draft.visibleItemCount += visibility ? 1 : -1
+    }
+
+    if (!visibility)
+      setUtils.removeItem(draft.selected, key)
+
+    return visibility
+  }
+
   function * visibleKeyIterator(forward = true, originKey = null) {
     const iterator = dlMapUtils.keyIterator(draft.items, forward, originKey)
     for (const key of iterator) {
@@ -347,6 +347,9 @@ export default function createTable(namespace, options = {}) {
   }
 
   function addUnlinkedItem(item, key) {
+    // If replacing item, remove old search entry
+    searchIndexRemove(key)
+
     // Add to list
     dlMapUtils.addUnlinkedItem(draft.items, key, item)
 
@@ -372,14 +375,13 @@ export default function createTable(namespace, options = {}) {
   }
 
   function deleteItem(key) {
-    const item = dlMapUtils.getItem(draft.items, key)
-    if (!item) return
+    if (!dlMapUtils.hasItem(draft.items, key)) return
 
-    // To update the visible item count
+    // To update the visible item count and deselect
     setItemVisibility(key, false)
     searchIndexRemove(key)
 
-    dlMapUtils.removeItem(draft.items, key)
+    dlMapUtils.deleteItem(draft.items, key)
   }
 
   function clearItems() {
@@ -504,7 +506,6 @@ export default function createTable(namespace, options = {}) {
             setItemVisibility(key)
 
           setActiveKey(null)
-          clearSelection()
           break
         }
         case types.CLEAR_ITEMS: {

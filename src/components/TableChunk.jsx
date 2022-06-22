@@ -3,6 +3,8 @@ import TableRow from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import ColGroup from './ColGroup'
 import * as selectors from '../selectors/selectors'
+import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
+import * as setUtils from '../utils/setUtils'
 
 export const VisibleChunkClass = 'rst-visible'
 
@@ -14,7 +16,7 @@ function TableChunk(props) {
   const {
     utils: { options, hooks },
     getRowClassName,
-    rowValues,
+    rowKeys,
     index,
     chunkIntersectionObserver,
     clipPath,
@@ -44,7 +46,7 @@ function TableChunk(props) {
     const observer = chunkIntersectionObserver.current
     observer.observe(chunk)
     return () => observer.unobserve(chunk)
-  }, [chunkIntersectionObserver, rowValues])
+  }, [chunkIntersectionObserver, rowKeys])
 
   const isClipped = useMemo(() => {
     if (resizingIndex == null) return false
@@ -54,19 +56,19 @@ function TableChunk(props) {
     return chunk && !chunk.classList.contains(VisibleChunkClass)
   }, [resizingIndex])
 
-  const renderRow = (value, index) => {
-    const data = items[value]
+  const renderRow = (key, index) => {
+    const item = dlMapUtils.getItem(items, key)
     index += chunkIndexOffset
 
     const rowProps = {
       ...rowCommonProps,
-      data,
-      value,
+      item,
+      rowKey: key,
       index,
-      key: `row_${props.name}_${value}`,
+      key: `row_${props.name}_${key}`,
       active: index === activeRowIndex,
-      selected: !!selected[value],
-      className: getRowClassName(data)
+      selected: setUtils.hasItem(selected, key),
+      className: getRowClassName(item)
     }
 
     return <TableRow {...rowProps} />
@@ -74,7 +76,7 @@ function TableChunk(props) {
 
   return <table className='rst-chunk' ref={chunkRef}>
     <ColGroup {...{ name, columns, widths, isClipped }} />
-    <tbody className='rst-rows'>{rowValues.map(renderRow)}</tbody>
+    <tbody className='rst-rows'>{rowKeys.map(renderRow)}</tbody>
   </table>
 }
 

@@ -3,7 +3,6 @@ import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
 import * as selectors from '../selectors/selectors'
-import storeSymbols from '../constants/storeSymbols'
 
 // Child of Connector
 function Root(props) {
@@ -39,7 +38,7 @@ function Root(props) {
   const pageSize = hooks.useSelector(s => s.pageSize)
   const isLoading = hooks.useSelector(s => s.isLoading)
   const error = hooks.useSelector(s => s.error)
-  const itemCount = hooks.useSelector(s => s[storeSymbols.visibleItemCount])
+  const itemCount = hooks.useSelector(s => s.visibleItemCount)
 
   const getSelected = hooks.useSelectorGetter(selectors.getSelected)
 

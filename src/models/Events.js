@@ -1,5 +1,5 @@
 import * as selectors from '../selectors/selectors'
-import _ from 'lodash'
+import * as setUtils from '../utils/setUtils'
 
 export const handlersSymbol = Symbol('Event handlers')
 
@@ -7,18 +7,19 @@ export default function Events(utils) {
   const { options } = utils
 
   const getSelectionArg = (state) => {
+    const selectedKeys = setUtils.getItems(state.selected)
     if (options.multiSelect)
-      return new Set(Object.keys(state.selected))
+      return new Set(selectedKeys)
 
-    return _.findKey(state.selected) ?? null
+    return selectedKeys[0] ?? null
   }
 
   const getListBoxSelectionArg = (state) => {
-    const activeValue = selectors.getActiveValue(state)
-    if (!options.multiSelect) return activeValue
+    const activeKey = selectors.getActiveKey(state)
+    if (!options.multiSelect) return activeKey
 
     const selection = new Set()
-    if (activeValue != null) selection.add(activeValue)
+    if (activeKey != null) selection.add(activeKey)
     return selection
   }
 

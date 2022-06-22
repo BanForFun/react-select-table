@@ -68,7 +68,7 @@ const buttonActions = {
     { id: 19, highlighted: true }
   ),
 
-  "Patch values": actions.patchItemValues({ 9: 14, 14: 9 })
+  // "Patch values": actions.patchItemValues({ 9: 14, 14: 9 })
 };
 
 const logEvent = type =>

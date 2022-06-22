@@ -1,6 +1,6 @@
 import { types } from '../models/Actions'
 import { getTableUtils } from '../utils/tableUtils'
-import _ from 'lodash'
+import * as setUtils from '../utils/setUtils'
 
 const eventMiddleware = (store) => (next) => (action) => {
   const { type, namespace, payload } = action
@@ -10,7 +10,6 @@ const eventMiddleware = (store) => (next) => (action) => {
     case types.ADD_ITEMS:
     case types.DELETE_ITEMS:
     case types.PATCH_ITEMS:
-    case types.PATCH_ITEM_VALUES:
     case types.CLEAR_ITEMS:
     case types.SET_ITEM_FILTER:
     case types.SELECT:
@@ -30,7 +29,7 @@ const eventMiddleware = (store) => (next) => (action) => {
       const newState = getState()
 
       // Raise onSelectionChange
-      if (!_.isEqual(prevState.selected, newState.selected))
+      if (!setUtils.isEqual(prevState.selected, newState.selected))
         events.selectionChanged(newState)
 
       // Raise onContextMenu

@@ -23,15 +23,15 @@ function TableRow({
   index,
   className,
   name,
-  value,
-  data
+  rowKey,
+  item
 }) {
   const renderColumn = ({ key, ...column }) =>
     <TableCell
       {...column}
-      rowData={data}
+      rowItem={item}
       rowIndex={index}
-      key={`cell_${name}_${value}_${key}`}
+      key={`cell_${name}_${rowKey}_${key}`}
     />
 
   const trClass = classNames(className, {

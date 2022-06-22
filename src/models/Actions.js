@@ -5,7 +5,6 @@ export const types = {
   SET_ITEMS: '',
   ADD_ITEMS: '',
   DELETE_ITEMS: '',
-  PATCH_ITEM_VALUES: '',
   PATCH_ITEMS: '',
   CLEAR_ITEMS: '',
   SORT_ITEMS: '',
@@ -103,29 +102,22 @@ export default function Actions(namespace) {
    * Applies a deep patch to rows.
    *
    * @param {...object} patches Every property each object contains,
-   * will be applied to the row with the same {@link RowValue|value}
+   * will be applied to the row with the same {@link RowKey|value}
    * @returns {Action} The redux action object
    */
   this.patchItems = (...patches) =>
     getAction(types.PATCH_ITEMS, { patches })
 
-  /**
-   * Changes row {@link RowValue|values}, updates the selection with the new values for the rows that are selected.
-   *
-   * @param {object} map An object with old row values as keys and the new ones as values
-   * @returns {Action} The redux action object
-   */
-  this.patchItemValues = (map) =>
-    getAction(types.PATCH_ITEM_VALUES, { map })
+  // TODO: Add patchItemsByKey
 
   /**
    * Deletes rows and deselects them.
    *
-   * @param {...*} values The {@link RowValue|values} of the rows to be deleted
+   * @param {...*} keys The {@link RowKey|keys} of the rows to be deleted
    * @returns {Action} The redux action object
    */
-  this.deleteItems = (...values) =>
-    getAction(types.DELETE_ITEMS, { values })
+  this.deleteItems = (...keys) =>
+    getAction(types.DELETE_ITEMS, { keys })
 
   /**
    * Adds rows, and selects them, or only the last one if {@link Options.multiSelect} is off.

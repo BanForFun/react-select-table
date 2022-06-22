@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import * as saveModules from '../constants/saveModules'
+import * as loadModules from '../constants/loadModules'
 import Actions from './Actions'
 import Hooks from './Hooks'
-import Events, { handlersSymbol } from './Events'
+import Events from './Events'
 
 /**
  * @callback ItemPredicate
@@ -57,7 +57,8 @@ const defaultOptions = {
   statePath: null,
   savedState: {},
   context: undefined,
-  saveModules: saveModules.Filter | saveModules.Items | saveModules.Pagination | saveModules.SortOrder
+  loadModules: loadModules.Filter | loadModules.Items | loadModules.Pagination | loadModules.SortOrder,
+  keyBy: '_id'
 }
 
 /**
@@ -80,45 +81,8 @@ export default function Utils(namespace, options) {
   this.getTableState = state =>
     options.statePath ? _.get(state, options.statePath) : state
 
-  // this.shouldSaveModule = module =>
-  //   (options.stateModules & module) === options.stateModules
-  //
-  // this.getSaveState = state => {
-  //   const save = { initialState: {} }
-  //
-  //   const saveProperties = (...names) => {
-  //     for (const name of names)
-  //       save.initialState[name] = state[name]
-  //   }
-  //
-  //   if (this.shouldSaveModule(saveModules.Filter))
-  //     saveProperties('filter')
-  //
-  //   if (this.shouldSaveModule(saveModules.SortOrder))
-  //     saveProperties('sortAscending')
-  //
-  //   if (this.shouldSaveModule(saveModules.Items)) {
-  //     saveProperties('isLoading', 'error')
-  //     save.items = _.map(state.sortedItems, item => item.data)
-  //   }
-  //
-  //   if (this.shouldSaveModule(saveModules.Pagination))
-  //     saveProperties('pageSize')
-  //
-  //   if (this.shouldSaveModule(saveModules.Search)) {
-  //     saveProperties('searchPhrase')
-  //
-  //     if (this.shouldSaveModule(saveModules.Items | saveModules.Filter | saveModules.SortOrder))
-  //       saveProperties('matchIndex')
-  //   }
-  //
-  //   if (this.shouldSaveModule(saveModules.Selection)) {
-  //     save.selection = Object.keys(state.selected)
-  //     saveProperties('activeIndex', 'pivotIndex')
-  //   }
-  //
-  //   return save
-  // }
+  this.shouldLoadModule = module =>
+    (options.stateModules & module) === options.stateModules
 
   this.actions = new Actions(namespace)
   this.hooks = new Hooks(this)

@@ -1,13 +1,13 @@
 import _ from 'lodash'
 import React from 'react'
 
-function TableCell({ render, rowData, rowIndex, path, isHeader }) {
+function TableCell({ render, rowItem, rowIndex, path, isHeader }) {
   const options = {
     className: null
   }
 
-  const defaultContent = _.get(rowData, path, rowIndex)
-  const content = render(defaultContent, rowData, options)
+  const defaultContent = path ? _.get(rowItem, path) : rowIndex
+  const content = render(defaultContent, rowItem, options)
   const CellType = isHeader ? 'th' : 'td'
 
   return <CellType className={options.className}>{content}</CellType>

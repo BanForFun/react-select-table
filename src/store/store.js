@@ -5,8 +5,8 @@ import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
 import * as setUtils from '../utils/setUtils'
 import * as selectors from '../selectors/selectors'
-import storeSymbols from '../constants/storeSymbols'
-import * as dlmapUtils from '../utils/doublyLinkedMapUtils'
+import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
+import * as trieUtils from '../utils/trieUtils'
 
 const nextSortOrder = Object.freeze({
   undefined: true,
@@ -21,21 +21,21 @@ const searchOrigins = Object.freeze({
 })
 
 /**
- * The value of the property at {@link Options.valueProperty}
+ * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy} with iteratee being {@link Options.keyBy}
  *
- * @typedef {string|number} RowValue
+ * @typedef {string|number} RowKey
  */
 
 /**
  * @typedef {Object<string, SearchEntry>} SearchEntry
- * @property {RowValue[]} values The values of the rows that match
+ * @property {RowKey[]} keys The values of the rows that match
  */
 
 /**
  * @typedef {object} ItemNode
  * @property {object} data The contents of the item
- * @property {RowValue} prev The value of the previous item
- * @property {RowValue} next The value of the next item
+ * @property {RowKey} prev The value of the previous item
+ * @property {RowKey} next The value of the next item
  * @property {boolean} visible True if the item should be rendered
  */
 
@@ -49,14 +49,36 @@ const searchOrigins = Object.freeze({
  * @property {*} error When truthy, an error message is displayed
  * @property {SearchEntry} searchIndex A {@link https://en.wikipedia.org/wiki/Trie|trie} made from the value of {@link Options.searchProperty} of each row after being parsed by {@link Options.searchPhraseParser}
  * @property {string} searchPhrase The search phrase after being parsed by {@link Options.searchPhraseParser}
- * @property {RowValue[]} matches The values of the rows that matched the search phrase, sorted in the order they appear
+ * @property {RowKey[]} matches The values of the rows that matched the search phrase, sorted in the order they appear
  * @property {number} matchIndex The currently highlighted match index
  * @property {Object<string, ItemNode>} sortedItems A {@link https://en.wikipedia.org/wiki/Doubly_linked_list|doubly linked list} of all items, sorted based on {@link sortAscending}
- * @property {RowValue[]} rowValues The values of the items to be displayed, filtered and sorted
+ * @property {RowKey[]} rowValues The values of the items to be displayed, filtered and sorted
  * @property {number} visibleItemCount The number of nodes inside {@link sortedItems} with visible being true
- * @property {number} activeIndex The index of the active row inside {@link rowValues}
- * @property {number} pivotIndex The index of the pivot row inside {@link rowValues}
+ * @property {number} activeIndex The index of the active row inside {@link rowKeys}
+ * @property {number} pivotIndex The index of the pivot row inside {@link rowKeys}
  */
+
+const debugState = true
+
+function toJSON() {
+  if (debugState) return this
+
+  const obj = _.pick(this,
+    'isLoading',
+    'error',
+    'activeIndex',
+    'pivotIndex',
+    'filter',
+    'sortAscending',
+    'pageSize',
+    'searchPhrase'
+  )
+
+  obj.items = dlMapUtils.getItems(this.items)
+  obj.selected = setUtils.getItems(this.selected)
+
+  return obj
+}
 
 /**
  * Takes the current state and an action, and returns the next state
@@ -78,36 +100,41 @@ export default function createTable(namespace, options = {}) {
   createTableUtils(namespace, options)
 
   const {
-    valueProperty,
+    keyBy,
     searchProperty,
     savedState
   } = options
 
-  const initState = {
-    filter: null,
-    sortAscending: {},
+  const noItemsState = {
+    visibleItemCount: 0,
+    rowKeys: [],
+    searchIndex: trieUtils.instance(),
+    searchMatches: [],
+    searchMatchIndex: 0,
+    items: dlMapUtils.instance(),
     isLoading: false,
-    pageSize: 0,
     error: null,
-    [storeSymbols.searchIndex]: {},
-    searchPhrase: null,
-    [storeSymbols.searchMatches]: [],
-    [storeSymbols.searchMatchIndex]: 0,
-    items: {},
-    [storeSymbols.rowValues]: [],
-    [storeSymbols.visibleItemCount]: 0,
     activeIndex: 0,
     pivotIndex: 0,
-    selected: {},
+    selected: setUtils.instance()
+  }
 
+  const initState = {
+    toJSON,
+    filter: null,
+    sortAscending: {},
+    pageSize: 0,
+    searchPhrase: null,
     // resetPivot: false,
+
+    ...noItemsState,
 
     ...savedState.initialState
   }
 
   let draft = initState
   const {
-    getActiveValue,
+    getActiveKey,
     getActiveRowIndex,
     getPageCount,
     getPageIndex,
@@ -120,29 +147,30 @@ export default function createTable(namespace, options = {}) {
   //#region Validation
 
   function isIndexValid(index) {
-    return index != null && _.inRange(index, draft[storeSymbols.visibleItemCount])
+    return index != null && _.inRange(index, draft.visibleItemCount)
   }
 
-  function isValueValid(value, checkVisible = false) {
-    if (value == null) return false
+  function isKeyValid(key, checkVisible = false) {
+    if (key == null) return false
 
-    const item = draft.items[value]
-    if (!item) return false
+    const itemMetadata = dlMapUtils.getItemMetadata(draft.items, key)
+    if (!itemMetadata) return false
 
-    return !checkVisible || item[storeSymbols.itemVisible]
+    return !checkVisible || itemMetadata.visible
   }
 
   //#endregion
 
   //#region Visibility
 
-  function setItemVisibility(value, visibility = null) {
-    const item = draft.items[value]
+  function setItemVisibility(key, visibility = null) {
+    const item = dlMapUtils.getItem(draft.items, key)
     visibility ??= options.itemPredicate(item, draft.filter)
 
-    if (!!item[storeSymbols.itemVisible] !== visibility) {
-      item[storeSymbols.itemVisible] = visibility
-      draft[storeSymbols.visibleItemCount] += visibility ? 1 : -1
+    const itemMetadata = dlMapUtils.getItemMetadata(draft.items, key)
+    if (!!itemMetadata.visible !== visibility) {
+      itemMetadata.visible = visibility
+      draft.visibleItemCount += visibility ? 1 : -1
     }
 
     return visibility
@@ -152,9 +180,11 @@ export default function createTable(namespace, options = {}) {
 
   //#region Sorting
 
-  function compareItems(lhsValue, rhsValue) {
+  function compareItems(lhsKey, rhsKey) {
     const compareProperty = (comparator, path) => comparator(
-      _.get(draft.items[lhsValue], path), _.get(draft.items[rhsValue], path), path
+      _.get(dlMapUtils.getItem(draft.items, lhsKey), path),
+      _.get(dlMapUtils.getItem(draft.items, rhsKey), path),
+      path
     )
 
     let factor = 1
@@ -166,13 +196,13 @@ export default function createTable(namespace, options = {}) {
     }
 
     // Ensure that reversing the sort order of a column with all equal values, reverses the item order
-    return compareAscending(lhsValue, rhsValue) * factor
+    return compareAscending(lhsKey, rhsKey) * factor
   }
 
   function sortItems() {
-    dlmapUtils.sortItems(draft.items, compareItems)
+    dlMapUtils.sortItems(draft.items, compareItems)
 
-    setActiveValue(null)
+    setActiveKey(null)
     clearSelection()
   }
 
@@ -180,96 +210,79 @@ export default function createTable(namespace, options = {}) {
 
   //#region Querying
 
-  function * valueIterator(onlyVisible = false, forward = undefined, originValue = undefined) {
-    const iterator = dlmapUtils.valueIterator(draft.items, forward, originValue)
-    for (const value of iterator) {
-      const item = draft.items[value]
-      if (onlyVisible && !item[storeSymbols.itemVisible]) continue
-
-      yield value
-    }
-  }
-
   //#endregion
 
   //#region Pagination
 
-  const getPageBoundary = forward =>
-    forward ? getPageSize() - 1 : 0
+  const getPageBoundary = (start) =>
+    start ? 0 : getPageSize() - 1
 
   const resolveSearchOrigin = (origin, forward) => {
     let rowIndex
     switch (origin) {
       case searchOrigins.PageBoundary:
-        rowIndex = getPageBoundary(forward)
+        rowIndex = getPageBoundary(!forward)
         break
       case searchOrigins.ActiveRow:
         rowIndex = getActiveRowIndex()
         break
       default: return {
-        index: forward ? 0 : draft[storeSymbols.visibleItemCount] - 1,
-        value: undefined,
-        isVisible: false
+        index: forward ? -1 : draft.visibleItemCount,
+        key: null
       }
     }
 
     return {
       index: rowIndex + getPageIndexOffset(),
-      value: draft[storeSymbols.rowValues][rowIndex],
-      isVisible: true
+      key: draft.rowKeys[rowIndex]
     }
   }
 
   function setActiveItem(callback, searchForward, searchOrigin) {
-    const pageBoundary = getPageBoundary(searchForward)
     const pageSize = getPageSize()
     const origin = resolveSearchOrigin(searchOrigin, searchForward)
-    let rowValues = origin.isVisible ? draft[storeSymbols.rowValues] : []
+    let rowKeys = origin.key != null ? draft.rowKeys : []
 
     let setActive = null
     let { index } = origin
-
-    const values = valueIterator(true, searchForward, origin.value)
-    for (const value of values) {
+    for (const key of visibleKeyIterator(searchForward, origin.key)) {
+      index += searchForward ? 1 : -1
       const rowIndex = index % pageSize
-      rowValues[rowIndex] = value
 
-      const isOrigin = origin.isVisible && value === origin.value
-      if (!isOrigin && callback({ value, index })) {
-        setActive ??= index
-        if (rowValues === draft.rowValues) break
+      if (rowIndex === getPageBoundary(searchForward)) {
+        if (setActive != null) break
+        rowKeys = []
       }
 
-      index += searchForward ? 1 : -1
-      if (rowIndex !== pageBoundary) continue
-      if (setActive != null) break
+      rowKeys[rowIndex] = key
+      if (!callback({ key, index })) continue
 
-      rowValues = []
+      setActive ??= index
+      if (rowKeys === draft.rowKeys) break
     }
 
-    if (setActive != null) {
-      draft.activeIndex = setActive
-      draft[storeSymbols.rowValues] = rowValues
-    }
+    if (setActive == null) return null
 
-    return setActive
+    draft.activeIndex = setActive
+    draft.rowKeys = rowKeys
+    return getActiveKey()
   }
 
-  function setActiveValue(value, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
-    const callback = isValueValid(value, true)
-      ? item => item.value.toString() === value.toString()
+  function setActiveKey(key, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
+    const callback = isKeyValid(key, true)
+      ? item => item.key.toString() === key.toString()
       : () => true
-    return setActiveItem(callback, searchForward, searchOrigin)
+    setActiveItem(callback, searchForward, searchOrigin)
   }
 
   function setActiveIndex(index, pageInvalid = false) {
-    if (!isIndexValid(index)) return false
+    if (!isIndexValid(index)) return null
 
     const currentPage = pageInvalid ? NaN : getPageIndex()
     const targetPage = getItemPageIndex(draft, index)
     if (currentPage === targetPage) {
       draft.activeIndex = index
-      return getActiveValue(draft)
+      return getActiveKey(draft)
     }
 
     const afterCurrent = targetPage > currentPage
@@ -287,133 +300,90 @@ export default function createTable(namespace, options = {}) {
 
   //#region Searching
 
-  function getItemSearchValue(itemValue) {
-    const item = draft.items[itemValue]
-    const searchValue = _.get(item, searchProperty)
-    return options.searchPhraseParser(searchValue)
+  function getItemSearchText(key) {
+    const item = dlMapUtils.getItem(draft.items, key)
+    const text = _.get(item, searchProperty)
+    return options.searchPhraseParser(text)
   }
 
-  function searchIndexAdd(value) {
+  function searchIndexAdd(key) {
     if (!searchProperty) return
 
-    const searchValue = getItemSearchValue(value)
-    let parent = draft[storeSymbols.searchIndex]
-    for (const letter of searchValue)
-      parent = (parent[letter] ??= { values: {} })
-
-    setUtils.addItem(parent.values, value)
+    const text = getItemSearchText(key)
+    trieUtils.addNode(draft.searchIndex, key, text)
   }
 
-  function searchIndexRemove(value, root = draft[storeSymbols.searchIndex], charIndex = 0) {
+  function searchIndexRemove(key) {
     if (!searchProperty) return
 
-    const searchValue = getItemSearchValue(value)
-    if (charIndex === searchValue.length)
-      return setUtils.removeItem(root.values, value)
-
-    const char = searchValue[charIndex]
-    const child = root[char]
-    if (!child) return
-
-    searchIndexRemove(value, child, charIndex + 1)
-
-    // If any items end in this character, don't delete
-    if (!_.isEmpty(child.values)) return
-
-    // If other words depend on this character, don't delete
-    if (_.some(child, (value, key) => key !== 'values')) return
-
-    delete root[char]
+    const text = getItemSearchText(key)
+    trieUtils.removeNode(draft.searchIndex, key, text)
   }
 
-  function addMatches(searchValue, root = draft[storeSymbols.searchIndex], charIndex = 0) {
-    if (charIndex < searchValue.length) {
-      const char = searchValue[charIndex]
-      const child = root[char]
-      if (!child) return
+  function updateSearchMatches() {
+    if (!searchProperty) return
 
-      addMatches(searchValue, child, charIndex + 1)
-    } else {
-      for (const value in root.values) {
-        const item = draft.items[value]
-        if (!item[storeSymbols.itemVisible]) continue
+    const phrase = options.searchPhraseParser(draft.searchPhrase)
+    const allMatches = trieUtils.getMatchingKeys(draft.searchIndex, phrase)
+    const visibleMatches = allMatches.filter(key =>
+      dlMapUtils.getItemMetadata(draft.items, key).visible)
+    draft.searchMatches = visibleMatches.sort(compareItems)
 
-        draft[storeSymbols.searchMatches].push(value)
-      }
+    return visibleMatches
+  }
 
-      for (const char in root) {
-        if (char.length > 1) continue
-        addMatches(searchValue, root[char], charIndex + 1)
-      }
+  //#endregion
+
+  //#region Items
+
+  function * visibleKeyIterator(forward = true, originKey = null) {
+    const iterator = dlMapUtils.keyIterator(draft.items, forward, originKey)
+    for (const key of iterator) {
+      const itemMetadata = dlMapUtils.getItemMetadata(draft.items, key)
+      if (!itemMetadata.visible) continue
+
+      yield key
     }
   }
 
-  function rebuildMatches() {
-    draft[storeSymbols.searchMatches] = []
-    addMatches(options.searchPhraseParser(draft.searchPhrase))
-    return draft[storeSymbols.searchMatches].sort(compareItems)
-  }
-
-  //#endregion
-
-  //#region Addition
-
-  function addUnlinkedItem(item) {
-    // Reject if value is null or undefined
-    const value = _.get(item, valueProperty)
-    if (value == null) return null
-
-    // Remove value property
-    _.unset(item, valueProperty)
-
+  function addUnlinkedItem(item, key) {
     // Add to list
-    dlmapUtils.addUnlinkedItem(draft.items, value, item)
+    dlMapUtils.addUnlinkedItem(draft.items, key, item)
 
     // Set visibility
-    setItemVisibility(value)
+    setItemVisibility(key)
 
     // Add to search index
-    searchIndexAdd(value)
+    searchIndexAdd(key)
+  }
 
-    return value
+  function addKeyedItems(keyedItems) {
+    _.forEach(keyedItems, addUnlinkedItem)
+
+    const keys = Object.keys(keyedItems)
+    dlMapUtils.sortAndLinkItems(draft.items, keys, compareItems)
+
+    setActiveKey(getActiveKey())
+    return keys
   }
 
   function addItems(items) {
-    const values = _.without(items.map(addUnlinkedItem), null)
-    dlmapUtils.sortAndLinkItems(draft.items, values, compareItems)
-
-    setActiveValue(getActiveValue())
-    return values
+    return addKeyedItems(_.keyBy(items, keyBy))
   }
 
-  //#endregion
-
-  //#region Deletion
-
-  function deleteItem(value) {
-    const item = draft.items[value]
+  function deleteItem(key) {
+    const item = dlMapUtils.getItem(draft.items, key)
     if (!item) return
 
     // To update the visible item count
-    setItemVisibility(value, false)
-    searchIndexRemove(value)
+    setItemVisibility(key, false)
+    searchIndexRemove(key)
 
-    dlmapUtils.removeItem(draft.items, value)
+    dlMapUtils.removeItem(draft.items, key)
   }
 
   function clearItems() {
-    Object.assign(draft, {
-      [storeSymbols.itemsHeadValue]: undefined,
-      [storeSymbols.itemsTailValue]: undefined,
-      [storeSymbols.visibleItemCount]: 0,
-      [storeSymbols.rowValues]: [],
-      items: {},
-      isLoading: false,
-      error: null,
-      activeIndex: 0,
-      pivotIndex: 0,
-      selected: {}
-    })
+    Object.assign(draft, noItemsState)
   }
 
   //#endregion
@@ -421,29 +391,31 @@ export default function createTable(namespace, options = {}) {
   //#region Selection
 
   function clearSelection(resetPivot = true) {
-    draft.selected = {}
+    draft.selected = setUtils.instance()
 
     if (resetPivot)
       draft.pivotIndex = draft.activeIndex
   }
 
-  function setSelection(values) {
+  function setSelection(keys) {
     clearSelection()
 
-    for (const value of values) {
-      setUtils.addItem(draft.selected, value)
+    for (const key of keys) {
+      setUtils.addItem(draft.selected, key)
       if (!options.multiSelect) break
     }
   }
 
   function setRangeSelected(state, selected) {
     const offset = draft.pivotIndex - state.activeIndex
-    const values = valueIterator(true, offset > 0, getActiveValue(state))
+
+    const activeKey = getActiveKey(state)
+    setUtils.toggleItem(draft.selected, activeKey, selected)
 
     let distance = 0
-    for (const value of values) {
-      setUtils.toggleItem(draft.selected, value, selected)
-      if (distance++ === Math.abs(offset)) break
+    for (const key of visibleKeyIterator(offset > 0, activeKey)) {
+      setUtils.toggleItem(draft.selected, key, selected)
+      if (++distance === Math.abs(offset)) break
     }
   }
 
@@ -476,51 +448,38 @@ export default function createTable(namespace, options = {}) {
           break
         }
         case types.DELETE_ITEMS: {
-          const valuesToDelete = new Set(payload.values)
-          if (!valuesToDelete.size) break
+          const keys = payload.keys.sort(compareItems)
+          if (!keys.length) break
 
-          let setActive = null
-          let finalizedActive = false
-
-          const values = valueIterator(true)
-          for (const value of values) {
-            if (valuesToDelete.has(value)) {
-              finalizedActive = true
-              deleteItem(value)
-            } else if (!finalizedActive)
-              setActive = value
-          }
-
-          setActiveValue(setActive)
+          const setActive = visibleKeyIterator(false, keys[0]).next().value
+          keys.forEach(deleteItem)
+          setActiveKey(setActive)
           break
         }
-        case types.PATCH_ITEM_VALUES: {
-          const patched = []
-
-          _.forEach(payload.map, (newValue, oldValue) => {
-            if (!isValueValid(oldValue)) return
-
-            if (setUtils.removeItem(draft.selected, oldValue))
-              setUtils.addItem(draft.selected, newValue)
-
-            const item = _.set(draft.items[oldValue], valueProperty, newValue)
-            patched.push(item)
-
-            deleteItem(oldValue)
-          })
-
-          addItems(patched)
-          break
-        }
+        // case types.PATCH_ITEM_VALUES: {
+        //   const patched = []
+        //
+        //   _.forEach(payload.map, (newValue, oldValue) => {
+        //     if (!isKeyValid(oldValue)) return
+        //
+        //     if (setUtils.removeItem(draft.selected, oldValue))
+        //       setUtils.addItem(draft.selected, newValue)
+        //
+        //     const item = _.set(draft.items[oldValue], valueProperty, newValue)
+        //     patched.push(item)
+        //
+        //     deleteItem(oldValue)
+        //   })
+        //
+        //   addItems(patched)
+        //   break
+        // }
         case types.PATCH_ITEMS: {
-          const { patches } = payload
+          const keyedPatches = _.keyBy(payload.patches, keyBy)
+          for (const key in keyedPatches)
+            _.defaultsDeep(keyedPatches[key], dlMapUtils.getItem(draft.items, key))
 
-          for (const patch of patches) {
-            const value = _.get(patch, valueProperty)
-            _.defaultsDeep(patch, draft.items[value])
-          }
-
-          addItems(patches)
+          addKeyedItems(keyedPatches)
           break
         }
         case types.SORT_ITEMS: {
@@ -540,11 +499,11 @@ export default function createTable(namespace, options = {}) {
         case types.SET_ITEM_FILTER: {
           draft.filter = payload.filter
 
-          const values = valueIterator()
-          for (const value of values)
-            setItemVisibility(value)
+          const keys = dlMapUtils.keyIterator(draft.items)
+          for (const key of keys)
+            setItemVisibility(key)
 
-          setActiveValue(null)
+          setActiveKey(null)
           clearSelection()
           break
         }
@@ -577,15 +536,15 @@ export default function createTable(namespace, options = {}) {
         case types.SELECT: {
           const { addToPrev, index } = payload
 
-          const value = setActiveIndex(index)
-          if (value == null) break
+          const key = setActiveIndex(index)
+          if (key == null) break
 
           // if (draft.resetPivot) {
           //   draft.pivotIndex = state.activeIndex
           //   draft.resetPivot = false
           // }
 
-          const selected = !addToPrev || !draft.selected[value]
+          const selected = !addToPrev || !setUtils.hasItem(draft.selected, key)
 
           if (!addToPrev || !options.multiSelect)
             clearSelection(false)
@@ -600,7 +559,7 @@ export default function createTable(namespace, options = {}) {
           }
 
           draft.pivotIndex = index
-          setUtils.toggleItem(draft.selected, value, selected)
+          setUtils.toggleItem(draft.selected, key, selected)
           break
         }
         case types.CLEAR_SELECTION: {
@@ -619,16 +578,16 @@ export default function createTable(namespace, options = {}) {
 
           // Selection
           const { map } = payload
-          for (const value in map) {
-            if (!isValueValid(value)) continue
-            setUtils.toggleItem(draft.selected, value, map[value])
+          for (const key in map) {
+            if (!isKeyValid(key)) continue
+            setUtils.toggleItem(draft.selected, key, map[key])
           }
 
           break
         }
         case types.SELECT_ALL: {
           if (!options.multiSelect) return
-          setSelection(draft[storeSymbols.rowValues])
+          setSelection(draft.rowKeys)
           break
         }
 
@@ -637,13 +596,13 @@ export default function createTable(namespace, options = {}) {
           clearSearch = false
 
           if (!(draft.searchPhrase = payload.phrase)) break
-          payload.index = rebuildMatches().length
+          payload.index = updateSearchMatches().length
         }
         // eslint-disable-next-line no-fallthrough
         case types.GO_TO_MATCH: {
           clearSearch = false
 
-          const { [storeSymbols.searchMatches]: matches } = draft
+          const { searchMatches: matches } = draft
           const matchCount = matches.length
           if (!matchCount) break
 
@@ -651,9 +610,9 @@ export default function createTable(namespace, options = {}) {
 
           const safeIndex = ((index % matchCount) + matchCount) % matchCount
           const origin = index === safeIndex ? searchOrigins.ActiveRow : searchOrigins.TableBoundary
-          setActiveValue(matches[safeIndex], index >= draft[storeSymbols.searchMatchIndex], origin)
+          setActiveKey(matches[safeIndex], index >= draft.searchMatchIndex, origin)
 
-          draft[storeSymbols.searchMatchIndex] = safeIndex
+          draft.searchMatchIndex = safeIndex
           break
         }
 

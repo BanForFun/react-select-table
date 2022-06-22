@@ -4,7 +4,9 @@ import {composeWithDevTools} from "redux-devtools-extension";
 
 export const tableNamespace = "comments";
 
-const compose = composeWithDevTools({});
+const compose = composeWithDevTools({
+  // serialize: false
+});
 
 let customOptions = JSON.parse(sessionStorage.getItem("options"));
 if (!customOptions) {
@@ -13,7 +15,7 @@ if (!customOptions) {
 }
 
 const reducer = createTable(tableNamespace, {
-  valueProperty: "id",
+  keyBy: "id",
   searchProperty: "name",
   constantWidth: false,
   multiSelect: true,

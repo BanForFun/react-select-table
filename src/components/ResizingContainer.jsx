@@ -4,9 +4,9 @@ import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
 import * as selectors from '../selectors/selectors'
+import * as setUtils from '../utils/setUtils'
 import { GestureTargets } from '../constants/enums'
 import classNames from 'classnames'
-import storeSymbols from '../constants/storeSymbols'
 
 // Child of ScrollingContainer
 // Handles gestures
@@ -47,8 +47,8 @@ function ResizingContainer(props) {
   const showPlaceholder = !!placeholder
 
   const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
-  const rowCount = hooks.useSelector(s => s[storeSymbols.rowValues].length)
-  const noSelection = hooks.useSelector(s => _.isEmpty(s.selected))
+  const rowCount = hooks.useSelector(s => s.rowKeys.length)
+  const noSelection = hooks.useSelector(s => setUtils.isEmpty(s.selected))
 
   const getSelected = hooks.useSelectorGetter(selectors.getSelected)
 

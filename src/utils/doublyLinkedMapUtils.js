@@ -1,88 +1,109 @@
-import { debugSymbols } from './debugUtils'
+import _ from 'lodash'
 
-const symbols = {
-  nextValue: Symbol('Next value'),
-  prevValue: Symbol('Previous value'),
-  headValue: Symbol('Head value'),
-  tailValue: Symbol('Tail value')
-}
-debugSymbols(symbols)
-
-export function * valueIterator(
-  map, forward = true,
-  originValue = forward ? map[symbols.headValue] : map[symbols.tailValue]
-) {
-  let value = originValue
-  while (value != null) {
-    yield value
-    value = map[value][forward ? symbols.nextValue : symbols.prevValue]
+export function instance() {
+  return {
+    headKey: null,
+    tailKey: null,
+    nodes: {}
   }
 }
 
-function setNextItem(map, value, nextValue) {
-  const { [nextValue]: nextItem, [value]: item } = map
+export const getItems = (map) =>
+  _.map(map.nodes, node => node.data)
 
-  if (nextItem)
-    nextItem[symbols.prevValue] = value
-  else
-    map[symbols.tailValue] = value
+export const getItem = (map, key) =>
+  map.nodes[key].data
 
-  if (item)
-    item[symbols.nextValue] = nextValue
-  else
-    map[symbols.headValue] = nextValue
+export const getItemMetadata = (map, key) =>
+  map.nodes[key].metadata
+
+const getNextKey = (map, key) =>
+  key == null ? map.headKey : map.nodes[key].nextKey
+
+const getPrevKey = (map, key) =>
+  key == null ? map.tailKey : map.nodes[key].prevKey
+
+export function * keyIterator(map, forward = true, key = null) {
+  const _getNextKey = forward ? getNextKey : getPrevKey
+  while (true) {
+    key = _getNextKey(map, key)
+    if (key == null) return
+
+    yield key
+  }
 }
 
-function linkItem(map, prevValue, value, nextValue) {
-  setNextItem(map, prevValue, value)
-  setNextItem(map, value, nextValue)
+function setNextItem(map, key, nextKey) {
+  const { [nextKey]: nextNode, [key]: node } = map.nodes
+
+  if (nextNode)
+    nextNode.prevKey = key
+  else
+    map.tailKey = key
+
+  if (node)
+    node.nextKey = nextKey
+  else
+    map.headKey = nextKey
 }
 
-export function sortAndLinkItems(map, values, valueComparator) {
-  values = values.sort(valueComparator)
-  const linkedValues = valueIterator(map)
+function linkItem(map, prevKey, key, nextKey) {
+  setNextItem(map, prevKey, key)
+  setNextItem(map, key, nextKey)
+}
 
-  let linkedValueNext = linkedValues.next()
-  let valueIndex = 0
+export function sortAndLinkItems(map, keys, keyComparator) {
+  keys = keys.sort(keyComparator)
+  const linkedKeys = keyIterator(map)
 
-  while (!linkedValueNext.done && valueIndex < values.length) {
-    const value = values[valueIndex]
-    const linkedValue = linkedValueNext.value
+  let linkedKeyNext = linkedKeys.next()
+  let keyIndex = 0
 
-    if (valueComparator(linkedValue, value) < 0) {
-      const linkedItem = map[linkedValue]
-      linkItem(map, linkedItem[symbols.prevValue], value, linkedValue)
-      valueIndex++
-    } else linkedValueNext = linkedValues.next()
+  while (!linkedKeyNext.done && keyIndex < keys.length) {
+    const key = keys[keyIndex]
+    const linkedKey = linkedKeyNext.value
+
+    if (keyComparator(linkedKey, key) < 0) {
+      const linkedNode = map.nodes[linkedKey]
+      linkItem(map, linkedNode.prevKey, key, linkedKey)
+      keyIndex++
+    } else linkedKeyNext = linkedKeys.next()
   }
 
-  for (; valueIndex < values.length; valueIndex++)
-    linkItem(map, map[symbols.tailValue], values[valueIndex], null)
+  for (; keyIndex < keys.length; keyIndex++)
+    linkItem(map, map.tailKey, keys[keyIndex], null)
 }
 
-export function removeItem(map, value) {
-  const item = map[value]
-  if (!item) return false
+export function removeItem(map, key) {
+  const node = map.nodes[key]
+  if (!node) return false
 
-  setNextItem(map, item[symbols.prevValue], item[symbols.nextValue])
+  setNextItem(map, node.prevKey, node.nextKey)
+  delete map.nodes[key]
+
   return true
 }
 
-export function addUnlinkedItem(map, value, item) {
-  const replaced = removeItem(map, value)
-  map[value] = item
+export function addUnlinkedItem(map, key, item) {
+  const replaced = removeItem(map, key)
+  map.nodes[key] = {
+    data: item,
+    metadata: {},
+    prevKey: null,
+    nextKey: null
+  }
 
   return replaced
 }
 
-export function sortItems(map, valueComparator) {
-  const values = [...valueIterator(map)].sort(valueComparator)
+export function sortItems(map, keyComparator) {
+  const keys = [...keyIterator(map)].sort(keyComparator)
 
-  let prevValue = null
-  for (const value of values) {
-    setNextItem(map, prevValue, value)
-    prevValue = value
+  let prevKey = null
+  for (const key of keys) {
+    setNextItem(map, prevKey, key)
+    prevKey = key
   }
 
-  setNextItem(map, prevValue, null)
+  setNextItem(map, prevKey, null)
 }

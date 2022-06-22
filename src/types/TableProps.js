@@ -60,7 +60,7 @@ const eventHandlerProps = {
    * Called on right-click or two-finger tap
    *
    * @param {Set|?*} target
-   * If {@link Options.listBox} is on: The active row's {@link RowValue|value}, or null if Alt is held.
+   * If {@link Options.listBox} is on: The active row's {@link RowKey|value}, or null if Alt is held.
    * If listBox option is off: A Set of all selected values, or an empty Set if Alt is held
    * @see Actions.setActiveIndex
    */

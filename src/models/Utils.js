@@ -35,7 +35,7 @@ import Events from './Events'
  * @property {string} [searchProperty] The path of a row property for the search phrase to be matched against
  * @property {boolean} [multiSelect] Allow multiple rows to be selected simultaneously
  * @property {boolean} [listBox] Retain selection when clicking in the space below the rows, and when right-clicking on another row
- * @property {string} [valueProperty] The path of a row property that has a unique value for each row (must be string or number)
+ * @property {string | Function} [keyBy] The path of a row property that has a unique value for each row, or a function that takes a row as an argument and returns a value unique to that row. In either case, the unique value must be a string or a number
  * @property {boolean} [constantWidth] When resizing a column, shrink the next one by the same amount, keeping the total width constant
  * @property {number} [minColumnWidth] The minimum width in pixels allowed for a column when resizing it, and before a scrollbar appears when resizing the container.
  * @property {number} [chunkSize] The maximum number of rows per chunk. A chunk is a collection of rows that is not rendered when not in view. A big chunk size improves scrolling performance at the cost of column resizing performance. Must be a multiple of 2 to preserve the stripped row pattern. Note: Resizing a column only updates the current chunk, making scrolling using the scrollbar jerky when chunks load in for the first time after resizing a column.

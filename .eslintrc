@@ -24,6 +24,9 @@
   "settings": {
     "react": {
       "version": "16"
+    },
+    "jsdoc": {
+      "mode": "typescript"
     }
   },
   "rules": {

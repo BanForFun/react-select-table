@@ -1,5 +1,24 @@
 import _ from 'lodash'
 
+/**
+ * @template Key, Value, Metadata
+ * @typedef {object} DoublyLinkedMapNode
+ * @property {Value} value The value of the item
+ * @property {Metadata} metadata Metadata for the item
+ * @property {Key} prevKey The key of the previous item
+ * @property {Key} nextKey The key of the next item
+ */
+
+/**
+ * A kind of {@link https://www.geeksforgeeks.org/linkedhashmap-class-in-java/|LinkedHashMap}
+ *
+ * @template Key, Value, Metadata
+ * @typedef {object} DoublyLinkedMap
+ * @property {Key} headKey The key of the first item
+ * @property {Key} tailKey The key of the last item
+ * @property {Object<Key, DoublyLinkedMapNode<Key, Value, Metadata>>} nodes The map nodes
+ */
+
 export function instance() {
   return {
     headKey: null,
@@ -9,10 +28,10 @@ export function instance() {
 }
 
 export const getItems = (map) =>
-  _.map(map.nodes, node => node.data)
+  _.map(map.nodes, node => node.value)
 
 export const getItem = (map, key) =>
-  map.nodes[key]?.data
+  map.nodes[key]?.value
 
 export const getItemMetadata = (map, key) =>
   map.nodes[key]?.metadata
@@ -83,11 +102,11 @@ export function deleteItem(map, key) {
   return true
 }
 
-export function addUnlinkedItem(map, key, item) {
+export function addUnlinkedItem(map, key, value, metadata) {
   const isReplacing = deleteItem(map, key)
   map.nodes[key] = {
-    metadata: {},
-    data: item,
+    metadata,
+    value,
     prevKey: null,
     nextKey: null
   }

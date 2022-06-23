@@ -21,39 +21,31 @@ const searchOrigins = Object.freeze({
 })
 
 /**
- * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy} with iteratee being {@link Options.keyBy}
+ * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy} with iteratee {@link Options.keyBy}
  *
  * @typedef {string|number} RowKey
  */
 
 /**
- * @typedef {Object<string, SearchEntry>} SearchEntry
- * @property {RowKey[]} keys The values of the rows that match
- */
-
-/**
- * @typedef {object} ItemNode
- * @property {object} data The contents of the item
- * @property {RowKey} prev The value of the previous item
- * @property {RowKey} next The value of the next item
- * @property {boolean} visible True if the item should be rendered
+ * @typedef {object} RowMetadata
+ * @property {boolean} visible The visibility of the item, based on the filter
  */
 
 /**
  * @typedef {object} State
- * @property {Object<string, boolean>} selection An object with all the selected values as keys, and true as values
+ * @property {import('../utils/setUtils').Set<RowKey>} selection A set containing all selected row keys
  * @property {*} filter The item filter
  * @property {Object<string, boolean>} sortAscending An object with property paths as keys, and true for ascending order or false for descending, as values
  * @property {boolean} isLoading When true, a loading indicator is displayed
- * @property {number} pageSize The maximum number of items in a page, 0 is pagination is disabled
- * @property {*} error When truthy, an error message is displayed
- * @property {SearchEntry} searchIndex A {@link https://en.wikipedia.org/wiki/Trie|trie} made from the value of {@link Options.searchProperty} of each row after being parsed by {@link Options.searchPhraseParser}
+ * @property {number} pageSize The maximum number of items in a page, 0 if pagination is disabled
+ * @property {*} error When truthy, it is passed as a child to {@link TableProps.errorComponent} which in turn is rendered instead of the table rows
+ * @property {import('../utils/trieUtils').TrieNode<RowKey>} searchIndex The root node of a trie made from the {@link Options.searchProperty} value of each row after being parsed by {@link Options.searchPhraseParser}
  * @property {string} searchPhrase The search phrase after being parsed by {@link Options.searchPhraseParser}
- * @property {RowKey[]} matches The values of the rows that matched the search phrase, sorted in the order they appear
+ * @property {RowKey[]} matches The keys of the rows that matched the search phrase, sorted in the order they appear
  * @property {number} matchIndex The currently highlighted match index
- * @property {Object<string, ItemNode>} sortedItems A {@link https://en.wikipedia.org/wiki/Doubly_linked_list|doubly linked list} of all items, sorted based on {@link sortAscending}
- * @property {RowKey[]} rowValues The values of the items to be displayed, filtered and sorted
- * @property {number} visibleItemCount The number of nodes inside {@link sortedItems} with visible being true
+ * @property {import('../utils/doublyLinkedMapUtils').DoublyLinkedMap<RowKey, object, RowMetadata>} items A list of all items, sorted based on {@link sortAscending}
+ * @property {RowKey[]} rowKeys The keys of the visible items, sorted and paginated
+ * @property {number} visibleItemCount The total number of visible items on all pages
  * @property {number} activeIndex The index of the active row inside {@link rowKeys}
  * @property {number} pivotIndex The index of the pivot row inside {@link rowKeys}
  */
@@ -325,16 +317,16 @@ export default function createTable(namespace, options = {}) {
       itemMetadata.visible = visibility
       draft.visibleItemCount += visibility ? 1 : -1
     }
-
-    if (!visibility)
-      return setUtils.removeItem(draft.selected, key)
   }
 
   function filterItem(key) {
     const item = dlMapUtils.getItem(draft.items, key)
     const visible = options.itemPredicate(item, draft.filter)
-    setItemVisibility(key, visible)
 
+    if (!visible)
+      setUtils.removeItem(draft.selected, key)
+
+    setItemVisibility(key, visible)
     return visible
   }
 
@@ -349,15 +341,14 @@ export default function createTable(namespace, options = {}) {
   }
 
   function addUnlinkedItem(item, key) {
-    // Save selection status of item we're potentially replacing
-    const selected = deleteItem(key)
+    // Delete old row with the same key
+    deleteItemForReplacing(key)
 
     // Add to list
-    dlMapUtils.addUnlinkedItem(draft.items, key, item)
+    dlMapUtils.addUnlinkedItem(draft.items, key, item, {})
 
-    // Set visibility and restore selection status if still visible
-    if (filterItem(key) && selected)
-      setUtils.addItem(draft.selected, key)
+    // Filter item and deselect if not visible
+    filterItem(key)
 
     // Add to search index
     searchIndexAdd(key)
@@ -377,15 +368,19 @@ export default function createTable(namespace, options = {}) {
     return _.keyBy(items, keyBy)
   }
 
-  function deleteItem(key) {
-    if (!dlMapUtils.getItem(draft.items, key)) return false
+  function deleteItemForReplacing(key) {
+    if (!dlMapUtils.getItem(draft.items, key)) return
 
-    // To update the visible item count and deselect
-    const wasSelected = setItemVisibility(key, false)
+    // To update the visible item count
+    setItemVisibility(key, false)
     searchIndexRemove(key)
 
     dlMapUtils.deleteItem(draft.items, key)
-    return wasSelected
+  }
+
+  function deleteItem(key) {
+    deleteItemForReplacing(key)
+    setUtils.removeItem(draft.selected, key)
   }
 
   function clearItems() {
@@ -462,13 +457,14 @@ export default function createTable(namespace, options = {}) {
           setActiveKey(setActive)
           break
         }
-        case types.PATCH_ITEMS_BY_VALUE: {
+        case types.PATCH_ITEMS_BY_KEY: {
           const selectedSym = Symbol('Selected')
 
           const { patchMap } = payload
           for (const key in patchMap) {
             _.defaultsDeep(patchMap[key], dlMapUtils.getItem(draft.items, key))
-            patchMap[key][selectedSym] = deleteItem(key)
+            patchMap[key][selectedSym] = setUtils.hasItem(draft.selected, key)
+            deleteItem(key)
           }
 
           const keyedItems = keyItems(patchMap)

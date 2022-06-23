@@ -6,19 +6,19 @@ const eventMiddleware = (store) => (next) => (action) => {
   const { type, namespace, payload } = action
 
   switch (type) {
-    case types.SET_ITEMS:
-    case types.ADD_ITEMS:
-    case types.DELETE_ITEMS:
-    case types.PATCH_ITEMS:
-    case types.CLEAR_ITEMS:
-    case types.SET_ITEM_FILTER:
-    case types.SELECT:
-    case types.SET_ACTIVE:
-    case types.CLEAR_SELECTION:
-    case types.SET_SELECTED:
-    case types.SELECT_ALL:
-    case types.SET_ERROR:
-    case types.START_LOADING: {
+    case types.SET_ITEMS: // Selection
+    case types.ADD_ITEMS: // Selection
+    case types.DELETE_ITEMS: // Selection
+    case types.PATCH_ITEMS: // Selection (if row is hidden after patch)
+    case types.PATCH_ITEMS_BY_KEY: // Selection (if row is hidden after patch)
+    case types.CLEAR_ITEMS: // Selection
+    case types.SET_ITEM_FILTER: // Selection
+    case types.SELECT: // Selection, Context menu
+    case types.SET_ACTIVE: // Context menu
+    case types.CLEAR_SELECTION: // Context menu
+    case types.SET_SELECTED: // Selection
+    case types.SELECT_ALL: // Selection
+    {
       // Get table events and selectors
       const { events, getTableState } = getTableUtils(namespace)
       const getState = () => getTableState(store.getState())

@@ -1,13 +1,18 @@
 import _ from 'lodash'
 
+/**
+ * A {@link https://en.wikipedia.org/wiki/Set_(abstract_data_type)|Set}, implemented as an object with true as values
+ *
+ * @template Value
+ * @typedef {Object<Value, boolean>} Set
+ */
+
 export function instance() {
   return { }
 }
 
 export function removeItem(set, key) {
-  const existed = hasItem(set, key)
   delete set[key]
-  return existed
 }
 
 export function addItem(set, key) {

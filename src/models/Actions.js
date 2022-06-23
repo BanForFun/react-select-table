@@ -6,7 +6,7 @@ export const types = {
   ADD_ITEMS: '',
   DELETE_ITEMS: '',
   PATCH_ITEMS: '',
-  PATCH_ITEMS_BY_VALUE: '',
+  PATCH_ITEMS_BY_KEY: '',
   CLEAR_ITEMS: '',
   SORT_ITEMS: '',
   SET_ITEM_FILTER: '',
@@ -110,19 +110,19 @@ export default function Actions(namespace) {
     getAction(types.PATCH_ITEMS, { patches })
 
   /**
-   * Applies a deep patch to rows by value.
+   * Applies a deep patch to rows by key.
    *
-   * @param {Object<import('../store/store').RowKey, object>} patchMap Every property of each value of this object,
-   * will be applied to the row whose key is equal to the matching key of this object
+   * @param {Object<import('../store/store').RowKey, object>} patchMap For every key of this object,
+   * the row with the same key will be found, and the properties of the corresponding value will be applied to it
    * @returns {Action} The redux action object
    */
-  this.patchItemsByValue = (patchMap) =>
-    getAction(types.PATCH_ITEMS_BY_VALUE, { patchMap })
+  this.patchItemsByKey = (patchMap) =>
+    getAction(types.PATCH_ITEMS_BY_KEY, { patchMap })
 
   /**
    * Deletes rows and deselects them.
    *
-   * @param {...*} keys The {@link RowKey|keys} of the rows to be deleted
+   * @param {...import('../store/store').RowKey} keys The keys of the rows to be deleted
    * @returns {Action} The redux action object
    */
   this.deleteItems = (...keys) =>
@@ -151,15 +151,12 @@ export default function Actions(namespace) {
    * and toggles the order on subsequent calls
    *
    * @param {string} path The path of the property to sort by
-   * @param {boolean} addToPrev Sort items that have equal values in the previous sorting columns,
-   * by a secondary property
+   * @param {boolean} addToPrev Use the property to only sort the rows that are considered equal,
+   * based on the current columns
    * @returns {Action} The redux action object
    */
   this.sortItems = (path, addToPrev = false) =>
-    getAction(types.SORT_ITEMS, {
-      path,
-      addToPrev
-    })
+    getAction(types.SORT_ITEMS, { path, addToPrev })
 
   /**
    * Selects a row or a range of rows. Selected rows have a green background with the default theme.
@@ -171,12 +168,7 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.select = (index, isRange = false, addToPrev = false, contextMenu = false) =>
-    getAction(types.SELECT, {
-      index,
-      addToPrev,
-      isRange,
-      contextMenu
-    })
+    getAction(types.SELECT, { index, addToPrev, isRange, contextMenu })
 
   /**
    * Deselects all rows.
@@ -198,10 +190,7 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.setActive = (index, contextMenu = false) =>
-    getAction(types.SET_ACTIVE, {
-      index,
-      contextMenu
-    })
+    getAction(types.SET_ACTIVE, { index, contextMenu })
 
   /**
    * Selects all rows.
@@ -222,11 +211,7 @@ export default function Actions(namespace) {
    * @returns {Action} The redux action object
    */
   this.setSelected = (map, activeIndex = null, pivotIndex = null) =>
-    getAction(types.SET_SELECTED, {
-      map,
-      activeIndex,
-      pivotIndex
-    })
+    getAction(types.SET_SELECTED, { map, activeIndex, pivotIndex })
 
   /**
    * Displays an error message instead of the rows if truthy,

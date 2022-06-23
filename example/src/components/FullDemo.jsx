@@ -72,7 +72,7 @@ const buttonActions = {
   "Clear items": actions.clearItems(),
   "Add items": actions.addItems(...extraComments),
   "Patch items": actions.patchItems(...commentPatches),
-  "Patch items by value": actions.patchItemsByValue(commentPatchesByValue),
+  "Patch items by value": actions.patchItemsByKey(commentPatchesByValue),
 
   "Set error": actions.setError("An error occurred"),
   "Clear error": actions.setError(null),

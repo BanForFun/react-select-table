@@ -468,10 +468,14 @@ export default function createTable(namespace, options = {}) {
           }
 
           const keyedItems = keyItems(patchMap)
-          const selectedKeys = Object.keys(keyedItems).filter(key => keyedItems[key][selectedSym])
-          _.forEach(keyedItems, item => delete item[selectedSym])
-          // Items that become hidden after the patch, will be de-selected when filtered
-          _.forEach(selectedKeys, key => setUtils.addItem(draft.selected, key))
+          for (const key in keyedItems) {
+            const item = keyedItems[key]
+            if (item[selectedSym])
+              // Items that become hidden after the patch, will be de-selected when filtered
+              setUtils.addItem(draft.selected, key)
+
+            delete item[selectedSym]
+          }
 
           // Note: A item will be selected after the patch if:
           // The item was selected before the patch OR

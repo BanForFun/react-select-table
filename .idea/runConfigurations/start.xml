@@ -1,5 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="start" type="Multirun" separateTabs="false" reuseTabsWithFailures="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0.0">
+  <configuration default="false" name="start" type="Multirun" separateTabs="false" reuseTabsWithFailures="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="true" delayTime="0.0">
+    <runConfiguration name="build definitions" type="npm" />
     <runConfiguration name="start gui" type="npm" />
     <runConfiguration name="start lib" type="npm" />
     <method v="2" />

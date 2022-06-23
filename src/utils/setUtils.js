@@ -5,7 +5,9 @@ export function instance() {
 }
 
 export function removeItem(set, key) {
-  return delete set[key]
+  const existed = hasItem(set, key)
+  delete set[key]
+  return existed
 }
 
 export function addItem(set, key) {

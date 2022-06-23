@@ -30,7 +30,7 @@
     "copy-definitions": "rsync -a -m --include '*/' --include '*.d.ts' --exclude '*' src/ dist/typings/",
     "build-definitions": " yarn clear-definitions && tsc && yarn copy-definitions",
     "build": "yarn build-definitions && microbundle-crl --no-compress --format modern,cjs",
-    "start": "yarn build-definitions && microbundle-crl watch --no-compress --format modern,cjs",
+    "start": "microbundle-crl watch --no-compress --format modern,cjs",
     "prepare": "run-s build",
     "test": "run-s test:unit test:lint test:build",
     "test:build": "run-s build",

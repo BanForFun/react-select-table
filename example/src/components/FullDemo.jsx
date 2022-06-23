@@ -9,14 +9,23 @@ const extraComments = comments.splice(0, 200);
 
 const commentPatches = [{
   id: 201,
-  name: "Patched"
+  name: "et Patched"
 }, {
   id: 202,
   name: "Bla bla"
 }, {
-  id: 204,
+  id: 205,
   name: "12345"
 }]
+
+const commentPatchesByValue = {
+  483: {
+    id: "a"
+  },
+  259: {
+    id: 365
+  }
+}
 
 const columns = [
   {
@@ -63,6 +72,7 @@ const buttonActions = {
   "Clear items": actions.clearItems(),
   "Add items": actions.addItems(...extraComments),
   "Patch items": actions.patchItems(...commentPatches),
+  "Patch items by value": actions.patchItemsByValue(commentPatchesByValue),
 
   "Set error": actions.setError("An error occurred"),
   "Clear error": actions.setError(null),

@@ -298,7 +298,6 @@ export default function createTable(namespace, options = {}) {
 
   function searchIndexRemove(key) {
     if (!searchProperty) return
-    if (!dlMapUtils.hasItem(draft.items, key)) return
 
     const text = getItemSearchText(key)
     trieUtils.removeNode(draft.searchIndex, key, text)
@@ -320,10 +319,7 @@ export default function createTable(namespace, options = {}) {
 
   //#region Items
 
-  function setItemVisibility(key, visibility = null) {
-    const item = dlMapUtils.getItem(draft.items, key)
-    visibility ??= options.itemPredicate(item, draft.filter)
-
+  function setItemVisibility(key, visibility) {
     const itemMetadata = dlMapUtils.getItemMetadata(draft.items, key)
     if (!!itemMetadata.visible !== visibility) {
       itemMetadata.visible = visibility
@@ -331,9 +327,15 @@ export default function createTable(namespace, options = {}) {
     }
 
     if (!visibility)
-      setUtils.removeItem(draft.selected, key)
+      return setUtils.removeItem(draft.selected, key)
+  }
 
-    return visibility
+  function filterItem(key) {
+    const item = dlMapUtils.getItem(draft.items, key)
+    const visible = options.itemPredicate(item, draft.filter)
+    setItemVisibility(key, visible)
+
+    return visible
   }
 
   function * visibleKeyIterator(forward = true, originKey = null) {
@@ -347,14 +349,15 @@ export default function createTable(namespace, options = {}) {
   }
 
   function addUnlinkedItem(item, key) {
-    // If replacing item, remove old search entry
-    searchIndexRemove(key)
+    // Save selection status of item we're potentially replacing
+    const selected = deleteItem(key)
 
     // Add to list
     dlMapUtils.addUnlinkedItem(draft.items, key, item)
 
-    // Set visibility
-    setItemVisibility(key)
+    // Set visibility and restore selection status if still visible
+    if (filterItem(key) && selected)
+      setUtils.addItem(draft.selected, key)
 
     // Add to search index
     searchIndexAdd(key)
@@ -370,18 +373,19 @@ export default function createTable(namespace, options = {}) {
     return keys
   }
 
-  function addItems(items) {
-    return addKeyedItems(_.keyBy(items, keyBy))
+  function keyItems(items) {
+    return _.keyBy(items, keyBy)
   }
 
   function deleteItem(key) {
-    if (!dlMapUtils.hasItem(draft.items, key)) return
+    if (!dlMapUtils.getItem(draft.items, key)) return false
 
     // To update the visible item count and deselect
-    setItemVisibility(key, false)
+    const wasSelected = setItemVisibility(key, false)
     searchIndexRemove(key)
 
     dlMapUtils.deleteItem(draft.items, key)
+    return wasSelected
   }
 
   function clearItems() {
@@ -439,14 +443,14 @@ export default function createTable(namespace, options = {}) {
         // Items
         case types.SET_ITEMS: {
           clearItems()
-          addItems(payload.items)
+          addKeyedItems(keyItems(payload.items))
           break
         }
         case types.ADD_ITEMS: {
           const { items } = payload
           if (!items.length) break
 
-          setSelection(addItems(items))
+          setSelection(addKeyedItems(keyItems(items)))
           break
         }
         case types.DELETE_ITEMS: {
@@ -458,26 +462,29 @@ export default function createTable(namespace, options = {}) {
           setActiveKey(setActive)
           break
         }
-        // case types.PATCH_ITEM_VALUES: {
-        //   const patched = []
-        //
-        //   _.forEach(payload.map, (newValue, oldValue) => {
-        //     if (!isKeyValid(oldValue)) return
-        //
-        //     if (setUtils.removeItem(draft.selected, oldValue))
-        //       setUtils.addItem(draft.selected, newValue)
-        //
-        //     const item = _.set(draft.items[oldValue], valueProperty, newValue)
-        //     patched.push(item)
-        //
-        //     deleteItem(oldValue)
-        //   })
-        //
-        //   addItems(patched)
-        //   break
-        // }
+        case types.PATCH_ITEMS_BY_VALUE: {
+          const selectedSym = Symbol('Selected')
+
+          const { patchMap } = payload
+          for (const key in patchMap) {
+            _.defaultsDeep(patchMap[key], dlMapUtils.getItem(draft.items, key))
+            patchMap[key][selectedSym] = deleteItem(key)
+          }
+
+          const keyedItems = keyItems(patchMap)
+          const selectedKeys = Object.keys(keyedItems).filter(key => keyedItems[key][selectedSym])
+          _.forEach(keyedItems, item => delete item[selectedSym])
+          // Items that become hidden after the patch, will be de-selected when filtered
+          _.forEach(selectedKeys, key => setUtils.addItem(draft.selected, key))
+
+          // Note: A item will be selected after the patch if:
+          // The item was selected before the patch OR
+          // The item it is replacing after the patch is selected
+          addKeyedItems(keyedItems)
+          break
+        }
         case types.PATCH_ITEMS: {
-          const keyedPatches = _.keyBy(payload.patches, keyBy)
+          const keyedPatches = keyItems(payload.patches)
           for (const key in keyedPatches)
             _.defaultsDeep(keyedPatches[key], dlMapUtils.getItem(draft.items, key))
 
@@ -503,7 +510,7 @@ export default function createTable(namespace, options = {}) {
 
           const keys = dlMapUtils.keyIterator(draft.items)
           for (const key of keys)
-            setItemVisibility(key)
+            filterItem(key)
 
           setActiveKey(null)
           break

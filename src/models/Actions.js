@@ -6,6 +6,7 @@ export const types = {
   ADD_ITEMS: '',
   DELETE_ITEMS: '',
   PATCH_ITEMS: '',
+  PATCH_ITEMS_BY_VALUE: '',
   CLEAR_ITEMS: '',
   SORT_ITEMS: '',
   SET_ITEM_FILTER: '',
@@ -101,14 +102,22 @@ export default function Actions(namespace) {
   /**
    * Applies a deep patch to rows.
    *
-   * @param {...object} patches Every property each object contains,
-   * will be applied to the row with the same {@link RowKey|value}
+   * @param {...object} patches Every property of each object,
+   * will be applied to the row with the same {@link RowKey|key}
    * @returns {Action} The redux action object
    */
   this.patchItems = (...patches) =>
     getAction(types.PATCH_ITEMS, { patches })
 
-  // TODO: Add patchItemsByKey
+  /**
+   * Applies a deep patch to rows by value.
+   *
+   * @param {Object<import('../store/store').RowKey, object>} patchMap Every property of each value of this object,
+   * will be applied to the row whose key is equal to the matching key of this object
+   * @returns {Action} The redux action object
+   */
+  this.patchItemsByValue = (patchMap) =>
+    getAction(types.PATCH_ITEMS_BY_VALUE, { patchMap })
 
   /**
    * Deletes rows and deselects them.

@@ -54,4 +54,4 @@ function TableHeader({
   </th>
 }
 
-export default React.memo(TableHeader)
+export default TableHeader

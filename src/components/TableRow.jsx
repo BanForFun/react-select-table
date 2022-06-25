@@ -1,4 +1,5 @@
 import React from 'react'
+import _ from 'lodash'
 import classNames from 'classnames'
 import TableCell from './TableCell'
 
@@ -14,7 +15,7 @@ export function getRowBounds(row) {
 }
 
 // Child of TableBody
-function TableRow({
+const TableRow = ({
   columns,
   setGestureTarget,
   targetTouchStart,
@@ -23,15 +24,17 @@ function TableRow({
   index,
   className,
   name,
-  rowKey,
+  itemKey,
   item
-}) {
+}) => {
+  console.log('Rendered row', index)
+
   const renderColumn = ({ key, ...column }) =>
     <TableCell
       {...column}
       rowItem={item}
       rowIndex={index}
-      key={`cell_${name}_${rowKey}_${key}`}
+      key={`cell_${name}_${itemKey}_${key}`}
     />
 
   const trClass = classNames(className, {
@@ -50,4 +53,4 @@ function TableRow({
   </tr>
 }
 
-export default React.memo(TableRow)
+export default React.memo(TableRow, _.isEqual)

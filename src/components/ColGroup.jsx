@@ -1,14 +1,12 @@
-import React from 'react'
-import _ from 'lodash'
+import React, { useContext } from 'react'
+import ColumnGroupContext from '../context/ColumnGroup'
 
-function ColGroup({ widths, name, columns }) {
+const ColGroup = ({ name, columns }) => {
+  const { widths } = useContext(ColumnGroupContext)
   return <colgroup>
     {columns.map((col, index) =>
       <col key={`col_${name}_${col.key}`} width={widths[index]} />)}
   </colgroup>
 }
 
-export default React.memo(ColGroup, (prev, current) => {
-  if (current.isClipped) return true
-  return _.isEqual(prev, current)
-})
+export default ColGroup

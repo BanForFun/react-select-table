@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React from 'react'
 
-function TableCell({ render, rowItem, rowIndex, path, isHeader }) {
+const TableCell = ({ render, rowItem, rowIndex, path, isHeader }) => {
   const options = {
     className: null
   }
@@ -13,4 +13,4 @@ function TableCell({ render, rowItem, rowIndex, path, isHeader }) {
   return <CellType className={options.className}>{content}</CellType>
 }
 
-export default React.memo(TableCell)
+export default TableCell

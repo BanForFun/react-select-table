@@ -45,8 +45,7 @@ $rst-config: map-merge((
   "head.icon-spacing":                        0.25rem,
   "head.border":                              2px solid rgba(#bdc5cd, 0.5),
   "head-resizing.border-image":               repeating-linear-gradient(
-          to right, rst-get("head", "border-color") 0px 10px, transparent 10px 20px
-  ) 1 stretch,
+    to right, rst-get("head", "border-color") 0px 10px, transparent 10px 20px) 1 stretch,
 
   "header.font-weight":                       bold,
 

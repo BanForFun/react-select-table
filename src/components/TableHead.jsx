@@ -80,4 +80,4 @@ function TableHead(props) {
   </div>
 }
 
-export default React.memo(TableHead)
+export default TableHead

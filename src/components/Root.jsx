@@ -84,22 +84,28 @@ function Root(props) {
     // React doesn't have a code property, and the key property is case-sensitive so keyCode it is
     switch (e.keyCode) {
       case 38: // Up
-        if (!isActiveFirst) select(e, activeIndex - 1)
+        if (isActiveFirst) return
+        select(e, activeIndex - 1)
         break
       case 40: // Down
-        if (!isActiveLast) select(e, activeIndex + 1)
+        if (isActiveLast) return
+        select(e, activeIndex + 1)
         break
       case 37: // Left
-        if (!isPageFirst) select(e, activeIndex - pageSize)
+        if (isPageFirst) return
+        select(e, activeIndex - pageSize)
         break
       case 39: // Right
-        if (!isPageLast) select(e, Math.min(activeIndex + pageSize, itemCount - 1))
+        if (isPageLast) return
+        select(e, Math.min(activeIndex + pageSize, itemCount - 1))
         break
       case 36: // Home
-        if (!isActiveFirst) select(e, 0)
+        if (isActiveFirst) return
+        select(e, 0)
         break
       case 35: // End
-        if (!isActiveLast) select(e, itemCount - 1)
+        if (isActiveLast) return
+        select(e, itemCount - 1)
         break
       case 13: // Enter
         if (!e.ctrlKey && !e.shiftKey && getSelected(activeIndex))
@@ -109,8 +115,8 @@ function Root(props) {
 
         break
       case 65: // A
-        if (e.ctrlKey && !e.shiftKey)
-          actions.selectAll()
+        if (!e.ctrlKey || e.shiftKey) return
+        actions.selectAll()
         break
       default:
         if (e.ctrlKey || e.shiftKey) return false

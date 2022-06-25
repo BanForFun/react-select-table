@@ -1,26 +1,17 @@
-import React, { useContext, useLayoutEffect, useMemo, useRef } from 'react'
+import React, { useRef, useEffect, useLayoutEffect } from 'react'
+import _ from 'lodash'
 import TableRow from './TableRow'
-import ColumnGroupContext from '../context/ColumnGroup'
 import ColGroup from './ColGroup'
-import * as selectors from '../selectors/selectors'
-import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
-import * as setUtils from '../utils/setUtils'
 
 export const VisibleChunkClass = 'rst-visible'
 
-export function loadChunk(chunk) {
-  chunk.classList.add(VisibleChunkClass)
-}
-
-function TableChunk(props) {
+const TableChunk = props => {
   const {
-    utils: { options, hooks },
     getRowClassName,
-    rowKeys,
-    index,
-    chunkIntersectionObserver,
-    clipPath,
-    getContainerVisibleBounds,
+    rows,
+    activeRowIndex,
+    indexOffset,
+    chunkIntersectionObserverRef: observerRef,
 
     ...rowCommonProps
   } = props
@@ -30,54 +21,45 @@ function TableChunk(props) {
     name
   } = props
 
-  const chunkIndexOffset = index * options.chunkSize
-  const selected = hooks.useSelector(s => s.selected)
-  const items = hooks.useSelector(s => s.items)
-  const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
-
-  const { widths, resizingIndex } = useContext(ColumnGroupContext)
-
   const chunkRef = useRef()
 
   useLayoutEffect(() => {
     const chunk = chunkRef.current
-    loadChunk(chunk)
+    chunk.classList.add(VisibleChunkClass)
+    console.log('Rendered', indexOffset)
+  })
 
-    const observer = chunkIntersectionObserver.current
-    observer.observe(chunk)
-    return () => observer.unobserve(chunk)
-  }, [chunkIntersectionObserver, rowKeys])
-
-  const isClipped = useMemo(() => {
-    if (resizingIndex == null) return false
-
-    // Intersection shouldn't change when resizing starts, as getBoundingClientRect is used to set the widths.
+  useEffect(() => {
+    const observer = observerRef.current
     const chunk = chunkRef.current
-    return chunk && !chunk.classList.contains(VisibleChunkClass)
-  }, [resizingIndex])
+    observer.observe(chunk)
+    console.log('Observing', indexOffset)
+    return () => observer.unobserve(chunk)
+  })
 
-  const renderRow = (key, index) => {
-    const item = dlMapUtils.getItem(items, key)
-    index += chunkIndexOffset
-
+  const renderRow = (row, rowIndex) => {
     const rowProps = {
       ...rowCommonProps,
-      item,
-      rowKey: key,
-      index,
-      key: `row_${props.name}_${key}`,
-      active: index === activeRowIndex,
-      selected: setUtils.hasItem(selected, key),
-      className: getRowClassName(item)
+      item: row.item,
+      itemKey: row.key,
+      index: indexOffset + rowIndex,
+      key: `row_${props.name}_${row.key}`,
+      active: rowIndex === activeRowIndex,
+      selected: row.selected,
+      className: getRowClassName(row.item)
     }
 
     return <TableRow {...rowProps} />
   }
 
   return <table className='rst-chunk' ref={chunkRef}>
-    <ColGroup {...{ name, columns, widths, isClipped }} />
-    <tbody className='rst-rows'>{rowKeys.map(renderRow)}</tbody>
+    <ColGroup {...{ name, columns }} />
+    <tbody className='rst-rows'>{rows.map(renderRow)}</tbody>
   </table>
 }
 
-export default React.memo(TableChunk)
+const propsAreEqual = (prev, next) => _.isEqualWith(prev, next, (pv, nv, key, po) => {
+  if (prev === po && key.endsWith('Ref')) return true
+})
+
+export default React.memo(TableChunk, propsAreEqual)

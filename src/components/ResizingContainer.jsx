@@ -7,6 +7,7 @@ import * as selectors from '../selectors/selectors'
 import * as setUtils from '../utils/setUtils'
 import { GestureTargets } from '../constants/enums'
 import classNames from 'classnames'
+import useDecoupledCallback from '../hooks/useDecoupledCallback'
 
 // Child of ScrollingContainer
 // Handles gestures
@@ -27,8 +28,7 @@ function ResizingContainer(props) {
     getRowClassName,
     selectionRectRef,
     tableBodyRef,
-    getChunkRow,
-    chunkIntersectionObserver,
+    chunkIntersectionObserverRef,
 
     ...commonProps
   } = props
@@ -156,8 +156,8 @@ function ResizingContainer(props) {
   //#endregion
 
   Object.assign(commonProps, {
-    setGestureTarget,
-    targetTouchStart,
+    setGestureTarget: useDecoupledCallback(setGestureTarget),
+    targetTouchStart: useDecoupledCallback(targetTouchStart),
     showPlaceholder
   })
 
@@ -173,11 +173,9 @@ function ResizingContainer(props) {
     ...commonProps,
     tableBodyRef,
     selectionRectRef,
+    chunkIntersectionObserverRef,
 
-    chunkIntersectionObserver,
-
-    getRowClassName,
-    getChunkRow
+    getRowClassName
   }
 
   const { containerWidth, containerMinWidth } = useContext(ColumnGroupContext)

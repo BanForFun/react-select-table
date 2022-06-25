@@ -535,23 +535,51 @@ function ScrollingContainer(props) {
 
   //#endregion
 
+  //#region Autoscroll to active index
+
+  const getContainerVisibleBounds = useCallback(() => {
+    const container = scrollingContainerRef.current
+    const body = tableBodyRef.current
+    return {
+      top: container.scrollTop,
+      bottom: container.scrollTop + container.clientHeight - body.offsetTop
+    }
+  }, [scrollingContainerRef, tableBodyRef])
+
+  const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
+
+  useLayoutEffect(() => {
+    const chunkRow = getChunkRow(activeRowIndex)
+    if (!chunkRow) return
+
+    const containerBounds = getContainerVisibleBounds()
+    const rowBounds = getRowBounds(chunkRow.row)
+    const distanceToTop = rowBounds.top - containerBounds.top
+    const distanceToBottom = rowBounds.bottom - containerBounds.bottom
+
+    const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
+    scrollingContainerRef.current.scrollTop += scrollOffset
+  }, [activeRowIndex, getChunkRow, getContainerVisibleBounds, scrollingContainerRef])
+
+  //#endregion
+
   //#region Chunk IntersectionObserver
 
   // Chrome's content-visibility has worse performance
-  const chunkIntersectionObserver = useRef()
+  const chunkIntersectionObserverRef = useRef()
   useLayoutEffect(() => {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
       const { target: chunk, isIntersecting: visible } = entry
       if (!visible)
-      // Save previous height, just before hiding
+        // Save previous height, just before hiding
         chunk.style.height = px(chunk.offsetHeight)
 
       chunk.classList.toggle(VisibleChunkClass, visible)
     }), { root: scrollingContainerRef.current, rootMargin: '500px' })
 
-    chunkIntersectionObserver.current = observer
+    chunkIntersectionObserverRef.current = observer
     return () => observer.disconnect()
-  })
+  }, [])
 
   //#endregion
 
@@ -562,14 +590,13 @@ function ScrollingContainer(props) {
     selectionRectRef,
     scrollingContainerRef,
     resizingContainerRef,
+    chunkIntersectionObserverRef,
 
     dragMode,
     columns,
-    chunkIntersectionObserver,
 
     columnResizeStart,
-    dragSelectStart,
-    getChunkRow
+    dragSelectStart
   })
 
   return <div

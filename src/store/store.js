@@ -4,9 +4,18 @@ import { types } from '../models/Actions'
 import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
 import * as setUtils from '../utils/setUtils'
-import * as selectors from '../selectors/selectors'
+import {
+  getActiveKey,
+  getActiveRowIndex,
+  getPageCount,
+  getPageIndex,
+  getPageSize,
+  getPageIndexOffset,
+  getItemPageIndex
+} from '../selectors/selectors'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import * as trieUtils from '../utils/trieUtils'
+import * as saveModules from '../constants/saveModules'
 
 const nextSortOrder = Object.freeze({
   undefined: true,
@@ -50,28 +59,6 @@ const searchOrigins = Object.freeze({
  * @property {number} pivotIndex The index of the pivot row inside {@link rowKeys}
  */
 
-const debugState = true
-
-function toJSON() {
-  if (debugState) return this
-
-  const obj = _.pick(this,
-    'isLoading',
-    'error',
-    'activeIndex',
-    'pivotIndex',
-    'filter',
-    'sortAscending',
-    'pageSize',
-    'searchPhrase'
-  )
-
-  obj.items = dlMapUtils.getItems(this.items)
-  obj.selected = setUtils.getItems(this.selected)
-
-  return obj
-}
-
 /**
  * Takes the current state and an action, and returns the next state
  *
@@ -89,12 +76,11 @@ function toJSON() {
  * @returns {Reducer} The table reducer
  */
 export default function createTable(namespace, options = {}) {
-  createTableUtils(namespace, options)
+  const utils = createTableUtils(namespace, options)
 
   const {
     keyBy,
-    searchProperty,
-    savedState
+    searchProperty
   } = options
 
   const noItemsState = {
@@ -112,29 +98,48 @@ export default function createTable(namespace, options = {}) {
   }
 
   const initState = {
-    toJSON,
     filter: null,
     sortAscending: {},
     pageSize: 0,
     searchPhrase: null,
     // resetPivot: false,
 
-    ...noItemsState,
-
-    ...savedState.initialState
+    ...noItemsState
   }
 
   let draft = initState
-  const {
-    getActiveKey,
-    getActiveRowIndex,
-    getPageCount,
-    getPageIndex,
-    getPageSize,
-    getPageIndexOffset,
-    getItemPageIndex
-  } = _.mapValues(selectors, selector =>
-    (state = draft, ...rest) => selector(state, ...rest))
+
+  //#region Load save state
+
+  if (options.savedState != null) {
+    const loader = (...props) => s => Object.assign(draft, _.pick(s, props))
+
+    let loadedActiveKey
+    const loadModuleSaveState = {
+      [saveModules.Filter]: loader('filter'),
+      [saveModules.SortOrder]: loader('sortAscending'),
+      [saveModules.Items]: s => {
+        loader('error', 'isLoading')(s)
+        addKeyedItems(keyItems(s.items))
+      },
+      [saveModules.Pagination]: loader('pageSize'),
+      [saveModules.Active]: s => (loadedActiveKey = setActiveIndex(s.activeIndex, true)),
+      [saveModules.Search]: s => {
+        loader('searchPhrase')(s)
+        draft.matchIndex = _.findIndex(updateSearchMatches(), v => v === loadedActiveKey)
+      },
+      [saveModules.Selection]: s => s.selected.forEach(v => setUtils.addItem(draft.selected, v)),
+      [saveModules.Pivot]: loader('pivotIndex')
+    }
+
+    for (const module in loadModuleSaveState) {
+      if (!utils.doSaveModule(+module)) continue
+      loadModuleSaveState[module](options.savedState)
+      console.log(module, draft)
+    }
+  }
+
+  //#endregion
 
   //#region Validation
 
@@ -189,17 +194,18 @@ export default function createTable(namespace, options = {}) {
 
   //#region Pagination
 
-  const getPageBoundary = (start) =>
-    start ? 0 : getPageSize() - 1
+  function getPageBoundary(start) {
+    return start ? 0 : getPageSize(draft) - 1
+  }
 
-  const resolveSearchOrigin = (origin, forward) => {
+  function resolveSearchOrigin(origin, forward) {
     let rowIndex
     switch (origin) {
       case searchOrigins.PageBoundary:
         rowIndex = getPageBoundary(!forward)
         break
       case searchOrigins.ActiveRow:
-        rowIndex = getActiveRowIndex()
+        rowIndex = getActiveRowIndex(draft)
         break
       default: return {
         index: forward ? -1 : draft.visibleItemCount,
@@ -208,13 +214,13 @@ export default function createTable(namespace, options = {}) {
     }
 
     return {
-      index: rowIndex + getPageIndexOffset(),
+      index: rowIndex + getPageIndexOffset(draft),
       key: draft.rowKeys[rowIndex]
     }
   }
 
   function setActiveItem(callback, searchForward, searchOrigin) {
-    const pageSize = getPageSize()
+    const pageSize = getPageSize(draft)
     const origin = resolveSearchOrigin(searchOrigin, searchForward)
     let rowKeys = origin.key != null ? draft.rowKeys : []
 
@@ -240,7 +246,7 @@ export default function createTable(namespace, options = {}) {
 
     draft.activeIndex = setActive
     draft.rowKeys = rowKeys
-    return getActiveKey()
+    return getActiveKey(draft)
   }
 
   function setActiveKey(key, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
@@ -253,7 +259,7 @@ export default function createTable(namespace, options = {}) {
   function setActiveIndex(index, pageInvalid = false) {
     if (!isIndexValid(index)) return null
 
-    const currentPage = pageInvalid ? NaN : getPageIndex()
+    const currentPage = pageInvalid ? NaN : getPageIndex(draft)
     const targetPage = getItemPageIndex(draft, index)
     if (currentPage === targetPage) {
       draft.activeIndex = index
@@ -264,7 +270,7 @@ export default function createTable(namespace, options = {}) {
     const origins = [
       { page: currentPage, forward: afterCurrent, row: searchOrigins.PageBoundary },
       { page: 0, forward: true, row: searchOrigins.TableBoundary },
-      { page: getPageCount() - 1, forward: false, row: searchOrigins.TableBoundary }
+      { page: getPageCount(draft) - 1, forward: false, row: searchOrigins.TableBoundary }
     ]
 
     const [origin] = _.sortBy(origins, origin => Math.abs(targetPage - origin.page))
@@ -360,7 +366,7 @@ export default function createTable(namespace, options = {}) {
     const keys = Object.keys(keyedItems)
     dlMapUtils.sortAndLinkItems(draft.items, keys, compareItems)
 
-    setActiveKey(getActiveKey())
+    setActiveKey(getActiveKey(draft))
     return keys
   }
 

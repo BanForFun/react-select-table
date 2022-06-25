@@ -1,9 +1,10 @@
-import React, {useCallback, useEffect, useRef} from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import _ from "lodash";
-import { Table, getTableUtils } from 'react-select-table';
+import { Table, getTableUtils, saveModules } from 'react-select-table';
 import { useDispatch } from 'react-redux';
 import comments from "../data/comments.json";
-import {tableNamespace} from "../store";
+import { setCustomOptions, tableNamespace } from '../store'
+import Checkbox from './common/Checkbox'
 
 const extraComments = comments.splice(0, 200);
 
@@ -65,6 +66,7 @@ const columns = [
 
 const utils = getTableUtils(tableNamespace);
 const { actions, options, hooks } = utils
+
 document.title = `react-select-table (${options.title})`;
 
 const buttonActions = {
@@ -88,9 +90,7 @@ const buttonActions = {
   "Highlight items": actions.patchItems(
     { id: 11, highlighted: true },
     { id: 19, highlighted: true }
-  ),
-
-  // "Patch values": actions.patchItemValues({ 9: 14, 14: 9 })
+  )
 };
 
 const logEvent = type =>
@@ -101,7 +101,13 @@ function FullDemo() {
 
   const tableRef = useRef();
 
+  const [saveModulesChecked, setSaveModulesChecked] = useState({})
+
   useEffect(() => {
+    if (options.savedState) {
+      console.log("Loaded saved state")
+      return
+    }
     dispatch(actions.setItems(comments));
   }, [dispatch]);
 
@@ -145,7 +151,23 @@ function FullDemo() {
         <button key={`action_${text}`}
             onClick={handleButtonClick}
         >{text}</button>)}
-     <button onClick={() => console.log(getSaveState())}>Print save state</button>
+
+      <br/>
+      {_.map(saveModules, (flag, name) =>
+        <Checkbox key={`module_${name}`}
+                  id={name}
+                  label={name}
+                  checked={!!saveModulesChecked[name]}
+                  onChange={checked => setSaveModulesChecked({
+                    ...saveModulesChecked,
+                    [name]: checked ? flag : 0
+                  })}
+        />)}
+        <button onClick={() => setCustomOptions({
+          saveModules: _.reduce(saveModulesChecked, (result, flag) => result | flag, 0),
+          savedState: null
+        })}>Set modules</button>
+      <button onClick={() => setCustomOptions({ savedState: getSaveState() })}>Save state</button>
     </div>
   </>
 }

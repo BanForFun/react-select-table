@@ -1,5 +1,8 @@
 import _ from 'lodash'
-import * as loadModules from '../constants/loadModules'
+import * as saveModules from '../constants/saveModules'
+import * as flagUtils from '../utils/flagUtils'
+import * as setUtils from '../utils/setUtils'
+import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import Actions from './Actions'
 import Hooks from './Hooks'
 import Events from './Events'
@@ -41,7 +44,7 @@ import Events from './Events'
  * @property {number} [chunkSize] The maximum number of rows per chunk. A chunk is a collection of rows that is not rendered when not in view. A big chunk size improves scrolling performance at the cost of column resizing performance. Must be a multiple of 2 to preserve the stripped row pattern. Note: Resizing a column only updates the current chunk, making scrolling using the scrollbar jerky when chunks load in for the first time after resizing a column.
  * @property {string} [statePath] The path of the redux table state. Set to null if the table reducer is the root.
  * @property {object} [savedState] Load from a previously saved state, useful for restoring a user's session
- * @property {number} [stateModules] Binary flags to control which parts of the state to save and restore
+ * @property {number} [saveModules] Binary flags to control which parts of the state to save and restore
  * @property {import("react").Context} [context] If you use a custom context for your Provider, you can pass it here
  */
 
@@ -55,9 +58,9 @@ const defaultOptions = {
   minColumnWidth: 50,
   chunkSize: 100,
   statePath: null,
-  savedState: {},
+  savedState: null,
   context: undefined,
-  loadModules: loadModules.Filter | loadModules.Items | loadModules.Pagination | loadModules.SortOrder,
+  saveModules: saveModules.Items | saveModules.SortOrder | saveModules.Pagination,
   keyBy: '_id'
 }
 
@@ -68,6 +71,24 @@ const defaultOptions = {
  */
 export function setDefaultTableOptions(optionsPatch) {
   Object.assign(defaultOptions, optionsPatch)
+}
+
+const picker = (...props) => s => _.pick(s, ...props)
+
+const getModuleSaveState = {
+  [saveModules.Items]: s => ({
+    ...picker('isLoading', 'error')(s),
+    items: dlMapUtils.getItems(s.items)
+  }),
+  [saveModules.Selection]: s => ({
+    selected: setUtils.getItems(s.selected)
+  }),
+  [saveModules.Filter]: picker('filter'),
+  [saveModules.SortOrder]: picker('sortAscending'),
+  [saveModules.Pagination]: picker('pageSize'),
+  [saveModules.Active]: picker('activeIndex'),
+  [saveModules.Pivot]: picker('pivotIndex'),
+  [saveModules.Search]: picker('searchPhrase')
 }
 
 /**
@@ -81,8 +102,18 @@ export default function Utils(namespace, options) {
   this.getTableState = state =>
     options.statePath ? _.get(state, options.statePath) : state
 
-  this.shouldLoadModule = module =>
-    (options.stateModules & module) === options.stateModules
+  this.doSaveModule = module =>
+    flagUtils.hasFlag(options.saveModules, module)
+
+  this.getSaveState = state => {
+    const saveState = {}
+    for (const module in getModuleSaveState) {
+      if (!this.doSaveModule(+module)) continue
+      Object.assign(saveState, getModuleSaveState[module](state))
+    }
+
+    return saveState
+  }
 
   this.actions = new Actions(namespace)
   this.hooks = new Hooks(this)

@@ -418,11 +418,12 @@ export default function createTable(namespace, options = {}) {
 
     const activeKey = getActiveKey(state)
     setUtils.toggleItem(draft.selected, activeKey, selected)
+    if (offset === 0) return
 
     let distance = 0
     for (const key of visibleKeyIterator(offset > 0, activeKey)) {
       setUtils.toggleItem(draft.selected, key, selected)
-      if (++distance === Math.abs(offset)) break
+      if (++distance >= Math.abs(offset)) break
     }
   }
 

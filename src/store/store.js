@@ -126,8 +126,10 @@ export default function createTable(namespace, options = {}) {
       draft.pivotIndex = saved.activeIndex
     }
 
-    if (draft.searchPhrase)
-      draft.searchMatchIndex = _.findIndex(updateSearchMatches(), activeKey)
+    if (draft.searchPhrase) {
+      draft.searchMatches = getSearchMatches()
+      draft.searchMatchIndex = draft.searchMatches.indexOf(activeKey)
+    }
 
     if (isSaved('selected'))
       saved.selected.forEach(v => setUtils.addItem(draft.selected, v))
@@ -297,16 +299,12 @@ export default function createTable(namespace, options = {}) {
     trieUtils.removeNode(draft.searchIndex, key, text)
   }
 
-  function updateSearchMatches() {
-    if (!searchProperty) return
-
+  function getSearchMatches() {
     const phrase = options.searchPhraseParser(draft.searchPhrase)
     const allMatches = trieUtils.getMatchingKeys(draft.searchIndex, phrase)
     const visibleMatches = allMatches.filter(key =>
       dlMapUtils.getItemMetadata(draft.items, key).visible)
-    draft.searchMatches = visibleMatches.sort(compareItems)
-
-    return visibleMatches
+    return visibleMatches.sort(compareItems)
   }
 
   //#endregion
@@ -562,7 +560,7 @@ export default function createTable(namespace, options = {}) {
 
           if (payload.isRange && options.multiSelect) {
             if (addToPrev)
-            // Clear previous selection
+              // Clear previous selection
               setRangeSelected(state, false)
 
             setRangeSelected(draft, true)
@@ -604,24 +602,38 @@ export default function createTable(namespace, options = {}) {
 
         // Search
         case types.SEARCH: {
+          // Leave clearSearch = true, for consistent behavior of hitting escape and any other action
+          if (payload.phrase == null) break
           clearSearch = false
 
-          if (!(draft.searchPhrase = payload.phrase)) break
-          payload.index = updateSearchMatches().length
+          draft.searchPhrase = payload.phrase
+          if (!payload.phrase) {
+            // Empty search phrase -> clear searchMatches (getSearchMatches returns all rows)
+            draft.searchMatches = []
+            break
+          }
+
+          draft.searchMatches = getSearchMatches()
+          // Force wrap-around, in order to start the search from the first row instead of the active one
+          payload.index = draft.searchMatches.length
+          // Reset to 0, to force forward search
+          draft.searchMatchIndex = 0
+
+          // Fallthrough
         }
         // eslint-disable-next-line no-fallthrough
         case types.GO_TO_MATCH: {
           clearSearch = false
 
-          const { searchMatches: matches } = draft
-          const matchCount = matches.length
+          const { searchMatches } = draft
+          const matchCount = searchMatches.length
           if (!matchCount) break
 
           const { index } = payload
 
           const safeIndex = ((index % matchCount) + matchCount) % matchCount
           const origin = index === safeIndex ? searchOrigins.ActiveRow : searchOrigins.TableBoundary
-          setActiveKey(matches[safeIndex], index >= draft.searchMatchIndex, origin)
+          setActiveKey(searchMatches[safeIndex], index >= draft.searchMatchIndex, origin)
 
           draft.searchMatchIndex = safeIndex
           break

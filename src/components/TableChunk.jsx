@@ -26,14 +26,12 @@ const TableChunk = props => {
   useLayoutEffect(() => {
     const chunk = chunkRef.current
     chunk.classList.add(VisibleChunkClass)
-    console.log('Rendered', indexOffset)
   })
 
   useEffect(() => {
     const observer = observerRef.current
     const chunk = chunkRef.current
     observer.observe(chunk)
-    console.log('Observing', indexOffset)
     return () => observer.unobserve(chunk)
   })
 

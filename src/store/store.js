@@ -15,7 +15,6 @@ import {
 } from '../selectors/selectors'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import * as trieUtils from '../utils/trieUtils'
-import * as saveModules from '../constants/saveModules'
 
 const nextSortOrder = Object.freeze({
   undefined: true,
@@ -76,7 +75,7 @@ const searchOrigins = Object.freeze({
  * @returns {Reducer} The table reducer
  */
 export default function createTable(namespace, options = {}) {
-  const utils = createTableUtils(namespace, options)
+  createTableUtils(namespace, options)
 
   const {
     keyBy,
@@ -111,32 +110,29 @@ export default function createTable(namespace, options = {}) {
 
   //#region Load save state
 
-  if (options.savedState != null) {
-    const loader = (...props) => s => Object.assign(draft, _.pick(s, props))
+  if (options.savedState) {
+    const saved = options.savedState
+    const load = (...props) => Object.assign(draft, _.pick(saved, props))
+    const isSaved = name => Object.hasOwn(saved, name)
 
-    let loadedActiveKey
-    const loadModuleSaveState = {
-      [saveModules.Filter]: loader('filter'),
-      [saveModules.SortOrder]: loader('sortAscending'),
-      [saveModules.Items]: s => {
-        loader('error', 'isLoading')(s)
-        addKeyedItems(keyItems(s.items))
-      },
-      [saveModules.Pagination]: loader('pageSize'),
-      [saveModules.Active]: s => (loadedActiveKey = setActiveIndex(s.activeIndex, true)),
-      [saveModules.Search]: s => {
-        loader('searchPhrase')(s)
-        draft.matchIndex = _.findIndex(updateSearchMatches(), v => v === loadedActiveKey)
-      },
-      [saveModules.Selection]: s => s.selected.forEach(v => setUtils.addItem(draft.selected, v)),
-      [saveModules.Pivot]: loader('pivotIndex')
+    load('filter', 'sortAscending', 'error', 'isLoading', 'pageSize', 'searchPhrase')
+
+    if (isSaved('items'))
+      addKeyedItems(keyItems(saved.items))
+
+    let activeKey = null
+    if (isSaved('activeIndex')) {
+      activeKey = setActiveIndex(saved.activeIndex, true)
+      draft.pivotIndex = saved.activeIndex
     }
 
-    for (const module in loadModuleSaveState) {
-      if (!utils.doSaveModule(+module)) continue
-      loadModuleSaveState[module](options.savedState)
-      console.log(module, draft)
-    }
+    if (draft.searchPhrase)
+      draft.searchMatchIndex = _.findIndex(updateSearchMatches(), activeKey)
+
+    if (isSaved('selected'))
+      saved.selected.forEach(v => setUtils.addItem(draft.selected, v))
+
+    load('pivotIndex')
   }
 
   //#endregion

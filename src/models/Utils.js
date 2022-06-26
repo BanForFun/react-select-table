@@ -102,13 +102,10 @@ export default function Utils(namespace, options) {
   this.getTableState = state =>
     options.statePath ? _.get(state, options.statePath) : state
 
-  this.doSaveModule = module =>
-    flagUtils.hasFlag(options.saveModules, module)
-
   this.getSaveState = state => {
     const saveState = {}
     for (const module in getModuleSaveState) {
-      if (!this.doSaveModule(+module)) continue
+      if (!flagUtils.hasFlag(options.saveModules, +module)) continue
       Object.assign(saveState, getModuleSaveState[module](state))
     }
 

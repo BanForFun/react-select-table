@@ -39,6 +39,7 @@ const TableChunk = props => {
 
   useEffect(() => {
     if (visible) return
+    if (_.inRange(activeRowIndex, 0, rows.length)) return
     setChunkVisible(chunkRef.current, false)
   })
 

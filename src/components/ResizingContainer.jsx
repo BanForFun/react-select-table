@@ -26,7 +26,7 @@ function ResizingContainer(props) {
 
     // BodyContainer props
     getRowClassName,
-    chunkVisibilityRef,
+    chunkVisibility,
     selectionRectRef,
     tableBodyRef,
     chunkIntersectionObserverRef,
@@ -176,7 +176,7 @@ function ResizingContainer(props) {
     selectionRectRef,
     chunkIntersectionObserverRef,
 
-    chunkVisibilityRef,
+    chunkVisibility,
     getRowClassName
   }
 

@@ -7,7 +7,7 @@ import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import * as selectors from '../selectors/selectors'
 import { DragModes } from '../constants/enums'
-import { setChunkVisibility } from './TableChunk'
+import { setChunkVisible } from './TableChunk'
 
 const defaultColumnRenderer = value => value
 
@@ -565,15 +565,15 @@ function ScrollingContainer(props) {
 
   //#region Chunk IntersectionObserver
 
-  const chunkVisibilityRef = useRef({})
+  const [chunkVisibility, setChunkVisibility] = useState({})
 
   // Chrome's content-visibility has worse performance
   const chunkIntersectionObserverRef = useRef()
   useLayoutEffect(() => {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-      const { target: chunk, isIntersecting: visibility } = entry
-      chunkVisibilityRef.current[chunk.dataset.index] = visibility
-      setChunkVisibility(chunk, visibility)
+      const { target: chunk, isIntersecting: visible } = entry
+      setChunkVisibility(visibility => ({ ...visibility, [chunk.dataset.index]: visible }))
+      setChunkVisible(chunk, visible)
     }), { root: scrollingContainerRef.current, rootMargin: '500px' })
 
     chunkIntersectionObserverRef.current = observer
@@ -593,7 +593,7 @@ function ScrollingContainer(props) {
 
     dragMode,
     columns,
-    chunkVisibilityRef,
+    chunkVisibility,
 
     columnResizeStart,
     dragSelectStart

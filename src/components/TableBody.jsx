@@ -14,6 +14,7 @@ function TableBody(props) {
     tableBodyRef,
     dragMode,
     showPlaceholder,
+    chunkVisibility,
     utils: { hooks, options },
     ...chunkCommonProps
   } = props
@@ -44,6 +45,7 @@ function TableBody(props) {
       activeRowIndex={_.clamp(chunkActiveRowIndex, -1, rowKeys.length)}
       indexOffset={chunkIndexOffset}
       index={index}
+      visible={chunkVisibility[index]}
       key={`chunk_${props.name}_${index}`}
     />
   }

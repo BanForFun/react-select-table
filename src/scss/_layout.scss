@@ -123,18 +123,12 @@
 
 .rst-chunk {
   position: relative;
-  contain: layout;
 
-  .rst-rows {
-    display: none;
-  }
-
-  &.rst-visible {
-    contain: none;
-    height: auto !important;
+  &.rst-hidden {
+    contain: layout;
 
     .rst-rows {
-      display: revert;
+      display: none;
     }
   }
 }

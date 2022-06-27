@@ -7,6 +7,7 @@ import { px } from '../utils/tableUtils'
 export function setChunkVisible(chunk, visible) {
   chunk.style.height = visible ? 'auto' : px(chunk.offsetHeight)
   chunk.classList.toggle('rst-hidden', !visible)
+  delete chunk.dataset.forcedReload
 }
 
 const TableChunk = props => {
@@ -34,13 +35,18 @@ const TableChunk = props => {
 
   useLayoutEffect(() => {
     if (visible) return
+
+    const chunk = chunkRef.current
     setChunkVisible(chunkRef.current, true)
+    chunk.dataset.forcedReload = true
   })
 
   useEffect(() => {
     if (visible) return
-    if (_.inRange(activeRowIndex, 0, rows.length)) return
-    setChunkVisible(chunkRef.current, false)
+
+    const chunk = chunkRef.current
+    if (!chunk.dataset.forcedReload) return
+    setChunkVisible(chunk, false)
   })
 
   useEffect(() => {
@@ -72,14 +78,12 @@ const TableChunk = props => {
 }
 
 function propsAreEqual(prev, next) {
-  if (prev.activeRowIndex !== next.activeRowIndex) return false
-  if (!next.visible) return true
+  if (prev.activeRowIndex === next.activeRowIndex && !next.visible) return true
 
   return _.isEqualWith(prev, next, (pv, nv, key, po) => {
     if (prev !== po) return
 
-    // Top level
-    if (key === 'activeRowIndex') return true
+    if (key === 'visible') return true
     if (key.endsWith('Ref')) return true
   })
 }

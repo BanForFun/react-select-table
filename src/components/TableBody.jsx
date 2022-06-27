@@ -45,7 +45,7 @@ function TableBody(props) {
       activeRowIndex={_.clamp(chunkActiveRowIndex, -1, rowKeys.length)}
       indexOffset={chunkIndexOffset}
       index={index}
-      visible={chunkVisibility[index]}
+      visible={chunkVisibility[index] ?? true}
       key={`chunk_${props.name}_${index}`}
     />
   }

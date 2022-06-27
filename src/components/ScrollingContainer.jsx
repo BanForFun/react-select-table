@@ -112,7 +112,12 @@ function ScrollingContainer(props) {
     const chunk = tableBodyRef.current.children[chunkIndex]
     if (chunk?.tagName !== 'TABLE') return null
 
-    return { row: chunk.rows[rowIndex], chunk }
+    return {
+      row: chunk.rows[rowIndex],
+      chunk,
+      rowIndex,
+      chunkIndex
+    }
   }, [options])
 
   //#endregion
@@ -535,6 +540,28 @@ function ScrollingContainer(props) {
 
   //#endregion
 
+  //#region Chunk IntersectionObserver
+
+  const [chunkVisibility, setChunkVisibility] = useState({})
+
+  const updateChunkVisibility = useCallback(entries => entries.forEach(entry => {
+    const { target: chunk, isIntersecting: visible } = entry
+    setChunkVisibility(visibility => ({ ...visibility, [chunk.dataset.index]: visible }))
+    setChunkVisible(chunk, visible)
+  }), [])
+
+  // Chrome's content-visibility has worse performance
+  const chunkIntersectionObserverRef = useRef()
+  useLayoutEffect(() => {
+    const observer = new IntersectionObserver(updateChunkVisibility,
+      { root: scrollingContainerRef.current, rootMargin: '500px' })
+
+    chunkIntersectionObserverRef.current = observer
+    return () => observer.disconnect()
+  }, [updateChunkVisibility])
+
+  //#endregion
+
   //#region Autoscroll to active index
 
   const getContainerVisibleBounds = useCallback(() => {
@@ -549,36 +576,22 @@ function ScrollingContainer(props) {
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
   useLayoutEffect(() => {
-    const chunkRow = getChunkRow(activeRowIndex)
-    if (!chunkRow) return
+    const activeChunkRow = getChunkRow(activeRowIndex)
+    if (!activeChunkRow) return
 
     const containerBounds = getContainerVisibleBounds()
-    const rowBounds = getRowBounds(chunkRow.row)
+    const rowBounds = getRowBounds(activeChunkRow.row)
     const distanceToTop = rowBounds.top - containerBounds.top
     const distanceToBottom = rowBounds.bottom - containerBounds.bottom
 
     const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
     scrollingContainerRef.current.scrollTop += scrollOffset
-  }, [activeRowIndex, getChunkRow, getContainerVisibleBounds, scrollingContainerRef])
 
-  //#endregion
-
-  //#region Chunk IntersectionObserver
-
-  const [chunkVisibility, setChunkVisibility] = useState({})
-
-  // Chrome's content-visibility has worse performance
-  const chunkIntersectionObserverRef = useRef()
-  useLayoutEffect(() => {
-    const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-      const { target: chunk, isIntersecting: visible } = entry
-      setChunkVisibility(visibility => ({ ...visibility, [chunk.dataset.index]: visible }))
-      setChunkVisible(chunk, visible)
-    }), { root: scrollingContainerRef.current, rootMargin: '500px' })
-
-    chunkIntersectionObserverRef.current = observer
-    return () => observer.disconnect()
-  }, [])
+    updateChunkVisibility(chunkIntersectionObserverRef.current.takeRecords())
+  }, [
+    activeRowIndex,
+    getChunkRow, getContainerVisibleBounds, updateChunkVisibility
+  ])
 
   //#endregion
 

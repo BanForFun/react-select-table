@@ -53,11 +53,11 @@
       max-width: 0;
       overflow: visible;
       position: sticky;
-      left: calc(var(--spacer-left) * -1);
-    }
+      left: calc(var(--content-width) * -1);
 
-    .rst-visible .rst-spacer {
-      width: 100vw;
+      .rst-spacer {
+        width: 100vw;
+      }
     }
   }
 
@@ -124,12 +124,8 @@
 .rst-chunk {
   position: relative;
 
-  &.rst-hidden {
-    contain: layout;
-
-    .rst-rows {
-      display: none;
-    }
+  &.rst-hidden .rst-rows {
+    display: none;
   }
 }
 

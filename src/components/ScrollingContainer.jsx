@@ -476,7 +476,7 @@ function ScrollingContainer(props) {
     })
 
     const body = tableBodyRef.current
-    body.style.setProperty('--spacer-left', px(spacer.offsetLeft + spacer.clientLeft))
+    body.style.setProperty('--content-width', px(spacer.offsetLeft + spacer.clientLeft))
 
     setColumnGroup(columnGroup => ({
       ...columnGroup,

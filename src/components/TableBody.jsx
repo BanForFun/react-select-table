@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react'
+import React, { useContext, useMemo } from 'react'
 import _ from 'lodash'
 import TableChunk from './TableChunk'
 import { DragModes } from '../constants/enums'
 import * as selectors from '../selectors/selectors'
 import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
+import ColumnGroupContext from '../context/ColumnGroup'
 
 // Child of BodyContainer
 function TableBody(props) {
@@ -22,6 +23,8 @@ function TableBody(props) {
   const items = hooks.useSelector(s => s.items)
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
+  const { widths } = useContext(ColumnGroupContext)
+
   const chunks = useMemo(() => _.chunk(rowKeys, options.chunkSize), [rowKeys, options])
 
   const renderChunk = (rowKeys, index) => {
@@ -36,9 +39,11 @@ function TableBody(props) {
 
     return <TableChunk
       {...chunkCommonProps}
+      colWidths={widths}
       rows={chunkRows}
       activeRowIndex={_.clamp(chunkActiveRowIndex, -1, rowKeys.length)}
       indexOffset={chunkIndexOffset}
+      index={index}
       key={`chunk_${props.name}_${index}`}
     />
   }

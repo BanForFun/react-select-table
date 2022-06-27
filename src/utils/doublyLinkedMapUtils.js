@@ -115,6 +115,7 @@ export function addUnlinkedItem(map, key, value, metadata) {
 }
 
 export function sortItems(map, keyComparator) {
+  // Way faster than implementing quicksort in javascript
   const keys = [...keyIterator(map)].sort(keyComparator)
 
   let prevKey = null

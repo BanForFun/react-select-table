@@ -27,8 +27,6 @@ const TableRow = ({
   itemKey,
   item
 }) => {
-  console.log('Rendered row', index)
-
   const renderColumn = ({ key, ...column }) =>
     <TableCell
       {...column}

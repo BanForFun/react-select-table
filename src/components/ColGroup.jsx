@@ -1,8 +1,6 @@
-import React, { useContext } from 'react'
-import ColumnGroupContext from '../context/ColumnGroup'
+import React from 'react'
 
-const ColGroup = ({ name, columns }) => {
-  const { widths } = useContext(ColumnGroupContext)
+const ColGroup = ({ name, columns, widths }) => {
   return <colgroup>
     {columns.map((col, index) =>
       <col key={`col_${name}_${col.key}`} width={widths[index]} />)}

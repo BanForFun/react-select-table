@@ -28,6 +28,22 @@ const searchOrigins = Object.freeze({
   ActiveRow: 'active'
 })
 
+function getNoItemsState() {
+  return {
+    visibleItemCount: 0,
+    rowKeys: [],
+    searchIndex: trieUtils.instance(),
+    searchMatches: [],
+    searchMatchIndex: 0,
+    items: dlMapUtils.instance(),
+    isLoading: false,
+    error: null,
+    activeIndex: 0,
+    pivotIndex: 0,
+    selected: setUtils.instance()
+  }
+}
+
 /**
  * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy} with iteratee {@link Options.keyBy}
  *
@@ -82,20 +98,6 @@ export default function createTable(namespace, options = {}) {
     searchProperty
   } = options
 
-  const noItemsState = {
-    visibleItemCount: 0,
-    rowKeys: [],
-    searchIndex: trieUtils.instance(),
-    searchMatches: [],
-    searchMatchIndex: 0,
-    items: dlMapUtils.instance(),
-    isLoading: false,
-    error: null,
-    activeIndex: 0,
-    pivotIndex: 0,
-    selected: setUtils.instance()
-  }
-
   const initState = {
     filter: null,
     sortAscending: {},
@@ -103,7 +105,7 @@ export default function createTable(namespace, options = {}) {
     searchPhrase: null,
     // resetPivot: false,
 
-    ...noItemsState
+    ...getNoItemsState()
   }
 
   let draft = initState
@@ -384,7 +386,7 @@ export default function createTable(namespace, options = {}) {
   }
 
   function clearItems() {
-    Object.assign(draft, noItemsState)
+    Object.assign(draft, getNoItemsState())
   }
 
   //#endregion

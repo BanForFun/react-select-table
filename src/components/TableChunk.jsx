@@ -30,6 +30,8 @@ const TableChunk = props => {
 
   const chunkRef = useRef()
 
+  console.log('Rendered chunk', index, visible)
+
   useLayoutEffect(() => {
     if (visible) return
     setChunkVisible(chunkRef.current, true)
@@ -70,13 +72,13 @@ const TableChunk = props => {
 
 function propsAreEqual(prev, next) {
   if (prev.activeRowIndex !== next.activeRowIndex) return false
-  if (!prev.visible && !next.visible) return true
+  if (!next.visible) return true
 
   return _.isEqualWith(prev, next, (pv, nv, key, po) => {
     if (prev !== po) return
 
     // Top level
-    if (key === 'visible') return true
+    if (key === 'activeRowIndex') return true
     if (key.endsWith('Ref')) return true
   })
 }

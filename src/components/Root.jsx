@@ -65,8 +65,8 @@ function Root(props) {
 
   const showPlaceholder = !!placeholder
 
-  const select = useCallback((e, index) => {
-    if (e.ctrlKey && !e.shiftKey)
+  const select = useCallback((e, index, defaultSetActive = false) => {
+    if ((defaultSetActive || e.ctrlKey) && !e.shiftKey)
       return actions.setActive(index)
 
     return actions.select(index, e.shiftKey, e.ctrlKey)
@@ -93,11 +93,11 @@ function Root(props) {
         break
       case 37: // Left
         if (isPageFirst) return
-        select(e, activeIndex - pageSize)
+        select(e, activeIndex - pageSize, true)
         break
       case 39: // Right
         if (isPageLast) return
-        select(e, Math.min(activeIndex + pageSize, itemCount - 1))
+        select(e, Math.min(activeIndex + pageSize, itemCount - 1), true)
         break
       case 36: // Home
         if (isActiveFirst) return

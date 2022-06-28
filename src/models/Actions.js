@@ -42,7 +42,6 @@ Object.freeze(_.each(types, (type, name) => (types[name] = `RST_${name}`)))
  * @property {string} type The redux action type
  * @property {object} payload The action's payload
  * @property {string} namespace The namespace of the table that the action targets
- * @property {boolean} clearSearch Clear the search phrase and hide the search dialog as a result of this action
  */
 
 /**

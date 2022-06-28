@@ -44,51 +44,56 @@ function DefaultPagination({ page, pageCount, goToPage }) {
     </button>
   }
 
-  const pages = []
-  const pageFromEnd = pageCount - page + 1
+  const prevButton = <button
+    key='button_prev'
+    tabIndex='-1'
+    disabled={page === 1}
+    className='rst-page'
+    onPointerDown={repeatOffsetPage(-1)}
+  >
+    <AngleIcon rotation={angleRotation.Left} />
+  </button>
 
-  if (page >= 4)
+  const nextButton = <button
+    key='button_next'
+    tabIndex='-1'
+    disabled={page === pageCount}
+    className='rst-page'
+    onPointerDown={repeatOffsetPage(1)}
+  >
+    <AngleIcon rotation={angleRotation.Right} />
+  </button>
+
+  const pages = []
+
+  const width = 4
+  const pageFromStart = Math.min(page, width)
+  const pageFromEnd = Math.min(pageCount - page + 1, width)
+
+  if (pageFromStart >= 3)
+    pages.push(<Page key='page_first' number={1} />)
+
+  if (pageFromStart >= 4)
     pages.push(<PageSpacer key='ellipsis_left'>...</PageSpacer>)
 
-  if (page >= 3)
-    pages.push(<Page key='page_prev' number={page - 1} />)
+  if (pageFromStart >= 2)
+    pages.push(prevButton)
 
-  if (page >= 2 && pageFromEnd >= 2)
-    pages.push(<Page key='page_current' number={page} />)
+  pages.push(<Page key='page_current' number={page} />)
 
-  if (pageFromEnd >= 3)
-    pages.push(<Page key='page_next' number={page + 1} />)
+  if (pageFromEnd >= 2)
+    pages.push(nextButton)
 
   if (pageFromEnd >= 4)
     pages.push(<PageSpacer key='ellipsis_right'>...</PageSpacer>)
 
-  const paddingLeft = 4 - page
-  const paddingRight = 4 - pageFromEnd
+  if (pageFromEnd >= 3)
+    pages.push(<Page key='page_last' number={pageCount} />)
 
   return <div className='rst-pagination'>
-    <button
-      tabIndex='-1'
-      disabled={page === 1}
-      onPointerDown={repeatOffsetPage(-1)}
-    >
-      <AngleIcon rotation={angleRotation.Left} />
-    </button>
-
-    {_.times(paddingLeft, i => <PageSpacer key={`padding_left_${i}`} />)}
-
-    {pageCount > 0 && <Page number={1} />}
+    {_.times(width - pageFromStart, i => <PageSpacer key={`padding_left_${i}`} />)}
     {pages}
-    {pageCount > 1 && <Page number={pageCount} />}
-
-    {_.times(paddingRight, i => <PageSpacer key={`padding_right_${i}`} />)}
-
-    <button
-      tabIndex='-1'
-      disabled={page === pageCount}
-      onPointerDown={repeatOffsetPage(1)}
-    >
-      <AngleIcon rotation={angleRotation.Right} />
-    </button>
+    {_.times(width - pageFromEnd, i => <PageSpacer key={`padding_right_${i}`} />)}
   </div>
 }
 

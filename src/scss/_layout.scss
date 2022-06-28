@@ -150,7 +150,6 @@
 
 .rst-icon {
   height: 1rem;
-  vertical-align: middle;
   fill: currentColor;
 }
 
@@ -186,4 +185,8 @@
   color: inherit;
   display: block;
   line-height: 1.25rem;
+
+  .rst-icon {
+    vertical-align: text-top;
+  }
 }

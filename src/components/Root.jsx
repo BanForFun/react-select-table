@@ -65,7 +65,18 @@ function Root(props) {
 
   const showPlaceholder = !!placeholder
 
+  const selectionRegisteredRef = useRef(false)
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      selectionRegisteredRef.current = true
+    })
+  }, [activeIndex])
+
   const select = useCallback((e, index, defaultSetActive = false) => {
+    // Don't change selection faster than it can be rendered
+    if (!selectionRegisteredRef.current) return
+    selectionRegisteredRef.current = false
+
     if ((defaultSetActive || e.ctrlKey) && !e.shiftKey)
       return actions.setActive(index)
 

@@ -115,6 +115,7 @@ function ScrollingContainer(props) {
 
   const [dragMode, setDragMode] = useState(null)
   const drag = useRef({
+    invertScroll: false,
     animationId: null,
     pointerPos: Point(),
     pointerId: null,
@@ -418,14 +419,19 @@ function ScrollingContainer(props) {
   const cancelWheelHandler = useDecoupledCallback(useCallback(e => {
     e.preventDefault()
 
-    drag.movement.x += e.shiftKey ? e.deltaY : e.deltaX
-    drag.movement.y += e.shiftKey ? e.deltaX : e.deltaY
+    const invertScroll = e.shiftKey !== drag.invertScroll
+    drag.movement.x += invertScroll ? e.deltaY : e.deltaX
+    drag.movement.y += invertScroll ? e.deltaX : e.deltaY
 
     dragUpdate()
   }, [drag, dragUpdate]))
 
-  const dragStart = useCallback((x, y, pointerId, mode) => {
-    Object.assign(drag, { pointerPos: Point(x, y), pointerId })
+  const dragStart = useCallback((x, y, pointerId, mode, invertScroll = false) => {
+    Object.assign(drag, {
+      pointerPos: Point(x, y),
+      pointerId,
+      invertScroll
+    })
 
     const container = scrollingContainerRef.current
     try {
@@ -451,7 +457,7 @@ function ScrollingContainer(props) {
 
   // Column resizing
   const columnResizeStart = useCallback((x, y, pointerId, index) => {
-    if (!dragStart(x, y, pointerId, DragModes.Resize)) return
+    if (!dragStart(x, y, pointerId, DragModes.Resize, true)) return
 
     const {
       offsetWidth: initialWidth,

@@ -7,10 +7,9 @@ export const ActiveClass = 'rst-active'
 export const SelectedClass = 'rst-selected'
 
 export function getRowBounds(row) {
-  const chunk = row?.offsetParent
-  if (!chunk) return null
+  if (!row) return null
 
-  const top = chunk.offsetTop + row.offsetTop
+  const top = row.offsetTop
   return { top, bottom: top + row.offsetHeight }
 }
 
@@ -52,3 +51,4 @@ const TableRow = ({
 }
 
 export default React.memo(TableRow, _.isEqual)
+// export default TableRow

@@ -101,7 +101,7 @@ export default function createTable(namespace, options = {}) {
   const initState = {
     filter: null,
     sortAscending: {},
-    pageSize: 0,
+    pageSize: 100,
     searchPhrase: null,
     // resetPivot: false,
 

@@ -1,11 +1,11 @@
-import React, { useContext, useMemo } from 'react'
-import _ from 'lodash'
-import TableChunk from './TableChunk'
+import React, { useContext } from 'react'
 import { DragModes } from '../constants/enums'
 import * as selectors from '../selectors/selectors'
 import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColumnGroupContext from '../context/ColumnGroup'
+import ColGroup from './ColGroup'
+import TableRow from './TableRow'
 
 // Child of BodyContainer
 function TableBody(props) {
@@ -14,10 +14,13 @@ function TableBody(props) {
     tableBodyRef,
     dragMode,
     showPlaceholder,
-    chunkVisibility,
-    utils: { hooks, options },
-    ...chunkCommonProps
+    getRowClassName,
+    utils: { hooks },
+
+    ...rowCommonProps
   } = props
+
+  const { columns, name } = props
 
   const rowKeys = hooks.useSelector(s => s.rowKeys)
   const selected = hooks.useSelector(s => s.selected)
@@ -26,32 +29,29 @@ function TableBody(props) {
 
   const { widths } = useContext(ColumnGroupContext)
 
-  const chunks = useMemo(() => _.chunk(rowKeys, options.chunkSize), [rowKeys, options])
+  const renderRow = (rowKey, rowIndex) => {
+    const rowItem = dlMapUtils.getItem(items, rowKey)
+    const rowSelected = setUtils.hasItem(selected, rowKey)
 
-  const renderChunk = (rowKeys, index) => {
-    const chunkRows = rowKeys.map(key => ({
-      key,
-      item: dlMapUtils.getItem(items, key),
-      selected: setUtils.hasItem(selected, key)
-    }))
+    const rowProps = {
+      ...rowCommonProps,
+      item: rowItem,
+      itemKey: rowKey,
+      index: rowIndex,
+      key: `row_${props.name}_${rowKey}`,
+      active: rowIndex === activeRowIndex,
+      selected: rowSelected,
+      className: getRowClassName(rowItem)
+    }
 
-    const chunkIndexOffset = index * options.chunkSize
-    const chunkActiveRowIndex = activeRowIndex - chunkIndexOffset
-
-    return <TableChunk
-      {...chunkCommonProps}
-      colWidths={widths}
-      rows={chunkRows}
-      activeRowIndex={_.clamp(chunkActiveRowIndex, -1, rowKeys.length)}
-      indexOffset={chunkIndexOffset}
-      index={index}
-      visible={chunkVisibility[index] ?? true}
-      key={`chunk_${props.name}_${index}`}
-    />
+    return <TableRow {...rowProps} />
   }
 
   return <div className='rst-body' ref={tableBodyRef}>
-    {!showPlaceholder && chunks.map(renderChunk)}
+    <table>
+      <ColGroup name={name} columns={columns} widths={widths} />
+      <tbody className='rst-rows'>{rowKeys.map(renderRow)}</tbody>
+    </table>
     {dragMode === DragModes.Select &&
       <div className='rst-dragSelection' ref={selectionRectRef} />}
   </div>

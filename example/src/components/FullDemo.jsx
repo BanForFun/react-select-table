@@ -83,6 +83,7 @@ const buttonActions = {
   "Clear filter": actions.setItemFilter(""),
 
   "Page size 10": actions.setPageSize(10),
+  "Page size 100": actions.setPageSize(100),
   "Disable pagination": actions.setPageSize(0),
 
   "Start loading": actions.startLoading(),

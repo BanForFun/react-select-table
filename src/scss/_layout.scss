@@ -121,14 +121,6 @@
   position: relative;
 }
 
-.rst-chunk {
-  position: relative;
-
-  &.rst-hidden .rst-rows {
-    display: none;
-  }
-}
-
 .rst-sortable .rst-headerText {
   cursor: pointer;
 }
@@ -141,7 +133,7 @@
 
 .rst-headerContent {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -156,22 +148,26 @@
   z-index: 3;
 }
 
+.rst-icon {
+  height: 1rem;
+  vertical-align: middle;
+  fill: currentColor;
+}
+
+.rst-loading {
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .rst-dragSelection {
   position: absolute;
   pointer-events: none;
   box-sizing: border-box;
   contain: strict;
-}
-
-.rst-icon {
-  height: 1rem;
-  display: inline-flex;
-  align-items: center;
-  fill: currentColor;
-
-  svg {
-    width: 1rem;
-  }
 }
 
 .rst-paginationContainer {
@@ -189,4 +185,5 @@
   box-sizing: content-box;
   color: inherit;
   display: block;
+  line-height: 1.25rem;
 }

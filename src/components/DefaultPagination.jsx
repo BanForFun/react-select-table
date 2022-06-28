@@ -32,7 +32,7 @@ function DefaultPagination({ page, pageCount, goToPage }) {
   function Page({ number, ...rest }) {
     const buttonClass = classNames({
       'rst-page': true,
-      'is-current': number === page
+      'rst-current': number === page
     })
 
     return <button

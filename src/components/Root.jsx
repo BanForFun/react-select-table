@@ -166,7 +166,8 @@ function Root(props) {
   >
     <SearchContainer {...searchProps} />
     <ScrollingContainer {...scrollingProps} />
-    {!showPlaceholder && !!pageSize && <PaginationContainer {...paginationProps} />}
+    {!showPlaceholder && pageCount > 1 &&
+      <PaginationContainer {...paginationProps} />}
   </div>
 }
 

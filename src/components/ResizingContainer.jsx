@@ -26,10 +26,8 @@ function ResizingContainer(props) {
 
     // BodyContainer props
     getRowClassName,
-    chunkVisibility,
     selectionRectRef,
     tableBodyRef,
-    chunkIntersectionObserverRef,
 
     ...commonProps
   } = props
@@ -174,9 +172,7 @@ function ResizingContainer(props) {
     ...commonProps,
     tableBodyRef,
     selectionRectRef,
-    chunkIntersectionObserverRef,
 
-    chunkVisibility,
     getRowClassName
   }
 

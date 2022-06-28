@@ -7,7 +7,6 @@ import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import * as selectors from '../selectors/selectors'
 import { DragModes } from '../constants/enums'
-import { setChunkVisible } from './TableChunk'
 
 const defaultColumnRenderer = value => value
 
@@ -105,20 +104,10 @@ function ScrollingContainer(props) {
   const scrollingContainerRef = useRef()
   const resizingContainerRef = useRef()
 
-  const getChunkRow = useCallback(index => {
-    const rowIndex = index % options.chunkSize
-    const chunkIndex = (index - rowIndex) / options.chunkSize
-
-    const chunk = tableBodyRef.current.children[chunkIndex]
-    if (chunk?.tagName !== 'TABLE') return null
-
-    return {
-      row: chunk.rows[rowIndex],
-      chunk,
-      rowIndex,
-      chunkIndex
-    }
-  }, [options])
+  const getRow = useCallback(index => {
+    const [table] = tableBodyRef.current.getElementsByTagName('table')
+    return table.rows[index]
+  }, [])
 
   //#endregion
 
@@ -252,7 +241,7 @@ function ScrollingContainer(props) {
 
     // Animate selection
     _.forEach(dragSelection.selectionBuffer, (selected, index) => {
-      getChunkRow(index).row.classList.toggle(SelectedClass, selected)
+      getRow(index).classList.toggle(SelectedClass, selected)
     })
     dragSelection.selectionBuffer = {}
 
@@ -262,9 +251,9 @@ function ScrollingContainer(props) {
     const [prevActiveRow] = tableBodyRef.current.getElementsByClassName(ActiveClass)
     prevActiveRow.classList.remove(ActiveClass)
 
-    const newActiveRow = getChunkRow(dragSelection.activeIndex).row
+    const newActiveRow = getRow(dragSelection.activeIndex)
     newActiveRow.classList.add(ActiveClass)
-  }, [dragSelection, getChunkRow])
+  }, [dragSelection, getRow])
 
   //#endregion
 
@@ -380,7 +369,7 @@ function ScrollingContainer(props) {
 
       for (
         let rowBounds, rowIndex = dragSelection.prevRowIndex + direction;
-        couldBeSelected(rowIndex, rowBounds = getRowBounds(getChunkRow(rowIndex)?.row));
+        couldBeSelected(rowIndex, rowBounds = getRowBounds(getRow(rowIndex)));
         rowIndex += direction
       ) {
         // rowIndex is the last row that should be selected
@@ -406,7 +395,7 @@ function ScrollingContainer(props) {
       scrollLeftOffset + movement.x,
       scrollTopOffset + movement.y
     )
-  }, [drag, dragSelectScrollFactor, dragSelection, dragAnimate, dragSelectAnimate, rowCount, getChunkRow])
+  }, [drag, dragSelectScrollFactor, dragSelection, dragAnimate, dragSelectAnimate, rowCount, getRow])
 
   // Common
   const dragUpdate = useMemo(() => ({
@@ -540,28 +529,6 @@ function ScrollingContainer(props) {
 
   //#endregion
 
-  //#region Chunk IntersectionObserver
-
-  const [chunkVisibility, setChunkVisibility] = useState({})
-
-  const updateChunkVisibility = useCallback(entries => entries.forEach(entry => {
-    const { target: chunk, isIntersecting: visible } = entry
-    setChunkVisibility(visibility => ({ ...visibility, [chunk.dataset.index]: visible }))
-    setChunkVisible(chunk, visible)
-  }), [])
-
-  // Chrome's content-visibility has worse performance
-  const chunkIntersectionObserverRef = useRef()
-  useLayoutEffect(() => {
-    const observer = new IntersectionObserver(updateChunkVisibility,
-      { root: scrollingContainerRef.current, rootMargin: '500px' })
-
-    chunkIntersectionObserverRef.current = observer
-    return () => observer.disconnect()
-  }, [updateChunkVisibility])
-
-  //#endregion
-
   //#region Autoscroll to active index
 
   const getContainerVisibleBounds = useCallback(() => {
@@ -576,21 +543,19 @@ function ScrollingContainer(props) {
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
   useLayoutEffect(() => {
-    const activeChunkRow = getChunkRow(activeRowIndex)
-    if (!activeChunkRow) return
+    const activeRow = getRow(activeRowIndex)
+    if (!activeRow) return
 
     const containerBounds = getContainerVisibleBounds()
-    const rowBounds = getRowBounds(activeChunkRow.row)
+    const rowBounds = getRowBounds(activeRow)
     const distanceToTop = rowBounds.top - containerBounds.top
     const distanceToBottom = rowBounds.bottom - containerBounds.bottom
 
     const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
     scrollingContainerRef.current.scrollTop += scrollOffset
-
-    updateChunkVisibility(chunkIntersectionObserverRef.current.takeRecords())
   }, [
     activeRowIndex,
-    getChunkRow, getContainerVisibleBounds, updateChunkVisibility
+    getRow, getContainerVisibleBounds
   ])
 
   //#endregion
@@ -602,11 +567,9 @@ function ScrollingContainer(props) {
     selectionRectRef,
     scrollingContainerRef,
     resizingContainerRef,
-    chunkIntersectionObserverRef,
 
     dragMode,
     columns,
-    chunkVisibility,
 
     columnResizeStart,
     dragSelectStart

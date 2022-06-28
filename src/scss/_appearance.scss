@@ -185,7 +185,7 @@
         @include rst-apply-properties("pg-btn-hover", $properties...);
       }
 
-      &.is-current {
+      &.rst-current {
         @include rst-apply-properties("pg-btn-current", $properties...);
       }
 

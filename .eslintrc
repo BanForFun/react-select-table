@@ -26,7 +26,10 @@
       "version": "16"
     },
     "jsdoc": {
-      "mode": "typescript"
+      "mode": "typescript",
+      "tagNamePreference": {
+        "tag constructor": "constructor"
+      }
     }
   },
   "rules": {

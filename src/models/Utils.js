@@ -1,116 +1,15 @@
-import _ from 'lodash'
-import * as saveModules from '../constants/saveModules'
-import * as flagUtils from '../utils/flagUtils'
-import * as setUtils from '../utils/setUtils'
-import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
-import Actions from './Actions'
 import Hooks from './Hooks'
+import Actions from './Actions'
 import Events from './Events'
+import Selectors from './Selectors'
+import { getOptions } from '../utils/optionsUtils'
 
-/**
- * @callback ItemPredicate
- * @param {object} row
- * @param {*} filter
- * @returns {boolean}
- */
-
-/**
- * @callback ItemComparator
- * @param {*} first
- * @param {*} second
- * @param {string} path
- * @returns {?number}
- */
-
-/**
- * @callback SearchPhraseParser
- * @param {string} phrase
- * @returns {string}
- */
-
-/**
- * The table options
- *
- * @typedef {object} Options
- * @property {ItemPredicate} [itemPredicate] Takes a row and the item filter, and must return true if the row should be visible
- * @property {ItemComparator} [itemComparator] Takes the value of a property of two rows, and the path of that property, and must return: <ul><li>1, if first is larger than the second</li> <li>0, if values are equal</li> <li>-1, if first is smaller than the second</li> <li>null, to fall back to the default lodash comparator</li></ul>
- * @property {SearchPhraseParser} [searchPhraseParser] Takes the search phrase typed in by the user, or the value of the {@link searchProperty} of a row. The returned values are compared to each other
- * @property {string} [searchProperty] The path of a row property for the search phrase to be matched against
- * @property {boolean} [multiSelect] Allow multiple rows to be selected simultaneously
- * @property {boolean} [listBox] Retain selection when clicking in the space below the rows, and when right-clicking on another row
- * @property {string | Function} [keyBy] The path of a row property that has a unique value for each row, or a function that takes a row as an argument and returns a value unique to that row. In either case, the unique value must be a string or a number
- * @property {boolean} [constantWidth] When resizing a column, shrink the next one by the same amount, keeping the total width constant
- * @property {number} [minColumnWidth] The minimum width in pixels allowed for a column when resizing it, and before a scrollbar appears when resizing the container.
- * @property {string} [statePath] The path of the redux table state. Set to null if the table reducer is the root.
- * @property {object} [savedState] Load from a previously saved state, useful for restoring a user's session
- * @property {number} [saveModules] Binary flags to control which parts of the state to save and restore
- * @property {import("react").Context} [context] If you use a custom context for your Provider, you can pass it here
- */
-
-const defaultOptions = {
-  itemPredicate: _.isMatch,
-  itemComparator: () => null,
-  searchPhraseParser: phrase => phrase.normalize('NFD').toLowerCase(),
-  searchProperty: null,
-  multiSelect: true,
-  listBox: false,
-  minColumnWidth: 50,
-  statePath: null,
-  savedState: null,
-  context: undefined,
-  saveModules: saveModules.Items | saveModules.SortOrder | saveModules.Pagination,
-  keyBy: '_id'
-}
-
-/**
- * Applies a patch the default options, that will be used by all future tables created using createTable
- *
- * @param {Options} optionsPatch The new default options
- */
-export function setDefaultTableOptions(optionsPatch) {
-  Object.assign(defaultOptions, optionsPatch)
-}
-
-const picker = (...props) => s => _.pick(s, ...props)
-
-const getModuleSaveState = {
-  [saveModules.Items]: s => ({
-    ...picker('isLoading', 'error')(s),
-    items: dlMapUtils.getItems(s.items)
-  }),
-  [saveModules.Selection]: s => ({
-    selected: setUtils.getItems(s.selected)
-  }),
-  [saveModules.Filter]: picker('filter'),
-  [saveModules.SortOrder]: picker('sortAscending'),
-  [saveModules.Pagination]: picker('pageSize'),
-  [saveModules.Active]: picker('activeIndex'),
-  [saveModules.Pivot]: picker('pivotIndex'),
-  [saveModules.Search]: picker('searchPhrase')
-}
-
-/**
- * @param {string} namespace The reducer namespace
- * @param {Options} options The reducer options
- * @class
- */
-export default function Utils(namespace, options) {
-  this.options = Object.freeze(_.defaults(options, defaultOptions))
-
-  this.getTableState = state =>
-    options.statePath ? _.get(state, options.statePath) : state
-
-  this.getSaveState = state => {
-    const saveState = {}
-    for (const module in getModuleSaveState) {
-      if (!flagUtils.hasFlag(options.saveModules, +module)) continue
-      Object.assign(saveState, getModuleSaveState[module](state))
-    }
-
-    return saveState
+export default class Utils {
+  constructor(namespace, options) {
+    this.options = getOptions(options)
+    this.actions = new Actions(namespace)
+    this.selectors = new Selectors(this.options)
+    this.events = new Events(this.selectors)
+    this.hooks = new Hooks(this.options, this.selectors, this.actions)
   }
-
-  this.actions = new Actions(namespace)
-  this.hooks = new Hooks(this)
-  this.events = new Events(this)
 }

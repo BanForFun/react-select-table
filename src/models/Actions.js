@@ -45,13 +45,25 @@ Object.freeze(_.each(types, (type, name) => (types[name] = `RST_${name}`)))
  */
 
 /**
- * @class Actions
- * @param {string} namespace The namespace passed to {@link createTable}
+ * @typedef {import('../store/store').RowKey} RowKey
  */
-export default function Actions(namespace) {
-  const getAction = (type, payload = {}) => ({ namespace, type, payload })
 
-  this.debug = () => getAction(types.DEBUG)
+/**
+ * @class Actions
+ */
+export default class Actions {
+  /**
+   * @param {string} namespace The namespace passed to {@link createTable}
+   */
+  constructor(namespace) {
+    /**
+     * @param {string} type The action type
+     * @param {object} [payload] The action payload
+     * @returns {Action} The complete action, including the namespace
+     * @private
+     */
+    this.getAction = (type, payload) => ({ namespace, type, payload })
+  }
 
   /**
    * Brings up the search menu and highlights the first match.
@@ -59,8 +71,8 @@ export default function Actions(namespace) {
    * @param {string} phrase The text that is passed to {@link Options.searchPhraseParser}.
    * @returns {Action} The redux action object
    */
-  this.search = (phrase) =>
-    getAction(types.SEARCH, { phrase })
+  search = (phrase) =>
+    this.getAction(types.SEARCH, { phrase })
 
   /**
    * Jumps to a specific search match.
@@ -69,8 +81,8 @@ export default function Actions(namespace) {
    * wrapped to the count of matches ex. -1 would be the last match.
    * @returns {Action} The redux action object
    */
-  this.goToMatch = (index) =>
-    getAction(types.GO_TO_MATCH, { index })
+  goToMatch = (index) =>
+    this.getAction(types.GO_TO_MATCH, { index })
 
   /**
    * Changes the page size.
@@ -78,16 +90,16 @@ export default function Actions(namespace) {
    * @param {number} size The maximum amount of rows per page. A size of 0 disables pagination.
    * @returns {Action} The redux action object
    */
-  this.setPageSize = (size) =>
-    getAction(types.SET_PAGE_SIZE, { size })
+  setPageSize = (size) =>
+    this.getAction(types.SET_PAGE_SIZE, { size })
 
   /**
    * Removes all items, clears the selection and error, and resets the loading state.
    *
    * @returns {Action} The redux action object
    */
-  this.clearItems = () =>
-    getAction(types.CLEAR_ITEMS)
+  clearItems = () =>
+    this.getAction(types.CLEAR_ITEMS)
 
   /**
    * Hides the rows that don't match the filter and clears selection.
@@ -95,8 +107,8 @@ export default function Actions(namespace) {
    * @param {object} filter Passed to {@link Options.itemPredicate} along with every row
    * @returns {Action} The redux action object
    */
-  this.setItemFilter = (filter) =>
-    getAction(types.SET_ITEM_FILTER, { filter })
+  setItemFilter = (filter) =>
+    this.getAction(types.SET_ITEM_FILTER, { filter })
 
   /**
    * Applies a deep patch to rows.
@@ -105,27 +117,27 @@ export default function Actions(namespace) {
    * will be applied to the row with the same {@link RowKey|key}
    * @returns {Action} The redux action object
    */
-  this.patchItems = (...patches) =>
-    getAction(types.PATCH_ITEMS, { patches })
+  patchItems = (...patches) =>
+    this.getAction(types.PATCH_ITEMS, { patches })
 
   /**
    * Applies a deep patch to rows by key.
    *
-   * @param {Object<import('../store/store').RowKey, object>} patchMap For every key of this object,
+   * @param {Object<RowKey, object>} patchMap For every key of this object,
    * the row with the same key will be found, and the properties of the corresponding value will be applied to it
    * @returns {Action} The redux action object
    */
-  this.patchItemsByKey = (patchMap) =>
-    getAction(types.PATCH_ITEMS_BY_KEY, { patchMap })
+  patchItemsByKey = (patchMap) =>
+    this.getAction(types.PATCH_ITEMS_BY_KEY, { patchMap })
 
   /**
    * Deletes rows and deselects them.
    *
-   * @param {...import('../store/store').RowKey} keys The keys of the rows to be deleted
+   * @param {...RowKey} keys The keys of the rows to be deleted
    * @returns {Action} The redux action object
    */
-  this.deleteItems = (...keys) =>
-    getAction(types.DELETE_ITEMS, { keys })
+  deleteItems = (...keys) =>
+    this.getAction(types.DELETE_ITEMS, { keys })
 
   /**
    * Adds rows, and selects them, or only the last one if {@link Options.multiSelect} is off.
@@ -133,8 +145,8 @@ export default function Actions(namespace) {
    * @param {...object} items The rows to be added
    * @returns {Action} The redux action object
    */
-  this.addItems = (...items) =>
-    getAction(types.ADD_ITEMS, { items })
+  addItems = (...items) =>
+    this.getAction(types.ADD_ITEMS, { items })
 
   /**
    * Replaces the old rows, clears the selection and error, and resets the loading state.
@@ -142,8 +154,8 @@ export default function Actions(namespace) {
    * @param {object[]} items The new rows
    * @returns {Action} The redux action object
    */
-  this.setItems = (items) =>
-    getAction(types.SET_ITEMS, { items })
+  setItems = (items) =>
+    this.getAction(types.SET_ITEMS, { items })
 
   /**
    * Sorts the rows by the property at the given path in ascending order,
@@ -154,8 +166,8 @@ export default function Actions(namespace) {
    * based on the current columns
    * @returns {Action} The redux action object
    */
-  this.sortItems = (path, addToPrev = false) =>
-    getAction(types.SORT_ITEMS, { path, addToPrev })
+  sortItems = (path, addToPrev = false) =>
+    this.getAction(types.SORT_ITEMS, { path, addToPrev })
 
   /**
    * Selects a row or a range of rows. Selected rows have a green background with the default theme.
@@ -166,8 +178,8 @@ export default function Actions(namespace) {
    * @param {boolean} contextMenu Call {@link TableProps.onContextMenu} when done, with the updated selection
    * @returns {Action} The redux action object
    */
-  this.select = (index, isRange = false, addToPrev = false, contextMenu = false) =>
-    getAction(types.SELECT, { index, addToPrev, isRange, contextMenu })
+  select = (index, isRange = false, addToPrev = false, contextMenu = false) =>
+    this.getAction(types.SELECT, { index, addToPrev, isRange, contextMenu })
 
   /**
    * Deselects all rows.
@@ -175,8 +187,8 @@ export default function Actions(namespace) {
    * @param {boolean} contextMenu Call {@link TableProps.onContextMenu} when done
    * @returns {Action} The redux action object
    */
-  this.clearSelection = (contextMenu = false) =>
-    getAction(types.CLEAR_SELECTION, { contextMenu })
+  clearSelection = (contextMenu = false) =>
+    this.getAction(types.CLEAR_SELECTION, { contextMenu })
 
   /**
    * Sets the active row. The active row has a dark green underline with the default theme,
@@ -188,16 +200,16 @@ export default function Actions(namespace) {
    * @param {boolean} contextMenu Call {@link TableProps.onContextMenu} when done
    * @returns {Action} The redux action object
    */
-  this.setActive = (index, contextMenu = false) =>
-    getAction(types.SET_ACTIVE, { index, contextMenu })
+  setActive = (index, contextMenu = false) =>
+    this.getAction(types.SET_ACTIVE, { index, contextMenu })
 
   /**
    * Selects all rows.
    *
    * @returns {Action} The redux action object
    */
-  this.selectAll = () =>
-    getAction(types.SELECT_ALL)
+  selectAll = () =>
+    this.getAction(types.SELECT_ALL)
 
   /**
    * Sets specific rows as selected or not
@@ -209,8 +221,8 @@ export default function Actions(namespace) {
    * for selecting a range of rows using the keyboard, or null to leave unchanged
    * @returns {Action} The redux action object
    */
-  this.setSelected = (map, activeIndex = null, pivotIndex = null) =>
-    getAction(types.SET_SELECTED, { map, activeIndex, pivotIndex })
+  setSelected = (map, activeIndex = null, pivotIndex = null) =>
+    this.getAction(types.SET_SELECTED, { map, activeIndex, pivotIndex })
 
   /**
    * Displays an error message instead of the rows if truthy,
@@ -219,8 +231,8 @@ export default function Actions(namespace) {
    * @param {*} error Set as the child of {@link TableProps.errorComponent}
    * @returns {Action} The redux action object
    */
-  this.setError = (error) =>
-    getAction(types.SET_ERROR, { error })
+  setError = (error) =>
+    this.getAction(types.SET_ERROR, { error })
 
   /**
    * Displays the {@link TableProps.loadingIndicator} instead of the rows,
@@ -228,6 +240,6 @@ export default function Actions(namespace) {
    *
    * @returns {Action} The redux action object
    */
-  this.startLoading = () =>
-    getAction(types.START_LOADING)
+  startLoading = () =>
+    this.getAction(types.START_LOADING)
 }

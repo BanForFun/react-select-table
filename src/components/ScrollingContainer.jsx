@@ -5,7 +5,6 @@ import { pc, px } from '../utils/tableUtils'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
-import * as selectors from '../selectors/selectors'
 import { DragModes } from '../constants/enums'
 
 const defaultColumnRenderer = value => value
@@ -61,7 +60,7 @@ function ScrollingContainer(props) {
   } = props
 
   const {
-    utils: { options, hooks, events },
+    utils: { options, hooks, events, selectors },
     actions
   } = props
 
@@ -144,7 +143,6 @@ function ScrollingContainer(props) {
   //#region Drag ending
 
   // Column resizing
-  const raiseColumnResizeEnd = hooks.useSelectorGetter(events.columnResizeEnd)
   const columnResizeEnd = useCallback(() => {
     // Account for collapsed border
     const {
@@ -155,9 +153,9 @@ function ScrollingContainer(props) {
     const bodyWidthPc = fullWidth / scrollingContainerRef.current.clientWidth * 100
     const widths = columnResizing.widths.map(px => px / availableWidth * bodyWidthPc)
 
-    raiseColumnResizeEnd(widths)
+    events.columnResizeEnd(widths)
     setColumnGroup(getColumnGroup(widths))
-  }, [columnResizing, setColumnGroup, getColumnGroup, raiseColumnResizeEnd])
+  }, [columnResizing, setColumnGroup, getColumnGroup, events])
 
   // Drag selection
   const rowKeys = hooks.useSelector(s => s.rowKeys)

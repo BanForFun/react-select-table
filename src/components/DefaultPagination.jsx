@@ -47,7 +47,6 @@ function DefaultPagination({ page, pageCount, goToPage }) {
   const prevButton = <button
     key='button_prev'
     tabIndex='-1'
-    disabled={page === 1}
     className='rst-page'
     onPointerDown={repeatOffsetPage(-1)}
   >
@@ -57,7 +56,6 @@ function DefaultPagination({ page, pageCount, goToPage }) {
   const nextButton = <button
     key='button_next'
     tabIndex='-1'
-    disabled={page === pageCount}
     className='rst-page'
     onPointerDown={repeatOffsetPage(1)}
   >

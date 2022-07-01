@@ -55,13 +55,23 @@ const columnShape = {
  * @typedef {PropTypes.InferProps<tableProps>} TableProps
  */
 
+/**
+ * @typedef {import('../store/store').RowKey} RowKey
+ */
+
+/**
+ * @typedef {import('../models/Events').SelectionArg} SelectionArg
+ */
+
+/**
+ * @typedef {import('../models/Events').ContextMenuArg} ContextMenuArg
+ */
+
 const eventHandlerProps = {
   /**
    * Called on right-click or two-finger tap
    *
-   * @param {Set|?*} target
-   * If {@link Options.listBox} is on: The active row's {@link RowKey|key}, or null if Alt is held.
-   * If listBox option is off: A Set of all selected keys, or an empty Set if Alt is held
+   * @param {ContextMenuArg} target See {@link Events.ContextMenuArg}
    * @see Actions.setActiveIndex
    */
   onContextMenu: PropTypes.func,
@@ -69,7 +79,7 @@ const eventHandlerProps = {
   /**
    * Called on double-click or enter-press
    *
-   * @param {Set} selection The current row selection
+   * @param {SelectionArg} selection See {@link Events.SelectionArg}
    * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
    */
   onItemsOpen: PropTypes.func,
@@ -77,7 +87,7 @@ const eventHandlerProps = {
   /**
    * Called when the selection changes
    *
-   * @param {Set} selection The new row selection
+   * @param {SelectionArg} selection See {@link Events.SelectionArg}
    */
   onSelectionChange: PropTypes.func,
 
@@ -92,7 +102,7 @@ const eventHandlerProps = {
    * Pass-through of the keydown event, with added selection argument. Return false to prevent default behaviour
    *
    * @param {object} e The original keydown event argument
-   * @param {Set} selection The current row selection
+   * @param {SelectionArg} selection See {@link Events.SelectionArg}
    */
   onKeyDown: PropTypes.func
 }

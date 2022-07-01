@@ -20,8 +20,8 @@ const eventMiddleware = (store) => (next) => (action) => {
     case types.SELECT_ALL: // Selection
     {
       // Get table events and selectors
-      const { events, getTableState } = getTableUtils(namespace)
-      const getState = () => getTableState(store.getState())
+      const { events, selectors } = getTableUtils(namespace)
+      const getState = () => selectors.getTableState(store.getState())
 
       // Get previous and current state
       const prevState = getState()
@@ -30,7 +30,7 @@ const eventMiddleware = (store) => (next) => (action) => {
 
       // Raise onSelectionChange
       if (!setUtils.isEqual(prevState.selected, newState.selected))
-        events.selectionChanged(newState)
+        events.selectionChange(newState)
 
       // Raise onContextMenu
       if (payload.contextMenu)

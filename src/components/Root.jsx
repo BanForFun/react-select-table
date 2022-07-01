@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
-import * as selectors from '../selectors/selectors'
 
 // Child of Connector
 function Root(props) {
@@ -19,7 +18,7 @@ function Root(props) {
   } = props
 
   const {
-    utils: { hooks, events }
+    utils: { hooks, events, selectors }
   } = props
 
   // Focus on container
@@ -40,10 +39,7 @@ function Root(props) {
   const error = hooks.useSelector(s => s.error)
   const itemCount = hooks.useSelector(s => s.visibleItemCount)
 
-  const getSelected = hooks.useSelectorGetter(selectors.getSelected)
-
-  const raiseItemsOpen = hooks.useSelectorGetter(events.itemsOpen)
-  const raiseKeyDown = hooks.useSelectorGetter(events.keyDown)
+  const getState = hooks.useGetState()
 
   const isEmpty = !itemCount
 
@@ -85,7 +81,7 @@ function Root(props) {
 
   const handleShortcuts = useCallback(e => {
     if (showPlaceholder) return false
-    if (raiseKeyDown(e) === false) return false
+    if (events.keyDown(getState(), e) === false) return false
 
     const isPageFirst = pageIndex === 0
     const isPageLast = pageIndex === pageCount - 1
@@ -119,8 +115,8 @@ function Root(props) {
         select(e, itemCount - 1)
         break
       case 13: // Enter
-        if (!e.ctrlKey && !e.shiftKey && getSelected(activeIndex))
-          raiseItemsOpen(true)
+        if (!e.ctrlKey && !e.shiftKey && selectors.getSelected(getState(), activeIndex))
+          events.itemsOpen(getState(), true)
         else
           actions.select(activeIndex, e.shiftKey, e.ctrlKey)
 
@@ -137,11 +133,10 @@ function Root(props) {
     e.preventDefault()
     return false
   }, [
-    actions, showPlaceholder,
-    activeIndex, itemCount, getSelected, // Redux props
-    pageSize, pageCount, pageIndex, // Redux props
-    select, // Component methods
-    raiseItemsOpen, raiseKeyDown // Event handlers
+    actions, events, selectors, getState,
+    showPlaceholder,
+    activeIndex, itemCount, pageSize, pageCount, pageIndex, // Redux props
+    select // Component methods
   ])
 
   const handleKeyDown = useCallback(e => {

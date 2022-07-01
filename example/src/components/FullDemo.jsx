@@ -1,32 +1,10 @@
-import React, { useCallback, useRef } from 'react'
+import React, { useCallback, useMemo, useRef } from 'react'
 import _ from "lodash";
-import { Table, getTableUtils, saveModules, flagUtils } from 'react-select-table';
-import { useDispatch } from 'react-redux';
+import { Table, getTableUtils, saveModules as allSaveModules, flagUtils } from 'react-select-table';
 import comments from "../data/comments.json";
-import { setCustomOptions, tableNamespace } from '../store'
+import { applyOptions, clearOptions, tableNamespace } from '../store'
 import Checkbox from './common/Checkbox'
-
-const extraComments = comments.splice(0, 200);
-
-const commentPatches = [{
-  id: 201,
-  name: "et Patched"
-}, {
-  id: 202,
-  name: "Bla bla"
-}, {
-  id: 205,
-  name: "12345"
-}]
-
-const commentPatchesByValue = {
-  483: {
-    id: "a"
-  },
-  259: {
-    id: 365
-  }
-}
+import { useSearchParams } from 'react-router-dom'
 
 const columns = [
   {
@@ -65,60 +43,39 @@ const columns = [
 ];
 
 const utils = getTableUtils(tableNamespace);
-const { actions, options, hooks } = utils
-
-document.title = `react-select-table (${options.title})`;
-
-const buttonActions = {
-  "Set items": actions.setItems(comments),
-  "Clear items": actions.clearItems(),
-  "Add items": actions.addItems(...extraComments),
-  "Patch items": actions.patchItems(...commentPatches),
-  "Patch items by value": actions.patchItemsByKey(commentPatchesByValue),
-
-  "Set error": actions.setError("An error occurred"),
-  "Clear error": actions.setError(null),
-
-  "Set filter": actions.setItemFilter("et"),
-  "Clear filter": actions.setItemFilter(""),
-
-  "Page size 10": actions.setPageSize(10),
-  "Page size 100": actions.setPageSize(100),
-  "Disable pagination": actions.setPageSize(0),
-
-  "Start loading": actions.startLoading(),
-
-  "Highlight items": actions.patchItems(
-    { id: 11, highlighted: true },
-    { id: 19, highlighted: true }
-  )
-};
+const { hooks, options, selectors } = utils
 
 const logEvent = type =>
   (...args) => console.log(type, ...args);
 
 function FullDemo() {
-  const dispatch = useDispatch();
-
   const tableRef = useRef();
 
-  const getSaveState = hooks.useSelectorGetter(utils.getSaveState)
+  const getState = hooks.useGetState()
+  const actions = hooks.useActions()
 
-  const handleActionClick = useCallback(action => {
-    dispatch(action);
-    tableRef.current.focus();
-  }, [dispatch]);
+  const [searchParams, setSearchParams] = useSearchParams({
+    saveModules: allSaveModules.Items
+  });
+
+  const saveModules = useMemo(() =>
+    parseInt(searchParams.get('saveModules')), [searchParams])
+
+  const setSaveModules = useCallback(modules => {
+    searchParams.set('saveModules', modules)
+    setSearchParams(searchParams)
+  }, [setSearchParams, searchParams])
 
   const handleTableKeyDown = useCallback((e, selection) => {
     switch(e.keyCode) {
       case 46: //Delete
-        dispatch(actions.deleteItems(...selection));
+        actions.deleteItems(...selection);
         break;
       default:
         break;
     }
 
-  }, [dispatch]);
+  }, [actions]);
 
   return <>
     <Table
@@ -135,21 +92,44 @@ function FullDemo() {
       onSelectionChange={logEvent("Selection")}
       onItemsOpen={logEvent("Open")}
     />
-    <div id="buttons">
-      {_.map(buttonActions, (action, name) =>
-        <button key={`action_${name}`} onClick={() => handleActionClick(action)}>{name}</button>)}
+    <h2>Actions</h2>
+    <h3>Items</h3>
+    <div className="controls">
+      <button onClick={() => actions.setItems(comments)}>Set items</button>
+    </div>
+    <h3>Pagination</h3>
+    <div className="controls">
+      <button onClick={() => actions.setPageSize(10)}>Set page size to 10</button>
+      <button onClick={() => actions.setPageSize(0)}>Disable pagination</button>
+    </div>
 
-      <br/>
-      {_.map(saveModules, (flag, name) =>
+    <h2>Options</h2>
+    <div className="controls">
+      <button onClick={clearOptions}>Reset options</button>
+      <div className="break"/>
+      <Checkbox id="multiSelect"
+                label="Multiple selection"
+                checked={options.multiSelect}
+                onChange={checked => applyOptions({ multiSelect: checked })} />
+      <Checkbox id="listBox"
+                label="ListBox mode"
+                checked={options.listBox}
+                onChange={checked => applyOptions({ listBox: checked })} />
+    </div>
+    <h3>Save state</h3>
+    <div className="controls">
+      {_.map(allSaveModules, (flag, name) =>
         <Checkbox key={`module_${name}`}
                   id={name}
                   label={name}
-                  checked={flagUtils.hasFlag(options.saveModules, flag)}
-                  onChange={checked => setCustomOptions({
-                    saveModules: flagUtils.toggleFlag(options.saveModules, flag, checked, saveModules)
-                  })}
+                  checked={flagUtils.hasFlag(saveModules, flag)}
+                  onChange={checked => setSaveModules(
+                    flagUtils.toggleFlag(saveModules, flag, checked, allSaveModules))}
         />)}
-      <button onClick={() => setCustomOptions({ savedState: getSaveState() })}>Save state</button>
+      <div className="break"/>
+      <button onClick={() => applyOptions({
+        savedState: selectors.getSaveState(getState(), saveModules)
+      })}>Save state</button>
     </div>
   </>
 }

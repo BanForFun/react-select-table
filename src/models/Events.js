@@ -1,50 +1,131 @@
-import * as selectors from '../selectors/selectors'
-import * as setUtils from '../utils/setUtils'
-
 export const handlersSymbol = Symbol('Event handlers')
 
-export default function Events(utils) {
-  const { options } = utils
+/**
+ * @typedef {import('../store/store').State} State
+ */
 
-  const getSelectionArg = (state) => {
-    const selectedKeys = setUtils.getItems(state.selected)
-    if (options.multiSelect)
-      return new Set(selectedKeys)
+/**
+ * @typedef {import('../store/store').RowKey} RowKey
+ */
 
-    return selectedKeys[0] ?? null
+/**
+ * When {@link Options.multiSelect} is true:
+ * A {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set|Set}
+ * containing the keys of all selected rows.
+ *
+ * When Options.multiSelect is false: The key of the selected row, or null if no row is selected.
+ *
+ * @typedef {?RowKey|Set<RowKey>} Events.SelectionArg
+ */
+
+/**
+ * The argument of onContextMenu varies a lot based on the modifier keys pressed and the table options,
+ * but the type is either a {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set|Set}
+ * of {@link RowKey} when {@link Options.multiSelect} is true,
+ * or just {@link RowKey} when {@link Options.multiSelect} is false.
+ * That is all you need to know to implement the handler, but here are the details for the right-click behaviour if
+ * you're curious:
+ *
+ * Terminology:
+ *
+ * - Empty argument: null when {@link Options.multiSelect} is false,
+ * or an empty Set when {@link Options.multiSelect} is true
+ * - Active row: The row with a dark green underline (in the builtin theme)
+ * - Selected rows: Rows with a green background (in the builtin theme)
+ *
+ *
+ * Non-ListBox table behaviour:
+ *
+ * - If Alt is held, the argument will be empty even if there are selected rows,
+ * which will not be affected no matter where the pointer is.
+ *
+ * - If Ctrl+Alt is held, the argument will be the existing selection,
+ * which will not be affected no matter where the pointer is.
+ *
+ * - If the pointer is under the rows but Ctrl is held, the argument will be the existing selection,
+ * which will not be affected.
+ *
+ * - In all other cases, a right-click does the same action as a left-click, and onContextMenu is called afterwards,
+ * with the updated selection as the argument.
+ *
+ *
+ * ListBox table behaviour:
+ *
+ * <u>Note</u>: In the cases that the argument is the key of the active row, it is implied that it is contained in a Set,
+ * when {@link Options.multiSelect} is true.
+ *
+ * - If Alt is held, the argument will be empty even if there is an active row,
+ * which will not be affected no matter where the pointer is.
+ *
+ * - If Ctrl+Alt is held, the argument will be the key of the existing active row,
+ * which will not be affected no matter where the pointer is.
+ *
+ * - If Ctrl is held, the argument will be the existing selection,
+ * which will not be affected no matter where the pointer is.
+ *
+ * - If the pointer is under the rows, the argument will be empty even if there is an active row,
+ * which will not be affected.
+ *
+ * - In all other cases, the row under the pointer is set as the active one, and onContextMenu is called afterwards,
+ * with the key of the new active row as the argument.
+ *
+ * @typedef {?RowKey|Set<RowKey>} Events.ContextMenuArg
+ */
+
+export default class Events {
+  constructor(selectors) {
+    /** @private */
+    this.selectors = selectors
+
+    this[handlersSymbol] = {}
   }
 
-  const getListBoxSelectionArg = (state) => {
-    const activeKey = selectors.getActiveKey(state)
-    if (!options.multiSelect) return activeKey
+  /**
+   * Calls the {@link TableProps.onSelectionChange} event handler with {@link Events.SelectionArg} as the argument
+   *
+   * @param {State} state The table's state
+   * @returns {void}
+   */
+  selectionChange = (state) =>
+    this[handlersSymbol].onSelectionChange?.(this.selectors.getSelectionArg(state))
 
-    const selection = new Set()
-    if (activeKey != null) selection.add(activeKey)
-    return selection
-  }
+  /**
+   * Calls the {@link TableProps.onItemsOpen} event handler with {@link Events.SelectionArg} as the first argument
+   *
+   * @param {State} state Passed to {@link Selectors.getSelectionArg}
+   * @param {boolean} fromKeyboard Passed through to the handler as the second argument
+   * @returns {void}
+   */
+  itemsOpen = (state, fromKeyboard) =>
+    this[handlersSymbol].onItemsOpen?.(this.selectors.getSelectionArg(state), fromKeyboard)
 
-  const getContextMenuArg = (state, forceEmpty) => {
-    if (forceEmpty)
-      return options.multiSelect ? new Set() : null
+  /**
+   * Calls the {@link TableProps.onContextMenu} event handler with {@link Events.ContextMenuArg} as the argument
+   *
+   * @param {State} state Passed to {@link Selectors.getContextMenuArg}
+   * @param {boolean} [forceEmpty] Passed to {@link Selectors.getContextMenuArg}
+   * @param {boolean} [forceSelection] Passed to {@link Selectors.getContextMenuArg}
+   * @returns {void}
+   */
+  contextMenu = (state, forceEmpty, forceSelection) =>
+    this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
 
-    return options.listBox ? getListBoxSelectionArg(state) : getSelectionArg(state)
-  }
+  /**
+   * Calls the {@link TableProps.onKeyDown} event handler with {@link Events.SelectionArg} as the second argument
+   *
+   * @param {State} state Passed to {@link Selectors.getSelectionArg}
+   * @param {KeyboardEvent<HTMLDivElement>} e Passed through to the handler as the first argument
+   * @returns {void}
+   */
+  keyDown = (state, e) =>
+    this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
 
-  const handlers = {}
-  this[handlersSymbol] = handlers
-
-  this.selectionChanged = (state) =>
-    handlers.onSelectionChange?.(getSelectionArg(state))
-
-  this.itemsOpen = (state, fromKeyboard) =>
-    handlers.onItemsOpen?.(getSelectionArg(state), fromKeyboard)
-
-  this.contextMenu = (state, forceEmpty = false) =>
-    handlers.onContextMenu?.(getContextMenuArg(state, forceEmpty))
-
-  this.keyDown = (state, e) =>
-    handlers.onKeyDown?.(e, getSelectionArg(state))
-
-  this.columnResizeEnd = (state, widths) =>
-    handlers.onColumnResizeEnd?.(widths)
+  /**
+   * Calls the {@link TableProps.onColumnResizeEnd} event handler
+   *
+   * @param {number[]} widths Passed through to the handler as the first argument
+   * @returns {void}
+   */
+  columnResizeEnd = (widths) =>
+    this[handlersSymbol].onColumnResizeEnd?.(widths)
 }

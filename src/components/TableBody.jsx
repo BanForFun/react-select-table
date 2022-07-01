@@ -1,6 +1,5 @@
 import React, { useContext } from 'react'
 import { DragModes } from '../constants/enums'
-import * as selectors from '../selectors/selectors'
 import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColumnGroupContext from '../context/ColumnGroup'
@@ -15,7 +14,7 @@ function TableBody(props) {
     dragMode,
     showPlaceholder,
     getRowClassName,
-    utils: { hooks },
+    utils: { hooks, selectors },
 
     ...rowCommonProps
   } = props

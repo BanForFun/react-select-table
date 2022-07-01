@@ -4,15 +4,6 @@ import { types } from '../models/Actions'
 import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
 import * as setUtils from '../utils/setUtils'
-import {
-  getActiveKey,
-  getActiveRowIndex,
-  getPageCount,
-  getPageIndex,
-  getPageSize,
-  getPageIndexOffset,
-  getItemPageIndex
-} from '../selectors/selectors'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import * as trieUtils from '../utils/trieUtils'
 
@@ -79,7 +70,7 @@ function getNoItemsState() {
  *
  * @callback Reducer
  * @param {State} state
- * @param {import("../models/Actions").Actions} action
+ * @param {import("../models/Actions").default} action
  * @returns {State}
  */
 
@@ -87,11 +78,11 @@ function getNoItemsState() {
  * Returns a table reducer
  *
  * @param {string} namespace A unique identifier for the table reducer
- * @param {import('../models/Utils').Options} options The reducer options
+ * @param {import('../utils/optionsUtils').Options} options The reducer options
  * @returns {Reducer} The table reducer
  */
 export default function createTable(namespace, options = {}) {
-  createTableUtils(namespace, options)
+  const { selectors } = createTableUtils(namespace, options)
 
   const {
     keyBy,
@@ -134,7 +125,7 @@ export default function createTable(namespace, options = {}) {
     }
 
     if (isSaved('selected'))
-      saved.selected.forEach(v => setUtils.addItem(draft.selected, v))
+      setSelection(draft.selected)
 
     load('pivotIndex')
   }
@@ -195,7 +186,7 @@ export default function createTable(namespace, options = {}) {
   //#region Pagination
 
   function getPageBoundary(start) {
-    return start ? 0 : getPageSize(draft) - 1
+    return start ? 0 : selectors.getPageSize(draft) - 1
   }
 
   function resolveSearchOrigin(origin, forward) {
@@ -205,7 +196,7 @@ export default function createTable(namespace, options = {}) {
         rowIndex = getPageBoundary(!forward)
         break
       case searchOrigins.ActiveRow:
-        rowIndex = getActiveRowIndex(draft)
+        rowIndex = selectors.getActiveRowIndex(draft)
         break
       default: return {
         index: forward ? -1 : draft.visibleItemCount,
@@ -214,13 +205,13 @@ export default function createTable(namespace, options = {}) {
     }
 
     return {
-      index: rowIndex + getPageIndexOffset(draft),
+      index: rowIndex + selectors.getPageIndexOffset(draft),
       key: draft.rowKeys[rowIndex]
     }
   }
 
   function setActiveItem(callback, searchForward, searchOrigin) {
-    const pageSize = getPageSize(draft)
+    const pageSize = selectors.getPageSize(draft)
     const origin = resolveSearchOrigin(searchOrigin, searchForward)
     let rowKeys = origin.key != null ? draft.rowKeys : []
 
@@ -246,7 +237,7 @@ export default function createTable(namespace, options = {}) {
 
     draft.activeIndex = setActive
     draft.rowKeys = rowKeys
-    return getActiveKey(draft)
+    return selectors.getActiveKey(draft)
   }
 
   function setActiveKey(key, searchForward = true, searchOrigin = searchOrigins.TableBoundary) {
@@ -259,18 +250,18 @@ export default function createTable(namespace, options = {}) {
   function setActiveIndex(index, pageInvalid = false) {
     if (!isIndexValid(index)) return null
 
-    const currentPage = pageInvalid ? NaN : getPageIndex(draft)
-    const targetPage = getItemPageIndex(draft, index)
+    const currentPage = pageInvalid ? NaN : selectors.getPageIndex(draft)
+    const targetPage = selectors.getItemPageIndex(draft, index)
     if (currentPage === targetPage) {
       draft.activeIndex = index
-      return getActiveKey(draft)
+      return selectors.getActiveKey(draft)
     }
 
     const afterCurrent = targetPage > currentPage
     const origins = [
       { page: currentPage, forward: afterCurrent, row: searchOrigins.PageBoundary },
       { page: 0, forward: true, row: searchOrigins.TableBoundary },
-      { page: getPageCount(draft) - 1, forward: false, row: searchOrigins.TableBoundary }
+      { page: selectors.getPageCount(draft) - 1, forward: false, row: searchOrigins.TableBoundary }
     ]
 
     const [origin] = _.sortBy(origins, origin => Math.abs(targetPage - origin.page))
@@ -362,7 +353,7 @@ export default function createTable(namespace, options = {}) {
     const keys = Object.keys(keyedItems)
     dlMapUtils.sortAndLinkItems(draft.items, keys, compareItems)
 
-    setActiveKey(getActiveKey(draft))
+    setActiveKey(selectors.getActiveKey(draft))
     return keys
   }
 
@@ -412,7 +403,7 @@ export default function createTable(namespace, options = {}) {
   function setRangeSelected(state, selected) {
     const offset = draft.pivotIndex - state.activeIndex
 
-    const activeKey = getActiveKey(state)
+    const activeKey = selectors.getActiveKey(state)
     setUtils.toggleItem(draft.selected, activeKey, selected)
     if (offset === 0) return
 

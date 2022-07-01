@@ -1,16 +1,16 @@
 import "./App.scss";
 
 import React from 'react';
-import { Switch, Route, Redirect } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 import FullDemo from './components/FullDemo';
 
 function App() {
   return <div id="app">
-    <Switch>
-      <Route path="/full" component={FullDemo} />
-      <Redirect from="/" exact to="/full" />
-    </Switch>
+    <Routes>
+      <Route path="full" element={<FullDemo />} />
+      <Route path="/" element={<Navigate to="/full" />} />
+    </Routes>
   </div>
 }
 

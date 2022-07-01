@@ -3,7 +3,6 @@ import _ from 'lodash'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
-import * as selectors from '../selectors/selectors'
 import * as setUtils from '../utils/setUtils'
 import { GestureTargets } from '../constants/enums'
 import classNames from 'classnames'
@@ -33,7 +32,7 @@ function ResizingContainer(props) {
   } = props
 
   const {
-    utils: { hooks, events, options }
+    utils: { hooks, events, options, selectors }
   } = props
 
   const gesture = useRef({
@@ -49,32 +48,31 @@ function ResizingContainer(props) {
   const rowCount = hooks.useSelector(s => s.rowKeys.length)
   const noSelection = hooks.useSelector(s => setUtils.isEmpty(s.selected))
 
-  const getSelected = hooks.useSelectorGetter(selectors.getSelected)
-
-  const raiseItemsOpen = hooks.useSelectorGetter(events.itemsOpen)
-  const raiseContextMenu = hooks.useSelectorGetter(events.contextMenu)
+  const getState = hooks.useGetState()
 
   const contextMenu = useCallback(e => {
     const { itemIndex, rowIndex } = gesture
 
     if (showPlaceholder)
-      raiseContextMenu(true)
+      events.contextMenu(getState(), true)
     else if (e.altKey)
-      raiseContextMenu(!e.ctrlKey)
+      events.contextMenu(getState(), !e.ctrlKey)
     else if (itemIndex === GestureTargets.Header)
-      raiseContextMenu(true)
+      events.contextMenu(getState(), true)
     else if (itemIndex === GestureTargets.BelowItems) {
       if (e.shiftKey)
         actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey, true)
       else if (!options.listBox && !e.ctrlKey)
         actions.clearSelection(true)
       else
-        raiseContextMenu(!e.ctrlKey)
-    } else if (options.listBox || (getSelected(rowIndex) && !e.ctrlKey))
+        events.contextMenu(getState(), !e.ctrlKey, true)
+    } else if (options.listBox && e.ctrlKey)
+      events.contextMenu(getState(), false, true)
+    else if (options.listBox || (selectors.getSelected(getState(), rowIndex) && !e.ctrlKey))
       actions.setActive(itemIndex, true)
     else
       actions.select(itemIndex, e.shiftKey, e.ctrlKey, true)
-  }, [gesture, raiseContextMenu, options, rowCount, actions, indexOffset, getSelected, showPlaceholder])
+  }, [gesture, events, options, rowCount, actions, indexOffset, getState, selectors, showPlaceholder])
 
   const dragSelect = useCallback(e => {
     if (gesture.pointerId == null) return
@@ -149,8 +147,8 @@ function ResizingContainer(props) {
 
   const handleDoubleClick = useCallback(() => {
     if (noSelection || showPlaceholder) return
-    raiseItemsOpen(false)
-  }, [noSelection, raiseItemsOpen, showPlaceholder])
+    events.itemsOpen(getState(), false)
+  }, [noSelection, events, getState, showPlaceholder])
 
   //#endregion
 

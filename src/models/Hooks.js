@@ -8,17 +8,21 @@ import {
 import { bindActionCreators } from 'redux'
 
 /**
- * @typedef {import('./Actions').default} Actions
+ * @namespace HooksTypes
+ */
+
+/**
+ * @typedef {import('./Actions').ActionsTypes.Class} HooksTypes.Actions
  */
 /**
- * @typedef {import('../store/store').State} State
+ * @typedef {import('../store/store').StoreTypes.State} HooksTypes.State
  */
 
 /**
  * Returns the table's slice of the state
  *
- * @callback Hooks.getState
- * @returns {State} The table state
+ * @callback HooksTypes.getState
+ * @returns {HooksTypes.State} The table state
  */
 
 export default class Hooks {
@@ -52,7 +56,7 @@ export default class Hooks {
   /**
    * Like normal useSelector, but the table's slice of the state is passed to the selector, instead of the root state
    *
-   * @type {import('react-redux').TypedUseSelectorHook<State>}
+   * @type {import('react-redux').TypedUseSelectorHook<HooksTypes.State>}
    */
   useSelector = (selector, equalityFn) =>
     this.useRootSelector((state) => selector(this.selectors.getTableState(state)), equalityFn)
@@ -61,7 +65,7 @@ export default class Hooks {
    * Returns a getter for the table's slice of the state
    *
    * @function
-   * @returns {Hooks.getState} The getter for the table state
+   * @returns {HooksTypes.getState} The getter for the table state
    */
   useGetState = () => {
     const store = this.useStore()
@@ -73,7 +77,7 @@ export default class Hooks {
    * {@link https://redux.js.org/api/bindactioncreators|bindActionCreators}
    *
    * @function
-   * @returns {Actions} The actions, but calling an action dispatches it automatically
+   * @returns {HooksTypes.Actions} The actions, but calling an action dispatches it automatically
    */
   useActions = () => {
     const dispatch = this.useDispatch()

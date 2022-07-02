@@ -56,22 +56,22 @@ const columnShape = {
  */
 
 /**
- * @typedef {import('../store/store').RowKey} RowKey
+ * @namespace TablePropsTypes
  */
 
 /**
- * @typedef {import('../models/Events').SelectionArg} SelectionArg
+ * @typedef {import('../models/Events').EventsTypes.SelectionArg} TablePropsTypes.SelectionArg
  */
 
 /**
- * @typedef {import('../models/Events').ContextMenuArg} ContextMenuArg
+ * @typedef {import('../models/Events').EventsTypes.ContextMenuArg} TablePropsTypes.ContextMenuArg
  */
 
 const eventHandlerProps = {
   /**
    * Called on right-click or two-finger tap
    *
-   * @param {ContextMenuArg} target See {@link Events.ContextMenuArg}
+   * @param {TablePropsTypes.ContextMenuArg} target See {@link EventsTypes.ContextMenuArg}
    * @see Actions.setActiveIndex
    */
   onContextMenu: PropTypes.func,
@@ -79,7 +79,7 @@ const eventHandlerProps = {
   /**
    * Called on double-click or enter-press
    *
-   * @param {SelectionArg} selection See {@link Events.SelectionArg}
+   * @param {TablePropsTypes.SelectionArg} selection See {@link EventsTypes.SelectionArg}
    * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
    */
   onItemsOpen: PropTypes.func,
@@ -87,7 +87,7 @@ const eventHandlerProps = {
   /**
    * Called when the selection changes
    *
-   * @param {SelectionArg} selection See {@link Events.SelectionArg}
+   * @param {TablePropsTypes.SelectionArg} selection See {@link EventsTypes.SelectionArg}
    */
   onSelectionChange: PropTypes.func,
 
@@ -99,10 +99,11 @@ const eventHandlerProps = {
   onColumnResizeEnd: PropTypes.func,
 
   /**
-   * Pass-through of the keydown event, with added selection argument. Return false to prevent default behaviour
+   * Pass-through of the keydown event, with added selection argument
    *
-   * @param {object} e The original keydown event argument
-   * @param {SelectionArg} selection See {@link Events.SelectionArg}
+   * @param {KeyboardEvent<HTMLDivElement>} e The original keydown event argument
+   * @param {TablePropsTypes.SelectionArg} selection See {@link EventsTypes.SelectionArg}
+   * @returns {boolean|void} Return false to prevent default behaviour
    */
   onKeyDown: PropTypes.func
 }

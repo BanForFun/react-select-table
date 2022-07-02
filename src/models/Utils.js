@@ -4,6 +4,14 @@ import Events from './Events'
 import Selectors from './Selectors'
 import { getOptions } from '../utils/optionsUtils'
 
+/**
+ * @namespace UtilsTypes
+ */
+
+/**
+ * @typedef {Utils} UtilsTypes.Class
+ */
+
 export default class Utils {
   constructor(namespace, options) {
     this.options = getOptions(options)

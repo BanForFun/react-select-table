@@ -36,30 +36,34 @@ function getNoItemsState() {
 }
 
 /**
- * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy} with iteratee {@link Options.keyBy}
- *
- * @typedef {string|number} RowKey
+ * @namespace StoreTypes
  */
 
 /**
- * @typedef {object} RowMetadata
+ * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy} with iteratee {@link Options.keyBy}
+ *
+ * @typedef {string|number} StoreTypes.RowKey
+ */
+
+/**
+ * @typedef {object} StoreTypes.RowMetadata
  * @property {boolean} visible The visibility of the item, based on the filter
  */
 
 /**
- * @typedef {object} State
- * @property {import('../utils/setUtils').Set<RowKey>} selection A set containing all selected row keys
+ * @typedef {object} StoreTypes.State
+ * @property {import('../utils/setUtils').Set<StoreTypes.RowKey>} selection A set containing all selected row keys
  * @property {*} filter The item filter
  * @property {Object<string, boolean>} sortAscending An object with property paths as keys, and true for ascending order or false for descending, as values
  * @property {boolean} isLoading When true, a loading indicator is displayed
  * @property {number} pageSize The maximum number of items in a page, 0 if pagination is disabled
  * @property {*} error When truthy, it is passed as a child to {@link TableProps.errorComponent} which in turn is rendered instead of the table rows
- * @property {import('../utils/trieUtils').TrieNode<RowKey>} searchIndex The root node of a trie made from the {@link Options.searchProperty} value of each row after being parsed by {@link Options.searchPhraseParser}
+ * @property {import('../utils/trieUtils').TrieNode<StoreTypes.RowKey>} searchIndex The root node of a trie made from the {@link Options.searchProperty} value of each row after being parsed by {@link Options.searchPhraseParser}
  * @property {string} searchPhrase The search phrase after being parsed by {@link Options.searchPhraseParser}
- * @property {RowKey[]} matches The keys of the rows that matched the search phrase, sorted in the order they appear
+ * @property {StoreTypes.RowKey[]} matches The keys of the rows that matched the search phrase, sorted in the order they appear
  * @property {number} matchIndex The currently highlighted match index
- * @property {import('../utils/doublyLinkedMapUtils').DoublyLinkedMap<RowKey, object, RowMetadata>} items A list of all items, sorted based on {@link sortAscending}
- * @property {RowKey[]} rowKeys The keys of the visible items, sorted and paginated
+ * @property {import('../utils/doublyLinkedMapUtils').DoublyLinkedMap<StoreTypes.RowKey, object, StoreTypes.RowMetadata>} items A list of all items, sorted based on {@link sortAscending}
+ * @property {StoreTypes.RowKey[]} rowKeys The keys of the visible items, sorted and paginated
  * @property {number} visibleItemCount The total number of visible items on all pages
  * @property {number} activeIndex The index of the active row inside {@link rowKeys}
  * @property {number} pivotIndex The index of the pivot row inside {@link rowKeys}
@@ -68,10 +72,10 @@ function getNoItemsState() {
 /**
  * Takes the current state and an action, and returns the next state
  *
- * @callback Reducer
- * @param {State} state
- * @param {import("../models/Actions").default} action
- * @returns {State}
+ * @callback StoreTypes.Reducer
+ * @param {StoreTypes.State} state
+ * @param {import("../models/Actions").ActionsTypes.Class} action
+ * @returns {StoreTypes.State}
  */
 
 /**
@@ -79,7 +83,7 @@ function getNoItemsState() {
  *
  * @param {string} namespace A unique identifier for the table reducer
  * @param {import('../utils/optionsUtils').Options} options The reducer options
- * @returns {Reducer} The table reducer
+ * @returns {StoreTypes.Reducer} The table reducer
  */
 export default function createTable(namespace, options = {}) {
   const { selectors } = createTableUtils(namespace, options)

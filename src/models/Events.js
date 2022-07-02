@@ -1,11 +1,15 @@
 export const handlersSymbol = Symbol('Event handlers')
 
 /**
- * @typedef {import('../store/store').State} State
+ * @namespace EventsTypes
  */
 
 /**
- * @typedef {import('../store/store').RowKey} RowKey
+ * @typedef {import('../store/store').StoreTypes.State} EventsTypes.State
+ */
+
+/**
+ * @typedef {import('../store/store').StoreTypes.RowKey} EventsTypes.RowKey
  */
 
 /**
@@ -15,14 +19,14 @@ export const handlersSymbol = Symbol('Event handlers')
  *
  * When Options.multiSelect is false: The key of the selected row, or null if no row is selected.
  *
- * @typedef {?RowKey|Set<RowKey>} Events.SelectionArg
+ * @typedef {?EventsTypes.RowKey|Set<EventsTypes.RowKey>} EventsTypes.SelectionArg
  */
 
 /**
  * The argument of onContextMenu varies a lot based on the modifier keys pressed and the table options,
  * but the type is either a {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set|Set}
- * of {@link RowKey} when {@link Options.multiSelect} is true,
- * or just {@link RowKey} when {@link Options.multiSelect} is false.
+ * of {@link StoreTypes.RowKey} when {@link Options.multiSelect} is true,
+ * or just {@link StoreTypes.RowKey} when {@link Options.multiSelect} is false.
  * That is all you need to know to implement the handler, but here are the details for the right-click behaviour if
  * you're curious:
  *
@@ -69,7 +73,11 @@ export const handlersSymbol = Symbol('Event handlers')
  * - In all other cases, the row under the pointer is set as the active one, and onContextMenu is called afterwards,
  * with the key of the new active row as the argument.
  *
- * @typedef {?RowKey|Set<RowKey>} Events.ContextMenuArg
+ * @typedef {?EventsTypes.RowKey|Set<EventsTypes.RowKey>} EventsTypes.ContextMenuArg
+ */
+
+/**
+ * @typedef {Events} EventsTypes.Class
  */
 
 export default class Events {
@@ -81,18 +89,18 @@ export default class Events {
   }
 
   /**
-   * Calls the {@link TableProps.onSelectionChange} event handler with {@link Events.SelectionArg} as the argument
+   * Calls the {@link TableProps.onSelectionChange} event handler with {@link EventsTypes.SelectionArg} as the argument
    *
-   * @param {State} state The table's state
+   * @param {EventsTypes.State} state The table's state
    * @returns {void}
    */
   selectionChange = (state) =>
     this[handlersSymbol].onSelectionChange?.(this.selectors.getSelectionArg(state))
 
   /**
-   * Calls the {@link TableProps.onItemsOpen} event handler with {@link Events.SelectionArg} as the first argument
+   * Calls the {@link TableProps.onItemsOpen} event handler with {@link EventsTypes.SelectionArg} as the first argument
    *
-   * @param {State} state Passed to {@link Selectors.getSelectionArg}
+   * @param {EventsTypes.State} state Passed to {@link Selectors.getSelectionArg}
    * @param {boolean} fromKeyboard Passed through to the handler as the second argument
    * @returns {void}
    */
@@ -100,9 +108,9 @@ export default class Events {
     this[handlersSymbol].onItemsOpen?.(this.selectors.getSelectionArg(state), fromKeyboard)
 
   /**
-   * Calls the {@link TableProps.onContextMenu} event handler with {@link Events.ContextMenuArg} as the argument
+   * Calls the {@link TableProps.onContextMenu} event handler with {@link EventsTypes.ContextMenuArg} as the argument
    *
-   * @param {State} state Passed to {@link Selectors.getContextMenuArg}
+   * @param {EventsTypes.State} state Passed to {@link Selectors.getContextMenuArg}
    * @param {boolean} [forceEmpty] Passed to {@link Selectors.getContextMenuArg}
    * @param {boolean} [forceSelection] Passed to {@link Selectors.getContextMenuArg}
    * @returns {void}
@@ -111,9 +119,9 @@ export default class Events {
     this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
 
   /**
-   * Calls the {@link TableProps.onKeyDown} event handler with {@link Events.SelectionArg} as the second argument
+   * Calls the {@link TableProps.onKeyDown} event handler with {@link EventsTypes.SelectionArg} as the second argument
    *
-   * @param {State} state Passed to {@link Selectors.getSelectionArg}
+   * @param {EventsTypes.State} state Passed to {@link Selectors.getSelectionArg}
    * @param {KeyboardEvent<HTMLDivElement>} e Passed through to the handler as the first argument
    * @returns {void}
    */

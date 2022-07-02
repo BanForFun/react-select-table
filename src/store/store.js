@@ -74,7 +74,7 @@ function getNoItemsState() {
  *
  * @callback StoreTypes.Reducer
  * @param {StoreTypes.State} state
- * @param {import("../models/Actions").ActionsTypes.Class} action
+ * @param {import("../models/Actions").ActionsTypes.ActionsClass} action
  * @returns {StoreTypes.State}
  */
 

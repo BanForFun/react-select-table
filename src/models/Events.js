@@ -5,11 +5,15 @@ export const handlersSymbol = Symbol('Event handlers')
  */
 
 /**
- * @typedef {import('../store/store').StoreTypes.State} EventsTypes.State
+ * @typedef {Events} EventsTypes.EventsClass
  */
 
 /**
- * @typedef {import('../store/store').StoreTypes.RowKey} EventsTypes.RowKey
+ * @typedef {import('../store/store').StoreTypes.State} State
+ */
+
+/**
+ * @typedef {import('../store/store').StoreTypes.RowKey} RowKey
  */
 
 /**
@@ -19,7 +23,7 @@ export const handlersSymbol = Symbol('Event handlers')
  *
  * When Options.multiSelect is false: The key of the selected row, or null if no row is selected.
  *
- * @typedef {?EventsTypes.RowKey|Set<EventsTypes.RowKey>} EventsTypes.SelectionArg
+ * @typedef {?RowKey|Set<RowKey>} EventsTypes.SelectionArg
  */
 
 /**
@@ -73,11 +77,7 @@ export const handlersSymbol = Symbol('Event handlers')
  * - In all other cases, the row under the pointer is set as the active one, and onContextMenu is called afterwards,
  * with the key of the new active row as the argument.
  *
- * @typedef {?EventsTypes.RowKey|Set<EventsTypes.RowKey>} EventsTypes.ContextMenuArg
- */
-
-/**
- * @typedef {Events} EventsTypes.Class
+ * @typedef {?RowKey|Set<RowKey>} EventsTypes.ContextMenuArg
  */
 
 export default class Events {
@@ -91,42 +91,46 @@ export default class Events {
   /**
    * Calls the {@link TableProps.onSelectionChange} event handler with {@link EventsTypes.SelectionArg} as the argument
    *
-   * @param {EventsTypes.State} state The table's state
+   * @param {State} state The table's state
    * @returns {void}
    */
-  selectionChange = (state) =>
-    this[handlersSymbol].onSelectionChange?.(this.selectors.getSelectionArg(state))
+  selectionChange(state) {
+    return this[handlersSymbol].onSelectionChange?.(this.selectors.getSelectionArg(state))
+  }
 
   /**
    * Calls the {@link TableProps.onItemsOpen} event handler with {@link EventsTypes.SelectionArg} as the first argument
    *
-   * @param {EventsTypes.State} state Passed to {@link Selectors.getSelectionArg}
+   * @param {State} state Passed to {@link Selectors.getSelectionArg}
    * @param {boolean} fromKeyboard Passed through to the handler as the second argument
    * @returns {void}
    */
-  itemsOpen = (state, fromKeyboard) =>
-    this[handlersSymbol].onItemsOpen?.(this.selectors.getSelectionArg(state), fromKeyboard)
+  itemsOpen(state, fromKeyboard) {
+    return this[handlersSymbol].onItemsOpen?.(this.selectors.getSelectionArg(state), fromKeyboard)
+  }
 
   /**
    * Calls the {@link TableProps.onContextMenu} event handler with {@link EventsTypes.ContextMenuArg} as the argument
    *
-   * @param {EventsTypes.State} state Passed to {@link Selectors.getContextMenuArg}
+   * @param {State} state Passed to {@link Selectors.getContextMenuArg}
    * @param {boolean} [forceEmpty] Passed to {@link Selectors.getContextMenuArg}
    * @param {boolean} [forceSelection] Passed to {@link Selectors.getContextMenuArg}
    * @returns {void}
    */
-  contextMenu = (state, forceEmpty, forceSelection) =>
-    this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
+  contextMenu(state, forceEmpty, forceSelection) {
+    return this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
+  }
 
   /**
    * Calls the {@link TableProps.onKeyDown} event handler with {@link EventsTypes.SelectionArg} as the second argument
    *
-   * @param {EventsTypes.State} state Passed to {@link Selectors.getSelectionArg}
+   * @param {State} state Passed to {@link Selectors.getSelectionArg}
    * @param {KeyboardEvent<HTMLDivElement>} e Passed through to the handler as the first argument
    * @returns {void}
    */
-  keyDown = (state, e) =>
-    this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
+  keyDown(state, e) {
+    return this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
+  }
 
   /**
    * Calls the {@link TableProps.onColumnResizeEnd} event handler
@@ -134,6 +138,7 @@ export default class Events {
    * @param {number[]} widths Passed through to the handler as the first argument
    * @returns {void}
    */
-  columnResizeEnd = (widths) =>
-    this[handlersSymbol].onColumnResizeEnd?.(widths)
+  columnResizeEnd(widths) {
+    return this[handlersSymbol].onColumnResizeEnd?.(widths)
+  }
 }

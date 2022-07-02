@@ -9,7 +9,7 @@ import { getOptions } from '../utils/optionsUtils'
  */
 
 /**
- * @typedef {Utils} UtilsTypes.Class
+ * @typedef {Utils} UtilsTypes.UtilsClass
  */
 
 export default class Utils {

@@ -6,27 +6,35 @@ import {
   createStoreHook
 } from 'react-redux'
 import { bindActionCreators } from 'redux'
+import { bindFunctions } from '../utils/classUtils'
 
 /**
  * @namespace HooksTypes
  */
 
 /**
- * @typedef {import('./Actions').ActionsTypes.Class} HooksTypes.Actions
- */
-/**
- * @typedef {import('../store/store').StoreTypes.State} HooksTypes.State
+ * @typedef {Hooks} HooksTypes.HooksClass
  */
 
 /**
  * Returns the table's slice of the state
  *
  * @callback HooksTypes.getState
- * @returns {HooksTypes.State} The table state
+ * @returns {State} The table state
+ */
+
+/**
+ * @typedef {import('./Actions').ActionsTypes.ActionsClass} ActionsClass
+ */
+
+/**
+ * @typedef {import('../store/store').StoreTypes.State} State
  */
 
 export default class Hooks {
   constructor(options, selectors, actions) {
+    bindFunctions(this)
+
     /** @private */
     this.actions = actions
     /** @private */
@@ -56,18 +64,18 @@ export default class Hooks {
   /**
    * Like normal useSelector, but the table's slice of the state is passed to the selector, instead of the root state
    *
-   * @type {import('react-redux').TypedUseSelectorHook<HooksTypes.State>}
+   * @type {import('react-redux').TypedUseSelectorHook<State>}
    */
-  useSelector = (selector, equalityFn) =>
-    this.useRootSelector((state) => selector(this.selectors.getTableState(state)), equalityFn)
+  useSelector(selector, equalityFn) {
+    return this.useRootSelector((state) => selector(this.selectors.getTableState(state)), equalityFn)
+  }
 
   /**
    * Returns a getter for the table's slice of the state
    *
-   * @function
    * @returns {HooksTypes.getState} The getter for the table state
    */
-  useGetState = () => {
+  useGetState() {
     const store = this.useStore()
     return useCallback(() => this.selectors.getTableState(store.getState()), [store])
   }
@@ -76,10 +84,9 @@ export default class Hooks {
    * Returns the actions wrapped into dispatch calls using
    * {@link https://redux.js.org/api/bindactioncreators|bindActionCreators}
    *
-   * @function
-   * @returns {HooksTypes.Actions} The actions, but calling an action dispatches it automatically
+   * @returns {ActionsClass} The actions, but calling an action dispatches it automatically
    */
-  useActions = () => {
+  useActions() {
     const dispatch = this.useDispatch()
     return useMemo(() => bindActionCreators(this.actions, dispatch), [dispatch])
   }

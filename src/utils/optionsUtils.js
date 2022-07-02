@@ -41,7 +41,7 @@ const defaultOptions = {
  *
  * @typedef {object} Options
  * @property {itemPredicate} [itemPredicate] Takes a row and the item filter, and must return true if the row should be visible
- * @property {itemComparator} [itemComparator] Takes the value of a property of two rows, and the path of that property, and must return: <ul><li>1, if first is larger than the second</li> <li>0, if values are equal</li> <li>-1, if first is smaller than the second</li> <li>undefined, to fall back to the default lodash comparator</li></ul>
+ * @property {itemComparator} [itemComparator] Takes the value of a property of two rows, and the path of that property, and must return: <ul><li>1, If the first is larger than the second</li> <li>0, If the values are equal</li> <li>-1, If the first is smaller than the second</li> <li>undefined, to fall back to the default lodash comparator</li></ul>
  * @property {searchPhraseParser} [searchPhraseParser] Takes the search phrase typed in by the user, or the value of the {@link searchProperty} of a row. The returned values are compared to each other
  * @property {string} [searchProperty] The path of a row property for the search phrase to be matched against. Set to empty string to disable searching
  * @property {boolean} [multiSelect] Allow multiple rows to be selected simultaneously

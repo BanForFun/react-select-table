@@ -164,7 +164,7 @@ export default class Selectors {
    * Returns the value to be passed to event handlers that take the current selection as an argument
    *
    * @param {StateType} state The table's state
-   * @returns {import('./Events').EventsTypes.SelectionArg} See {@link EventsTypes.SelectionArg}
+   * @returns {import('./Events').EventsTypes.SelectionArgType} See {@link EventsTypes.SelectionArg}
    */
   getSelectionArg(state) {
     const selectedKeys = setUtils.getItems(state.selected)
@@ -180,7 +180,7 @@ export default class Selectors {
    * @param {StateType} state The table's state
    * @param {boolean} [forceEmpty=false] Return an argument that reflects an empty selection, even if it isn't
    * @param {boolean} [forceSelection=false] Always return the selected keys, even in listBox mode
-   * @returns {import('./Events').EventsTypes.ContextMenuArg}
+   * @returns {import('./Events').EventsTypes.ContextMenuArgType}
    * When {@link Options.listBox} is false or forceSelection is true, it is the same as {@link EventsTypes.SelectionArg}.
    *
    * In all other cases the key of the active row is returned: As is when {@link Options.multiSelect} is false,

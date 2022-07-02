@@ -25,12 +25,12 @@ function getDependant(flags, flag) {
   return _.filter(flags, f => hasFlag(f, flag)).map(isolateFlag)
 }
 
-export function removeFlag(flags, flag, allFlags) {
+export function removeFlag(flags, flag, allFlags = [flag]) {
   const dependant = getDependant(allFlags, flag)
   return _.reduce(dependant, removeSingleFlag, flags)
 }
 
-export function toggleFlag(flags, flag, enabled, allFlags) {
+export function toggleFlag(flags, flag, enabled, allFlags = [flag]) {
   if (enabled) return addFlag(flags, flag)
   return removeFlag(flags, flag, allFlags)
 }

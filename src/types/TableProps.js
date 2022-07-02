@@ -15,11 +15,11 @@ import React from 'react'
  */
 
 /**
- * @typedef {import('../models/Events').EventsTypes.SelectionArg} SelectionArg
+ * @typedef {import('../models/Events').EventsTypes.SelectionArg} SelectionArgType
  */
 
 /**
- * @typedef {import('../models/Events').EventsTypes.ContextMenuArg} ContextMenuArg
+ * @typedef {import('../models/Events').EventsTypes.ContextMenuArg} ContextMenuArgType
  */
 
 const columnShape = {
@@ -68,7 +68,7 @@ const eventHandlerProps = {
   /**
    * Called on right-click or two-finger tap
    *
-   * @param {ContextMenuArg} target See {@link EventsTypes.ContextMenuArg}
+   * @param {ContextMenuArgType} target See {@link EventsTypes.ContextMenuArg}
    * @see Actions.setActive
    */
   onContextMenu: PropTypes.func,
@@ -76,7 +76,7 @@ const eventHandlerProps = {
   /**
    * Called on double-click or enter-press
    *
-   * @param {SelectionArg} selection See {@link EventsTypes.SelectionArg}
+   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
    * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
    */
   onItemsOpen: PropTypes.func,
@@ -84,7 +84,7 @@ const eventHandlerProps = {
   /**
    * Called when the selection changes
    *
-   * @param {SelectionArg} selection See {@link EventsTypes.SelectionArg}
+   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
    */
   onSelectionChange: PropTypes.func,
 
@@ -99,7 +99,7 @@ const eventHandlerProps = {
    * Pass-through of the keydown event, with added selection argument
    *
    * @param {KeyboardEvent<HTMLDivElement>} e The original keydown event argument
-   * @param {SelectionArg} selection See {@link EventsTypes.SelectionArg}
+   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
    * @returns {boolean|void} Return false to prevent default behaviour
    */
   onKeyDown: PropTypes.func

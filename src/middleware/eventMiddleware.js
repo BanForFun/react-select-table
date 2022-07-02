@@ -33,7 +33,7 @@ const eventMiddleware = (store) => (next) => (action) => {
         events.selectionChange(newState)
 
       // Raise onContextMenu
-      if (payload.contextMenu)
+      if (payload?.contextMenu) // Payload is undefined for selectAll
         events.contextMenu(newState)
 
       return result

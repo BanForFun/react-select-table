@@ -2,8 +2,6 @@ import { flagGenerator } from '../utils/flagUtils'
 
 const nextFlag = flagGenerator()
 
-/** @module SaveModules */
-
 export const Filter = nextFlag()
 export const SortOrder = nextFlag()
 export const Items = nextFlag()

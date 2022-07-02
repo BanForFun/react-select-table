@@ -40,7 +40,8 @@ function getNoItemsState() {
  */
 
 /**
- * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy} with iteratee {@link Options.keyBy}
+ * The key of the row as returned from {@link https://lodash.com/docs/4.17.15#keyBy|_.keyBy}
+ * with iteratee {@link Options.keyBy}
  *
  * @typedef {string|number} StoreTypes.RowKey
  */
@@ -70,12 +71,7 @@ function getNoItemsState() {
  */
 
 /**
- * Takes the current state and an action, and returns the next state
- *
- * @callback StoreTypes.Reducer
- * @param {StoreTypes.State} state
- * @param {import("../models/Actions").ActionsTypes.ActionsClass} action
- * @returns {StoreTypes.State}
+ * @typedef {import('../models/Actions').ActionsTypes.ActionsClass} ActionsClass
  */
 
 /**
@@ -83,7 +79,7 @@ function getNoItemsState() {
  *
  * @param {string} namespace A unique identifier for the table reducer
  * @param {import('../utils/optionsUtils').Options} options The reducer options
- * @returns {StoreTypes.Reducer} The table reducer
+ * @returns {import('redux').Reducer<StoreTypes.State, ActionsClass>} The table reducer
  */
 export default function createTable(namespace, options = {}) {
   const { selectors } = createTableUtils(namespace, options)

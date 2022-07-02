@@ -6,7 +6,6 @@ import {
   createStoreHook
 } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { bindFunctions } from '../utils/classUtils'
 
 /**
  * @namespace HooksTypes
@@ -33,8 +32,6 @@ import { bindFunctions } from '../utils/classUtils'
 
 export default class Hooks {
   constructor(options, selectors, actions) {
-    bindFunctions(this)
-
     /** @private */
     this.actions = actions
     /** @private */

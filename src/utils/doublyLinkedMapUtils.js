@@ -198,7 +198,7 @@ export function addUnlinkedItem(map, key, value, metadata) {
  * @param {KeyComparator} keyComparator A function that compares two items
  */
 export function sortItems(map, keyComparator) {
-  // Way faster than implementing quicksort in javascript
+  // Way faster than quicksort written in javascript, I tried it
   const keys = [...keyIterator(map)].sort(keyComparator)
 
   let prevKey = null

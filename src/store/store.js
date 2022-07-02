@@ -294,7 +294,7 @@ export default function createTable(namespace, options = {}) {
 
   function getSearchMatches() {
     const phrase = options.searchPhraseParser(draft.searchPhrase)
-    const allMatches = trieUtils.getMatchingKeys(draft.searchIndex, phrase)
+    const allMatches = trieUtils.getMatchingValues(draft.searchIndex, phrase)
     const visibleMatches = allMatches.filter(key =>
       dlMapUtils.getItemMetadata(draft.items, key).visible)
     return visibleMatches.sort(compareItems)

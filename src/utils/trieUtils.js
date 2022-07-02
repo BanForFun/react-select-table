@@ -2,12 +2,20 @@ import * as setUtils from './setUtils'
 import _ from 'lodash'
 
 /**
+ * A node of a {@link https://en.wikipedia.org/wiki/Trie|trie}
+ *
  * @template Value
  * @typedef {object} TrieNode
  * @property {Object<string, TrieNode<Value>>} children The children of the node
  * @property {import('../utils/setUtils').Set<Value>} values The values of the nodes that end at this character
  */
 
+/**
+ * Returns a new node instance
+ *
+ * @template Value
+ * @returns {TrieNode<Value>} A new node
+ */
 export function instance() {
   return {
     values: setUtils.instance(),
@@ -15,15 +23,36 @@ export function instance() {
   }
 }
 
+/**
+ * Adds a new node to the trie
+ *
+ * @template Value
+ * @param {TrieNode<Value>} node The node under which to place the new one
+ * @param {Value} value The value of the new node
+ * @param {string} text The text of the new node
+ * @returns {void}
+ */
 export function addNode(node, value, text) {
-  if (!text) return setUtils.addItem(node.values, value)
+  if (!text) {
+    setUtils.addItem(node.values, value)
+    return
+  }
 
   const letter = text[0]
   const child = (node.children[letter] ??= instance())
 
-  return addNode(child, value, text.substring(1))
+  addNode(child, value, text.substring(1))
 }
 
+/**
+ * Removes a node from the trie
+ *
+ * @template Value
+ * @param {TrieNode<Value>} node The node under which the node to remove was placed originally
+ * @param {Value} value The value of the node to remove
+ * @param {string} text The text of the node to remove
+ * @returns {boolean} True if the node existed
+ */
 export function removeNode(node, value, text) {
   if (!node) return
   if (!text) {
@@ -60,15 +89,23 @@ function findNode(node, text) {
   return findNode(child, text.substring(1))
 }
 
-function getAllKeys(node, keys = []) {
-  if (!node) return keys
+function getAllValues(node, values = []) {
+  if (!node) return values
 
-  keys.push(...setUtils.getItems(node.values))
-  _.forEach(node.children, child => getAllKeys(child, keys))
-  return keys
+  values.push(...setUtils.getItems(node.values))
+  _.forEach(node.children, child => getAllValues(child, values))
+  return values
 }
 
-export function getMatchingKeys(node, text) {
+/**
+ * Returns the values of all nodes whose text begins with the text given
+ *
+ * @template Value
+ * @param {TrieNode<Value>} node The node from which to begin the search
+ * @param {string} text The text to find matching values for
+ * @returns {Value[]} The values of the nodes that match the given text
+ */
+export function getMatchingValues(node, text) {
   const textRoot = findNode(node, text)
-  return getAllKeys(textRoot)
+  return getAllValues(textRoot)
 }

@@ -17,18 +17,18 @@ import { bindFunctions } from '../utils/classUtils'
  */
 
 /**
- * Returns the table's slice of the state
- *
- * @callback HooksTypes.getState
- * @returns {State} The table state
- */
-
-/**
  * @typedef {import('./Actions').ActionsTypes.ActionsClass} ActionsClass
  */
 
 /**
- * @typedef {import('../store/store').StoreTypes.State} State
+ * @typedef {import('../store/store').StoreTypes.State} StateType
+ */
+
+/**
+ * Returns the table's slice of the state
+ *
+ * @callback HooksTypes.getState
+ * @returns {StateType} The table state
  */
 
 export default class Hooks {
@@ -64,7 +64,7 @@ export default class Hooks {
   /**
    * Like normal useSelector, but the table's slice of the state is passed to the selector, instead of the root state
    *
-   * @type {import('react-redux').TypedUseSelectorHook<State>}
+   * @type {import('react-redux').TypedUseSelectorHook<StateType>}
    */
   useSelector(selector, equalityFn) {
     return this.useRootSelector((state) => selector(this.selectors.getTableState(state)), equalityFn)

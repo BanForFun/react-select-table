@@ -54,7 +54,7 @@ Object.freeze(_.each(types, (type, name) => (types[name] = `RST_${name}`)))
  */
 
 /**
- * @typedef {import('../store/store').StoreTypes.RowKey} RowKey
+ * @typedef {import('../store/store').StoreTypes.RowKey} RowKeyType
  */
 
 /**
@@ -140,7 +140,7 @@ export default class Actions {
   /**
    * Applies a deep patch to rows by key.
    *
-   * @param {Object<RowKey, object>} patchMap For every key of this object,
+   * @param {Object<RowKeyType, object>} patchMap For every key of this object,
    * the row with the same key will be found, and the properties of the corresponding value will be applied to it
    * @returns {ActionsTypes.Action} The redux action object
    */
@@ -151,7 +151,7 @@ export default class Actions {
   /**
    * Deletes rows and deselects them.
    *
-   * @param {...RowKey} keys The keys of the rows to be deleted
+   * @param {...RowKeyType} keys The keys of the rows to be deleted
    * @returns {ActionsTypes.Action} The redux action object
    */
   deleteItems(...keys) {

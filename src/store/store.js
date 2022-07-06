@@ -78,7 +78,7 @@ function getNoItemsState() {
  * Returns a table reducer
  *
  * @param {string} namespace A unique identifier for the table reducer
- * @param {import('../utils/optionsUtils').Options} options The reducer options
+ * @param {Partial<import('../utils/optionsUtils').Options>} options The reducer options
  * @returns {import('redux').Reducer<StoreTypes.State, ActionsClass>} The table reducer
  */
 export default function createTable(namespace, options = {}) {

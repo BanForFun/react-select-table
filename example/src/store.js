@@ -27,8 +27,7 @@ const reducer = createTable(tableNamespace, {
   itemPredicate: (row, filter) => filter == null || row.name.startsWith(filter),
   savedState: {
     items: comments
-  },
-  ...customOptions,
+  }
 });
 
 

@@ -7,7 +7,7 @@ const tableUtils = {}
 
 /**
  * @param {string} namespace The namespace passed to createTable
- * @param {import('../utils/optionsUtils').Options} options The reducer options
+ * @param {Partial<import('../utils/optionsUtils').Options>} options The reducer options
  * @returns {Utils} Utilities for the specific reducer
  */
 export function createTableUtils(namespace, options) {

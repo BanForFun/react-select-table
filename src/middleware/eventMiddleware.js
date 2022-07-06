@@ -2,6 +2,9 @@ import { types } from '../models/Actions'
 import { getTableUtils } from '../utils/tableUtils'
 import * as setUtils from '../utils/setUtils'
 
+/**
+ * @type {import('redux').Middleware<>}
+ */
 const eventMiddleware = (store) => (next) => (action) => {
   const { type, namespace, payload } = action
 

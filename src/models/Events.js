@@ -92,10 +92,9 @@ export default class Events {
    * Calls the {@link TableProps.onSelectionChange} event handler with {@link EventsTypes.SelectionArg} as the argument
    *
    * @param {StateType} state The table's state
-   * @returns {void}
    */
   selectionChange(state) {
-    return this[handlersSymbol].onSelectionChange?.(this.selectors.getSelectionArg(state))
+    this[handlersSymbol].onSelectionChange?.(this.selectors.getSelectionArg(state))
   }
 
   /**
@@ -103,10 +102,9 @@ export default class Events {
    *
    * @param {StateType} state Passed to {@link Selectors.getSelectionArg}
    * @param {boolean} fromKeyboard Passed through to the handler as the second argument
-   * @returns {void}
    */
   itemsOpen(state, fromKeyboard) {
-    return this[handlersSymbol].onItemsOpen?.(this.selectors.getSelectionArg(state), fromKeyboard)
+    this[handlersSymbol].onItemsOpen?.(this.selectors.getSelectionArg(state), fromKeyboard)
   }
 
   /**
@@ -115,10 +113,9 @@ export default class Events {
    * @param {StateType} state Passed to {@link Selectors.getContextMenuArg}
    * @param {boolean} [forceEmpty] Passed to {@link Selectors.getContextMenuArg}
    * @param {boolean} [forceSelection] Passed to {@link Selectors.getContextMenuArg}
-   * @returns {void}
    */
   contextMenu(state, forceEmpty, forceSelection) {
-    return this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
+    this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
   }
 
   /**
@@ -126,19 +123,17 @@ export default class Events {
    *
    * @param {StateType} state Passed to {@link Selectors.getSelectionArg}
    * @param {KeyboardEvent<HTMLDivElement>} e Passed through to the handler as the first argument
-   * @returns {void}
    */
   keyDown(state, e) {
-    return this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
+    this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
   }
 
   /**
    * Calls the {@link TableProps.onColumnResizeEnd} event handler
    *
    * @param {number[]} widths Passed through to the handler as the first argument
-   * @returns {void}
    */
   columnResizeEnd(widths) {
-    return this[handlersSymbol].onColumnResizeEnd?.(widths)
+    this[handlersSymbol].onColumnResizeEnd?.(widths)
   }
 }

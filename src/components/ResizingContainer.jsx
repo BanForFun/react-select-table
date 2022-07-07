@@ -1,4 +1,4 @@
-import React, { useRef, useContext, useCallback, Fragment } from 'react'
+import React, { useRef, useContext, useCallback, Fragment, useMemo } from 'react'
 import _ from 'lodash'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
@@ -7,6 +7,7 @@ import * as setUtils from '../utils/setUtils'
 import { GestureTargets } from '../constants/enums'
 import classNames from 'classnames'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
+import { pc } from '../utils/tableUtils'
 
 // Child of ScrollingContainer
 // Handles gestures
@@ -15,7 +16,6 @@ function ResizingContainer(props) {
     // Own props
     resizingContainerRef,
     dragSelectStart,
-    hasEventListener,
     placeholder,
 
     // HeadContainer props
@@ -32,7 +32,8 @@ function ResizingContainer(props) {
   } = props
 
   const {
-    utils: { hooks, events, options, selectors }
+    utils: { hooks, events, options, selectors },
+    columns
   } = props
 
   const gesture = useRef({
@@ -139,11 +140,11 @@ function ResizingContainer(props) {
       return dragSelect(e)
     }
 
-    if (hasEventListener('onContextMenu'))
+    if (events.hasListener('onContextMenu'))
       e.preventDefault()
 
     contextMenu(e)
-  }, [gesture, contextMenu, actions, hasEventListener, dragSelect, showPlaceholder])
+  }, [gesture, contextMenu, actions, events, dragSelect, showPlaceholder])
 
   const handleDoubleClick = useCallback(() => {
     if (noSelection || showPlaceholder) return
@@ -174,7 +175,17 @@ function ResizingContainer(props) {
     getRowClassName
   }
 
-  const { containerWidth, containerMinWidth } = useContext(ColumnGroupContext)
+  const { resizingIndex, widths } = useContext(ColumnGroupContext)
+
+  const style = useMemo(() => {
+    if (resizingIndex >= 0)
+      return { width: 'fit-content', minWidth: 0 }
+
+    const visibleWidths = columns.map(c => widths[c.key])
+    const width = Math.max(100, _.sum(visibleWidths))
+    const minWidth = width / _.min(visibleWidths) * options.minColumnWidth
+    return { width: pc(width), minWidth }
+  }, [widths, resizingIndex, columns, options])
 
   const contextMenuGestureHandlers = {
     onPointerDownCapture: () => setGestureTarget(GestureTargets.BelowItems),
@@ -190,10 +201,7 @@ function ResizingContainer(props) {
         'rst-showPlaceholder': showPlaceholder
       })}
       ref={resizingContainerRef}
-      style={{
-        width: containerWidth,
-        minWidth: containerMinWidth
-      }}
+      style={style}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
       {...contextMenuGestureHandlers}

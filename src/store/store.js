@@ -125,7 +125,7 @@ export default function createTable(namespace, options = {}) {
     }
 
     if (isSaved('selected'))
-      setSelection(draft.selected)
+      setSelection(saved.selected)
 
     load('pivotIndex')
   }

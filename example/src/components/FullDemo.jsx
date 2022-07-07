@@ -1,46 +1,49 @@
-import React, { useCallback, useMemo, useRef } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import _ from "lodash";
-import { Table, getTableUtils, saveModules as allSaveModules, flagUtils } from 'react-select-table';
-import comments from "../data/comments.json";
-import { applyOptions, clearOptions, tableNamespace } from '../store'
+import {
+  Table,
+  getTableUtils,
+  saveModules as allSaveModules,
+  flagUtils
+} from 'react-select-table';
+import todos from "../data/todos.json";
+import { tableNamespace } from '../store'
 import Checkbox from './common/Checkbox'
-import { useSearchParams } from 'react-router-dom'
+import Input from './common/Input'
+import { applyOptions, clearOptions } from '../utils/customOptionsUtils'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
+import usePersistState from '../hooks/usePersistState'
 
 const columns = [
   {
     title: "A/I",
-    isHeader: true,
     defaultWidth: 10
+    //A column without a 'path' property will display the number of the row
   },
   {
-    title: "#",
+    title: "Id",
     path: "id",
     isHeader: true,
     defaultWidth: 10
   },
   {
-    title: "Post id",
-    path: "postId",
-    defaultWidth: 10
+    title: "Title",
+    path: "title",
+    defaultWidth: 50
   },
   {
-    title: "Name",
-    path: "name",
-    defaultWidth: 40,
-    render: (name, comment, options) => {
-      if (comment.highlighted)
-        options.className="highlighted";
-
-      return name;
+    title: "Completed",
+    path: "completed",
+    defaultWidth: 20,
+    render: (completed, todo, options) => {
+      options.className = completed ? "text-green" : "text-red"
+      return <FontAwesomeIcon icon={completed ? faCheck : faXmark}/>
     }
-  },
-  {
-    title: "Email",
-    path: "email",
-    defaultWidth: 30,
-    render: address => <a href={`mailto:${address}`}>{address}</a>
   }
 ];
+
+const defaultColumnVisibility = _.zipObject(_.map(columns, "title"), _.map(columns, _.constant(true)))
 
 const utils = getTableUtils(tableNamespace);
 const { hooks, options, selectors } = utils
@@ -54,17 +57,27 @@ function FullDemo() {
   const getState = hooks.useGetState()
   const actions = hooks.useActions()
 
-  const [searchParams, setSearchParams] = useSearchParams({
-    saveModules: allSaveModules.Items
-  });
+  const persistSaveModules = usePersistState('saveModules', allSaveModules.Items)
+  const [saveModules, setSaveModules] = useState(persistSaveModules.restoredValue)
+  persistSaveModules.useSaveValue(saveModules)
 
-  const saveModules = useMemo(() =>
-    parseInt(searchParams.get('saveModules')), [searchParams])
+  const persistColumnVisibility = usePersistState('columnVisibility', defaultColumnVisibility)
+  const [columnVisibility, setColumnVisibility] = useState(persistColumnVisibility.restoredValue)
+  persistColumnVisibility.useSaveValue(columnVisibility)
 
-  const setSaveModules = useCallback(modules => {
-    searchParams.set('saveModules', modules)
-    setSearchParams(searchParams)
-  }, [setSearchParams, searchParams])
+  const persistColumnWidths = usePersistState('columnWidths', {})
+
+  const orderedColumns = useMemo(() => {
+    const orderedColumns = []
+    for (const column of columns) {
+      if (!columnVisibility[column.title]) continue
+      orderedColumns.push(column)
+    }
+
+    return orderedColumns
+  }, [columnVisibility])
+
+  const [pageSize, setPageSize] = useState(10)
 
   const handleTableKeyDown = useCallback((e, selection) => {
     switch(e.keyCode) {
@@ -82,25 +95,48 @@ function FullDemo() {
       ref={tableRef}
       emptyPlaceholder="No items"
       namespace={tableNamespace}
-      columnOrder={[0, 1, 3, 4]}
-      columns={columns}
+      columns={orderedColumns}
       loadingIndicator="Loading..."
       autoFocus={true}
+      initColumnWidths={persistColumnWidths.restoredValue}
       onKeyDown={handleTableKeyDown}
       onContextMenu={logEvent("Context menu")}
-      onColumnResizeEnd={logEvent("Columns Resized")}
+      onColumnResizeEnd={widths => {
+        console.log("Columns resized", widths)
+        persistColumnWidths.saveValue(widths)
+      }}
       onSelectionChange={logEvent("Selection")}
       onItemsOpen={logEvent("Open")}
     />
+
+    <h2>Columns</h2>
+    <div className="controls">
+    {_.map(columnVisibility, (visible, title) =>
+      <Checkbox id={`${title}_visibility`}
+                key={title}
+                label={title}
+                checked={visible}
+                onChange={checked => setColumnVisibility(visibility => ({
+                  ...visibility, [title]: checked
+                }))} />
+    )}
+    </div>
+
     <h2>Actions</h2>
     <h3>Items</h3>
     <div className="controls">
-      <button onClick={() => actions.setItems(comments)}>Set items</button>
+      <button onClick={() => actions.setItems(todos)}>Set items</button>
     </div>
     <h3>Pagination</h3>
     <div className="controls">
-      <button onClick={() => actions.setPageSize(10)}>Set page size to 10</button>
-      <button onClick={() => actions.setPageSize(0)}>Disable pagination</button>
+      <Input id="pageSize"
+             label="Page size"
+             value={pageSize}
+             onChange={setPageSize}
+             type="number"
+             style={{ width: "6ch" }}
+             min="0" />
+      <button onClick={() => actions.setPageSize(pageSize || 0)}>Apply</button>
     </div>
 
     <h2>Options</h2>
@@ -115,6 +151,11 @@ function FullDemo() {
                 label="ListBox mode"
                 checked={options.listBox}
                 onChange={checked => applyOptions({ listBox: checked })} />
+      <div className="break"/>
+      <Checkbox id="constantWidth"
+                label="Keep table width constant"
+                checked={options.constantWidth}
+                onChange={checked => applyOptions({ constantWidth: checked })} />
     </div>
     <h3>Save state</h3>
     <div className="controls">

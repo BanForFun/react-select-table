@@ -6,7 +6,7 @@ const TableCell = ({ render, rowItem, rowIndex, path, isHeader }) => {
     className: null
   }
 
-  const defaultContent = path ? _.get(rowItem, path) : rowIndex
+  const defaultContent = path ? _.get(rowItem, path) : rowIndex + 1
   const content = render(defaultContent, rowItem, options)
   const CellType = isHeader ? 'th' : 'td'
 

@@ -11,7 +11,13 @@ import React from 'react'
 /**
  * The props of the {@link Table} component
  *
- * @typedef {PropTypes.InferProps<tableProps>} TableProps
+ * @typedef {PropTypes.InferProps<tablePropTypes>} TableProps
+ */
+
+/**
+ * The props of the {@link SlaveTable} component
+ *
+ * @typedef {PropTypes.InferProps<slaveTablePropTypes>} SlaveTableProps
  */
 
 /**
@@ -64,7 +70,7 @@ const columnShape = {
   defaultWidth: PropTypes.number
 }
 
-const eventHandlerProps = {
+const eventHandlerPropTypes = {
   /**
    * Called on right-click or two-finger tap
    *
@@ -91,7 +97,7 @@ const eventHandlerProps = {
   /**
    * Called when column resizing ends
    *
-   * @param {number[]} widths The new column width percentages
+   * @param {Object<string, number>} widths The new column width percentages
    */
   onColumnResizeEnd: PropTypes.func,
 
@@ -105,20 +111,13 @@ const eventHandlerProps = {
   onKeyDown: PropTypes.func
 }
 
-const tableProps = {
-  ...eventHandlerProps,
+const commonTablePropTypes = {
   /**
    * Used to link a table component with a reducer.
    * Must match to the one passed as {@link createTable}
-   * Multiple table components can share a namespace.
+   * A Table component can share a namespace with multiple SlaveTable components.
    */
   namespace: PropTypes.string.isRequired,
-
-  /**
-   * Used to differentiate between multiple tables within the same {@link namespace}.
-   * Optional if this the only table in its namespace
-   */
-  name: PropTypes.string,
 
   /**
    * All columns
@@ -128,9 +127,9 @@ const tableProps = {
   columns: PropTypes.arrayOf(PropTypes.shape(columnShape)).isRequired,
 
   /**
-   * An array of indices of the {@link columns} array, used to reorder and hide columns
+   * The widths of the columns on the first load
    */
-  columnOrder: PropTypes.arrayOf(PropTypes.number),
+  initColumnWidths: PropTypes.objectOf(PropTypes.number),
 
   /**
    * Displayed instead of the table rows when there is an error, with the error as a child
@@ -192,6 +191,18 @@ const tableProps = {
   getRowClassName: PropTypes.func
 }
 
-export const eventHandlerNames = Object.keys(eventHandlerProps)
+export const tablePropTypes = {
+  ...commonTablePropTypes,
+  ...eventHandlerPropTypes
+}
 
-export default tableProps
+export const slaveTablePropTypes = {
+  ...commonTablePropTypes,
+
+  /**
+   * Used to differentiate between multiple slave tables within the same {@link namespace}.
+   */
+  name: PropTypes.string.isRequired
+}
+
+export const eventHandlerNames = Object.keys(eventHandlerPropTypes)

@@ -89,6 +89,16 @@ export default class Events {
   }
 
   /**
+   * Returns whether there is a handler for the given event
+   *
+   * @param {string} event The name of the event
+   * @returns {boolean} True, if the handler exists
+   */
+  hasListener(event) {
+    return !!this[handlersSymbol][event]
+  }
+
+  /**
    * Calls the {@link TableProps.onSelectionChange} event handler with {@link EventsTypes.SelectionArg} as the argument
    *
    * @param {StateType} state The table's state
@@ -131,7 +141,7 @@ export default class Events {
   /**
    * Calls the {@link TableProps.onColumnResizeEnd} event handler
    *
-   * @param {number[]} widths Passed through to the handler as the first argument
+   * @param {Object<string, number>} widths Passed through to the handler as the first argument
    */
   columnResizeEnd(widths) {
     this[handlersSymbol].onColumnResizeEnd?.(widths)

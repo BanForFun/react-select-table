@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect } from 'react'
-import DefaultPagination from './DefaultPagination'
+import React, { useEffect } from 'react'
 import { getTableUtils } from '../utils/tableUtils'
 import Root from './Root'
-import tablePropTypes, { eventHandlerNames } from '../types/TableProps'
+import { tablePropTypes, eventHandlerNames } from '../types/TableProps'
 import { handlersSymbol } from '../models/Events'
+import defaultTableProps from '../constants/defaultTableProps'
 
 /**
  * Table Component
@@ -11,10 +11,7 @@ import { handlersSymbol } from '../models/Events'
  * @type {React.FC<import("../types/TableProps").TableProps>}
  */
 const Table = React.forwardRef((props, ref) => {
-  const {
-    name, namespace,
-    ...rootProps
-  } = props
+  const { namespace, ...rootProps } = props
 
   const utils = getTableUtils(namespace)
 
@@ -30,14 +27,11 @@ const Table = React.forwardRef((props, ref) => {
     }, [handler, eventHandlers, handlerName])
   }
 
-  rootProps.hasEventListener = useCallback(name =>
-    eventHandlers[name] != null, [eventHandlers])
-
   return <Root
     {...rootProps}
     utils={utils}
     containerRef={ref}
-    name={name ?? namespace}
+    name={namespace}
   />
 })
 
@@ -47,17 +41,6 @@ const Table = React.forwardRef((props, ref) => {
 
 Table.propTypes = tablePropTypes
 Table.displayName = 'Table'
-
-Table.defaultProps = {
-  getRowClassName: () => null,
-  className: 'rst-default',
-  dragSelectScrollFactor: 0.5,
-  columnResizeScrollFactor: 0.2,
-  errorComponent: 'span',
-  paginationComponent: DefaultPagination,
-  loadingIndicator: null,
-  emptyPlaceholder: null,
-  autoFocus: false
-}
+Table.defaultProps = defaultTableProps
 
 export default Table

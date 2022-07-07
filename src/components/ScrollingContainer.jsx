@@ -7,14 +7,6 @@ import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { DragModes } from '../constants/enums'
 
-const defaultColumnRenderer = value => value
-
-const parseColumn = col => ({
-  render: defaultColumnRenderer,
-  key: col.path,
-  ...col
-})
-
 const cancelScrollType = 'touchmove'
 const cancelScrollOptions = { passive: false }
 
@@ -54,8 +46,8 @@ function ScrollingContainer(props) {
   const {
     dragSelectScrollFactor,
     columnResizeScrollFactor,
-    columns: unorderedColumns,
-    columnOrder,
+    columns,
+    initColumnWidths,
     ...resizingProps
   } = props
 
@@ -66,32 +58,39 @@ function ScrollingContainer(props) {
 
   //#region Column group
 
-  const columns = useMemo(() =>
-    (columnOrder?.map(index => unorderedColumns[index]) ?? unorderedColumns).map(parseColumn),
-  [unorderedColumns, columnOrder])
+  const [columnGroup, setColumnGroup] = useState({
+    widths: initColumnWidths,
+    widthUnit: pc,
+    resizingIndex: -1
+  })
+
+  const getVisibleColumnWidthsPatch = useCallback(widths =>
+    _.zipObject(_.map(columns, 'key'), widths), [columns])
 
   const defaultWidths = useMemo(() => {
-    const columnCount = columns.length
-    const defaultWidth = 100 / columnCount
-    return columns.map(c => c.defaultWidth ?? defaultWidth)
-  }, [columns])
+    const defaultWidth = 100 / columns.length
+    const widths = _.map(columns, c => c.defaultWidth ?? defaultWidth)
+    return getVisibleColumnWidthsPatch(widths)
+  }, [columns, getVisibleColumnWidthsPatch])
 
-  const getColumnGroup = useCallback(widths => {
-    const containerWidth = Math.max(100, _.sum(widths))
-    const containerMinWidth = containerWidth / _.min(widths) * options.minColumnWidth
+  const fullColumnGroup = useMemo(() => ({
+    ...columnGroup,
+    widths: { ...defaultWidths, ...columnGroup.widths }
+  }), [columnGroup, defaultWidths])
 
-    return {
-      widths: widths.map(pc),
-      containerWidth: pc(containerWidth),
-      containerMinWidth: px(containerMinWidth)
-    }
-  }, [options])
-
-  const [columnGroup, setColumnGroup] = useState(getColumnGroup(defaultWidths))
+  const setVisibleColumnWidths = useCallback((widths, resizingIndex = -1) => {
+    const patch = getVisibleColumnWidthsPatch(widths)
+    setColumnGroup(colGroup => ({
+      widths: _.defaults(patch, colGroup.widths),
+      widthUnit: resizingIndex >= 0 ? px : pc,
+      resizingIndex
+    }))
+  }, [getVisibleColumnWidthsPatch])
 
   useEffect(() => {
-    setColumnGroup(getColumnGroup(defaultWidths))
-  }, [getColumnGroup, defaultWidths])
+    if (columnGroup.resizingIndex >= 0) return
+    events.columnResizeEnd(columnGroup.widths)
+  }, [columnGroup, events])
 
   //#endregion
 
@@ -152,10 +151,8 @@ function ScrollingContainer(props) {
 
     const bodyWidthPc = fullWidth / scrollingContainerRef.current.clientWidth * 100
     const widths = columnResizing.widths.map(px => px / availableWidth * bodyWidthPc)
-
-    events.columnResizeEnd(widths)
-    setColumnGroup(getColumnGroup(widths))
-  }, [columnResizing, setColumnGroup, getColumnGroup, events])
+    setVisibleColumnWidths(widths)
+  }, [columnResizing, setVisibleColumnWidths])
 
   // Drag selection
   const rowKeys = hooks.useSelector(s => s.rowKeys)
@@ -261,7 +258,7 @@ function ScrollingContainer(props) {
   // Column resizing
   const columnResizeUpdate = useCallback(() => {
     const index = columnGroup.resizingIndex
-    if (index == null) return
+    if (index < 0) return
 
     const { widths, borderLeft, borderRight } = columnResizing
     const { constantWidth, minColumnWidth: minWidth } = options
@@ -476,14 +473,8 @@ function ScrollingContainer(props) {
     const body = tableBodyRef.current
     body.style.setProperty('--content-width', px(spacer.offsetLeft + spacer.clientLeft))
 
-    setColumnGroup(columnGroup => ({
-      ...columnGroup,
-      widths: columnResizing.widths.map(px),
-      containerWidth: 'fit-content',
-      containerMinWidth: '0px',
-      resizingIndex: index
-    }))
-  }, [dragStart, columnResizing])
+    setVisibleColumnWidths(columnResizing.widths, index)
+  }, [dragStart, columnResizing, setVisibleColumnWidths])
 
   // Drag selection
   const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
@@ -588,7 +579,7 @@ function ScrollingContainer(props) {
     onPointerUp={handlePointerEnd}
     onPointerCancel={handlePointerEnd}
   >
-    <ColumnGroupContext.Provider value={columnGroup}>
+    <ColumnGroupContext.Provider value={fullColumnGroup}>
       <ResizingContainer {...resizingProps} />
     </ColumnGroupContext.Provider>
   </div>

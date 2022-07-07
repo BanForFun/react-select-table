@@ -32,10 +32,10 @@ function TableHead(props) {
     }
   }, [sortAscending])
 
-  const { widths, resizingIndex } = useContext(ColumnGroupContext)
+  const { widths, resizingIndex, widthUnit } = useContext(ColumnGroupContext)
 
   const getHeaderProps = (column, index) => {
-    const { path, title } = column
+    const { path, title, key } = column
     const sortOrder = sorting.orders[path]
 
     return {
@@ -43,7 +43,7 @@ function TableHead(props) {
       path,
       title,
       index,
-      width: widths[index],
+      width: widthUnit(widths[key]),
       isResizable: !options.constantWidth || index < columns.length - 1,
       isResizing: resizingIndex === index,
       sortAscending: sortOrder?.ascending,

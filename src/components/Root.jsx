@@ -3,6 +3,12 @@ import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
 
+const parseColumn = col => ({
+  render: value => value,
+  key: col.path,
+  ...col
+})
+
 // Child of Connector
 function Root(props) {
   const {
@@ -14,6 +20,7 @@ function Root(props) {
     loadingIndicator,
     emptyPlaceholder,
     errorComponent,
+    columns,
     ...scrollingProps
   } = props
 
@@ -171,7 +178,7 @@ function Root(props) {
     className={'rst-container ' + className}
   >
     <SearchContainer {...searchProps} />
-    <ScrollingContainer {...scrollingProps} />
+    <ScrollingContainer {...scrollingProps} columns={columns.map(parseColumn)} />
     {!showPlaceholder && pageCount > 1 &&
       <PaginationContainer {...paginationProps} />}
   </div>

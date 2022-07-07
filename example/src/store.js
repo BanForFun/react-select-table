@@ -1,33 +1,19 @@
-import {applyMiddleware, legacy_createStore as createStore} from "redux";
-import {createTable, eventMiddleware} from "react-select-table";
-import {composeWithDevTools} from "redux-devtools-extension";
-import comments from "./data/comments.json";
+import { applyMiddleware, legacy_createStore as createStore } from 'redux'
+import { createTable, eventMiddleware } from 'react-select-table'
+import { composeWithDevTools } from 'redux-devtools-extension'
+import { getOptions } from './utils/customOptionsUtils'
+import todos from './data/todos.json'
 
-export const tableNamespace = "comments";
-
-const customOptions = JSON.parse(sessionStorage.getItem("options"))
-
-export function applyOptions(options) {
-  sessionStorage.setItem("options", JSON.stringify({
-    ...customOptions,
-    savedState: null,
-    ...options
-  }))
-  window.location.reload()
-}
-
-export function clearOptions() {
-  sessionStorage.removeItem("options")
-  window.location.reload()
-}
+export const tableNamespace = "todos";
 
 const reducer = createTable(tableNamespace, {
   keyBy: "id",
-  searchProperty: "name",
+  searchProperty: "title",
   itemPredicate: (row, filter) => filter == null || row.name.startsWith(filter),
   savedState: {
-    items: comments
-  }
+    items: todos
+  },
+  ...getOptions()
 });
 
 

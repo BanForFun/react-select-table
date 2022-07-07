@@ -8,11 +8,6 @@ export function applyOptions(options) {
   window.location.reload()
 }
 
-export function clearOptions() {
-  sessionStorage.removeItem('options')
-  window.location.reload()
-}
-
 export function getOptions() {
   return customOptions;
 }

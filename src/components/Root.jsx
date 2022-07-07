@@ -122,7 +122,10 @@ function Root(props) {
         select(e, itemCount - 1)
         break
       case 13: // Enter
-        if (!e.ctrlKey && !e.shiftKey && selectors.getSelected(getState(), activeIndex))
+        if (
+          !e.ctrlKey && !e.shiftKey &&
+          selectors.getSelected(getState(), selectors.getActiveRowIndex(getState()))
+        )
           events.itemsOpen(getState(), true)
         else
           actions.select(activeIndex, e.shiftKey, e.ctrlKey)

@@ -1,8 +1,8 @@
 import "./App.scss";
+import 'react-toastify/dist/ReactToastify.css';
 
 import React from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
-
 import FullDemo from './components/FullDemo';
 
 function App() {

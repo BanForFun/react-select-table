@@ -15,9 +15,9 @@ export default function usePersistState(key, defaultValue) {
     sessionStorage.setItem(key, JSON.stringify(value))
   }, [key])
 
-  function useSaveValue(value) {
+  function useUpdatedValue(value) {
     useEffect(() => saveValue(value), [value])
   }
 
-  return { restoredValue, saveValue, useSaveValue }
+  return { restoredValue, saveValue, useUpdatedValue }
 }

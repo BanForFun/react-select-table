@@ -16,8 +16,8 @@ export function getRowBounds(row) {
 // Child of TableBody
 const TableRow = ({
   columns,
-  setGestureTarget,
-  targetTouchStart,
+  gestureTargetPointerDownCapture,
+  contextMenuTargetTouchStart,
   selected,
   active,
   index,
@@ -42,8 +42,8 @@ const TableRow = ({
 
   return <tr
     className={trClass}
-    onPointerDownCapture={() => setGestureTarget(index)}
-    onTouchStart={e => targetTouchStart(e, true)}
+    onPointerDownCapture={() => gestureTargetPointerDownCapture(index)}
+    onTouchStart={e => contextMenuTargetTouchStart(e, true)}
   >
     {columns.map(renderColumn)}
     <td className='rst-spacer' />

@@ -33,7 +33,8 @@ function ResizingContainer(props) {
 
   const {
     utils: { hooks, events, options, selectors },
-    columns
+    columns,
+    dragMode
   } = props
 
   const gesture = useRef({
@@ -75,21 +76,31 @@ function ResizingContainer(props) {
       actions.select(itemIndex, e.shiftKey, e.ctrlKey, true)
   }, [gesture, events, options, rowCount, actions, indexOffset, getState, selectors, showPlaceholder])
 
+  const itemsOpen = useCallback(() => {
+    events.itemsOpen(getState(), false)
+  }, [events, getState])
+
   const dragSelect = useCallback(e => {
     if (gesture.pointerId == null) return
     dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.rowIndex)
   }, [gesture, dragSelectStart])
 
-  const targetTouchStart = useCallback((e, includeChildren) => {
-    if (!_.every(e.touches, t => includeChildren
-      ? e.currentTarget.contains(t.target) : e.currentTarget === t.target)) return
+  const getGestureTargetTouchStartHandler = useCallback((touchCount, callback) => {
+    return (e, includeChildren) => {
+      if (dragMode) return
 
-    e.stopPropagation()
+      if (!_.every(e.touches, t => includeChildren
+        ? e.currentTarget.contains(t.target) : e.currentTarget === t.target)) return
 
-    if (e.touches.length === 2) contextMenu(e)
-  }, [contextMenu])
+      e.stopPropagation()
 
-  const setGestureTarget = useCallback((rowIndex) => {
+      if (e.touches.length !== touchCount) return
+      callback(e)
+      return true
+    }
+  }, [dragMode])
+
+  const gestureTargetPointerDownCapture = useCallback((rowIndex) => {
     gesture.rowIndex = rowIndex
     gesture.itemIndex = rowIndex
     if (rowIndex >= 0)
@@ -153,9 +164,17 @@ function ResizingContainer(props) {
 
   //#endregion
 
+  const contextMenuTargetTouchStart = useMemo(() =>
+    getGestureTargetTouchStartHandler(2, contextMenu),
+  [contextMenu, getGestureTargetTouchStartHandler])
+
+  const itemsOpenTargetTouchStart = useMemo(() =>
+    getGestureTargetTouchStartHandler(2, itemsOpen),
+  [getGestureTargetTouchStartHandler, itemsOpen])
+
   Object.assign(commonProps, {
-    setGestureTarget: useDecoupledCallback(setGestureTarget),
-    targetTouchStart: useDecoupledCallback(targetTouchStart),
+    gestureTargetPointerDownCapture: useDecoupledCallback(gestureTargetPointerDownCapture),
+    contextMenuTargetTouchStart: useDecoupledCallback(contextMenuTargetTouchStart),
     showPlaceholder
   })
 
@@ -188,8 +207,11 @@ function ResizingContainer(props) {
   }, [widths, resizingIndex, columns, options])
 
   const contextMenuGestureHandlers = {
-    onPointerDownCapture: () => setGestureTarget(GestureTargets.BelowItems),
-    onTouchStart: e => targetTouchStart(e, false),
+    onPointerDownCapture: () => gestureTargetPointerDownCapture(GestureTargets.BelowItems),
+    onTouchStart: e => {
+      if (contextMenuTargetTouchStart(e, false)) return
+      itemsOpenTargetTouchStart(e, true)
+    },
     onPointerDown: handlePointerDown,
     onContextMenu: handleContextMenu
   }

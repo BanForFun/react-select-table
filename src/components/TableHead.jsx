@@ -10,8 +10,8 @@ function TableHead(props) {
     columns,
     name,
     dragMode,
-    setGestureTarget,
-    targetTouchStart,
+    gestureTargetPointerDownCapture,
+    contextMenuTargetTouchStart,
     tableHeaderRowRef,
     ...commonHeaderProps
   } = props
@@ -59,8 +59,8 @@ function TableHead(props) {
 
   return <div
     className='rst-head'
-    onPointerDownCapture={() => setGestureTarget(GestureTargets.Header)}
-    onTouchStart={e => targetTouchStart(e, true)}
+    onPointerDownCapture={() => gestureTargetPointerDownCapture(GestureTargets.Header)}
+    onTouchStart={e => contextMenuTargetTouchStart(e, true)}
   >
     <table>
       <thead>

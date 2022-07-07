@@ -149,11 +149,11 @@ function FullDemo() {
 
     <h2>Columns</h2>
     <div className="controls">
-    {_.map(columnVisibility, (visible, title) =>
+    {_.map(columns, ({title}) =>
       <Checkbox id={`${title}_visibility`}
                 key={title}
                 label={title}
-                checked={visible !== false} //It should be checked when undefined
+                checked={columnVisibility[title] !== false} //It should be checked when undefined
                 onChange={checked => setColumnVisibility(visibility => ({
                   ...visibility, [title]: checked
                 }))} />

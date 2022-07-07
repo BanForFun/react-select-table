@@ -133,9 +133,10 @@ export default class Events {
    *
    * @param {StateType} state Passed to {@link Selectors.getSelectionArg}
    * @param {KeyboardEvent<HTMLDivElement>} e Passed through to the handler as the first argument
+   * @returns {boolean|void} The value returned from the event handler
    */
   keyDown(state, e) {
-    this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
+    return this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
   }
 
   /**

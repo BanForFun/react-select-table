@@ -20,25 +20,39 @@ function TableHeader({
   scrollingContainerRef
 }) {
   const loadingRef = useRef()
+  const pointerType = useRef()
 
   const resizerHeight = useMemo(() =>
     (isResizing && !showPlaceholder) ? scrollingContainerRef.current.clientHeight : undefined,
   [scrollingContainerRef, isResizing, showPlaceholder])
 
-  const handleTitleMouseDown = useCallback(e => {
-    if (e.button !== 0 || !path) return
-    const { shiftKey } = e
+  const sortColumn = useCallback(addToPrev => {
+    if (!path) return
     requestAnimationFrame(() => {
       loadingRef.current.style.display = 'initial'
-      setTimeout(() => actions.sortItems(path, shiftKey), 0)
+      setTimeout(() => actions.sortItems(path, addToPrev), 0)
     })
   }, [actions, path])
+
+  const handleTitleMouseDown = useCallback(e => {
+    if (e.button !== 0) return
+    sortColumn(e.shiftKey)
+  }, [sortColumn])
+
+  const handlePointerDown = useCallback(e => {
+    pointerType.current = e.pointerType
+  }, [])
+
+  const handleContextMenu = useCallback(() => {
+    if (pointerType.current !== 'touch') return
+    sortColumn(true)
+  }, [sortColumn])
 
   useLayoutEffect(() => {
     loadingRef.current.style.display = 'none'
   }, [sortAscending])
 
-  const handlePointerDown = useCallback(e => {
+  const handleResizerPointerDown = useCallback(e => {
     if (!e.isPrimary) return
     columnResizeStart(e.clientX, e.clientY, e.pointerId, index)
   }, [columnResizeStart, index])
@@ -53,6 +67,8 @@ function TableHeader({
     <div className='rst-headerContent'>
       <span className='rst-headerText'
         onMouseDown={handleTitleMouseDown}
+        onPointerDown={handlePointerDown}
+        onContextMenu={handleContextMenu}
       >{title}</span>
       {sortPriority >= 0 && <Fragment>
         <AngleIcon rotation={sortAscending ? angleRotation.Up : angleRotation.Down} />
@@ -63,7 +79,7 @@ function TableHeader({
     {isResizable && <div
       className='rst-columnResizer'
       style={{ height: resizerHeight }}
-      onPointerDown={handlePointerDown}
+      onPointerDown={handleResizerPointerDown}
     />}
   </th>
 }

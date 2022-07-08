@@ -49,6 +49,9 @@ const utils = getTableUtils(tableNamespace);
 const { hooks, options, selectors } = utils
 
 function eventArgToString(arg) {
+  if (arg == null)
+    return "<null>"
+
   if (arg instanceof Set)
     return [...arg].toString()
 
@@ -56,12 +59,14 @@ function eventArgToString(arg) {
 }
 
 function logEvent(title, args = {}) {
-  const content = <div style={{ whiteSpace: "nowrap" }}>
+  const content = <>
     <b>{title}</b>
-    {_.map(args, (arg, name) => <Fragment key={name}>
-      <br/>{name}: {eventArgToString(arg)}
-    </Fragment>)}
-  </div>
+    <div style={{ whiteSpace: "nowrap" }}>
+      {_.map(args, (arg, name) => <Fragment key={name}>
+        {name}: {eventArgToString(arg)}<br/>
+      </Fragment>)}
+    </div>
+  </>
 
   if (toast.isActive(title))
     return toast.update(title, { render: content })
@@ -100,7 +105,12 @@ function FullDemo() {
   const handleTableKeyDown = useCallback((e, selection) => {
     switch(e.keyCode) {
       case 46: //Delete
-        actions.deleteItems(...selection);
+        //Event argument for onKeyDown, onSelectionChange, onItemsOpen and onContextMenu
+        //is a Set when the multiSelect option in enabled, or just the key of the row when it is disabled
+        if (options.multiSelect)
+          actions.deleteItems(...selection)
+        else
+          actions.deleteItems(selection)
         break;
       default:
         break;
@@ -127,7 +137,7 @@ function FullDemo() {
       onItemsOpen={(selection, fromKeyboard) =>
         logEvent("Items opened",  { selection, fromKeyboard })}
       onColumnResizeEnd={widths => {
-        logEvent("Columns resized")
+        logEvent("Columns resized and widths saved")
         persistColumnWidths.saveValue(widths)
       }}
       onActionDispatched={internal => {
@@ -136,35 +146,6 @@ function FullDemo() {
         window.scrollTo(0, 0)
       }}
     />
-
-    <h2>Save state</h2>
-    <div className="controls">
-      {_.map(saveModules, (flag, name) =>
-        <Checkbox key={`module_${name}`}
-                  id={name}
-                  label={name}
-                  checked={flagUtils.hasFlag(savedModules, flag)}
-                  onChange={checked => setSavedModules(
-                    flagUtils.toggleFlag(savedModules, flag, checked, saveModules))}
-        />)}
-      <div className="break"/>
-      <button onClick={() => applyOptions({
-        savedState: selectors.getSaveState(getState(), savedModules)
-      })}>Save state</button>
-    </div>
-
-    <h2>Columns</h2>
-    <div className="controls">
-    {_.map(columns, ({title}) =>
-      <Checkbox id={`${title}_visibility`}
-                key={title}
-                label={title}
-                checked={columnVisibility[title] !== false} //It should be checked when undefined
-                onChange={checked => setColumnVisibility(visibility => ({
-                  ...visibility, [title]: checked
-                }))} />
-    )}
-    </div>
 
     <h2>Actions</h2>
     <h3>Items</h3>
@@ -182,14 +163,14 @@ function FullDemo() {
       }}>Set selected items completed</button>
 
       <button onClick={() => actions.patchItemsByKey({
-        102: { id: 103 },
-        103: { id: 102 }
-      })}>Swap values of items 102 and 103</button>
+        200: { id: 195 },
+        195: { id: 200 }
+      })}>Swap values of items 195 and 200</button>
 
       <button onClick={() => actions.patchItems(
-        { id: 100, title: "Updated title" },
-        { id: 101, completed: true }
-      )}>Change title of item 100 and set 101 completed</button>
+        { id: 193, title: "Updated title" },
+        { id: 194, completed: true }
+      )}>Change title of item 193 and set 194 completed</button>
 
       <button onClick={() => actions.addItems(
         { id: 201, title: "Download react-select-table", completed: true, userId: 1 },
@@ -213,7 +194,37 @@ function FullDemo() {
       <button onClick={() => actions.setPageSize(pageSize || 0)}>Apply</button>
     </div>
 
+    <h2>Save state</h2>
+    <div className="controls">
+      {_.map(saveModules, (flag, name) =>
+        <Checkbox key={`module_${name}`}
+                  id={name}
+                  label={name}
+                  checked={flagUtils.hasFlag(savedModules, flag)}
+                  onChange={checked => setSavedModules(
+                    flagUtils.toggleFlag(savedModules, flag, checked, saveModules))}
+        />)}
+      <div className="break"/>
+      <button onClick={() => applyOptions({
+        savedState: selectors.getSaveState(getState(), savedModules)
+      })}>Save state and reload</button>
+    </div>
+
+    <h2>Columns</h2>
+    <div className="controls">
+      {_.map(columns, ({title}) =>
+        <Checkbox id={`${title}_visibility`}
+                  key={title}
+                  label={title}
+                  checked={columnVisibility[title] !== false} //It should be checked when undefined
+                  onChange={checked => setColumnVisibility(visibility => ({
+                    ...visibility, [title]: checked
+                  }))} />
+      )}
+    </div>
+
     <h2>Options</h2>
+    <p>Note: Changing these options will cause the page to reload</p>
     <div className="controls">
       <Checkbox id="multiSelect"
                 label="Multiple selection"
@@ -224,7 +235,7 @@ function FullDemo() {
                 checked={options.listBox}
                 onChange={checked => applyOptions({ listBox: checked })} />
       <Checkbox id="constantWidth"
-                label="Keep table width constant"
+                label="Keep table width constant when resizing columns"
                 checked={options.constantWidth}
                 onChange={checked => applyOptions({ constantWidth: checked })} />
     </div>

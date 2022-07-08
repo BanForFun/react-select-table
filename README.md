@@ -5,51 +5,55 @@
 ## Features
 
 * Item filtering
-* Single and multi-column sorting
+* Multi-column sorting
 * Item pagination
-* Resizable columns
+* Resizable columns (widths can be saved and restored)
 * Sticky header
-* Drag selection with automatic scrolling (even with uneven in height rows)
-* Selection behavior emulating windows ListView (with some improvements)
+* Performance optimized drag selection with automatic scrolling (even with uneven in height rows)
+* Selection behavior emulating native windows ListView (with some improvements)
 * Fully usable with only the keyboard
 * Percentage based column sizing (can be used in resizable containers)
-* Single and multi selection
-* ListBox mode
-* Touch support (chrome only)
-* Events
+* Single and multi-row selection
+* ListBox mode (context menu gesture and clicking below the rows does not modify the selection)
+* Touch support (chromium based browsers only)
+* Events (Selection changed, Columns resized, Items opened, Context menu)
+* Modular state saving and restoring (ex. the items can be saved but not the sort order)
+* Does not need margin for columns to be resized beyond the visible bounds
+* Does not need margin for drag selecting beyond the visible bounds
+* Master and slave tables for showing different columns on desktop and mobile
+* Customizable theme system
+* Fully documented with JSDoc
 
-### Shortcuts
+### Keyboard and mouse shortcuts
+* **Up / Down** to select the previous/next item relative to the active item
+* **Home / End** to select the first/last item
+* **Ctrl + Any of the above** to set as active instead of select
+* **Click** to select the item below the cursor
+* **Left / Right** to set the row with the same index on the previous/next page active
+* **Shift + Any of the above** to select all items in between
+* **Shift + Click below rows** to select all items to the end of the page
+* **Ctrl + Shift + Any of the above** to add to the previous selection instead of replacing it
+* **Double click** to raise an items open event
+* **Click below rows** to clear the selection
+* **Enter** to select the active row if it's not selected, or to raise an items open event if it is selected
+* **Ctrl + Enter** to toggle selection of the active row
+* **Ctrl + Click** to toggle selection of the row below the cursor
+* **Ctrl + A** to select all items
+* **Right click** to raise a context menu event (Right click also modifies the selection in the same way a left click does, except if the row under the cursor is already selected)
+* **Shift + Right click** to bring up the browser's context menu
+* **Alt + Right click** to raise a context menu event emulating an empty selection, but without actually modifying the selection
+* **Alt + Ctrl + Right click** to raise a context menu event without modifying the selection
+* **Ctrl + Right click below rows** to raise a context menu event without clearing the selection
 
-* **Shift** + **Click** to select range
-* **Shift** + **Up** / **Down** / **Home** / **End** to expand or shrink selection
-* **Ctrl** + **Up** /  **Down** / **Home** / **End** to set the active row
-* **Ctrl** + **Click** / **Enter** to toggle selection of the active row
-* **Up** / **Down** to select the previous/next item relative to the active row
-* **Ctrl** + **A** to select all items
-* **Home** / **End** to select the first/last item
 
-### Browser compatibility
-
-Known problems:
-
-* Firefox mobile: Drag-selection and column resizing requires two fingers
-* Chromium based: Column resizing performance is very bad while the developer tools are open
+### Touch gestures
 
 
+## Migrating from v4.x.x
 
-## Version 5.0.0
+This version is a complete rewrite, treat it as a completely different library
 
-### [Developer changes](./docs/changes.md)
 
-This time I tried my hardest to fix all the problems, so fingers-crossed, this is the last major release.
-
-### End user changes
-
-* Drag selection big performance increase
-* Drag-selecting while holding **Ctrl** doesn't deselect the already selected items
-* Using the table with only the keyboard is now entirely possible
-* Fixed automatic scrolling when navigating with the keyboard
-* Added multi selection touch support (pressing and holding acts like **Ctrl** + **Click**)
 
 
 

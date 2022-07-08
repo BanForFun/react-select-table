@@ -81,8 +81,8 @@ function ResizingContainer(props) {
     dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.rowIndex)
   }, [gesture, dragSelectStart])
 
-  const itemsOpen = useCallback(() => {
-    if (noSelection || showPlaceholder) return
+  const itemsOpen = useCallback(e => {
+    if (e.ctrlKey || noSelection || showPlaceholder) return
     events.itemsOpen(getState(), false)
   }, [noSelection, events, getState, showPlaceholder])
 
@@ -158,8 +158,8 @@ function ResizingContainer(props) {
     contextMenu(e)
   }, [gesture, contextMenu, actions, events, dragSelect, showPlaceholder])
 
-  const handleDoubleClick = useCallback(() => {
-    itemsOpen()
+  const handleDoubleClick = useCallback(e => {
+    itemsOpen(e)
   }, [itemsOpen])
 
   //#endregion

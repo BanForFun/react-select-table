@@ -108,7 +108,14 @@ const eventHandlerPropTypes = {
    * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
    * @returns {boolean|void} Return false to prevent default behaviour
    */
-  onKeyDown: PropTypes.func
+  onKeyDown: PropTypes.func,
+
+  /**
+   * Called when any redux action is dispatched
+   *
+   * @param {boolean} internal Indicates whether the action was dispatched internally by the library
+   */
+  onActionDispatched: PropTypes.func
 }
 
 const commonTablePropTypes = {

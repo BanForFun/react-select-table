@@ -9,9 +9,11 @@ export const tableNamespace = "todos";
 const reducer = createTable(tableNamespace, {
   keyBy: "id",
   searchProperty: "title",
-  itemPredicate: (row, filter) => filter == null || row.name.startsWith(filter),
   savedState: {
-    items: todos
+    items: todos,
+    sortAscending: {
+      id: false
+    }
   },
   ...getOptions()
 });

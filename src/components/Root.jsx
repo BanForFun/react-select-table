@@ -9,6 +9,8 @@ const parseColumn = col => ({
   ...col
 })
 
+const actionsExtra = { internal: true }
+
 // Child of Connector
 function Root(props) {
   const {
@@ -34,7 +36,7 @@ function Root(props) {
     containerRef.current.focus()
   }, [containerRef, autoFocus])
 
-  const actions = hooks.useActions()
+  const actions = hooks.useActions(actionsExtra)
 
   const searchInputRef = useRef()
 

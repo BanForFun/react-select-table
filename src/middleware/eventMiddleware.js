@@ -2,11 +2,20 @@ import { types } from '../models/Actions'
 import { getTableUtils } from '../utils/tableUtils'
 import * as setUtils from '../utils/setUtils'
 
+const tableActionTypes = new Set(Object.values(types))
+
 /**
  * @type {import('redux').Middleware<>}
  */
 const eventMiddleware = (store) => (next) => (action) => {
-  const { type, namespace, payload } = action
+  const { type, namespace, payload, internal } = action
+
+  // If action is not for table, do nothing
+  if (!tableActionTypes.has(type)) return next(action)
+
+  // Get table events and selectors
+  const { events, selectors } = getTableUtils(namespace)
+  events.actionDispatched(internal)
 
   switch (type) {
     case types.SET_ITEMS: // Selection
@@ -22,8 +31,6 @@ const eventMiddleware = (store) => (next) => (action) => {
     case types.SET_SELECTED: // Selection
     case types.SELECT_ALL: // Selection
     {
-      // Get table events and selectors
-      const { events, selectors } = getTableUtils(namespace)
       const getState = () => selectors.getTableState(store.getState())
 
       // Get previous and current state

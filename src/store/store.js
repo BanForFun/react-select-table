@@ -53,7 +53,7 @@ function getNoItemsState() {
 
 /**
  * @typedef {object} StoreTypes.State
- * @property {import('../utils/setUtils').Set<StoreTypes.RowKey>} selection A set containing all selected row keys
+ * @property {import('../utils/setUtils').Set<StoreTypes.RowKey>} selected A set containing all selected row keys
  * @property {*} filter The item filter
  * @property {Object<string, boolean>} sortAscending An object with property paths as keys, and true for ascending order or false for descending, as values
  * @property {boolean} isLoading When true, a loading indicator is displayed

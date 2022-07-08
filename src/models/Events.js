@@ -147,4 +147,13 @@ export default class Events {
   columnResizeEnd(widths) {
     this[handlersSymbol].onColumnResizeEnd?.(widths)
   }
+
+  /**
+   * Calls the {@link TableProps.onActionDispatched} event handler
+   *
+   * @param {boolean} internal Passed through to the handler as the first argument
+   */
+  actionDispatched(internal = false) {
+    this[handlersSymbol]?.onActionDispatched(internal)
+  }
 }

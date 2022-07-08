@@ -3,8 +3,9 @@ import _ from "lodash";
 import {
   Table,
   getTableUtils,
-  saveModules as allSaveModules,
-  flagUtils
+  saveModules,
+  flagUtils,
+  setUtils
 } from 'react-select-table';
 import todos from "../data/todos.json";
 import { tableNamespace } from '../store'
@@ -74,9 +75,9 @@ function FullDemo() {
   const getState = hooks.useGetState()
   const actions = hooks.useActions()
 
-  const persistSaveModules = usePersistState('saveModules', allSaveModules.Items)
-  const [saveModules, setSaveModules] = useState(persistSaveModules.restoredValue)
-  persistSaveModules.useUpdatedValue(saveModules)
+  const persistSavedModules = usePersistState('savedModules', saveModules.Items | saveModules.SortOrder)
+  const [savedModules, setSavedModules] = useState(persistSavedModules.restoredValue)
+  persistSavedModules.useUpdatedValue(savedModules)
 
   const persistColumnVisibility = usePersistState('columnVisibility', {})
   const [columnVisibility, setColumnVisibility] = useState(persistColumnVisibility.restoredValue)
@@ -129,21 +130,26 @@ function FullDemo() {
         logEvent("Columns resized")
         persistColumnWidths.saveValue(widths)
       }}
+      onActionDispatched={internal => {
+        if (internal) return
+        tableRef.current.focus()
+        window.scrollTo(0, 0)
+      }}
     />
 
     <h2>Save state</h2>
     <div className="controls">
-      {_.map(allSaveModules, (flag, name) =>
+      {_.map(saveModules, (flag, name) =>
         <Checkbox key={`module_${name}`}
                   id={name}
                   label={name}
-                  checked={flagUtils.hasFlag(saveModules, flag)}
-                  onChange={checked => setSaveModules(
-                    flagUtils.toggleFlag(saveModules, flag, checked, allSaveModules))}
+                  checked={flagUtils.hasFlag(savedModules, flag)}
+                  onChange={checked => setSavedModules(
+                    flagUtils.toggleFlag(savedModules, flag, checked, saveModules))}
         />)}
       <div className="break"/>
       <button onClick={() => applyOptions({
-        savedState: selectors.getSaveState(getState(), saveModules)
+        savedState: selectors.getSaveState(getState(), savedModules)
       })}>Save state</button>
     </div>
 
@@ -164,6 +170,36 @@ function FullDemo() {
     <h3>Items</h3>
     <div className="controls">
       <button onClick={() => actions.setItems(todos)}>Set items</button>
+      <button onClick={() => actions.clearItems()}>Clear items</button>
+      <button onClick={() => actions.setError("Something went wrong")}>Set error</button>
+      <button onClick={() => actions.startLoading()}>Set loading</button>
+      <div className="break"/>
+
+      <button onClick={() => {
+        const selectedKeys = setUtils.getItems(getState().selected)
+        const patch = _.zipObject(selectedKeys, selectedKeys.map(() => ({ completed: true })))
+        actions.patchItemsByKey(patch)
+      }}>Set selected items completed</button>
+
+      <button onClick={() => actions.patchItemsByKey({
+        102: { id: 103 },
+        103: { id: 102 }
+      })}>Swap values of items 102 and 103</button>
+
+      <button onClick={() => actions.patchItems(
+        { id: 100, title: "Updated title" },
+        { id: 101, completed: true }
+      )}>Change title of item 100 and set 101 completed</button>
+
+      <button onClick={() => actions.addItems(
+        { id: 201, title: "Download react-select-table", completed: true, userId: 1 },
+        { id: 202, title: "Read documentation", completed: false, userId: 1 }
+      )}>Add items</button>
+    </div>
+    <h3>Filtering</h3>
+    <div className="controls">
+      <button onClick={() => actions.setItemFilter({ completed: false })}>Only show non-completed</button>
+      <button onClick={() => actions.setItemFilter({})}>Clear filter</button>
     </div>
     <h3>Pagination</h3>
     <div className="controls">

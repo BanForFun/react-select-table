@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import { bindFunctions } from '../utils/classUtils'
 
 export const types = {
@@ -33,8 +32,11 @@ export const types = {
   DEBUG: ''
 }
 
-// Set action type strings
-Object.freeze(_.each(types, (type, name) => (types[name] = `RST_${name}`)))
+// Set action types
+for (const name in types)
+  types[name] = `RST_${name}`
+
+Object.freeze(types)
 
 /**
  * @namespace ActionsTypes

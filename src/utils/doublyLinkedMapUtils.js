@@ -157,15 +157,15 @@ export function sortAndLinkItems(map, keys, keyComparator) {
  * @template Key, Value, Metadata
  * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
  * @param {Key} key The key of the item to delete
- * @returns {boolean} Returns true if the item existed
+ * @returns {Value|void} Returns the value of the item if it existed, or undefined if it didn't
  */
 export function deleteItem(map, key) {
   const node = map.nodes[key]
-  if (!node) return false
+  if (!node) return
 
   setNextItem(map, node.prevKey, node.nextKey)
   delete map.nodes[key]
-  return true
+  return node.value
 }
 
 /**
@@ -179,7 +179,7 @@ export function deleteItem(map, key) {
  * @returns {boolean} Returns true if an item with the same value existed and was replaced
  */
 export function addUnlinkedItem(map, key, value, metadata) {
-  const isReplacing = deleteItem(map, key)
+  const isReplacing = deleteItem(map, key) !== undefined
   map.nodes[key] = {
     metadata,
     value,

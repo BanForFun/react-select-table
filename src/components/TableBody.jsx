@@ -46,7 +46,9 @@ function TableBody(props) {
   return <div className='rst-body' ref={tableBodyRef}>
     <table>
       <ColGroup name={name} columns={columns} />
-      <tbody className='rst-rows'>{rowKeys.map(renderRow)}</tbody>
+      <tbody className='rst-rows'>
+        {!showPlaceholder && rowKeys.map(renderRow)}
+      </tbody>
     </table>
     {dragMode === DragModes.Select &&
       <div className='rst-dragSelection' ref={selectionRectRef} />}

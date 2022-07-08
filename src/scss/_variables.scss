@@ -1,9 +1,9 @@
-$rst-prefix:            rst !default;
-$rst-striped-order:     even !default;
-$rst-config:            () !default;
+$prefix:            rst !default;
+$stripe-order:      even !default;
+$config:            () !default;
 
 //noinspection CssInvalidFunction
-$rst-config: map-merge((
+$config: map-merge((
   //Naming convention: element_state1_stateN.property
   "placeholder.color":                        #616161,
   "placeholder.padding":                      1rem,
@@ -28,7 +28,7 @@ $rst-config: map-merge((
   "search-separator.border":                  1px solid rgba(#616161, 0.5),
 
   "search-btn.padding":                       0.35rem,
-  "search-btn.border":                        none,
+  "search-btn.border":                        0,
   "search-btn.border-radius":                 50%,
   "search-btn.color":                         null,
   "search-btn.background-color":              transparent,
@@ -45,7 +45,7 @@ $rst-config: map-merge((
   "head.icon-spacing":                        0.25rem,
   "head.border":                              2px solid rgba(#bdc5cd, 0.5),
   "head-resizing.border-image":               repeating-linear-gradient(
-    to right, rst-get("head", "border-color") 0px 10px, transparent 10px 20px) 1 stretch,
+    to right, get-property("head", "border-color") 0px 10px, transparent 10px 20px) 1 stretch,
 
   "header.font-weight":                       bold,
 
@@ -81,38 +81,31 @@ $rst-config: map-merge((
   "row-striped.overlay-color":                rgba(#afafaf, 0.1),
   "row-striped.color":                        null,
 
-  "row-hover.overlay-color":                  rgba(#7d7d7d, 0.1),
+  "row-hover.overlay-color":                  rgba(#afafaf, 0.2),
   "row-hover.color":                          null,
 
   "drag-selection.border":                    1px solid rgba(#89b363, 0.5),
   "drag-selection.border-radius":             0.25rem,
   "drag-selection.background-color":          rgba(#89b363, 0.25),
 
-  "pg.padding":                               1rem 0 0 0,
-  "pg.color":                                 #616161,
+  "pg.padding":                               1rem,
   "pg.item-spacing":                          0.25rem,
 
-  "pg-item.padding":                          0.25rem 0.5rem,
-
+  "pg-page.padding":                          0.25rem 0.5rem,
   "pg-page.width":                            1.25rem,
+  "pg-page.border":                           0,
+  "pg-page.border-radius":                    0.25rem,
+  "pg-page.background-color":                 transparent,
+  "pg-page.color":                            #616161,
 
-  "pg-btn.border":                            none,
-  "pg-btn.border-radius":                     0.25rem,
-  "pg-btn.background-color":                  transparent,
-  "pg-btn.color":                             #333333,
+  "pg-page_hover.background-color":           rgba(#afafaf, 0.2),
+  "pg-page_hover.color":                      null,
+  "pg-page_hover.border-color":               null,
 
-  "pg-btn_disabled.background-color":         transparent,
-  "pg-btn_disabled.color":                    rgba(#333333, .5),
-  "pg-btn_disabled.border-color":             null,
+  "pg-page_current.background-color":         #c4d9b1,
+  "pg-page_current.color":                    null,
+  "pg-page_current.border-color":             null,
 
-  "pg-btn_hover.background-color":            #dee2e6,
-  "pg-btn_hover.color":                       null,
-  "pg-btn_hover.border-color":                null,
-
-  "pg-btn_current.background-color":          #c4d9b1,
-  "pg-btn_current.color":                     null,
-  "pg-btn_current.border-color":              null,
-
-), $rst-config);
+), $config);
 
 

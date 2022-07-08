@@ -123,6 +123,7 @@ function FullDemo() {
 
     <Table
       ref={tableRef}
+      className="rst-default custom-table"
       emptyPlaceholder="No items"
       namespace={tableNamespace}
       columns={orderedColumns}

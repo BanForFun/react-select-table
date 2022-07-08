@@ -1,13 +1,13 @@
-@function rst-get-name($module, $property) {
-  @return --#{$rst-prefix}-#{$module}_#{$property}
+@function get-name($module, $property) {
+  @return --#{$prefix}-#{$module}_#{$property}
 }
 
-@function rst-get($module, $property) {
-  $name: rst-get-name($module, $property);
+@function get-property($module, $property) {
+  $name: get-name($module, $property);
   @return var($name);
 }
 
-@function rst-nth-or-default($list, $n, $default: null) {
+@function nth-or-default($list, $n, $default: null) {
   @if length($list) >= $n {
     @return nth($list, $n);
   }
@@ -15,7 +15,7 @@
   @return $default;
 }
 
-@function rst-split($string, $separator, $list: ()) {
+@function split-string($string, $separator, $list: ()) {
   $index: str-index($string, $separator);
   @if $index == null {
     @return append($list, $string);
@@ -25,10 +25,10 @@
   $end: str-slice($string, $index + 1, -1);
   $list: append($list, $start);
 
-  @return rst-split($end, $separator, $list);
+  @return split-string($end, $separator, $list);
 }
 
-@function rst-join($list, $separator) {
+@function join-to-string($list, $separator) {
   $result: "";
   @each $item in $list {
     @if type-of($item) == "string" {
@@ -39,7 +39,7 @@
   @return str-slice($result, 1, -1 - str-length($separator));
 }
 
-@function rst-inset-border($width, $color, $side) {
+@function inset-border($width, $color, $side) {
   $offsets: (
     top: 0 $width,
     right: calc(#{$width} * -1) 0,

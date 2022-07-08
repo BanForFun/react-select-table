@@ -22,7 +22,6 @@
 * Does not need margin for drag selecting beyond the visible bounds
 * Master and slave tables for showing different columns on desktop and mobile
 * Customizable theme system
-* Fully documented with JSDoc
 
 ## Keyboard and mouse shortcuts
 
@@ -63,8 +62,13 @@
 * **If the table is overflowing horizontally (aka the scrollbar is visible), scroll with the wheel while dragging** to expand or shrink the column
 
 ### Column sorting
-* **Click on a header title** to toggle the sorting order for the column
+* **Click on a header title** to toggle the sorting order for the column between ascending and descending
 * **Shift + Click on a header title** to sort the items using this column after first sorting them with the previously selected columns (multiple column sorting)
+
+### Searching
+* **Type any character while the table is focused** to bring up the search dialog
+* **Up/Down** to go to the previous/next match
+* **Press escape** to close the search dialog
 
 ## Touch gestures
 
@@ -89,10 +93,10 @@
 * **If the table is overflowing horizontally (aka the scrollbar is visible), scroll horizontally with a second finger anywhere on the table** to expand or shrink the column
 
 ### Column sorting
-* **Tap on a header title** to toggle the sorting order for the column
+* **Tap on a header title** to toggle the sorting order for the column between ascending and descending
 * **Long tap on a header title** to sort the items using this column after first sorting them with the previously selected columns (multiple column sorting)
 
-## Migrating from v4.x.x
+## Migrating from v4
 This version is a complete rewrite, treat it as a completely different library
 
 ## Installation

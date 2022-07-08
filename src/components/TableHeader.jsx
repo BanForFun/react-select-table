@@ -78,6 +78,7 @@ function TableHeader({
     </div>
     {isResizable && <div
       className='rst-columnResizer'
+      onDragStart={e => e.preventDefault()}
       style={{ height: resizerHeight }}
       onPointerDown={handleResizerPointerDown}
     />}

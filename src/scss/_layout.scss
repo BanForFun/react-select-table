@@ -59,6 +59,10 @@
         width: 100vw;
       }
     }
+
+    .rst-head .rst-spacer {
+      border-right-color: transparent;
+    }
   }
 
   &[data-dragmode=select] {

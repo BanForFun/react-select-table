@@ -356,7 +356,7 @@ function ScrollingContainer(props) {
     if (direction) {
       const shouldBeSelected = top =>
         Math.sign(top - originRelY) === direction &&
-                Math.sign(newRelY - originRelY) === direction
+        Math.sign(newRelY - originRelY) === direction
 
       const couldBeSelected = (index, bounds) => {
         if (index === rowCount)
@@ -438,8 +438,8 @@ function ScrollingContainer(props) {
       drag.pointerId = null
       return false
     }
-    container.addEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions)
-    container.addEventListener(cancelWheelType, cancelWheelHandler, cancelWheelOptions)
+    window.addEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions)
+    window.addEventListener(cancelWheelType, cancelWheelHandler, cancelWheelOptions)
 
     setDragMode(mode)
     return true
@@ -448,9 +448,8 @@ function ScrollingContainer(props) {
   useEffect(() => {
     if (dragMode) return
 
-    const container = scrollingContainerRef.current
-    container.removeEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions)
-    container.removeEventListener(cancelWheelType, cancelWheelHandler, cancelWheelOptions)
+    window.removeEventListener(cancelScrollType, cancelScrollHandler, cancelScrollOptions)
+    window.removeEventListener(cancelWheelType, cancelWheelHandler, cancelWheelOptions)
   }, [dragMode, cancelScrollHandler, cancelWheelHandler])
 
   // Column resizing

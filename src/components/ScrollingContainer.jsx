@@ -32,11 +32,11 @@ function getLine(pointA, pointB) {
 
 function getRelativeOffset(absolute, origin, minVisible, maxVisible, scrollFactor) {
   const reference = _.clamp(absolute, minVisible, maxVisible)
-  const scrollOffset = (absolute - reference) * scrollFactor
+  const scrollOffset = Math.floor((absolute - reference) * scrollFactor)
 
   return {
     scrollOffset,
-    relToOrigin: Math.floor(reference - origin + scrollOffset),
+    relToOrigin: reference - origin + scrollOffset,
     relToMin: reference - minVisible,
     relToMax: maxVisible - reference
   }
@@ -308,9 +308,10 @@ function ScrollingContainer(props) {
     // If we were to calculate the scroll position even when scrollOffset and movementOffset is 0,
     // the table can slowly drift due to rounding errors on hi-dpi screens
     const absPos = _.clamp(drag.pointerPos.x - containerX, 0, containerWidth)
-    const newScroll = (scrollOffset || movementOffset)
+    const overscroll = newWidth !== targetWidth
+    const newScroll = !overscroll && (scrollOffset || movementOffset)
       ? distanceToStart + newWidth - absPos
-      : scroll
+      : scroll + scrollOffset + movementOffset
 
     dragAnimate(columnResizeAnimation, changedWidths, newScroll)
   }, [

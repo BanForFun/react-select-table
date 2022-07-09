@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useLayoutEffect, useMemo, useRef } from 'react'
+import React, { Fragment, useCallback, useLayoutEffect, useRef } from 'react'
 import AngleIcon, { angleRotation } from './AngleIcon'
 import classNames from 'classnames'
 import HourGlassIcon from './HourGlassIcon'
@@ -8,23 +8,15 @@ function TableHeader({
   path,
   title,
   index,
-  width,
   columnResizeStart,
   actions,
   sortAscending,
   sortPriority,
   showPriority,
-  isResizing,
-  isResizable,
-  showPlaceholder,
-  scrollingContainerRef
+  isResizing
 }) {
   const loadingRef = useRef()
   const pointerType = useRef()
-
-  const resizerHeight = useMemo(() =>
-    (isResizing && !showPlaceholder) ? scrollingContainerRef.current.clientHeight : undefined,
-  [scrollingContainerRef, isResizing, showPlaceholder])
 
   const sortColumn = useCallback(addToPrev => {
     if (!path) return
@@ -63,7 +55,7 @@ function TableHeader({
     'rst-resizing': isResizing
   })
 
-  return <th className={className} style={{ width }}>
+  return <th className={className}>
     <div className='rst-headerContent'>
       <span className='rst-headerText'
         onMouseDown={handleTitleMouseDown}
@@ -76,10 +68,9 @@ function TableHeader({
       </Fragment>}
       <HourGlassIcon ref={loadingRef} />
     </div>
-    {isResizable && <div
+    {!!index && <div
       className='rst-columnResizer'
       onDragStart={e => e.preventDefault()}
-      style={{ height: resizerHeight }}
       onPointerDown={handleResizerPointerDown}
     />}
   </th>

@@ -13,6 +13,8 @@ const cancelScrollOptions = { passive: false }
 const cancelWheelType = 'wheel'
 const cancelWheelOptions = { passive: false }
 
+const isColumnVisible = width => width > 0
+
 const Point = (x, y) => ({ x, y })
 
 const getClientX = element => element.getBoundingClientRect().x
@@ -56,6 +58,24 @@ function ScrollingContainer(props) {
     actions
   } = props
 
+  //#region Elements
+
+  const tableBodyRef = useRef()
+  const headColGroupRef = useRef()
+  const selectionRectRef = useRef()
+  const scrollingContainerRef = useRef()
+  const resizingContainerRef = useRef()
+
+  const getRow = useCallback(index => {
+    const [table] = tableBodyRef.current.getElementsByTagName('table')
+    return table.rows[index]
+  }, [])
+
+  const getCurrentHeaderWidths = useCallback(() =>
+    _.initial(_.map(headColGroupRef.current.children, h => h.getBoundingClientRect().width)), [])
+
+  //#endregion
+
   //#region Column group
 
   const [columnGroup, setColumnGroup] = useState({
@@ -73,13 +93,24 @@ function ScrollingContainer(props) {
     return getVisibleColumnWidthsPatch(widths)
   }, [columns, getVisibleColumnWidthsPatch])
 
-  const fullColumnGroup = useMemo(() => ({
-    ...columnGroup,
-    widths: { ...defaultWidths, ...columnGroup.widths }
-  }), [columnGroup, defaultWidths])
+  const fullColumnGroup = useMemo(() => {
+    const widths = { ...defaultWidths, ...columnGroup.widths }
+
+    const actualWidths = _.map(headColGroupRef.current?.children, 'offsetWidth')
+    const renderedWidths = columns
+      .map(c => widths[c.key])
+      .filter((w, i) => actualWidths[i] !== 0) // Consider rendered when width is undefined
+    const containerWidth = Math.max(100, _.sum(renderedWidths))
+
+    return {
+      ...columnGroup,
+      widths,
+      containerWidth: columnGroup.resizingIndex < 0 ? containerWidth : 0
+    }
+  }, [columnGroup, columns, defaultWidths])
 
   const setVisibleColumnWidths = useCallback((widths, resizingIndex = -1) => {
-    const patch = getVisibleColumnWidthsPatch(widths)
+    const patch = _.pickBy(getVisibleColumnWidthsPatch(widths), isColumnVisible)
     setColumnGroup(colGroup => ({
       widths: _.defaults(patch, colGroup.widths),
       widthUnit: resizingIndex >= 0 ? px : pc,
@@ -91,21 +122,6 @@ function ScrollingContainer(props) {
     if (columnGroup.resizingIndex >= 0) return
     events.columnResizeEnd(columnGroup.widths)
   }, [columnGroup, events])
-
-  //#endregion
-
-  //#region Elements
-
-  const tableBodyRef = useRef()
-  const tableHeaderRowRef = useRef()
-  const selectionRectRef = useRef()
-  const scrollingContainerRef = useRef()
-  const resizingContainerRef = useRef()
-
-  const getRow = useCallback(index => {
-    const [table] = tableBodyRef.current.getElementsByTagName('table')
-    return table.rows[index]
-  }, [])
 
   //#endregion
 
@@ -121,7 +137,6 @@ function ScrollingContainer(props) {
   }).current
 
   const columnResizing = useRef({
-    widths: [],
     initialWidth: 0,
     index: -1,
     borderLeft: 0,
@@ -144,15 +159,12 @@ function ScrollingContainer(props) {
   // Column resizing
   const columnResizeEnd = useCallback(() => {
     // Account for collapsed border
-    const {
-      clientWidth: availableWidth,
-      offsetParent: { clientWidth: fullWidth }
-    } = tableHeaderRowRef.current
+    const { clientWidth: availableWidth } = headColGroupRef.current
+    const { scrollWidth: fullWidth, clientWidth: visibleWidth } = scrollingContainerRef.current
 
-    const bodyWidthPc = fullWidth / scrollingContainerRef.current.clientWidth * 100
-    const widths = columnResizing.widths.map(px => px / availableWidth * bodyWidthPc)
+    const widths = getCurrentHeaderWidths().map(px => px / availableWidth * fullWidth / visibleWidth * 100)
     setVisibleColumnWidths(widths)
-  }, [columnResizing, setVisibleColumnWidths])
+  }, [getCurrentHeaderWidths, setVisibleColumnWidths])
 
   // Drag selection
   const rowKeys = hooks.useSelector(s => s.rowKeys)
@@ -204,13 +216,11 @@ function ScrollingContainer(props) {
 
   // Column resizing
   const columnResizeAnimation = useCallback((changedWidths, scrollLeft) => {
-    const headerRow = tableHeaderRowRef.current
+    const colGroup = headColGroupRef.current
     const container = scrollingContainerRef.current
 
     for (const index in changedWidths)
-      headerRow.children[index].style.width = px(changedWidths[index])
-
-    // resizingContainerRef.current.style.width = px(Math.max(100, _.sum(columnResizing.widths)));
+      colGroup.children[index].style.width = px(changedWidths[index])
 
     container.scrollLeft = scrollLeft
   }, [])
@@ -260,56 +270,49 @@ function ScrollingContainer(props) {
     const index = columnGroup.resizingIndex
     if (index < 0) return
 
-    const { widths, borderLeft, borderRight } = columnResizing
+    const {
+      prevVisibleIndex,
+      sharedWidth, maxWidth,
+      distanceToEnd, distanceToStart
+    } = columnResizing
     const { constantWidth, minColumnWidth: minWidth } = options
 
     const container = scrollingContainerRef.current
-    let { clientWidth: containerWidth, scrollLeft } = container
-    containerWidth -= borderLeft + borderRight
-    const containerX = getClientX(container) + borderLeft
+    const { scrollLeft: scroll, clientWidth: containerWidth } = container
+    const containerX = getClientX(container)
 
     // Auto-scroll
-    const distanceToEnd = _.sum(_.slice(widths, index + 1))
-    const shrinkThresholdColumn = scrollLeft && widths[index] > minWidth
-      ? containerWidth - distanceToEnd : 0
+    const shrinkThresholdColumn = !constantWidth && scroll ? containerWidth - distanceToEnd : 0
     const shrinkThreshold = containerX + Math.max(0, shrinkThresholdColumn)
     const expandThreshold = containerX + containerWidth
 
     const { relToOrigin: relX, scrollOffset } = getRelativeOffset(
-      drag.pointerPos.x, getClientX(tableHeaderRowRef.current),
+      drag.pointerPos.x, getClientX(headColGroupRef.current.offsetParent),
       shrinkThreshold, expandThreshold, columnResizeScrollFactor
     )
 
     // Scroll with second finger
     let movementOffset = 0
     if (relX + distanceToEnd > containerWidth) {
-      const availableScroll = constantWidth
-        ? columnResizing.initialWidth - containerWidth - scrollLeft : Infinity
-
-      movementOffset = _.clamp(drag.movement.x, -scrollLeft, availableScroll)
+      const availableScroll = maxWidth - containerWidth - scroll
+      movementOffset = _.clamp(drag.movement.x, -scroll, availableScroll)
     }
 
     // Set column widths
-    const availableWidth = constantWidth ? widths[index] + widths[index + 1] : Infinity
-    const left = _.sum(_.take(widths, index))
-    const targetWidth = relX + movementOffset - left
-
-    const changedWidths = {}
-    changedWidths[index] = _.clamp(targetWidth, minWidth, availableWidth - minWidth)
-
+    const targetWidth = relX - distanceToStart + movementOffset // scrollOffset is factored in to relX
+    const newWidth = _.clamp(targetWidth, minWidth, sharedWidth - minWidth)
+    const changedWidths = { [prevVisibleIndex]: newWidth }
     if (constantWidth)
-      changedWidths[index + 1] = availableWidth - changedWidths[index]
+      changedWidths[index] = sharedWidth - newWidth
 
-    // Handle overscroll
-    const overscroll = targetWidth !== changedWidths[index]
+    // If we were to calculate the scroll position even when scrollOffset and movementOffset is 0,
+    // the table can slowly drift due to rounding errors on hi-dpi screens
     const absPos = _.clamp(drag.pointerPos.x - containerX, 0, containerWidth)
-    scrollLeft = !overscroll && (scrollOffset || movementOffset)
-      ? left + changedWidths[index] - absPos
-      : scrollLeft + scrollOffset + movementOffset
+    const newScroll = (scrollOffset || movementOffset)
+      ? distanceToStart + newWidth - absPos
+      : scroll
 
-    Object.assign(columnResizing.widths, changedWidths)
-
-    dragAnimate(columnResizeAnimation, changedWidths, scrollLeft)
+    dragAnimate(columnResizeAnimation, changedWidths, newScroll)
   }, [
     drag,
     columnGroup,
@@ -454,27 +457,29 @@ function ScrollingContainer(props) {
   const columnResizeStart = useCallback((x, y, pointerId, index) => {
     if (!dragStart(x, y, pointerId, DragModes.Resize, true)) return
 
-    const {
-      offsetWidth: initialWidth,
-      children: headers,
-      lastChild: spacer
-    } = tableHeaderRowRef.current
+    const widths = getCurrentHeaderWidths()
+    const prevVisibleIndex = _.findLastIndex(widths, isColumnVisible, index - 1)
 
-    const widths = _.initial(_.map(headers, h => h.getBoundingClientRect().width))
-    const { clientLeft, clientWidth } = headers[index]
+    const {
+      lastChild: spacer,
+      children: { [prevVisibleIndex]: prevHeader, [index]: header }
+    } = headColGroupRef.current.offsetParent.rows.item(0)
+
+    const { scrollWidth } = scrollingContainerRef.current
 
     Object.assign(columnResizing, {
-      widths,
-      initialWidth,
-      borderLeft: clientLeft,
-      borderRight: widths[index] - clientWidth - clientLeft
+      prevVisibleIndex,
+      sharedWidth: options.constantWidth ? widths[prevVisibleIndex] + widths[index] : Infinity,
+      maxWidth: options.constantWidth ? scrollWidth : Infinity,
+      distanceToStart: prevHeader.offsetLeft + prevHeader.clientLeft,
+      distanceToEnd: header ? scrollWidth - (header.offsetLeft + header.clientLeft) : 0
     })
 
     const body = tableBodyRef.current
-    body.style.setProperty('--content-width', px(spacer.offsetLeft + spacer.clientLeft))
+    body.style.setProperty('--content-width', px(scrollWidth - spacer.offsetWidth))
 
-    setVisibleColumnWidths(columnResizing.widths, index)
-  }, [dragStart, columnResizing, setVisibleColumnWidths])
+    setVisibleColumnWidths(widths, index)
+  }, [dragStart, getCurrentHeaderWidths, columnResizing, options, setVisibleColumnWidths])
 
   // Drag selection
   const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {
@@ -558,9 +563,8 @@ function ScrollingContainer(props) {
   // Set props
   Object.assign(resizingProps, {
     tableBodyRef,
-    tableHeaderRowRef,
+    headColGroupRef,
     selectionRectRef,
-    scrollingContainerRef,
     resizingContainerRef,
 
     dragMode,

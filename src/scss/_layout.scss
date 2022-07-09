@@ -70,6 +70,7 @@
   box-sizing: content-box;
   flex: auto;
   contain: paint;
+  min-width: fit-content;
 
   &.rst-showPlaceholder {
     flex: none;
@@ -96,24 +97,9 @@
     position: relative;
   }
 
-  .rst-spacer {
-    .rst-columnResizer {
-      left: unset;
-      right: 0;
-      z-index: 1;
-      transform: none;
-    }
-
-    //Hide column resizer when not overflowing
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 2; //Above column resizer
-    }
+  .rst-spacer .rst-columnResizer {
+    max-width: unset;
+    transform: none;
   }
 }
 
@@ -141,12 +127,18 @@
 .rst-columnResizer {
   position: absolute;
   top: 0;
-  left: 100%;
+  right: 100%;
   cursor: col-resize;
   touch-action: none;
   height: 100%;
   z-index: 3;
+  max-width: 100%; //To not overflow when column is collapsed
 }
+
+//.rst-stopper {
+//  height: 10px;
+//  background-color: red;
+//}
 
 .rst-icon {
   height: 1rem;

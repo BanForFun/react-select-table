@@ -3,6 +3,8 @@ import _ from 'lodash'
 import TableHeader from './TableHeader'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { GestureTargets } from '../constants/enums'
+import ColGroup from './ColGroup'
+import classNames from 'classnames'
 
 // Child of HeadContainer
 function TableHead(props) {
@@ -12,7 +14,7 @@ function TableHead(props) {
     dragMode,
     gestureTargetPointerDownCapture,
     contextMenuTargetTouchStart,
-    tableHeaderRowRef,
+    headColGroupRef,
     ...commonHeaderProps
   } = props
 
@@ -32,10 +34,10 @@ function TableHead(props) {
     }
   }, [sortAscending])
 
-  const { widths, resizingIndex, widthUnit } = useContext(ColumnGroupContext)
+  const { resizingIndex } = useContext(ColumnGroupContext)
 
   const getHeaderProps = (column, index) => {
-    const { path, title, key } = column
+    const { path, title } = column
     const sortOrder = sorting.orders[path]
 
     return {
@@ -43,8 +45,6 @@ function TableHead(props) {
       path,
       title,
       index,
-      width: widthUnit(widths[key]),
-      isResizable: !options.constantWidth || index < columns.length - 1,
       isResizing: resizingIndex === index,
       sortAscending: sortOrder?.ascending,
       sortPriority: sortOrder?.priority,
@@ -54,7 +54,7 @@ function TableHead(props) {
 
   const handleSpacerPointerDown = useCallback(e => {
     if (!e.isPrimary) return
-    columnResizeStart(e.clientX, e.clientY, e.pointerId, columns.length - 1)
+    columnResizeStart(e.clientX, e.clientY, e.pointerId, columns.length)
   }, [columnResizeStart, columns])
 
   return <div
@@ -63,12 +63,16 @@ function TableHead(props) {
     onTouchStart={e => contextMenuTargetTouchStart(e, true)}
   >
     <table>
+      <ColGroup name={name} columns={columns} ref={headColGroupRef} />
       <thead>
-        <tr className='rst-row' ref={tableHeaderRowRef}>
+        <tr className='rst-row'>
           {columns.map((col, idx) =>
             <TableHeader key={`header_${name}_${col.key}`} {...getHeaderProps(col, idx)} />)}
 
-          <th className='rst-spacer'>
+          <th className={classNames({
+            'rst-spacer': true,
+            'rst-resizing': resizingIndex === columns.length
+          })}>
             {/* Second column resizer for last header, to ensure that the full width of the resizer
                         is visible even when the spacer is fully collapsed */}
             {!options.constantWidth &&

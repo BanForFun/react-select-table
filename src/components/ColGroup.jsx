@@ -1,13 +1,20 @@
 import React, { useContext } from 'react'
 import ColumnGroupContext from '../context/ColumnGroup'
 
-const ColGroup = ({ name, columns }) => {
-  const { widths, widthUnit } = useContext(ColumnGroupContext)
+const ColGroup = ({ name, columns }, ref) => {
+  const { widths, widthUnit, containerWidth } = useContext(ColumnGroupContext)
 
-  return <colgroup>
-    {columns.map(col =>
-      <col key={`col_${name}_${col.key}`} width={widthUnit(widths[col.key])} />)}
+  return <colgroup ref={ref}>
+    {columns.map(({ key }) => {
+      const width = widths[key]
+      return <col key={`col_${name}_${key}`}
+        // Ensure that spacer does not become visible when hiding column and the table is overflowing
+        style={{ width: widthUnit(containerWidth > 100 ? 100 * width : width) }}
+        data-col-key={key}
+      />
+    })}
+    <col/>
   </colgroup>
 }
 
-export default ColGroup
+export default React.forwardRef(ColGroup)

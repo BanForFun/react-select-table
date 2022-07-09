@@ -19,7 +19,7 @@ function ResizingContainer(props) {
     placeholder,
 
     // HeadContainer props
-    tableHeaderRowRef,
+    headColGroupRef,
     columnResizeStart,
     actions,
 
@@ -174,13 +174,12 @@ function ResizingContainer(props) {
 
   Object.assign(commonProps, {
     gestureTargetPointerDownCapture: useDecoupledCallback(gestureTargetPointerDownCapture),
-    contextMenuTargetTouchStart: useDecoupledCallback(contextMenuTargetTouchStart),
-    showPlaceholder
+    contextMenuTargetTouchStart: useDecoupledCallback(contextMenuTargetTouchStart)
   })
 
   const headProps = {
     ...commonProps,
-    tableHeaderRowRef,
+    headColGroupRef,
     actions,
 
     columnResizeStart
@@ -191,20 +190,11 @@ function ResizingContainer(props) {
     tableBodyRef,
     selectionRectRef,
 
+    showPlaceholder,
     getRowClassName
   }
 
-  const { resizingIndex, widths } = useContext(ColumnGroupContext)
-
-  const style = useMemo(() => {
-    if (resizingIndex >= 0)
-      return { width: 'fit-content', minWidth: 0 }
-
-    const visibleWidths = columns.map(c => widths[c.key])
-    const width = Math.max(100, _.sum(visibleWidths))
-    const minWidth = width / _.min(visibleWidths) * options.minColumnWidth
-    return { width: pc(width), minWidth }
-  }, [widths, resizingIndex, columns, options])
+  const { containerWidth, widths } = useContext(ColumnGroupContext)
 
   const contextMenuGestureHandlers = {
     onPointerDownCapture: () => gestureTargetPointerDownCapture(GestureTargets.BelowItems),
@@ -223,11 +213,17 @@ function ResizingContainer(props) {
         'rst-showPlaceholder': showPlaceholder
       })}
       ref={resizingContainerRef}
-      style={style}
+      style={{ width: pc(containerWidth) }}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
       {...contextMenuGestureHandlers}
     >
+      {!!containerWidth && _.map(columns, col => <div
+        className="rst-stopper"
+        data-col-key={col.key}
+        key={`stopper-${col.key}`}
+        style={{ width: containerWidth / widths[col.key] * options.minColumnWidth }}
+      />)}
       <TableHead {...headProps} />
       <TableBody {...bodyProps} />
     </div>

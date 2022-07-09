@@ -128,14 +128,15 @@
 
 %columnResizer {
   .rst-columnResizer {
-    transform: translateX(-50%);
+    //Cover the column separator
+    transform: translateX(get-property("column-separator", "width"));
     @include apply-properties("column-resizer", "width");
   }
 
   .rst-resizing .rst-columnResizer {
     @include apply-properties("column-resizer-resizing", "border" "border-right");
     transform: none;
-    width: 0;
+    height: 100vh;
   }
 }
 

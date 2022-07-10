@@ -465,18 +465,22 @@ function ScrollingContainer(props) {
       children: { [prevVisibleIndex]: prevHeader, [index]: header }
     } = headColGroupRef.current.offsetParent.rows.item(0)
 
-    const { scrollWidth } = scrollingContainerRef.current
+    const contentWidth = spacer.offsetLeft + spacer.clientLeft
 
     Object.assign(columnResizing, {
       prevVisibleIndex,
       sharedWidth: options.constantWidth ? widths[prevVisibleIndex] + widths[index] : Infinity,
-      maxWidth: options.constantWidth ? scrollWidth : Infinity,
+      maxWidth: options.constantWidth ? contentWidth : Infinity,
       distanceToStart: prevHeader.offsetLeft + prevHeader.clientLeft,
-      distanceToEnd: header ? scrollWidth - (header.offsetLeft + header.clientLeft) : 0
+      distanceToEnd: header ? contentWidth - (header.offsetLeft + header.clientLeft) : 0
     })
 
+    // When a column starts being resized, the width of the spacer is set to 100vw,
+    // and when the container is scrolled beyond content-width, the body stops scrolling with it (position: sticky)
+    // as the only thing visible at this point is the spacer.
+    // This is a performance optimization because having the entire body expand to the header's size is pointless.
     const body = tableBodyRef.current
-    body.style.setProperty('--content-width', px(scrollWidth - spacer.offsetWidth))
+    body.style.setProperty('--content-width', px(contentWidth))
 
     setVisibleColumnWidths(widths, index)
   }, [dragStart, getCurrentHeaderWidths, columnResizing, options, setVisibleColumnWidths])

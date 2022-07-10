@@ -24,6 +24,10 @@
     border-bottom-color: inherit;
   }
 
+  .rst-stopper {
+    @include apply-properties("column", "border-width" "margin-left")
+  }
+
   .rst-scrollingContainer {
     @include apply-properties("body", $properties...);
   }
@@ -51,7 +55,7 @@
     }
   }
 
-  .rst-scrollingContainer[data-dragmode="resize"] {
+  .rst-scrollingContainer[data-dragmode=resize] {
     .rst-head {
       @include apply-properties("head-resizing", "border-image");
     }

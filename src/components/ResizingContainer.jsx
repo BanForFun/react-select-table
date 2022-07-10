@@ -206,26 +206,71 @@ function ResizingContainer(props) {
     onContextMenu: handleContextMenu
   }
 
-  return <Fragment>
-    <div
-      className={classNames({
-        'rst-resizingContainer': true,
-        'rst-showPlaceholder': showPlaceholder
-      })}
-      ref={resizingContainerRef}
-      style={{ width: pc(containerWidth) }}
-      onMouseDown={handleMouseDown}
-      onDoubleClick={handleDoubleClick}
-      {...contextMenuGestureHandlers}
+  // The width of a hidden column must be distributed to the other columns, because the width of the container
+  // must stay constant, as columns can be hidden using css while shrinking the container,
+  // and we have no way to know when that happens (without javascript) in order to update the container width
+
+  // The situation is easier when the table is not overflowing horizontally, as the width of the hidden column
+  // can just go to the spacer with the container width staying constant
+
+  // Stoppers control the size of the container before it overflows because a column reached its minimum size.
+  // Can't use minWidth because we can't update it when a column gets hidden for the same reason as the container width.
+
+  // Each column contributes a chunk to the stopper of every column, proportional to the column's size.
+  // These chunks are also hidden together with the column, and thus the stoppers of all columns
+  // shrink when a column is hidden to account for the width they gain when the width of the now hidden column,
+  // gets distributed to the other columns (for an overflowing table)
+
+  // For a non-overflowing table, there are two stages when shrinking the container.
+  // In the first stage, when a column reaches its minimum size, the table stops shrinking (.rst-resizingContainer)
+  // and the spacer starts being cropped (by .rst-clippingContainer)
+  // In the second stage, when there is no spacer left, the clipping container also stops shrinking
+  // and starts overflowing its parent (.rst-scrollingContainer) causing the horizontal scrollbar to appear
+
+  const columnStoppers = _.map(columns, ({ key: referenceKey }) => {
+    const minWidthScale = options.minColumnWidth / widths[referenceKey]
+    return <div className="rst-columnStopper rst-stopper"
+      data-col-key={referenceKey}
+      key={`stoppers-${referenceKey}`}
     >
-      {!!containerWidth && _.map(columns, col => <div
-        className="rst-stopper"
-        data-col-key={col.key}
-        key={`stopper-${col.key}`}
-        style={{ width: containerWidth / widths[col.key] * options.minColumnWidth }}
-      />)}
-      <TableHead {...headProps} />
-      <TableBody {...bodyProps} />
+      {_.map(columns, ({ key }) =>
+        <div
+          data-col-key={key}
+          key={`stopper-${key}`}
+          style={{ width: widths[key] * minWidthScale }}
+        />)}
+    </div>
+  })
+
+  const overflowing = containerWidth > 100
+  const showClipStoppers = !!containerWidth && !overflowing // containerWidth is 0 when resizing the columns
+
+  return <Fragment>
+    <div className="rst-clippingContainer"
+      style={{ contain: showClipStoppers ? 'paint' : '' }}
+    >
+      {showClipStoppers && columnStoppers}
+      <div
+        className={classNames({
+          'rst-resizingContainer': true,
+          'rst-showPlaceholder': showPlaceholder
+        })}
+        ref={resizingContainerRef}
+        style={{ width: pc(containerWidth) }}
+        onMouseDown={handleMouseDown}
+        onDoubleClick={handleDoubleClick}
+        {...contextMenuGestureHandlers}
+      >
+        {!!containerWidth && (overflowing ? columnStoppers : _.map(columns, ({ key }) =>
+          <div className="rst-containerStopper rst-stopper"
+            data-col-key={key}
+            key={`stopper-${key}`}
+            style={{ width: containerWidth / widths[key] * options.minColumnWidth }}
+          />
+        ))}
+        <TableHead {...headProps} />
+        <TableBody {...bodyProps} />
+      </div>
     </div>
     {placeholder && <div
       className="rst-placeholder"

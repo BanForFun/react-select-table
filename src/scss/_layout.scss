@@ -70,9 +70,14 @@
   }
 }
 
-.rst-resizingContainer {
-  box-sizing: content-box;
+.rst-clippingContainer {
+  position: relative;
   flex: auto;
+  min-width: fit-content;
+}
+
+.rst-resizingContainer {
+  position: absolute;
   contain: paint;
   min-width: fit-content;
 
@@ -139,10 +144,26 @@
   max-width: 100%; //To not overflow when column is collapsed
 }
 
-//.rst-stopper {
-//  height: 10px;
-//  background-color: red;
-//}
+.rst-columnStopper {
+  white-space: nowrap;
+  line-height: 0;
+
+  & > div {
+    display: inline-block;
+    //background-color: darkorange;
+    //height: 10px;
+  }
+}
+
+.rst-stopper {
+  overflow: hidden;
+  height: 0;
+}
+
+.rst-containerStopper {
+  //background-color: lightskyblue;
+  //height: 10px;
+}
 
 .rst-icon {
   height: 1rem;

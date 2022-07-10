@@ -68,13 +68,11 @@
 
 .rst-clippingContainer {
   flex: auto;
-  height: 100%;
 }
 
 .rst-clipping {
   contain: paint;
   min-width: min-content;
-  height: auto;
 
   .rst-resizingContainer {
     min-width: min-content;
@@ -84,6 +82,7 @@
 .rst-resizingContainer {
   contain: paint;
   min-width: fit-content;
+  box-sizing: border-box;
 
   &.rst-showPlaceholder {
     flex: none;
@@ -153,21 +152,30 @@
   height: 0;
 }
 
+$debugStoppers: false;
+
 .rst-columnStopper {
   white-space: nowrap;
   line-height: 0;
-  //height: 10px;
 
   & > div {
     display: inline-block;
-    background-color: darkorange;
-    height: 100%;
+  }
+
+  @if $debugStoppers {
+    height: 10px;
+    & > div {
+      height: 100%;
+      background-color: darkorange;
+    }
   }
 }
 
 .rst-containerStopper {
-  background-color: lightskyblue;
-  //height: 10px;
+  @if $debugStoppers {
+    height: 10px;
+    background-color: lightskyblue;
+  }
 }
 
 .rst-icon {

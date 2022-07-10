@@ -227,13 +227,14 @@ function ResizingContainer(props) {
   // In the second stage, when there is no spacer left, the clipping container also stops shrinking
   // and starts overflowing its parent (.rst-scrollingContainer) causing the horizontal scrollbar to appear
 
-  const columnStoppers = _.map(columns, ({ key: referenceKey }) => {
+  const columnKeys = _.map(columns, 'key')
+  const columnStoppers = _.map(columnKeys, referenceKey => {
     const minWidthScale = options.minColumnWidth / widths[referenceKey]
     return <div className="rst-columnStopper rst-stopper"
       data-col-key={referenceKey}
       key={`stoppers-${referenceKey}`}
     >
-      {_.map(columns, ({ key }) =>
+      {_.map(columnKeys, key =>
         <div
           data-col-key={key}
           key={`stopper-${key}`}
@@ -242,13 +243,17 @@ function ResizingContainer(props) {
     </div>
   })
 
+  const containerStopperWidths = _.map(columnKeys, key =>
+    containerWidth / widths[key] * options.minColumnWidth)
+
   const overflowing = containerWidth > 100
   const showClipStoppers = !!containerWidth && !overflowing // containerWidth is 0 when resizing the columns
 
   return <Fragment>
-    <div className="rst-clippingContainer"
-      style={{ contain: showClipStoppers ? 'paint' : '' }}
-    >
+    <div className={classNames({
+      'rst-clippingContainer': true,
+      'rst-clipping': showClipStoppers
+    })}>
       {showClipStoppers && columnStoppers}
       <div
         className={classNames({
@@ -256,16 +261,19 @@ function ResizingContainer(props) {
           'rst-showPlaceholder': showPlaceholder
         })}
         ref={resizingContainerRef}
-        style={{ width: pc(containerWidth) }}
+        style={{
+          width: pc(containerWidth),
+          marginRight: showClipStoppers ? -_.max(containerStopperWidths) : 0
+        }}
         onMouseDown={handleMouseDown}
         onDoubleClick={handleDoubleClick}
         {...contextMenuGestureHandlers}
       >
-        {!!containerWidth && (overflowing ? columnStoppers : _.map(columns, ({ key }) =>
+        {!!containerWidth && (overflowing ? columnStoppers : _.map(columnKeys, (key, index) =>
           <div className="rst-containerStopper rst-stopper"
             data-col-key={key}
             key={`stopper-${key}`}
-            style={{ width: containerWidth / widths[key] * options.minColumnWidth }}
+            style={{ width: containerStopperWidths[index] }}
           />
         ))}
         <TableHead {...headProps} />

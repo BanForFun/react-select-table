@@ -59,10 +59,6 @@
         width: 100vw;
       }
     }
-
-    .rst-head .rst-spacer {
-      border-right-color: transparent;
-    }
   }
 
   &[data-dragmode=select] {
@@ -71,13 +67,21 @@
 }
 
 .rst-clippingContainer {
-  position: relative;
   flex: auto;
-  min-width: fit-content;
+  height: 100%;
+}
+
+.rst-clipping {
+  contain: paint;
+  min-width: min-content;
+  height: auto;
+
+  .rst-resizingContainer {
+    min-width: min-content;
+  }
 }
 
 .rst-resizingContainer {
-  position: absolute;
   contain: paint;
   min-width: fit-content;
 
@@ -144,24 +148,25 @@
   max-width: 100%; //To not overflow when column is collapsed
 }
 
-.rst-columnStopper {
-  white-space: nowrap;
-  line-height: 0;
-
-  & > div {
-    display: inline-block;
-    //background-color: darkorange;
-    //height: 10px;
-  }
-}
-
 .rst-stopper {
   overflow: hidden;
   height: 0;
 }
 
+.rst-columnStopper {
+  white-space: nowrap;
+  line-height: 0;
+  //height: 10px;
+
+  & > div {
+    display: inline-block;
+    background-color: darkorange;
+    height: 100%;
+  }
+}
+
 .rst-containerStopper {
-  //background-color: lightskyblue;
+  background-color: lightskyblue;
   //height: 10px;
 }
 

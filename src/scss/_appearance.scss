@@ -25,8 +25,20 @@
   }
 
   .rst-stopper {
-    @include apply-properties("column", "border-width" "margin-left")
+    @include apply-properties("column", "border-width" "margin-left");
   }
+
+  //.rst-clipping {
+  //  @include apply-properties("column", "border" "border-right");
+  //
+  //  .rst-spacer {
+  //    border-right: none;
+  //  }
+  //
+  //  .rst-stopper {
+  //    margin-left: 0;
+  //  }
+  //}
 
   .rst-scrollingContainer {
     @include apply-properties("body", $properties...);

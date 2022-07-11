@@ -22,12 +22,14 @@ function Root(props) {
     loadingIndicator,
     emptyPlaceholder,
     errorComponent,
+    onKeyDown,
     columns,
     ...scrollingProps
   } = props
 
   const {
-    utils: { hooks, events, selectors }
+    utils: { hooks, selectors },
+    onItemsOpen
   } = props
 
   // Focus on container
@@ -90,7 +92,7 @@ function Root(props) {
 
   const handleShortcuts = useCallback(e => {
     if (showPlaceholder) return false
-    if (events.keyDown(getState(), e) === false) return false
+    if (onKeyDown(e, selectors.getSelectionArg(getState())) === false) return false
 
     const isPageFirst = pageIndex === 0
     const isPageLast = pageIndex === pageCount - 1
@@ -128,7 +130,7 @@ function Root(props) {
           !e.ctrlKey && !e.shiftKey &&
           selectors.getSelected(getState(), selectors.getActiveRowIndex(getState()))
         )
-          events.itemsOpen(getState(), true)
+          onItemsOpen(selectors.getSelectionArg(getState()), true)
         else
           actions.select(activeIndex, e.shiftKey, e.ctrlKey)
 
@@ -145,7 +147,8 @@ function Root(props) {
     e.preventDefault()
     return false
   }, [
-    actions, events, selectors, getState,
+    actions, selectors, getState,
+    onKeyDown, onItemsOpen,
     showPlaceholder,
     activeIndex, itemCount, pageSize, pageCount, pageIndex, // Redux props
     select // Component methods

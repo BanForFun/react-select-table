@@ -64,16 +64,6 @@ export default class Events {
   }
 
   /**
-   * Calls the {@link TableProps.onItemsOpen} event handler with {@link EventsTypes.SelectionArg} as the first argument
-   *
-   * @param {StateType} state Passed to {@link Selectors.getSelectionArg}
-   * @param {boolean} fromKeyboard Passed through to the handler as the second argument
-   */
-  itemsOpen(state, fromKeyboard) {
-    this[handlersSymbol].onItemsOpen?.(this.selectors.getSelectionArg(state), fromKeyboard)
-  }
-
-  /**
    * Calls the {@link TableProps.onContextMenu} event handler with {@link EventsTypes.ContextMenuArg} as the argument
    *
    * @param {StateType} state Passed to {@link Selectors.getContextMenuArg}
@@ -82,26 +72,6 @@ export default class Events {
    */
   contextMenu(state, forceEmpty, forceSelection) {
     this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
-  }
-
-  /**
-   * Calls the {@link TableProps.onKeyDown} event handler with {@link EventsTypes.SelectionArg} as the second argument
-   *
-   * @param {StateType} state Passed to {@link Selectors.getSelectionArg}
-   * @param {KeyboardEvent<HTMLDivElement>} e Passed through to the handler as the first argument
-   * @returns {boolean|void} The value returned from the event handler
-   */
-  keyDown(state, e) {
-    return this[handlersSymbol].onKeyDown?.(e, this.selectors.getSelectionArg(state))
-  }
-
-  /**
-   * Calls the {@link TableProps.onColumnResizeEnd} event handler
-   *
-   * @param {Object<string, number>} widths Passed through to the handler as the first argument
-   */
-  columnResizeEnd(widths) {
-    this[handlersSymbol].onColumnResizeEnd?.(widths)
   }
 
   /**

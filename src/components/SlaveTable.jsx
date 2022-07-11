@@ -5,7 +5,14 @@ import { slaveTablePropTypes } from '../types/TableProps'
 import defaultTableProps from '../constants/defaultTableProps'
 
 /**
- * Table Component
+ * Tables that share the same items, selection, etc. with a (Master) Table component,
+ * but can differ in these ways:
+ * - Visible columns
+ * - Column widths
+ * - Pagination component
+ * - Class name of container and rows
+ * - Loading indicator
+ * - Empty placeholder
  *
  * @type {React.FC<import("../types/TableProps").SlaveTableProps>}
  */

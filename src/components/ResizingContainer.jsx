@@ -17,6 +17,7 @@ function ResizingContainer(props) {
     resizingContainerRef,
     dragSelectStart,
     placeholder,
+    onItemsOpen,
 
     // HeadContainer props
     headColGroupRef,
@@ -83,8 +84,8 @@ function ResizingContainer(props) {
 
   const itemsOpen = useCallback(e => {
     if (e.ctrlKey || noSelection || showPlaceholder) return
-    events.itemsOpen(getState(), false)
-  }, [noSelection, events, getState, showPlaceholder])
+    onItemsOpen(selectors.getSelectionArg(getState()), false)
+  }, [noSelection, showPlaceholder, onItemsOpen, selectors, getState])
 
   const getGestureTargetTouchStartHandler = useCallback((touchCount, callback) => {
     return (e, includeChildren) => {

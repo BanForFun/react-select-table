@@ -70,7 +70,7 @@ const columnShape = {
   defaultWidth: PropTypes.number
 }
 
-const eventHandlerPropTypes = {
+const reduxEventHandlersPropTypes = {
   /**
    * Called on right-click or two-finger tap
    *
@@ -78,14 +78,6 @@ const eventHandlerPropTypes = {
    * @see Actions.setActive
    */
   onContextMenu: PropTypes.func,
-
-  /**
-   * Called on double-click or enter-press
-   *
-   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
-   * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
-   */
-  onItemsOpen: PropTypes.func,
 
   /**
    * Called when the selection changes
@@ -195,12 +187,20 @@ const commonTablePropTypes = {
    * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
    * @returns {boolean|void} Return false to prevent default behaviour
    */
-  onKeyDown: PropTypes.func
+  onKeyDown: PropTypes.func,
+
+  /**
+   * Called on double-click or enter-press
+   *
+   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
+   * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
+   */
+  onItemsOpen: PropTypes.func
 }
 
 export const tablePropTypes = {
   ...commonTablePropTypes,
-  ...eventHandlerPropTypes
+  ...reduxEventHandlersPropTypes
 }
 
 export const slaveTablePropTypes = {
@@ -212,4 +212,4 @@ export const slaveTablePropTypes = {
   name: PropTypes.string.isRequired
 }
 
-export const eventHandlerNames = Object.keys(eventHandlerPropTypes)
+export const reduxEventHandlerNames = Object.keys(reduxEventHandlersPropTypes)

@@ -50,11 +50,12 @@ function ScrollingContainer(props) {
     columnResizeScrollFactor,
     columns,
     initColumnWidths,
+    onColumnResizeEnd,
     ...resizingProps
   } = props
 
   const {
-    utils: { options, hooks, events, selectors },
+    utils: { options, hooks, selectors },
     actions
   } = props
 
@@ -120,8 +121,8 @@ function ScrollingContainer(props) {
 
   useEffect(() => {
     if (columnGroup.resizingIndex >= 0) return
-    events.columnResizeEnd(columnGroup.widths)
-  }, [columnGroup, events])
+    onColumnResizeEnd(columnGroup.widths)
+  }, [columnGroup, onColumnResizeEnd])
 
   //#endregion
 

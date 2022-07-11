@@ -20,8 +20,8 @@
 * Modular state saving and restoring (ex. the items can be saved but not the sort order)
 * Does not need margin for columns to be resized beyond the visible bounds
 * Does not need margin for drag selecting beyond the visible bounds
-* Master and slave tables for showing different columns on desktop and mobile
-* Customizable theme system
+* Customizable appearance using css variables (sass not required)
+* Columns can be hidden by media queries
 
 ## Keyboard and mouse shortcuts
 

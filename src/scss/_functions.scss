@@ -1,5 +1,5 @@
 @function get-name($module, $property) {
-  @return --#{$prefix}-#{$module}_#{$property}
+  @return --#{$var-prefix}-#{$module}_#{$property}
 }
 
 @function get-property($module, $property) {

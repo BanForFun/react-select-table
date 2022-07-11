@@ -95,22 +95,6 @@ const eventHandlerPropTypes = {
   onSelectionChange: PropTypes.func,
 
   /**
-   * Called when column resizing ends
-   *
-   * @param {Object<string, number>} widths The new column width percentages
-   */
-  onColumnResizeEnd: PropTypes.func,
-
-  /**
-   * Pass-through of the keydown event, with added selection argument
-   *
-   * @param {KeyboardEvent<HTMLDivElement>} e The original keydown event argument
-   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
-   * @returns {boolean|void} Return false to prevent default behaviour
-   */
-  onKeyDown: PropTypes.func,
-
-  /**
    * Called when any redux action is dispatched
    *
    * @param {boolean} internal Indicates whether the action was dispatched internally by the library
@@ -195,7 +179,23 @@ const commonTablePropTypes = {
    *
    * @param {object} row The row object
    */
-  getRowClassName: PropTypes.func
+  getRowClassName: PropTypes.func,
+
+  /**
+   * Called when column resizing ends
+   *
+   * @param {Object<string, number>} widths The new column width percentages
+   */
+  onColumnResizeEnd: PropTypes.func,
+
+  /**
+   * Pass-through of the keydown event, with added selection argument
+   *
+   * @param {KeyboardEvent<HTMLDivElement>} e The original keydown event argument
+   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
+   * @returns {boolean|void} Return false to prevent default behaviour
+   */
+  onKeyDown: PropTypes.func
 }
 
 export const tablePropTypes = {

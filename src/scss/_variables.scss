@@ -1,4 +1,4 @@
-$prefix:            rst !default;
+$var-prefix:        rst !default;
 $stripe-order:      even !default;
 $config:            () !default;
 
@@ -61,11 +61,11 @@ $config: map-merge((
   "body.color":                               #333333,
   "body-resizing.opacity":                    0.5,
 
-  "column.border":                            10px solid rgba(#bdc5cd, 0.5),
+  "column.border":                            2px solid #dee2e6,
 
-  "row.border":                               1px solid rgba(#bdc5cd, 0.5),
+  "row.border":                               1px solid #dee2e6,
 
-  "row_selected.border-color":                rgba(#f5f5f5, 0.5),
+  "row_selected.border-color":                #f5f5f5,
   "row_selected_focused.border-color":        null,
 
   "row-selected.background-color":            rgba(#a7b79b, 0.5),

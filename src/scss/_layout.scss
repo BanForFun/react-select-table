@@ -117,6 +117,10 @@
 
 .rst-body {
   position: relative;
+
+  td, th {
+    overflow: hidden;
+  }
 }
 
 .rst-sortable .rst-headerText {

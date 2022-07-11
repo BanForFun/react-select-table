@@ -89,20 +89,13 @@
 }
 
 %rowOverlay {
-  .rst-body .rst-row {
-    & > * {
-      background-color: var(--overlay-color);
-    };
-  }
+  .rst-body .rst-row > * {
+    background-color: var(--overlay-color);
+  };
 }
 
 %rowUnderline {
-  .rst-body .rst-row {
-    & > * {
-      //-1px is used to prevent anti-aliasing on the clipping mask resulting in spaces
-      clip-path: inset(-1px -1px var(--underline-width, -1px) -1px);
-    }
-
+  .rst-body .rst-row > * {
     box-shadow: inset-border(var(--underline-width, 0px), var(--underline-color), bottom);
   }
 }

@@ -2,6 +2,10 @@ $var-prefix:        rst !default;
 $stripe-order:      even !default;
 $config:            () !default;
 
+$property-separator: ".";
+$state-separator: "_";
+$module-separator: "-";
+
 //noinspection CssInvalidFunction
 $config: map-merge((
   //Naming convention: element_state1_stateN.property
@@ -30,11 +34,11 @@ $config: map-merge((
   "search-btn.padding":                       0.35rem,
   "search-btn.border":                        0,
   "search-btn.border-radius":                 50%,
-  "search-btn.color":                         null,
+  "search-btn.color":                         unset,
   "search-btn.background-color":              transparent,
   "search-btn_hover.background-color":        #dee2e6,
-  "search-btn_hover.border-color":            null,
-  "search-btn_hover.color":                   null,
+  "search-btn_hover.border-color":            unset,
+  "search-btn_hover.color":                   unset,
 
   "cell.padding":                             0.75rem,
 
@@ -44,7 +48,7 @@ $config: map-merge((
   "head.color":                               #616161,
   "head.icon-spacing":                        0.25rem,
   "head.border":                              2px solid rgba(#bdc5cd, 0.5),
-  "head-resizing.border-image":               repeating-linear-gradient(
+  "head_resizing.border-image":               repeating-linear-gradient(
     to right, get-property("head", "border-color") 0px 10px, transparent 10px 20px) 1 stretch,
 
   "header.font-weight":                       bold,
@@ -53,36 +57,36 @@ $config: map-merge((
   "column-separator.color":                   #89b363,
 
   "column-resizer.width":                     30px,
-  "column-resizer-resizing.border":           2px solid #a3a5a5,
+  "column-resizer_resizing.border":           2px solid #a3a5a5,
 
   "body.vertical-align":                      middle,
   "body.text-align":                          left,
   "body.background-color":                    transparent,
   "body.color":                               #333333,
-  "body-resizing.opacity":                    0.5,
+  "body_resizing.opacity":                    0.5,
 
   "column.border":                            2px solid #dee2e6,
 
   "row.border":                               1px solid #dee2e6,
 
   "row_selected.border-color":                #f5f5f5,
-  "row_selected_focused.border-color":        null,
+  "row_selected_focused.border-color":        unset,
 
-  "row-selected.background-color":            rgba(#a7b79b, 0.5),
-  "row-selected_focused.background-color":    rgba(#89b363, 0.5),
+  "row_selected.background-color":            rgba(#a7b79b, 0.5),
+  "row_selected_focused.background-color":    rgba(#89b363, 0.5),
 
-  "row-selected.color":                       null,
-  "row-selected_focused.color":               null,
+  "row_selected.color":                       unset,
+  "row_selected_focused.color":               unset,
 
-  "row-active.underline-width":               3px,
-  "row-active.underline-color":               rgba(#a7b79b, 0.875),
-  "row-active_focused.underline-color":       rgba(#89b363, 0.875),
+  "row_active.underline-width":               3px,
+  "row_active.underline-color":               rgba(#a7b79b, 0.875),
+  "row_active_focused.underline-color":       rgba(#89b363, 0.875),
 
-  "row-striped.overlay-color":                rgba(#afafaf, 0.1),
-  "row-striped.color":                        null,
+  "row_striped.overlay-color":                rgba(#afafaf, 0.1),
+  "row_striped.color":                        unset,
 
-  "row-hover.overlay-color":                  rgba(#afafaf, 0.2),
-  "row-hover.color":                          null,
+  "row_hover.overlay-color":                  rgba(#afafaf, 0.2),
+  "row_hover.color":                          unset,
 
   "drag-selection.border":                    1px solid rgba(#89b363, 0.5),
   "drag-selection.border-radius":             0.25rem,
@@ -99,12 +103,12 @@ $config: map-merge((
   "pg-page.color":                            #616161,
 
   "pg-page_hover.background-color":           rgba(#afafaf, 0.2),
-  "pg-page_hover.color":                      null,
-  "pg-page_hover.border-color":               null,
+  "pg-page_hover.color":                      unset,
+  "pg-page_hover.border-color":               unset,
 
   "pg-page_current.background-color":         #c4d9b1,
-  "pg-page_current.color":                    null,
-  "pg-page_current.border-color":             null,
+  "pg-page_current.color":                    unset,
+  "pg-page_current.border-color":             unset,
 
 ), $config);
 

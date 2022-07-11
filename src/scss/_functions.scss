@@ -4,7 +4,13 @@
 
 @function get-property($module, $property) {
   $name: get-name($module, $property);
-  @return var($name);
+  $state-parts: split-string($module, $state-separator);
+  @if length($state-parts) >= 2 {
+    $fallback-module: join-to-string(set-nth($state-parts, -1, null), $state-separator);
+    @return var($name, get-property($fallback-module, $property))
+  } @else {
+    @return var($name);
+  }
 }
 
 @function nth-or-default($list, $n, $default: null) {

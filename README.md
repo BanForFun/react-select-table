@@ -1,6 +1,6 @@
 # react-select-table
 
-**Disclaimer: This component can only be controlled using redux**
+**The items are controlled using redux**
 
 ## Features
 

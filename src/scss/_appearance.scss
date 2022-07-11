@@ -69,11 +69,11 @@
 
   .rst-scrollingContainer[data-dragmode=resize] {
     .rst-head {
-      @include apply-properties("head-resizing", "border-image");
+      @include apply-properties("head_resizing", "border-image");
     }
 
     .rst-body {
-      @include apply-properties("body-resizing", "opacity");
+      @include apply-properties("body_resizing", "opacity");
     }
   }
 }
@@ -102,36 +102,36 @@
 
 %rowStriped {
   .rst-body .rst-row:nth-of-type(#{$stripe-order}) {
-    @include apply-properties("row-striped", "color");
-    --overlay-color: #{get-property("row-striped", "overlay-color")};
+    @include apply-properties("row_striped", "color");
+    --overlay-color: #{get-property("row_striped", "overlay-color")};
   }
 }
 
 %rowHover {
   .rst-body .rst-row:hover {
-    @include apply-properties("row-hover", "color");
-    --overlay-color: #{get-property("row-hover", "overlay-color")};
+    @include apply-properties("row_hover", "color");
+    --overlay-color: #{get-property("row_hover", "overlay-color")};
   }
 }
 
 %rowActive {
   .rst-active {
-    --underline-width: #{get-property("row-active", "underline-width")};
-    --underline-color: #{get-property("row-active", "underline-color")};
+    --underline-width: #{get-property("row_active", "underline-width")};
+    --underline-color: #{get-property("row_active", "underline-color")};
   }
 
   &:focus-within .rst-active {
-    --underline-color: #{get-property("row-active-focused", "underline-color")};
+    --underline-color: #{get-property("row_active_focused", "underline-color")};
   }
 }
 
 %rowSelected {
   .rst-selected {
-    @include apply-properties("row-selected", "color", "border-color", "background-color");
+    @include apply-properties("row_selected", "color", "border-color", "background-color");
   }
 
   &:focus-within .rst-selected {
-    @include apply-properties("row-selected-focused", "color", "border-color", "background-color");
+    @include apply-properties("row_selected_focused", "color", "border-color", "background-color");
   }
 }
 
@@ -143,7 +143,7 @@
   }
 
   .rst-resizing .rst-columnResizer {
-    @include apply-properties("column-resizer-resizing", "border" "border-right");
+    @include apply-properties("column-resizer_resizing", "border" "border-right");
     transform: none;
     height: 100vh;
   }
@@ -183,11 +183,11 @@
       @include apply-properties("pg-page", $properties...);
 
       &:hover {
-        @include apply-properties("pg-page-hover", $properties...);
+        @include apply-properties("pg-page_hover", $properties...);
       }
 
       &.rst-current {
-        @include apply-properties("pg-page-current", $properties...);
+        @include apply-properties("pg-page_current", $properties...);
       }
     }
   }
@@ -241,7 +241,7 @@
       );
 
       &:hover {
-        @include apply-properties("search-btn-hover",
+        @include apply-properties("search-btn_hover",
           "background-color",
           "border-color"
         );

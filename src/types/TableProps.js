@@ -8,26 +8,6 @@ import React from 'react'
  * @typedef {PropTypes.InferProps<columnShape>} Column
  */
 
-/**
- * The props of the {@link Table} component
- *
- * @typedef {PropTypes.InferProps<tablePropTypes>} TableProps
- */
-
-/**
- * The props of the {@link SlaveTable} component
- *
- * @typedef {PropTypes.InferProps<slaveTablePropTypes>} SlaveTableProps
- */
-
-/**
- * @typedef {import('../models/Events').EventsTypes.SelectionArg} SelectionArgType
- */
-
-/**
- * @typedef {import('../models/Events').EventsTypes.ContextMenuArg} ContextMenuArgType
- */
-
 const columnShape = {
   /**
    * The text that will be displayed in the header
@@ -52,7 +32,7 @@ const columnShape = {
    * Returns the content to be displayed in the cell.
    * If not defined, the defaultContent argument will be displayed directly.
    *
-   * @param {number|*} defaultContent The row's property at {@link path}, or the row index if undefined
+   * @param {number|*} defaultContent The row's property at {@link path}, or the row index if path is falsy
    * @param {object} row The entire row object
    * @param {object} options Extra options you can set for the cell
    * @param {string} options.className A class to be given to the cell
@@ -70,6 +50,7 @@ const columnShape = {
   defaultWidth: PropTypes.number
 }
 
+// Props of the Table component, but not of the SlaveTable component
 const reduxEventHandlersPropTypes = {
   /**
    * Called on right-click or two-finger tap
@@ -94,6 +75,7 @@ const reduxEventHandlersPropTypes = {
   onActionDispatched: PropTypes.func
 }
 
+// Props of both Table and SlaveTable components
 const commonTablePropTypes = {
   /**
    * Used to link a table component with a reducer.
@@ -198,10 +180,22 @@ const commonTablePropTypes = {
   onItemsOpen: PropTypes.func
 }
 
+/**
+ * The props of the {@link Table} component
+ *
+ * @typedef {PropTypes.InferProps<tablePropTypes>} TableProps
+ */
+
 export const tablePropTypes = {
   ...commonTablePropTypes,
   ...reduxEventHandlersPropTypes
 }
+
+/**
+ * The props of the {@link SlaveTable} component
+ *
+ * @typedef {PropTypes.InferProps<slaveTablePropTypes>} SlaveTableProps
+ */
 
 export const slaveTablePropTypes = {
   ...commonTablePropTypes,
@@ -213,3 +207,11 @@ export const slaveTablePropTypes = {
 }
 
 export const reduxEventHandlerNames = Object.keys(reduxEventHandlersPropTypes)
+
+/**
+ * @typedef {import('../models/Events').EventsTypes.SelectionArg} SelectionArgType
+ */
+
+/**
+ * @typedef {import('../models/Events').EventsTypes.ContextMenuArg} ContextMenuArgType
+ */

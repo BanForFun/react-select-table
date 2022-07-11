@@ -4,33 +4,28 @@
 }
 
 @mixin load-config($config) {
-  $property-separator: ".";
-  $state-separator: "_";
-  $module-separator: "-";
-
   @each $name, $value in $config {
     $parts: split-string($name, $property-separator);
 
     $module: nth($parts, 1);
     $property: nth($parts, 2);
 
-    $module_parts: split-string($module, $state-separator);
-    $module: join-to-string($module_parts, $module-separator);
-
-    @if $value != null {
-      @if $property == "border" {
-        //Auto generate properties from border, to be used as a fallback for more specific values
-        @include set-property($module, "border-width", nth($value, 1));
-        @include set-property($module, "border-style", nth-or-default($value, 2, initial));
-        @include set-property($module, "border-color", nth-or-default($value, 3, initial));
-      } @else {
-        @include set-property($module, $property, $value);
-      }
-    } @else if length($module_parts) >= 2 {
-      //Fallback to less specific value
-      $parent_module: join-to-string(set-nth($module_parts, -1, null), $module-separator);
-      @include set-property($module, $property, get-property($parent-module, $property));
+    @if $property == "border" {
+      //Auto generate properties from border, to be used as a fallback for more specific values
+      @include set-property($module, "border-width", nth($value, 1));
+      @include set-property($module, "border-style", nth-or-default($value, 2, initial));
+      @include set-property($module, "border-color", nth-or-default($value, 3, initial));
+    } @else {
+      @include set-property($module, $property, $value);
     }
+
+    //@if $value != null {
+    //
+    //} @else if length($module_parts) >= 2 {
+    //  //Fallback to less specific value
+    //  $parent_module: join-to-string(set-nth($module_parts, -1, null), $module-separator);
+    //  @include set-property($module, $property, get-property($parent-module, $property));
+    //}
   }
 }
 

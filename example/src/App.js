@@ -1,4 +1,5 @@
 import "./App.scss";
+import 'react-select-table/dist/index.css'
 import 'react-toastify/dist/ReactToastify.css';
 
 import React from 'react';

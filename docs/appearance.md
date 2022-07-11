@@ -1,22 +1,3 @@
-# Importing the stylesheet
-## With Css
-In your `App.js`, at the top:
-```javascript
-import 'react-select-table/dist/index.css';
-```
-
-## With Sass
-In your `App.js`, at the top:
-```javascript
-import './App.scss';
-```
-
-In `App.scss`:
-```scss
-@use '~react-select-table/src/scss/style' as rst;
-```
-
-
 # Customizing the appearance
 
 Each table can take a custom className as a prop, and in such custom class you can set the values

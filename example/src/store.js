@@ -1,6 +1,5 @@
-import { applyMiddleware, legacy_createStore as createStore } from 'redux'
+import { configureStore } from '@reduxjs/toolkit'
 import { createTable, eventMiddleware } from 'react-select-table'
-import { composeWithDevTools } from 'redux-devtools-extension'
 import { getOptions } from './utils/customOptionsUtils'
 import todos from './data/todos.json'
 
@@ -18,5 +17,7 @@ const reducer = createTable(tableNamespace, {
   ...getOptions()
 });
 
-
-export default createStore(reducer, composeWithDevTools(applyMiddleware(eventMiddleware)));
+export default configureStore({
+  reducer,
+  middleware: [eventMiddleware]
+})

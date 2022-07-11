@@ -21,21 +21,6 @@ import _ from 'lodash'
  * @returns {string}
  */
 
-const defaultOptions = {
-  itemPredicate: _.isMatch,
-  itemComparator: () => {},
-  searchPhraseParser: phrase => phrase.normalize('NFD').toLowerCase(),
-  searchProperty: '',
-  multiSelect: true,
-  listBox: false,
-  minColumnWidth: 50,
-  constantWidth: false,
-  statePath: '',
-  savedState: {},
-  context: undefined,
-  keyBy: '_id'
-}
-
 /**
  * The table options
  *
@@ -53,6 +38,21 @@ const defaultOptions = {
  * @property {object} savedState Load from a previously saved state, used for restoring a user's session. Takes an object returned from {@link Selectors.getSaveState}
  * @property {import("react").Context} context If you use a custom context for your Provider, you can pass it here
  */
+
+const defaultOptions = {
+  itemPredicate: _.isMatch,
+  itemComparator: () => {},
+  searchPhraseParser: phrase => phrase.normalize('NFD').toLowerCase(),
+  searchProperty: '',
+  multiSelect: true,
+  listBox: false,
+  minColumnWidth: 50,
+  constantWidth: false,
+  statePath: '',
+  savedState: {},
+  context: undefined,
+  keyBy: '_id'
+}
 
 /**
  * @param {Partial<Options>} options The options to override the defaults

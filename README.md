@@ -1,18 +1,21 @@
 # react-select-table
 
-**The items are controlled using redux**
+A combination of item management (addition, deletion, sorting, etc.) using redux,
+and a table component to display them.
 
 ## Features
 
 * Item filtering
+* Item searching (by just starting to type the first letters of the item)
 * Multi-column sorting
-* Item pagination
+* Pagination
 * Resizable columns (widths can be saved and restored)
+* Percentage based column sizing (can be used in resizable containers)
+* Responsive column visibility
 * Sticky header
 * Performance optimized drag selection with automatic scrolling (even with uneven in height rows)
-* Selection behavior emulating native windows ListView (with some improvements)
+* Familiar shortcuts and selection behavior emulating native windows ListView
 * Fully usable with only the keyboard
-* Percentage based column sizing (can be used in resizable containers)
 * Single and multi-row selection
 * ListBox mode (explained below)
 * Touch support (chromium based browsers only)
@@ -20,8 +23,7 @@
 * Modular state saving and restoring (ex. the items can be saved but not the sort order)
 * Does not need margin for columns to be resized beyond the visible bounds
 * Does not need margin for drag selecting beyond the visible bounds
-* Customizable appearance using css variables (sass not required)
-* Columns can be hidden by media queries
+* Easily customizable appearance using css variables (sass not required)
 
 ## Keyboard and mouse shortcuts
 
@@ -99,12 +101,4 @@
 ## Migrating from v4
 This version is a complete rewrite, treat it as a completely different library
 
-## Installation
-
-```shell
-# Npm
-npm install react-select-table
-
-# Yarn
-yarn add react-select-table
-```
+## [Quick start guide](./docs/quickStart.md)

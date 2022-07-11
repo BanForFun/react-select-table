@@ -45,8 +45,7 @@ const columns = [
   }
 ];
 
-const utils = getTableUtils(tableNamespace);
-const { hooks, options, selectors } = utils
+//#region Event toasts
 
 function eventArgToString(arg) {
   if (arg == null)
@@ -73,6 +72,11 @@ function logEvent(title, args = {}) {
 
   toast.info(content, { toastId: title })
 }
+
+//#endregion
+
+const utils = getTableUtils(tableNamespace);
+const { hooks, options, selectors } = utils
 
 function FullDemo() {
   const tableRef = useRef();
@@ -190,7 +194,6 @@ function FullDemo() {
              value={pageSize}
              onChange={setPageSize}
              type="number"
-             style={{ width: "6ch" }}
              min="0" />
       <button onClick={() => actions.setPageSize(pageSize || 0)}>Apply</button>
     </div>

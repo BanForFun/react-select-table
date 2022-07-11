@@ -121,7 +121,7 @@ function ScrollingContainer(props) {
 
   useEffect(() => {
     if (columnGroup.resizingIndex >= 0) return
-    onColumnResizeEnd(columnGroup.widths)
+    onColumnResizeEnd?.(columnGroup.widths)
   }, [columnGroup, onColumnResizeEnd])
 
   //#endregion

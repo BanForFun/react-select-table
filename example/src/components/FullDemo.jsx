@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useRef, useState } from 'react'
 import _ from "lodash";
 import {
   Table,
@@ -14,8 +14,10 @@ import Input from './common/Input'
 import { applyOptions } from '../utils/customOptionsUtils'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
-import usePersistState from '../hooks/usePersistState'
-import { Slide, toast, ToastContainer } from 'react-toastify'
+import useSessionState from '../hooks/useSessionState'
+import { Slide, ToastContainer } from 'react-toastify'
+import { eventToast } from '../utils/toastUtils'
+import useSessionValue from '../hooks/useSessionValue'
 
 const columns = [
   {
@@ -45,36 +47,6 @@ const columns = [
   }
 ];
 
-//#region Event toasts
-
-function eventArgToString(arg) {
-  if (arg == null)
-    return "<null>"
-
-  if (arg instanceof Set)
-    return [...arg].toString()
-
-  return arg.toString()
-}
-
-function logEvent(title, args = {}) {
-  const content = <>
-    <b>{title}</b>
-    <div style={{ whiteSpace: "nowrap" }}>
-      {_.map(args, (arg, name) => <Fragment key={name}>
-        {name}: {eventArgToString(arg)}<br/>
-      </Fragment>)}
-    </div>
-  </>
-
-  if (toast.isActive(title))
-    return toast.update(title, { render: content })
-
-  toast.info(content, { toastId: title })
-}
-
-//#endregion
-
 const utils = getTableUtils(tableNamespace);
 const { hooks, options, selectors } = utils
 
@@ -84,25 +56,15 @@ function FullDemo() {
   const getState = hooks.useGetState()
   const actions = hooks.useActions()
 
-  const persistSavedModules = usePersistState('savedModules', saveModules.Items | saveModules.SortOrder)
-  const [savedModules, setSavedModules] = useState(persistSavedModules.restoredValue)
-  persistSavedModules.useUpdatedValue(savedModules)
+  const [savedModules, setSavedModules] = useSessionState('savedModules',
+    saveModules.Items | saveModules.SortOrder)
+  const [columnVisibility, setColumnVisibility] = useSessionState('columnVisibility', {})
 
-  const persistColumnVisibility = usePersistState('columnVisibility', {})
-  const [columnVisibility, setColumnVisibility] = useState(persistColumnVisibility.restoredValue)
-  persistColumnVisibility.useUpdatedValue(columnVisibility)
+  const [restoredColWidths, saveColWidths] = useSessionValue('columnWidths', {})
 
-  const persistColumnWidths = usePersistState('columnWidths', {})
-
-  const orderedColumns = useMemo(() => {
-    const orderedColumns = []
-    for (const column of columns) {
-      if (columnVisibility[column.title] === false) continue
-      orderedColumns.push(column)
-    }
-
-    return orderedColumns
-  }, [columnVisibility])
+  const visibleColumns = useMemo(() =>
+    columns.filter(c => columnVisibility[c.title] !== false),
+    [columnVisibility])
 
   const [pageSize, setPageSize] = useState(10)
 
@@ -130,20 +92,20 @@ function FullDemo() {
       className="desktop-table"
       emptyPlaceholder="No items"
       namespace={tableNamespace}
-      columns={orderedColumns}
+      columns={visibleColumns}
       loadingIndicator="Loading..."
       autoFocus={true}
-      initColumnWidths={persistColumnWidths.restoredValue}
+      initColumnWidths={restoredColWidths}
       onKeyDown={handleTableKeyDown}
       onContextMenu={target =>
-        logEvent("Context menu", { target })}
+        eventToast("Context menu", { target })}
       onSelectionChange={selection =>
-        logEvent("Selection changed", { selection })}
+        eventToast("Selection changed", { selection })}
       onItemsOpen={(selection, fromKeyboard) =>
-        logEvent("Items opened",  { selection, fromKeyboard })}
+        eventToast("Items opened",  { selection, fromKeyboard })}
       onColumnResizeEnd={widths => {
-        logEvent("Columns resized and widths saved")
-        persistColumnWidths.saveValue(widths)
+        eventToast("Columns resized and widths saved")
+        saveColWidths(widths)
       }}
       onActionDispatched={internal => {
         if (internal) return
@@ -221,9 +183,9 @@ function FullDemo() {
                   key={title}
                   label={title}
                   checked={columnVisibility[title] !== false} //It should be checked when undefined
-                  onChange={checked => setColumnVisibility(visibility => ({
-                    ...visibility, [title]: checked
-                  }))} />
+                  onChange={checked => setColumnVisibility(
+                    visibility => ({ ...visibility, [title]: checked }))}
+        />
       )}
     </div>
 

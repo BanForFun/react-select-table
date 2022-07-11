@@ -250,7 +250,7 @@
   }
 }
 
-.rst-default {
+.rst-container {
   @include load-config($config);
 
   @extend %main;

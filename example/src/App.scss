@@ -1,8 +1,17 @@
-//@use "~react-select-table/src/scss/style" as rst with (
-// $config: (
-//
-// )
-//);
+@use "~react-select-table/src/scss/style" as rst with (
+ $stripe-order: odd,
+ $config: (
+  "head.background-color": #2c3034,
+  "head.border-color": white,
+  "head.color": white,
+  "root-container.background-color": #212529,
+  "body.color": white,
+  "pg-page.color": white,
+  "pg-page.border": 1px solid transparent,
+  "pg-page_current.background-color": transparent,
+  "pg-page_current.border-color": white
+ )
+);
 
 #app {
   background-color: #f5f5f5;
@@ -44,20 +53,5 @@ label+input {
 @media screen and (max-width: 900px) {
   .desktop-table [data-col-key=id] {
     width: 0 !important;
-  }
-
-  .desktop-table {
-    //noinspection SassScssUnresolvedMixin
-    //@include rst.load-config((
-    //  "head.background-color": #2c3034,
-    //  "head.border-color": white,
-    //  "head.color": white,
-    //  "root-container.background-color": #212529,
-    //  "body.color": white,
-    //  "pg-page.color": white,
-    //  "pg-page.border": 1px solid transparent,
-    //  "pg-page_current.background-color": transparent,
-    //  "pg-page_current.border-color": white
-    //))
   }
 }

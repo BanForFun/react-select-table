@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
+import classNames from 'classnames'
 
 const parseColumn = col => ({
   render: value => value,
@@ -183,7 +184,7 @@ function Root(props) {
     id={id}
     ref={containerRef}
     onKeyDown={handleKeyDown}
-    className={'rst-container ' + className}
+    className={classNames('rst-container', className)}
   >
     <SearchContainer {...searchProps} />
     <ScrollingContainer {...scrollingProps} columns={columns.map(parseColumn)} />

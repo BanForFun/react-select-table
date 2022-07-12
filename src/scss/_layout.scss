@@ -89,6 +89,7 @@
 .rst-resizingContainer {
   contain: paint;
   min-width: fit-content;
+  min-height: 100%;
   box-sizing: border-box;
 }
 

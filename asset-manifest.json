@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/react-select-table/static/css/main.a09e3ec0.css",
+    "main.js": "/react-select-table/static/js/main.65b0d43d.js",
+    "index.html": "/react-select-table/index.html",
+    "main.a09e3ec0.css.map": "/react-select-table/static/css/main.a09e3ec0.css.map",
+    "main.65b0d43d.js.map": "/react-select-table/static/js/main.65b0d43d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a09e3ec0.css",
+    "static/js/main.65b0d43d.js"
+  ]
+}

@@ -2,7 +2,7 @@ import './scss/style.scss' // Generate css in dist
 
 export { default as Table } from './components/Table'
 export { default as SlaveTable } from './components/SlaveTable'
-export { types as actionTypes } from './models/Actions'
+export { default as actionTypes } from './constants/actionTypes'
 export { setDefaultOptions } from './utils/optionsUtils'
 export * as setUtils from './utils/setUtils'
 export * as trieUtils from './utils/trieUtils'

@@ -1,63 +1,5 @@
 import { bindFunctions } from '../utils/classUtils'
-
-export const types = {
-  // Items
-  SET_ITEMS: '',
-  ADD_ITEMS: '',
-  DELETE_ITEMS: '',
-  PATCH_ITEMS: '',
-  PATCH_ITEMS_BY_KEY: '',
-  CLEAR_ITEMS: '',
-  SORT_ITEMS: '',
-  SET_ITEM_FILTER: '',
-
-  // Displaying
-  SET_ERROR: '',
-  START_LOADING: '',
-
-  // Selection
-  SET_SELECTED: '',
-  SELECT: '',
-  CLEAR_SELECTION: '',
-  SELECT_ALL: '',
-  SET_ACTIVE: '',
-
-  // Search
-  SEARCH: '',
-  GO_TO_MATCH: '',
-
-  // Pagination
-  SET_PAGE_SIZE: '',
-
-  DEBUG: ''
-}
-
-// Set action types
-for (const name in types)
-  types[name] = `RST_${name}`
-
-Object.freeze(types)
-
-/**
- * @namespace ActionsTypes
- */
-
-/**
- * @typedef {Actions} ActionsTypes.ActionsClass
- */
-
-/**
- * A table action
- *
- * @typedef {object} ActionsTypes.Action
- * @property {string} type The redux action type
- * @property {object} payload The action's payload
- * @property {string} namespace The namespace of the table that the action targets
- */
-
-/**
- * @typedef {import('../store/store').StoreTypes.RowKey} RowKeyType
- */
+import types from '../constants/actionTypes'
 
 /**
  * @class Actions
@@ -274,3 +216,24 @@ export default class Actions {
     return this.getAction(types.START_LOADING)
   }
 }
+
+/**
+ * @namespace ActionsTypes
+ */
+
+/**
+ * @typedef {Actions} ActionsTypes.ActionsClass
+ */
+
+/**
+ * A table action
+ *
+ * @typedef {object} ActionsTypes.Action
+ * @property {string} type The redux action type
+ * @property {object} payload The action's payload
+ * @property {string} namespace The namespace of the table that the action targets
+ */
+
+/**
+ * @typedef {import('../store/store').StoreTypes.RowKey} RowKeyType
+ */

@@ -380,6 +380,7 @@ The hooks can be found in the `hooks` property of the utils object.
 The `useActions` hook returns an object containing the action creators, but already wrapped in a dispatch call.
 Of course, you can still manually dispatch the raw action creators if you prefer.
 
+Note: Some actions mutate the payload, so the payload you see in the developer tools may not be accurate
 
 ### Example
 

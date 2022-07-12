@@ -253,14 +253,12 @@ function ResizingContainer(props) {
   return <Fragment>
     <div className={classNames({
       'rst-clippingContainer': true,
-      'rst-clipping': showClipStoppers
+      'rst-clipping': showClipStoppers,
+      'rst-showPlaceholder': showPlaceholder
     })}>
       {showClipStoppers && columnStoppers}
       <div
-        className={classNames({
-          'rst-resizingContainer': true,
-          'rst-showPlaceholder': showPlaceholder
-        })}
+        className='rst-resizingContainer'
         ref={resizingContainerRef}
         style={{
           width: pc(containerWidth),

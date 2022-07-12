@@ -3,6 +3,9 @@
 A combination of item management (addition, deletion, sorting, etc.) using redux,
 and a table component to display them.
 
+## [Demo](https://banforfun.github.io/react-select-table/)
+[Demo source code](./example/src)
+
 ## Features
 
 * Item filtering
@@ -288,11 +291,11 @@ which is the percentage of the table width that should be taken up by the column
 Continuing with the todo list example, we'll import the namespace from the store setup file.
 
 We will then add our four columns:
-1. The number of the row, with the title of _A/I_ (Auto increment)
-2. The id of the item, with the title of _Id_, using th elements
-3. The title of the item, the with title of _Title_
-4. The completion status of the item, the with title of _Completed_,
-   rendered as a checkmark or an X icon, which is also colored using a css class. We'll use fontawesome for the icons.
+1. The number of the row, with a title of 'A/I' (Auto increment)
+2. The id of the item, with a title of 'Id', using th elements
+3. The title of the item, with a title of 'Title'
+4. The completion status of the item, with a title of 'Completed',
+   rendered as a checkmark or an x icon, which is colored using a css class. We'll use fontawesome for the icons.
 
 Our code thus far is:
 

@@ -3,7 +3,7 @@ import "./index.css";
 
 import React from "react";
 import App from "./App";
-import { BrowserRouter } from "react-router-dom";
+import { HashRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import store from "./store";
 
@@ -13,9 +13,9 @@ const container = document.getElementById("root")
 const root = createRoot(container);
 
 root.render(
-  <BrowserRouter basename={process.env.PUBLIC_URL}>
+  <HashRouter>
     <Provider store={store}>
       <App />
     </Provider>
-  </BrowserRouter>,
+  </HashRouter>,
 );

@@ -1,4 +1,4 @@
-import { types } from '../models/Actions'
+import types from '../constants/actionTypes'
 import { getTableUtils } from '../utils/tableUtils'
 import * as setUtils from '../utils/setUtils'
 

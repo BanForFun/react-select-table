@@ -1,22 +1,21 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 import _ from "lodash";
-import {
-  Table,
-  getTableUtils,
-  saveModules,
-  flagUtils,
-  setUtils
-} from 'react-select-table';
-import todos from "../data/todos.json";
-import { tableNamespace } from '../store'
-import Checkbox from './common/Checkbox'
-import Input from './common/Input'
-import { applyOptions } from '../utils/customOptionsUtils'
+import { Table, getTableUtils, saveModules, flagUtils, setUtils } from 'react-select-table';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
+
+import Checkbox from './common/Checkbox'
+import Input from './common/Input'
+
 import useSessionState from '../hooks/useSessionState'
-import { eventToast } from '../utils/toastUtils'
 import useSessionValue from '../hooks/useSessionValue'
+
+import { tableNamespace } from '../store'
+import { applyOptions } from '../utils/customOptionsUtils'
+import { eventToast } from '../utils/toastUtils'
+
+import todos from "../data/todos.json";
 
 const columns = [
   {
@@ -46,8 +45,7 @@ const columns = [
   }
 ];
 
-const utils = getTableUtils(tableNamespace);
-const { hooks, options, selectors } = utils
+const { hooks, options, selectors } = getTableUtils(tableNamespace);
 
 function FullDemo() {
   const tableRef = useRef();
@@ -187,7 +185,7 @@ function FullDemo() {
     </div>
 
     <h2>Options</h2>
-    <p>Note: Changing these options will cause the page to reload</p>
+    <p>Note: Changing these will cause the page to reload</p>
     <div className="controls">
       <Checkbox id="multiSelect"
                 label="Multiple selection"
@@ -202,6 +200,12 @@ function FullDemo() {
                 checked={options.constantWidth}
                 onChange={checked => applyOptions({ constantWidth: checked })} />
     </div>
+
+    <h2>General</h2>
+    <button onClick={() => {
+      sessionStorage.clear()
+      window.location.reload()
+    }}>Reset everything and reload</button>
   </>
 }
 

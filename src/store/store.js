@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import produce from 'immer'
-import { types } from '../models/Actions'
+import types from '../constants/actionTypes'
 import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
 import * as setUtils from '../utils/setUtils'

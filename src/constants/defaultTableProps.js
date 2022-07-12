@@ -6,8 +6,8 @@ export default {
   columnResizeScrollFactor: 0.2,
   errorComponent: 'span',
   paginationComponent: DefaultPagination,
-  loadingIndicator: null,
-  emptyPlaceholder: null,
+  loadingIndicator: 'Loading...',
+  emptyPlaceholder: 'No items',
   autoFocus: false,
   initColumnWidths: {}
 }

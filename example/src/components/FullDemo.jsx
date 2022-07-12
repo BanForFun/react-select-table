@@ -15,7 +15,6 @@ import { applyOptions } from '../utils/customOptionsUtils'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
 import useSessionState from '../hooks/useSessionState'
-import { Slide, ToastContainer } from 'react-toastify'
 import { eventToast } from '../utils/toastUtils'
 import useSessionValue from '../hooks/useSessionValue'
 
@@ -85,8 +84,6 @@ function FullDemo() {
   }, [actions]);
 
   return <>
-    <ToastContainer transition={Slide} position='bottom-right' newestOnTop={true}/>
-
     <Table
       ref={tableRef}
       className="desktop-table"

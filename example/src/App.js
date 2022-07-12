@@ -1,12 +1,13 @@
 import "./App.scss";
-import 'react-toastify/dist/ReactToastify.css';
 
 import React from 'react';
 import { Routes, Route, Navigate } from "react-router-dom";
 import FullDemo from './components/FullDemo';
+import { Slide, ToastContainer } from 'react-toastify'
 
 function App() {
   return <div id="app">
+    <ToastContainer transition={Slide} position='bottom-right' newestOnTop={true}/>
     <Routes>
       <Route path="full" element={<FullDemo />} />
       <Route path="/" element={<Navigate to="/full" />} />

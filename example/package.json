@@ -17,11 +17,11 @@
     "@reduxjs/toolkit": "^1.8.3",
     "react": "link:../node_modules/react",
     "react-dom": "link:../node_modules/react-dom",
-    "react-redux": "^8.0.1",
+    "react-redux": "link:../node_modules/react-redux",
     "react-router-dom": "^6.3.0",
     "react-select-table": "link:../",
     "react-toastify": "^9.0.5",
-    "sass": "^1.51.0"
+    "sass": "^1.53.0"
   },
   "devDependencies": {},
   "eslintConfig": {

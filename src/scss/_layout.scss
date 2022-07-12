@@ -68,6 +68,10 @@
 
 .rst-clippingContainer {
   flex: auto;
+
+  &.rst-showPlaceholder {
+    flex: none;
+  }
 }
 
 .rst-clipping {
@@ -83,10 +87,6 @@
   contain: paint;
   min-width: fit-content;
   box-sizing: border-box;
-
-  &.rst-showPlaceholder {
-    flex: none;
-  }
 }
 
 .rst-placeholder {

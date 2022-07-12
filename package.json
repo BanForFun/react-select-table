@@ -1,10 +1,10 @@
 {
   "name": "react-select-table",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "React table component with selectable items",
   "author": "@BanForFun",
   "license": "MIT",
-  "repository": "@BanForFun/react-select-table",
+  "repository": "github:BanForFun/react-select-table",
   "keywords": [
     "react",
     "table",

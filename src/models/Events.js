@@ -80,6 +80,6 @@ export default class Events {
    * @param {boolean} internal Passed through to the handler as the first argument
    */
   actionDispatched(internal = false) {
-    this[handlersSymbol]?.onActionDispatched(internal)
+    this[handlersSymbol].onActionDispatched?.(internal)
   }
 }

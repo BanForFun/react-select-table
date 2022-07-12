@@ -8,5 +8,5 @@ export default function useDecoupledCallback(callback) {
   }, [callback])
 
   return useCallback((...args) =>
-    callbackRef.current(...args), [callbackRef])
+    callbackRef.current?.(...args), [callbackRef])
 }

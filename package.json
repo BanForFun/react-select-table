@@ -1,72 +1,87 @@
 {
-    "name": "react-select-table",
-    "version": "4.0.0",
-    "description": "React table with windows ListView-like selection behaviour",
-    "author": "BanForFun",
-    "license": "MIT",
-    "repository": "BanForFun/react-select-table",
-    "keywords": [
-        "react",
-        "table",
-        "listview",
-        "list",
-        "redux",
-        "drag",
-        "select",
-        "electron"
-    ],
-    "main": "dist/index.js",
-    "module": "dist/index.modern.js",
-    "source": "src/index.js",
-    "engines": {
-        "node": ">=10"
-    },
-    "scripts": {
-        "build": "microbundle-crl --no-compress --css-modules rst-[local] --format modern,cjs",
-        "start": "microbundle-crl watch --no-compress --css-modules rst-[local] --format modern,cjs",
-        "prepublish": "run-s build",
-        "test": "run-s test:unit test:lint test:build",
-        "test:build": "run-s build",
-        "test:lint": "eslint .",
-        "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
-        "test:watch": "react-scripts test --env=jsdom",
-        "predeploy": "cd example && npm install && npm run build",
-        "deploy": "gh-pages -d example/build"
-    },
-    "peerDependencies": {
-        "react": "^16.0.0",
-        "react-dom": "^16.0.0",
-        "react-redux": "^7.2.0",
-        "redux": "^4.0.5"
-    },
-    "devDependencies": {
-        "@babel/plugin-proposal-logical-assignment-operators": "^7.12.1",
-        "@babel/plugin-proposal-nullish-coalescing-operator": "^7.12.1",
-        "@babel/plugin-proposal-optional-chaining": "^7.12.7",
-        "babel-eslint": "^10.0.3",
-        "cross-env": "^7.0.2",
-        "eslint": "^7.11.0",
-        "eslint-config-standard": "^14.1.0",
-        "eslint-config-standard-react": "^9.2.0",
-        "eslint-plugin-import": "^2.18.2",
-        "eslint-plugin-node": "^11.0.0",
-        "eslint-plugin-promise": "^4.2.1",
-        "eslint-plugin-react": "^7.17.0",
-        "eslint-plugin-standard": "^4.0.1",
-        "gh-pages": "^2.2.0",
-        "microbundle-crl": "^0.13.9",
-        "node-sass": "^4.14.1",
-        "npm-run-all": "^4.1.5",
-        "react-scripts": "^4.0.0"
-    },
-    "files": [
-        "dist"
-    ],
-    "dependencies": {
-        "classnames": "^2.2.6",
-        "immer": "^9.0.2",
-        "lodash": "^4.17.20",
-        "prop-types": "^15.7.2",
-        "reselect": "^4.0.0"
-    }
+  "name": "react-select-table",
+  "version": "5.0.0",
+  "description": "React table component with selectable items",
+  "author": "@BanForFun",
+  "license": "MIT",
+  "repository": "@BanForFun/react-select-table",
+  "keywords": [
+    "react",
+    "table",
+    "listview",
+    "list",
+    "redux",
+    "drag",
+    "selection",
+    "pagination",
+    "columns",
+    "resizable",
+    "touch"
+  ],
+  "main": "dist/index.js",
+  "module": "dist/index.modern.js",
+  "typings": "dist/typings/index.d.ts",
+  "source": "src/index.js",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "clear-definitions": "rm -rf dist/typings/",
+    "copy-definitions": "rsync -a -m --include '*/' --include '*.d.ts' --exclude '*' src/ dist/typings/",
+    "build-definitions": " yarn clear-definitions && tsc && yarn copy-definitions",
+    "build": "yarn build-definitions && microbundle-crl --no-compress --format modern,cjs --css-modules false",
+    "start": "microbundle-crl watch --no-compress --format modern,cjs --css-modules false",
+    "prepare": "run-s build",
+    "test": "run-s test:unit test:lint test:build",
+    "test:build": "run-s build",
+    "test:lint": "eslint .",
+    "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
+    "test:watch": "react-scripts test --env=jsdom",
+    "predeploy": "cd example && yarn install && yarn run build",
+    "deploy": "gh-pages -d example/build"
+  },
+  "peerDependencies": {
+    "react": ">= 16",
+    "react-redux": "^8.0.0",
+    "redux": "^4.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/preset-env": "^7.17.10",
+    "@babel/preset-react": "^7.16.7",
+    "cross-env": "^7.0.2",
+    "eslint": "^8.15.0",
+    "eslint-config-prettier": "^6.7.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jsdoc": "^39.2.9",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.29.4",
+    "eslint-plugin-react-hooks": "^4.5.0",
+    "eslint-plugin-standard": "^4.0.1",
+    "gh-pages": "^2.2.0",
+    "microbundle-crl": "^0.13.10",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.2",
+    "react-scripts": "^5.0.1",
+    "redux": "^4.2.0",
+    "sass": "^1.51.0",
+    "typescript": "^4.6.4"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "classnames": "^2.3.1",
+    "immer": "^9.0.13",
+    "lodash": "^4.17.21",
+    "prop-types": "^15.8.1"
+  }
 }

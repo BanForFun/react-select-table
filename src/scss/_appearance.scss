@@ -1,0 +1,268 @@
+%main {
+  @include apply-properties("root-container",
+    "margin",
+    "background-color"
+  );
+
+  th {
+    @include apply-properties("header", "font-weight");
+  }
+
+  $properties: "color", "vertical-align", "text-align", "background-color";
+
+  .rst-row {
+    @include apply-properties("row", "border-color");
+  }
+
+  //noinspection CssReplaceWithShorthandSafely
+  .rst-row > * {
+    @include apply-properties("cell", "padding");
+    @include apply-properties("column", "border");
+    @include apply-properties("row", "border" "border-bottom");
+    background-clip: padding-box;
+    border-top: none;
+    border-bottom-color: inherit;
+  }
+
+  .rst-resizingContainer {
+    @include apply-properties("column", "border-width" "padding-right");
+
+    .rst-head, .rst-body {
+      margin-right: calc(#{get-property("column", "border-width")} * -1);
+    }
+  }
+
+  .rst-clipping {
+    @include apply-properties("column", "border" "border-right");
+
+    .rst-resizingContainer {
+      padding-right: 0; //Crop border of the spacer
+    }
+  }
+
+  .rst-scrollingContainer {
+    @include apply-properties("body", $properties...);
+  }
+
+  .rst-head {
+    @include apply-properties("head", $properties..., "border" "border-bottom");
+
+    .rst-row:last-child > * {
+      border-bottom: none;
+    }
+
+    .rst-header {
+      $width: get-property("column-separator", "width");
+      $color: get-property("column-separator", "color");
+      $left-shadow: inset-border($width, $color, left);
+      box-shadow: $left-shadow;
+
+      &:nth-last-child(2) {
+        box-shadow: $left-shadow, inset-border($width, $color, right);
+      }
+    }
+
+    .rst-icon {
+      @include apply-properties("head", "icon-spacing" "margin-left");
+    }
+  }
+
+  .rst-scrollingContainer[data-dragmode=resize] {
+    .rst-head {
+      @include apply-properties("head_resizing", "border-image");
+    }
+
+    .rst-body {
+      @include apply-properties("body_resizing", "opacity");
+    }
+  }
+}
+
+%placeholder {
+  .rst-placeholder {
+    @include apply-properties("placeholder",
+      "padding",
+      "text-align",
+      "color"
+    );
+  }
+}
+
+%rowOverlay {
+  .rst-body .rst-row > * {
+    background-color: var(--overlay-color);
+  };
+}
+
+%rowUnderline {
+  .rst-body .rst-row > * {
+    box-shadow: inset-border(var(--underline-width, 0px), var(--underline-color), bottom);
+  }
+}
+
+%rowStriped {
+  .rst-body .rst-row:nth-of-type(#{$stripe-order}) {
+    @include apply-properties("row_striped", "color");
+    --overlay-color: #{get-property("row_striped", "overlay-color")};
+  }
+}
+
+%rowHover {
+  .rst-body .rst-row:hover {
+    @include apply-properties("row_hover", "color");
+    --overlay-color: #{get-property("row_hover", "overlay-color")};
+  }
+}
+
+%rowActive {
+  .rst-active {
+    --underline-width: #{get-property("row_active", "underline-width")};
+    --underline-color: #{get-property("row_active", "underline-color")};
+  }
+
+  &:focus-within .rst-active {
+    --underline-color: #{get-property("row_active_focused", "underline-color")};
+  }
+}
+
+%rowSelected {
+  .rst-selected {
+    @include apply-properties("row_selected", "color", "border-color", "background-color");
+  }
+
+  &:focus-within .rst-selected {
+    @include apply-properties("row_selected_focused", "color", "border-color", "background-color");
+  }
+}
+
+%columnResizer {
+  .rst-columnResizer {
+    //Cover the column separator
+    transform: translateX(get-property("column-separator", "width"));
+    @include apply-properties("column-resizer", "width");
+  }
+
+  .rst-resizing .rst-columnResizer {
+    @include apply-properties("column-resizer_resizing", "border" "border-right");
+    transform: none;
+    height: 100vh;
+  }
+}
+
+%dragSelection {
+  .rst-dragSelection {
+    @include apply-properties("drag-selection",
+      "border",
+      "border-radius",
+      "background-color"
+    );
+  }
+}
+
+%pagination {
+  .rst-pagination {
+    @include apply-properties("pg",
+      "color",
+      "padding",
+      "item-spacing" "grid-gap"
+    );
+
+    .rst-page {
+      @include apply-properties("pg-page",
+        "padding",
+        "width",
+        "border-radius",
+        "border",
+        "color"
+      );
+      border-color: transparent;
+    }
+
+    button.rst-page {
+      $properties: "background-color", "border-color", "color";
+      @include apply-properties("pg-page", $properties...);
+
+      &:hover {
+        @include apply-properties("pg-page_hover", $properties...);
+      }
+
+      &.rst-current {
+        @include apply-properties("pg-page_current", $properties...);
+      }
+    }
+  }
+}
+
+%search {
+  .rst-searchContainer {
+    @include apply-properties("search-container",
+      "padding",
+      "width"
+    );
+  }
+
+  .rst-search {
+    input {
+      border: none;
+      outline: none;
+      background: none;
+    }
+
+    @include apply-properties("search",
+      "background-color",
+      "color",
+      "padding",
+      "border",
+      "border-radius",
+      "box-shadow",
+      "item-spacing" "column-gap"
+    );
+
+    .rst-matches {
+      @include apply-properties("search-matches",
+        "color"
+      );
+    }
+
+    .rst-separator {
+      @include apply-properties("search-separator",
+        "border" "border-right"
+      );
+    }
+
+    button {
+      line-height: 0;
+
+      @include apply-properties("search-btn",
+        "padding",
+        "border",
+        "border-radius",
+        "background-color"
+      );
+
+      &:hover {
+        @include apply-properties("search-btn_hover",
+          "background-color",
+          "border-color"
+        );
+      }
+    }
+  }
+}
+
+.rst-container {
+  @include load-config($config);
+
+  @extend %main;
+  @extend %placeholder;
+  @extend %rowOverlay;
+  @extend %rowUnderline;
+  @extend %rowActive;
+  @extend %rowStriped;
+  @extend %rowHover;
+  @extend %rowSelected;
+  @extend %dragSelection;
+  @extend %columnResizer;
+  @extend %pagination;
+  @extend %search;
+}

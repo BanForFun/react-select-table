@@ -1,24 +1,23 @@
-import {applyMiddleware, createStore} from "redux";
-import {createTable, eventMiddleware, setDefaultTableOptions} from "react-select-table";
-import {composeWithDevTools} from "redux-devtools-extension";
-import {ReactReduxContext} from "react-redux";
+import { configureStore } from '@reduxjs/toolkit'
+import { createTable, eventMiddleware } from 'react-select-table'
+import { getOptions } from './utils/customOptionsUtils'
+import todos from './data/todos.json'
 
 export const tableNamespace = "todos";
 
-setDefaultTableOptions({
-    context: ReactReduxContext
-});
-
-const compose = composeWithDevTools({
-    serialize: true
-});
-
 const reducer = createTable(tableNamespace, {
-    valueProperty: "id",
-    scrollX: true,
-    multiSelect: true,
-    multiSort: true
+  keyBy: "id",
+  searchProperty: "title",
+  savedState: {
+    items: todos,
+    sortAscending: {
+      id: false
+    }
+  },
+  ...getOptions()
 });
 
-
-export default createStore(reducer, compose(applyMiddleware(eventMiddleware)));
+export default configureStore({
+  reducer,
+  middleware: [eventMiddleware]
+})

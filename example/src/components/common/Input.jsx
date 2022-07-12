@@ -1,21 +1,19 @@
 import React from "react";
 
-const Input = ({ id, label, onChange, value, ...rest }) => {
-    const handleChange = e => onChange(e.target.value);
+export default function Input({ id, label, onChange, value, placeholder, ...rest }) {
+  const handleChange = e => {
+    const valid = e.currentTarget.checkValidity()
+    onChange(valid ? e.currentTarget.value : "");
+  }
 
-    return (
-        <div className="form-group">
-            <label htmlFor={id}>{label}</label>
-            <input
-                placeholder={label}
-                className="form-control"
-                onChange={handleChange}
-                value={value}
-                id={id}
-                {...rest}
-            />
-        </div>
-    );
+  return <div className="input-group">
+    <label htmlFor={id}>{label}</label>
+    <input
+        onChange={handleChange}
+        value={value}
+        id={id}
+        placeholder={placeholder}
+        {...rest}
+    />
+  </div>
 };
-
-export default Input;

@@ -1,14 +1,21 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "extends": [
     "standard",
-    "standard-react"
+    "plugin:react-hooks/recommended",
+    "plugin:react/recommended",
+    "plugin:jsdoc/recommended",
+//    "plugin:prettier/recommended",
+    "prettier/standard",
+    "prettier/react"
   ],
   "env": {
+    "browser": true,
     "node": true
   },
   "parserOptions": {
     "ecmaVersion": 2020,
+    "requireConfigFile": false,
     "ecmaFeatures": {
       "legacyDecorators": true,
       "jsx": true
@@ -17,13 +24,32 @@
   "settings": {
     "react": {
       "version": "16"
+    },
+    "jsdoc": {
+      "mode": "typescript",
+      "tagNamePreference": {
+        "tag constructor": "constructor"
+      }
     }
   },
   "rules": {
+    "curly": ["error", "multi-or-nest"],
+    "no-trailing-spaces": ["error", {
+      "skipBlankLines": true,
+      "ignoreComments": true
+    }],
+    "spaced-comment": ["error", "always", {
+      "markers": ["#region", "#endregion"]
+    }],
+    "jsdoc/valid-types": 0,
+    "jsdoc/require-jsdoc": 0,
+    "standard/no-callback-literal": 0,
     "space-before-function-paren": 0,
     "react/prop-types": 0,
     "react/jsx-handler-names": 0,
     "react/jsx-fragments": 0,
+    "react/jsx-closing-tag-location": 0,
+    "react/jsx-closing-bracket-location": 0,
     "react/no-unused-prop-types": 0,
     "import/export": 0
   }

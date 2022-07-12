@@ -1,17 +1,17 @@
-import 'bootstrap/dist/css/bootstrap.css';
-import 'react-select-table/dist/index.css';
+import "./App.scss";
 
 import React from 'react';
-import { Switch, Route, Redirect } from "react-router-dom";
-
-import ReduxTable from './components/ReduxTable';
+import { Routes, Route, Navigate } from "react-router-dom";
+import FullDemo from './components/FullDemo';
+import { Slide, ToastContainer } from 'react-toastify'
 
 function App() {
-  return <div id="app">
-    <Switch>
-      <Route path="/redux" component={ReduxTable} />
-      <Redirect from="/" exact to="/redux" />
-    </Switch>
+  return <div id="App">
+    <ToastContainer transition={Slide} position='bottom-right' newestOnTop={true}/>
+    <Routes>
+      <Route path="full" element={<FullDemo />} />
+      <Route path="/" element={<Navigate to="/full" />} />
+    </Routes>
   </div>
 }
 

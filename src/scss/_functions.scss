@@ -1,0 +1,57 @@
+@function get-name($module, $property) {
+  @return --#{$var-prefix}-#{$module}_#{$property}
+}
+
+@function get-property($module, $property) {
+  $name: get-name($module, $property);
+  $state-parts: split-string($module, $state-separator);
+  @if length($state-parts) >= 2 {
+    $fallback-module: join-to-string(set-nth($state-parts, -1, null), $state-separator);
+    @return var($name, get-property($fallback-module, $property))
+  } @else {
+    @return var($name);
+  }
+}
+
+@function nth-or-default($list, $n, $default: null) {
+  @if length($list) >= $n {
+    @return nth($list, $n);
+  }
+
+  @return $default;
+}
+
+@function split-string($string, $separator, $list: ()) {
+  $index: str-index($string, $separator);
+  @if $index == null {
+    @return append($list, $string);
+  }
+
+  $start: str-slice($string, 1, $index - 1);
+  $end: str-slice($string, $index + 1, -1);
+  $list: append($list, $start);
+
+  @return split-string($end, $separator, $list);
+}
+
+@function join-to-string($list, $separator) {
+  $result: "";
+  @each $item in $list {
+    @if type-of($item) == "string" {
+      $result: $result + $item + $separator;
+    }
+  }
+
+  @return str-slice($result, 1, -1 - str-length($separator));
+}
+
+@function inset-border($width, $color, $side) {
+  $offsets: (
+    top: 0 $width,
+    right: calc(#{$width} * -1) 0,
+    bottom: 0 calc(#{$width} * -1),
+    left: $width 0
+  );
+
+  @return inset map-get($offsets, $side) 0 0 $color;
+}

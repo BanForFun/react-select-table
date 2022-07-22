@@ -10,6 +10,12 @@ function PageSpacer({ children }) {
   return <div className='rst-page'>{children}</div>
 }
 
+/**
+ * Child of {@link Components.PaginationWrapper}.
+ *
+ * @name Components.DefaultPagination
+ * @type {React.FC}
+ */
 function DefaultPagination({ page, pageCount, goToPage }) {
   const repeatOffsetPage = useCallback(offset => {
     let nextPage = page
@@ -94,7 +100,5 @@ function DefaultPagination({ page, pageCount, goToPage }) {
     {_.times(width - pageFromEnd, i => <PageSpacer key={`padding_right_${i}`} />)}
   </div>
 }
-
-// DefaultPagination.propTypes = paginationProps
 
 export default DefaultPagination

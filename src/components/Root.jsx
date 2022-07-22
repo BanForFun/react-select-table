@@ -12,7 +12,13 @@ const parseColumn = col => ({
 
 const actionsExtra = { internal: true }
 
-// Child of Connector
+/**
+ * Child of {@link Components.Table}.
+ * Child of {@link Components.SlaveTable}.
+ *
+ * @name Components.Root
+ * @type {React.FC}
+ */
 function Root(props) {
   const {
     paginationComponent, // PaginationContainer

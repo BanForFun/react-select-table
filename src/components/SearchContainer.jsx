@@ -2,6 +2,12 @@ import React, { useCallback } from 'react'
 import classNames from 'classnames'
 import AngleIcon, { angleRotation } from './AngleIcon'
 
+/**
+ * Child of {@link Components.Root}.
+ *
+ * @name Components.SearchContainer
+ * @type {React.FC}
+ */
 function SearchContainer(props) {
   const {
     utils: { hooks },

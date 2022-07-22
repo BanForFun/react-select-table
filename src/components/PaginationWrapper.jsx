@@ -1,7 +1,12 @@
 import _ from 'lodash'
 import React, { useCallback } from 'react'
 
-// Child of Root
+/**
+ * Child of {@link Components.Root}.
+ *
+ * @name Components.PaginationWrapper
+ * @type {React.FC}
+ */
 function PaginationWrapper({
   paginationComponent: Pagination,
   actions,

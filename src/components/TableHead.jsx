@@ -6,7 +6,12 @@ import { GestureTargets } from '../constants/enums'
 import ColGroup from './ColGroup'
 import classNames from 'classnames'
 
-// Child of HeadContainer
+/**
+ * Child of {@link Components.ResizingContainer}.
+ *
+ * @name Components.TableHead
+ * @type {React.FC}
+ */
 function TableHead(props) {
   const {
     columns,

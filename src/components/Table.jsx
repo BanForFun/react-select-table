@@ -8,6 +8,7 @@ import defaultTableProps from '../constants/defaultTableProps'
 /**
  * Table component
  *
+ * @name Components.Table
  * @type {React.FC<import("../types/TableProps").TableProps>}
  */
 const Table = React.forwardRef((props, ref) => {

@@ -1,6 +1,13 @@
 import React, { useContext } from 'react'
 import ColumnGroupContext from '../context/ColumnGroup'
 
+/**
+ * Child of {@link Components.TableBody}.
+ * Child of {@link Components.TableHead}.
+ *
+ * @name Components.ColGroup
+ * @type {React.FC}
+ */
 const ColGroup = ({ name, columns }, ref) => {
   const { widths, widthUnit, containerWidth } = useContext(ColumnGroupContext)
 

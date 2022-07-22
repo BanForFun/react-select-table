@@ -181,7 +181,7 @@ const commonTablePropTypes = {
 }
 
 /**
- * The props of the {@link Table} component
+ * The props of {@link Components.Table}
  *
  * @typedef {PropTypes.InferProps<tablePropTypes>} TableProps
  */
@@ -192,7 +192,7 @@ export const tablePropTypes = {
 }
 
 /**
- * The props of the {@link SlaveTable} component
+ * The props of {@link Components.SlaveTable}
  *
  * @typedef {PropTypes.InferProps<slaveTablePropTypes>} SlaveTableProps
  */

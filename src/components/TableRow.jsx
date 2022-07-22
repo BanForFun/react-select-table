@@ -13,7 +13,12 @@ export function getRowBounds(row) {
   return { top, bottom: top + row.offsetHeight }
 }
 
-// Child of TableBody
+/**
+ * Child of {@link Components.TableBody}.
+ *
+ * @name Components.TableRow
+ * @type {React.FC}
+ */
 const TableRow = ({
   columns,
   gestureTargetPointerDownCapture,

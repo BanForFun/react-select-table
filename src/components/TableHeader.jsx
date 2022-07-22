@@ -3,7 +3,12 @@ import AngleIcon, { angleRotation } from './AngleIcon'
 import classNames from 'classnames'
 import HourGlassIcon from './HourGlassIcon'
 
-// Child of TableHead
+/**
+ * Child of {@link Components.TableHead}.
+ *
+ * @name Components.TableHeader
+ * @type {React.FC}
+ */
 function TableHeader({
   path,
   title,

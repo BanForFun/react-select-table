@@ -14,6 +14,7 @@ import defaultTableProps from '../constants/defaultTableProps'
  * - Loading indicator
  * - Empty placeholder
  *
+ * @name Components.SlaveTable
  * @type {React.FC<import("../types/TableProps").SlaveTableProps>}
  */
 const SlaveTable = React.forwardRef((props, ref) => {

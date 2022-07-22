@@ -5,7 +5,12 @@ import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColGroup from './ColGroup'
 import TableRow from './TableRow'
 
-// Child of BodyContainer
+/**
+ * Child of {@link Components.ResizingContainer}.
+ *
+ * @name Components.TableBody
+ * @type {React.FC}
+ */
 function TableBody(props) {
   const {
     selectionRectRef,

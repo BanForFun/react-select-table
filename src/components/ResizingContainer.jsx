@@ -9,8 +9,13 @@ import classNames from 'classnames'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { pc } from '../utils/tableUtils'
 
-// Child of ScrollingContainer
-// Handles gestures
+/**
+ * Child of {@link Components.ScrollingContainer}.
+ * Handles gestures
+ *
+ * @name Components.ResizingContainer
+ * @type {React.FC}
+ */
 function ResizingContainer(props) {
   const {
     // Own props

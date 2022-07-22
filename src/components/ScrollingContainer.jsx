@@ -42,8 +42,13 @@ function getRelativeOffset(absolute, origin, minVisible, maxVisible, scrollFacto
   }
 }
 
-// Child of Root
-// Handles drag selection and column resizing
+/**
+ * Child of {@link Components.Root}.
+ * Handles drag selection and column resizing
+ *
+ * @name Components.ScrollingContainer
+ * @type {React.FC}
+ */
 function ScrollingContainer(props) {
   const {
     dragSelectScrollFactor,
@@ -139,15 +144,17 @@ function ScrollingContainer(props) {
   }).current
 
   const columnResizing = useRef({
-    initialWidth: 0,
-    index: -1,
-    borderLeft: 0,
-    borderRight: 0
+    prevVisibleIndex: -1,
+    sharedWidth: Infinity,
+    maxWidth: Infinity,
+    distanceToStart: 0,
+    distanceToEnd: 0
   }).current
 
   const dragSelection = useRef({
     selection: {},
     selectionBuffer: {},
+    originRel: Point(),
     activeIndex: null,
     pivotIndex: null,
     prevRowIndex: -1,

@@ -122,13 +122,10 @@ function ScrollingContainer(props) {
       widthUnit: resizingIndex >= 0 ? px : pc,
       resizingIndex
     }))
-  }, [getVisibleColumnWidthsPatch])
 
-  const decoupledOnColumnResizeEnd = useDecoupledCallback(onColumnResizeEnd)
-  useEffect(() => {
-    if (columnGroup.resizingIndex >= 0) return
-    decoupledOnColumnResizeEnd(columnGroup.widths)
-  }, [columnGroup, decoupledOnColumnResizeEnd])
+    if (resizingIndex >= 0) return
+    onColumnResizeEnd(patch)
+  }, [getVisibleColumnWidthsPatch, onColumnResizeEnd])
 
   //#endregion
 

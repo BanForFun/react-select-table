@@ -127,10 +127,6 @@
   }
 }
 
-.rst-sortable .rst-headerText {
-  cursor: pointer;
-}
-
 .rst-headerText {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -142,6 +138,14 @@
   align-items: center;
   white-space: nowrap;
   overflow: hidden;
+
+  .rst-icon {
+    flex: none;
+  }
+}
+
+.rst-sortable .rst-headerContent {
+  cursor: pointer;
 }
 
 .rst-columnResizer {

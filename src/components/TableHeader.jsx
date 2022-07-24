@@ -61,12 +61,12 @@ function TableHeader({
   })
 
   return <th className={className}>
-    <div className='rst-headerContent'>
-      <span className='rst-headerText'
-        onMouseDown={handleTitleMouseDown}
-        onPointerDown={handlePointerDown}
-        onContextMenu={handleContextMenu}
-      >{title}</span>
+    <div className='rst-headerContent'
+      onMouseDown={handleTitleMouseDown}
+      onPointerDown={handlePointerDown}
+      onContextMenu={handleContextMenu}
+    >
+      <span className='rst-headerText'>{title}</span>
       {sortPriority >= 0 && <Fragment>
         <AngleIcon rotation={sortAscending ? angleRotation.Up : angleRotation.Down} />
         {showPriority && <small>{sortPriority}</small>}

@@ -24,6 +24,10 @@
     border-bottom-color: inherit;
   }
 
+  .rst-header {
+    padding-right: 0;
+  }
+
   .rst-resizingContainer {
     @include apply-properties("column", "border-width" "padding-right");
 
@@ -59,11 +63,12 @@
 
       &:nth-last-child(2) {
         box-shadow: $left-shadow, inset-border($width, $color, right);
+        padding-right: $width;
       }
     }
 
-    .rst-icon {
-      @include apply-properties("head", "icon-spacing" "margin-left");
+    .rst-headerContent > * {
+      @include apply-properties("head", "icon-spacing" "margin-right");
     }
   }
 

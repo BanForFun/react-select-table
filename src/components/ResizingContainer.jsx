@@ -89,7 +89,7 @@ function ResizingContainer(props) {
 
   const itemsOpen = useCallback(e => {
     if (e.ctrlKey || noSelection || showPlaceholder) return
-    onItemsOpen?.(selectors.getSelectionArg(getState()), false)
+    onItemsOpen(selectors.getSelectionArg(getState()), false)
   }, [noSelection, showPlaceholder, onItemsOpen, selectors, getState])
 
   const getGestureTargetTouchStartHandler = useCallback((touchCount, callback) => {

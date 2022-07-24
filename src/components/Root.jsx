@@ -104,7 +104,7 @@ function Root(props) {
 
   const handleShortcuts = useCallback(e => {
     if (showPlaceholder) return false
-    if (onKeyDown?.(e, selectors.getSelectionArg(getState())) === false) return false
+    if (onKeyDown(e, selectors.getSelectionArg(getState())) === false) return false
 
     const isPageFirst = pageIndex === 0
     const isPageLast = pageIndex === pageCount - 1
@@ -142,7 +142,7 @@ function Root(props) {
           !e.ctrlKey && !e.shiftKey &&
           selectors.getSelected(getState(), selectors.getActiveRowIndex(getState()))
         )
-          onItemsOpen?.(selectors.getSelectionArg(getState()), true)
+          onItemsOpen(selectors.getSelectionArg(getState()), true)
         else
           actions.select(activeIndex, e.shiftKey, e.ctrlKey)
 

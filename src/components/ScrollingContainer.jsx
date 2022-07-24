@@ -89,42 +89,47 @@ function ScrollingContainer(props) {
     resizingIndex: -1
   })
 
-  const getVisibleColumnWidthsPatch = useCallback(widths =>
+  const getRenderedColumnsWidthsPatch = useCallback(widths =>
     _.zipObject(_.map(columns, 'key'), widths), [columns])
 
   const defaultWidths = useMemo(() => {
     const defaultWidth = 100 / columns.length
     const widths = _.map(columns, c => +c.defaultWidth || defaultWidth)
-    return getVisibleColumnWidthsPatch(widths)
-  }, [columns, getVisibleColumnWidthsPatch])
+    return getRenderedColumnsWidthsPatch(widths)
+  }, [columns, getRenderedColumnsWidthsPatch])
+
+  const allWidths = useMemo(() => ({ ...defaultWidths, ...columnGroup.widths }),
+    [columnGroup, defaultWidths])
 
   const fullColumnGroup = useMemo(() => {
-    const widths = { ...defaultWidths, ...columnGroup.widths }
-    const actualWidths = _.map(headColGroupRef.current?.children, 'offsetWidth')
-    const renderedWidths = columns
-      .map(c => widths[c.key])
-      .filter((w, i) => actualWidths[i] !== 0) // Consider rendered when width is undefined
+    // Negative widths (columns that were hidden using css at the time of the last resize),
+    // should not contribute to the width of the container
+    const visibleWidths = columns.map(c => allWidths[c.key]).filter(w => w >= 0)
 
     const { resizingIndex } = columnGroup
     const isResizing = resizingIndex >= 0
+
     return {
       resizingIndex,
-      widths,
-      containerWidth: isResizing ? 0 : Math.max(100, _.sum(renderedWidths)),
+      widths: _.mapValues(allWidths, Math.abs),
+      containerWidth: isResizing ? 0 : Math.max(100, _.sum(visibleWidths)),
       widthUnit: isResizing ? px : pc
     }
-  }, [columnGroup, columns, defaultWidths])
+  }, [columnGroup, columns, allWidths])
 
-  const setVisibleColumnWidths = useCallback((widths, resizingIndex = -1) => {
-    const patch = _.pickBy(getVisibleColumnWidthsPatch(widths), isColumnVisible)
-    setColumnGroup(colGroup => {
-      _.defaults(patch, colGroup.widths)
-      if (resizingIndex < 0)
-        onColumnResizeEnd?.(patch)
+  const setRenderedColumnWidths = useCallback((widths, resizingIndex = -1) => {
+    const renderedPatch = getRenderedColumnsWidthsPatch(widths)
+    const visiblePatch = _.pickBy(renderedPatch, isColumnVisible)
+    const hiddenPatch = _.mapValues(renderedPatch, (w, key) => -Math.abs(allWidths[key]))
 
-      return { widths: patch, resizingIndex }
+    setColumnGroup({
+      widths: _.defaults(visiblePatch, hiddenPatch, allWidths),
+      resizingIndex
     })
-  }, [getVisibleColumnWidthsPatch, onColumnResizeEnd])
+
+    if (resizingIndex >= 0) return
+    onColumnResizeEnd(visiblePatch)
+  }, [getRenderedColumnsWidthsPatch, onColumnResizeEnd, allWidths])
 
   //#endregion
 
@@ -168,8 +173,8 @@ function ScrollingContainer(props) {
     const { scrollWidth: fullWidth, clientWidth: visibleWidth } = scrollingContainerRef.current
 
     const widths = getCurrentHeaderWidths().map(px => px / availableWidth * fullWidth / visibleWidth * 100)
-    setVisibleColumnWidths(widths)
-  }, [getCurrentHeaderWidths, setVisibleColumnWidths])
+    setRenderedColumnWidths(widths)
+  }, [getCurrentHeaderWidths, setRenderedColumnWidths])
 
   // Drag selection
   const rowKeys = hooks.useSelector(s => s.rowKeys)
@@ -487,8 +492,8 @@ function ScrollingContainer(props) {
     const body = tableBodyRef.current
     body.style.setProperty('--content-width', px(contentWidth))
 
-    setVisibleColumnWidths(widths, index)
-  }, [dragStart, getCurrentHeaderWidths, columnResizing, options, setVisibleColumnWidths])
+    setRenderedColumnWidths(widths, index)
+  }, [dragStart, getCurrentHeaderWidths, columnResizing, options, setRenderedColumnWidths])
 
   // Drag selection
   const dragSelectStart = useCallback((x, y, pointerId, rowIndex) => {

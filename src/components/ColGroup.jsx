@@ -1,5 +1,6 @@
 import React, { useContext } from 'react'
 import ColumnGroupContext from '../context/ColumnGroup'
+import _ from 'lodash'
 
 /**
  * Child of {@link Components.TableBody}.
@@ -11,17 +12,18 @@ import ColumnGroupContext from '../context/ColumnGroup'
 const ColGroup = ({ name, columns }, ref) => {
   const { widths, widthUnit, containerWidth } = useContext(ColumnGroupContext)
 
+  // Ensure that when the table is overflowing, the smallest column has a width of 100%,
+  // so that when a column gets hidden, the other columns share the space it occupied between themselves,
+  // instead of the spacer taking it
+  const factor = containerWidth > 100 ? 100 / _.min(_.values(widths)) : 1
+
   return <colgroup ref={ref}>
-    {columns.map(({ key }) => {
-      const width = widths[key]
-      return <col key={`col_${name}_${key}`}
-        // Ensure that when the table is overflowing and a column gets hidden,
-        // the other columns share the space it occupied between themselves, instead of the spacer taking it,
-        // as having a spacer while the table is overflowing, is weird and also breaks the column resizing code.
-        style={{ width: widthUnit(containerWidth > 100 ? 100 * width : width) }}
+    {columns.map(({ key }) =>
+      <col key={`col_${name}_${key}`}
+        style={{ width: widthUnit(widths[key] * factor) }}
         data-col-key={key}
       />
-    })}
+    )}
     <col/>
   </colgroup>
 }

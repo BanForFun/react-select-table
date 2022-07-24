@@ -86,7 +86,6 @@ function ScrollingContainer(props) {
 
   const [columnGroup, setColumnGroup] = useState({
     widths: initColumnWidths,
-    widthUnit: pc,
     resizingIndex: -1
   })
 
@@ -95,23 +94,24 @@ function ScrollingContainer(props) {
 
   const defaultWidths = useMemo(() => {
     const defaultWidth = 100 / columns.length
-    const widths = _.map(columns, c => c.defaultWidth ?? defaultWidth)
+    const widths = _.map(columns, c => +c.defaultWidth || defaultWidth)
     return getVisibleColumnWidthsPatch(widths)
   }, [columns, getVisibleColumnWidthsPatch])
 
   const fullColumnGroup = useMemo(() => {
     const widths = { ...defaultWidths, ...columnGroup.widths }
-
     const actualWidths = _.map(headColGroupRef.current?.children, 'offsetWidth')
     const renderedWidths = columns
       .map(c => widths[c.key])
       .filter((w, i) => actualWidths[i] !== 0) // Consider rendered when width is undefined
-    const containerWidth = Math.max(100, _.sum(renderedWidths))
 
+    const { resizingIndex } = columnGroup
+    const isResizing = resizingIndex >= 0
     return {
-      ...columnGroup,
+      resizingIndex,
       widths,
-      containerWidth: columnGroup.resizingIndex < 0 ? containerWidth : 0
+      containerWidth: isResizing ? 0 : Math.max(100, _.sum(renderedWidths)),
+      widthUnit: isResizing ? px : pc
     }
   }, [columnGroup, columns, defaultWidths])
 
@@ -119,7 +119,6 @@ function ScrollingContainer(props) {
     const patch = _.pickBy(getVisibleColumnWidthsPatch(widths), isColumnVisible)
     setColumnGroup(colGroup => ({
       widths: _.defaults(patch, colGroup.widths),
-      widthUnit: resizingIndex >= 0 ? px : pc,
       resizingIndex
     }))
 

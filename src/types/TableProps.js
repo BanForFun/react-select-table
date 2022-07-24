@@ -50,8 +50,35 @@ const columnShape = {
   defaultWidth: PropTypes.number
 }
 
+// Props of both Table and SlaveTable components
+export const componentEventHandlersPropTypes = {
+  /**
+   * Called when column resizing ends
+   *
+   * @param {Object<string, number>} widths The new column width percentages
+   */
+  onColumnResizeEnd: PropTypes.func,
+
+  /**
+   * Pass-through of the keydown event, with added selection argument
+   *
+   * @param {KeyboardEvent<HTMLDivElement>} e The original keydown event argument
+   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
+   * @returns {boolean|void} Return false to prevent default behaviour
+   */
+  onKeyDown: PropTypes.func,
+
+  /**
+   * Called on double-click or enter-press
+   *
+   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
+   * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
+   */
+  onItemsOpen: PropTypes.func
+}
+
 // Props of the Table component, but not of the SlaveTable component
-const reduxEventHandlersPropTypes = {
+export const reduxEventHandlersPropTypes = {
   /**
    * Called on right-click or two-finger tap
    *
@@ -77,6 +104,8 @@ const reduxEventHandlersPropTypes = {
 
 // Props of both Table and SlaveTable components
 const commonTablePropTypes = {
+  ...componentEventHandlersPropTypes,
+
   /**
    * Used to link a table component with a reducer.
    * Must match to the one passed as {@link createTable}
@@ -153,31 +182,7 @@ const commonTablePropTypes = {
    *
    * @param {object} row The row object
    */
-  getRowClassName: PropTypes.func,
-
-  /**
-   * Called when column resizing ends
-   *
-   * @param {Object<string, number>} widths The new column width percentages
-   */
-  onColumnResizeEnd: PropTypes.func,
-
-  /**
-   * Pass-through of the keydown event, with added selection argument
-   *
-   * @param {KeyboardEvent<HTMLDivElement>} e The original keydown event argument
-   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
-   * @returns {boolean|void} Return false to prevent default behaviour
-   */
-  onKeyDown: PropTypes.func,
-
-  /**
-   * Called on double-click or enter-press
-   *
-   * @param {SelectionArgType} selection See {@link EventsTypes.SelectionArg}
-   * @param {boolean} fromKeyboard Indicates whether the event was caused by keyboard input
-   */
-  onItemsOpen: PropTypes.func
+  getRowClassName: PropTypes.func
 }
 
 /**
@@ -205,8 +210,6 @@ export const slaveTablePropTypes = {
    */
   name: PropTypes.string.isRequired
 }
-
-export const reduxEventHandlerNames = Object.keys(reduxEventHandlersPropTypes)
 
 /**
  * @typedef {import('../models/Events').EventsTypes.SelectionArg} SelectionArgType

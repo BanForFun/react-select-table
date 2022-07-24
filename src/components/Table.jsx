@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { getTableUtils } from '../utils/tableUtils'
 import Root from './Root'
-import { tablePropTypes, reduxEventHandlerNames } from '../types/TableProps'
+import { tablePropTypes, reduxEventHandlersPropTypes } from '../types/TableProps'
 import { handlersSymbol } from '../models/Events'
 import defaultTableProps from '../constants/defaultTableProps'
 
@@ -18,7 +18,7 @@ const Table = React.forwardRef((props, ref) => {
 
   // Register redux event handlers
   const eventHandlers = utils.events[handlersSymbol]
-  for (const handlerName of reduxEventHandlerNames) {
+  for (const handlerName in reduxEventHandlersPropTypes) {
     const handler = props[handlerName]
     delete rootProps[handlerName]
 

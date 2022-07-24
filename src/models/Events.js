@@ -36,6 +36,8 @@ export const handlersSymbol = Symbol('Event handlers')
  * @typedef {?RowKeyType|Set<RowKeyType>} EventsTypes.ContextMenuArg
  */
 
+export const noopEventHandler = () => {}
+
 export default class Events {
   constructor(selectors) {
     /** @private */
@@ -51,7 +53,7 @@ export default class Events {
    * @returns {boolean} True, if the handler exists
    */
   hasListener(event) {
-    return !!this[handlersSymbol][event]
+    return this[handlersSymbol][event] !== noopEventHandler
   }
 
   /**
@@ -60,7 +62,7 @@ export default class Events {
    * @param {StateType} state The table's state
    */
   selectionChange(state) {
-    this[handlersSymbol].onSelectionChange?.(this.selectors.getSelectionArg(state))
+    this[handlersSymbol].onSelectionChange(this.selectors.getSelectionArg(state))
   }
 
   /**
@@ -71,7 +73,7 @@ export default class Events {
    * @param {boolean} [forceSelection] Passed to {@link Selectors.getContextMenuArg}
    */
   contextMenu(state, forceEmpty, forceSelection) {
-    this[handlersSymbol].onContextMenu?.(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
+    this[handlersSymbol].onContextMenu(this.selectors.getContextMenuArg(state, forceEmpty, forceSelection))
   }
 
   /**
@@ -80,6 +82,6 @@ export default class Events {
    * @param {boolean} internal Passed through to the handler as the first argument
    */
   actionDispatched(internal = false) {
-    this[handlersSymbol].onActionDispatched?.(internal)
+    this[handlersSymbol].onActionDispatched(internal)
   }
 }

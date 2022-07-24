@@ -69,17 +69,17 @@ function ResizingContainer(props) {
       events.contextMenu(getState(), true)
     else if (itemIndex === GestureTargets.BelowItems) {
       if (e.shiftKey)
-        actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey, true)
+        actions.withContextMenu.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
       else if (!options.listBox && !e.ctrlKey)
-        actions.clearSelection(true)
+        actions.withContextMenu.clearSelection()
       else
         events.contextMenu(getState(), !e.ctrlKey, true)
     } else if (options.listBox && e.ctrlKey)
       events.contextMenu(getState(), false, true)
     else if (options.listBox || (selectors.getSelected(getState(), rowIndex) && !e.ctrlKey))
-      actions.setActive(itemIndex, true)
+      actions.withContextMenu.setActive(itemIndex)
     else
-      actions.select(itemIndex, e.shiftKey, e.ctrlKey, true)
+      actions.withContextMenu.select(itemIndex, e.shiftKey, e.ctrlKey)
   }, [gesture, events, options, rowCount, actions, indexOffset, getState, selectors, showPlaceholder])
 
   const dragSelect = useCallback(e => {

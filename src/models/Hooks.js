@@ -81,14 +81,14 @@ export default class Hooks {
    * Returns the actions wrapped into dispatch calls using
    * {@link https://redux.js.org/api/bindactioncreators|bindActionCreators}
    *
-   * @param {?object} extra An object to be assigned to every action
+   * @param {?object} metadata An object to be assigned to every action
    * @returns {ActionsClass} The actions, but calling an action dispatches it automatically
    */
-  useActions(extra = null) {
+  useActions(metadata = null) {
     const dispatch = this.useDispatch()
     return useMemo(() => {
-      const dispatchWithExtra = action => dispatch(Object.assign(action, extra))
+      const dispatchWithExtra = action => dispatch(Object.assign(action, metadata))
       return bindActionCreators(this.actions, dispatchWithExtra)
-    }, [dispatch, extra])
+    }, [dispatch, metadata])
   }
 }

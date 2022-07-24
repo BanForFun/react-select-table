@@ -10,7 +10,7 @@ const parseColumn = col => ({
   ...col
 })
 
-const actionsExtra = { internal: true }
+const internalActionMetadata = { internal: true }
 
 /**
  * Child of {@link Components.Table}.
@@ -45,7 +45,12 @@ function Root(props) {
     containerRef.current.focus()
   }, [containerRef, autoFocus])
 
-  const actions = hooks.useActions(actionsExtra)
+  const internalActions = hooks.useActions(internalActionMetadata)
+  const internalContextMenuActions = hooks.useActions({ ...internalActionMetadata, contextMenu: true })
+  const actions = useMemo(() => ({
+    ...internalActions,
+    withContextMenu: internalContextMenuActions
+  }), [internalActions, internalContextMenuActions])
 
   const searchInputRef = useRef()
 

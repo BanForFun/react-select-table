@@ -17,7 +17,8 @@ export default class Actions {
      * @returns {ActionsTypes.Action} The complete action, including the namespace
      * @private
      */
-    this.getAction = (type, payload) => ({ namespace, type, payload })
+    this.getAction = (type, payload = null) =>
+      ({ namespace, type, payload })
   }
 
   /**
@@ -141,21 +142,19 @@ export default class Actions {
    * @param {number} index The index of the row to select, in relation to the first row of the first page
    * @param {boolean} isRange Select all rows in between the latest selected row and this one
    * @param {boolean} addToPrev Keep the previously selected rows selected
-   * @param {boolean} contextMenu Call {@link TableProps.onContextMenu} when done, with the updated selection
    * @returns {ActionsTypes.Action} The redux action object
    */
-  select(index, isRange = false, addToPrev = false, contextMenu = false) {
-    return this.getAction(types.SELECT, { index, addToPrev, isRange, contextMenu })
+  select(index, isRange = false, addToPrev = false) {
+    return this.getAction(types.SELECT, { index, addToPrev, isRange })
   }
 
   /**
    * Deselects all rows.
    *
-   * @param {boolean} contextMenu Call {@link TableProps.onContextMenu} when done
    * @returns {ActionsTypes.Action} The redux action object
    */
-  clearSelection(contextMenu = false) {
-    return this.getAction(types.CLEAR_SELECTION, { contextMenu })
+  clearSelection() {
+    return this.getAction(types.CLEAR_SELECTION)
   }
 
   /**
@@ -165,11 +164,10 @@ export default class Actions {
    * If the active row isn't visible, the table is scrolled to ensure that it is.
    *
    * @param {number} index The index of the row to be set active, in relation to the first row of the first page
-   * @param {boolean} contextMenu Call {@link TableProps.onContextMenu} when done
    * @returns {ActionsTypes.Action} The redux action object
    */
-  setActive(index, contextMenu = false) {
-    return this.getAction(types.SET_ACTIVE, { index, contextMenu })
+  setActive(index) {
+    return this.getAction(types.SET_ACTIVE, { index })
   }
 
   /**

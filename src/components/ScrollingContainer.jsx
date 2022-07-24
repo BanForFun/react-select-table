@@ -117,13 +117,13 @@ function ScrollingContainer(props) {
 
   const setVisibleColumnWidths = useCallback((widths, resizingIndex = -1) => {
     const patch = _.pickBy(getVisibleColumnWidthsPatch(widths), isColumnVisible)
-    setColumnGroup(colGroup => ({
-      widths: _.defaults(patch, colGroup.widths),
-      resizingIndex
-    }))
+    setColumnGroup(colGroup => {
+      _.defaults(patch, colGroup.widths)
+      if (resizingIndex < 0)
+        onColumnResizeEnd?.(patch)
 
-    if (resizingIndex >= 0) return
-    onColumnResizeEnd(patch)
+      return { widths: patch, resizingIndex }
+    })
   }, [getVisibleColumnWidthsPatch, onColumnResizeEnd])
 
   //#endregion

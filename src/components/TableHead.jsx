@@ -2,9 +2,9 @@ import React, { useMemo, useCallback, useContext } from 'react'
 import _ from 'lodash'
 import TableHeader from './TableHeader'
 import ColumnGroupContext from '../context/ColumnGroup'
-import { GestureTargets } from '../constants/enums'
 import ColGroup from './ColGroup'
 import classNames from 'classnames'
+import withGestures from '../hoc/withGestures'
 
 /**
  * Child of {@link Components.ResizingContainer}.
@@ -14,11 +14,10 @@ import classNames from 'classnames'
  */
 function TableHead(props) {
   const {
+    handleGesturePointerDownCapture,
+    handleGestureTouchStart,
     columns,
     name,
-    dragMode,
-    gestureTargetPointerDownCapture,
-    contextMenuTargetTouchStart,
     headColGroupRef,
     ...commonHeaderProps
   } = props
@@ -64,8 +63,8 @@ function TableHead(props) {
 
   return <div
     className='rst-head'
-    onPointerDownCapture={() => gestureTargetPointerDownCapture(GestureTargets.Header)}
-    onTouchStart={e => contextMenuTargetTouchStart(e, true)}
+    onPointerDownCapture={handleGesturePointerDownCapture}
+    onTouchStart={handleGestureTouchStart}
   >
     <table>
       <ColGroup name={name} columns={columns} ref={headColGroupRef} />
@@ -89,4 +88,4 @@ function TableHead(props) {
   </div>
 }
 
-export default TableHead
+export default withGestures(TableHead)

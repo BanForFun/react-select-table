@@ -43,8 +43,6 @@
 .rst-scrollingContainer {
   position: relative;
   flex: auto;
-  display: flex;
-  flex-direction: column;
   overflow: auto;
   touch-action: pan-x pan-y;
 
@@ -54,7 +52,6 @@
 
     .rst-body {
       max-width: 0;
-      overflow: visible;
       position: sticky;
       left: calc(var(--content-width) * -1);
 
@@ -66,14 +63,6 @@
 
   &[data-dragmode=select] {
     cursor: default;
-  }
-}
-
-.rst-clippingContainer {
-  flex: auto;
-
-  &.rst-showPlaceholder {
-    flex: none;
   }
 }
 
@@ -89,7 +78,6 @@
 .rst-resizingContainer {
   contain: paint;
   min-width: fit-content;
-  min-height: 100%;
   box-sizing: border-box;
 }
 

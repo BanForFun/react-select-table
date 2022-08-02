@@ -1,11 +1,13 @@
 import _ from 'lodash'
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import ResizingContainer from './ResizingContainer'
 import { pc, px } from '../utils/tableUtils'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
-import { DragModes } from '../constants/enums'
+import { DragModes, GestureTargets } from '../constants/enums'
+import GestureContext from '../context/GestureTarget'
+import withGestures from '../hoc/withGestures'
 
 const cancelScrollType = 'touchmove'
 const cancelScrollOptions = { passive: false }
@@ -51,18 +53,41 @@ function getRelativeOffset(absolute, origin, minVisible, maxVisible, scrollFacto
  */
 function ScrollingContainer(props) {
   const {
+    handleGesturePointerDownCapture,
+    handleGestureTouchStart,
+
     dragSelectScrollFactor,
     columnResizeScrollFactor,
     columns,
     initColumnWidths,
     onColumnResizeEnd,
+    onItemsOpen,
+    itemsOpen,
+    placeholder,
     ...resizingProps
   } = props
 
   const {
-    utils: { options, hooks, selectors },
-    actions
+    utils: { options, hooks, selectors, events },
+    actions,
+    contextMenu
   } = props
+
+  const gesture = useContext(GestureContext)
+
+  const [dragMode, setDragMode] = useState(null)
+  useLayoutEffect(() => {
+    gesture.isDragging = !!dragMode
+  }, [gesture, dragMode])
+
+  //#region Redux state
+
+  const rowCount = hooks.useSelector(s => s.rowKeys.length)
+  const rowKeys = hooks.useSelector(s => s.rowKeys)
+  const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
+  const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
+
+  //#endregion
 
   //#region Elements
 
@@ -70,7 +95,6 @@ function ScrollingContainer(props) {
   const headColGroupRef = useRef()
   const selectionRectRef = useRef()
   const scrollingContainerRef = useRef()
-  const resizingContainerRef = useRef()
 
   const getRow = useCallback(index => {
     const [table] = tableBodyRef.current.getElementsByTagName('table')
@@ -135,7 +159,6 @@ function ScrollingContainer(props) {
 
   //#region Drag states
 
-  const [dragMode, setDragMode] = useState(null)
   const drag = useRef({
     invertScroll: false,
     animationId: null,
@@ -177,8 +200,6 @@ function ScrollingContainer(props) {
   }, [getCurrentHeaderWidths, setRenderedColumnWidths])
 
   // Drag selection
-  const rowKeys = hooks.useSelector(s => s.rowKeys)
-  const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
   const dragSelectEnd = useCallback(() => {
     if (dragSelection.activeIndex == null) return
     actions.setSelected(
@@ -248,10 +269,12 @@ function ScrollingContainer(props) {
     const lineX = getLine(relX, originRel.x)
     const lineY = getLine(relY, originRel.y)
 
+    const body = tableBodyRef.current
+
     Object.assign(selectionRectRef.current.style, _.mapValues({
       left: lineX.origin,
       width: lineX.size,
-      top: lineY.origin,
+      top: lineY.origin + body.offsetTop,
       height: lineY.size
     }, px))
 
@@ -264,7 +287,7 @@ function ScrollingContainer(props) {
     // Animate active row
     if (dragSelection.activeIndex == null) return
 
-    const [prevActiveRow] = tableBodyRef.current.getElementsByClassName(ActiveClass)
+    const [prevActiveRow] = body.getElementsByClassName(ActiveClass)
     prevActiveRow.classList.remove(ActiveClass)
 
     const newActiveRow = getRow(dragSelection.activeIndex)
@@ -335,7 +358,6 @@ function ScrollingContainer(props) {
   ])
 
   // Drag selection
-  const rowCount = hooks.useSelector(s => s.rowKeys.length)
   const dragSelectUpdate = useCallback(() => {
     // Calculate selection rectangle
     const body = tableBodyRef.current
@@ -360,6 +382,7 @@ function ScrollingContainer(props) {
     // Calculate selection
     const availableHeight = container.scrollHeight - body.offsetTop
     const newRelY = _.clamp(relY + movement.y, top, availableHeight - bottom)
+    const newRelX = _.clamp(relX + movement.x, left, container.scrollWidth - right)
 
     const { selectionBuffer, originRel: { y: originRelY } } = dragSelection
     const direction = Math.sign(newRelY - dragSelection.prevRelY)
@@ -400,8 +423,7 @@ function ScrollingContainer(props) {
     }
 
     dragAnimate(dragSelectAnimate,
-      _.clamp(relX + movement.x, left, body.clientWidth - right),
-      newRelY,
+      newRelX, newRelY,
       scrollLeftOffset + movement.x,
       scrollTopOffset + movement.y
     )
@@ -516,7 +538,7 @@ function ScrollingContainer(props) {
 
   //#endregion
 
-  //#region Event handlers
+  //#region Drag Event handlers
 
   const handleScroll = useCallback(() => {
     if (drag.pointerId == null) return
@@ -554,8 +576,6 @@ function ScrollingContainer(props) {
     }
   }, [scrollingContainerRef, tableBodyRef])
 
-  const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
-
   useLayoutEffect(() => {
     const activeRow = getRow(activeRowIndex)
     if (!activeRow) return
@@ -574,18 +594,83 @@ function ScrollingContainer(props) {
 
   //#endregion
 
+  //#region Gesture actions
+
+  const showPlaceholder = !!placeholder
+
+  const dragSelect = useCallback(e => {
+    if (gesture.pointerId == null) return
+    dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.target)
+  }, [gesture, dragSelectStart])
+
+  //#endregion
+
+  //#region Gestures event handlers
+
+  const handleMouseDown = useCallback(e => {
+    if (e.button !== 0) return
+
+    const { target } = gesture
+    switch (target) {
+      case GestureTargets.Header: return
+      case GestureTargets.BelowItems:
+        if (e.shiftKey)
+          actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
+        else if (!options.listBox && !e.ctrlKey)
+          actions.clearSelection()
+
+        break
+      default:
+        actions.select(indexOffset + target, e.shiftKey, e.ctrlKey)
+        break
+    }
+
+    if (gesture.pointerType === 'mouse') {
+      getSelection().removeAllRanges()
+      dragSelect(e)
+    }
+  }, [gesture, actions, options, indexOffset, rowCount, dragSelect])
+
+  const handleDoubleClick = useCallback(e => {
+    itemsOpen(e)
+  }, [itemsOpen])
+
+  const handleContextMenu = useCallback(e => {
+    if (e.shiftKey) return // Show browser context menu when holding shift
+
+    const { target } = gesture
+    if (gesture.pointerType !== 'mouse' && !showPlaceholder) {
+      if (target >= 0)
+        actions.select(indexOffset + target, false, true)
+      else if (target !== GestureTargets.BelowItems)
+        return
+
+      return dragSelect(e)
+    }
+
+    if (events.hasListener('onContextMenu'))
+      e.preventDefault()
+
+    contextMenu(e)
+  }, [gesture, indexOffset, contextMenu, actions, events, dragSelect, showPlaceholder])
+
+  const contextMenuGestureEventHandlers = {
+    onContextMenu: handleContextMenu,
+    onPointerDownCapture: handleGesturePointerDownCapture,
+    onTouchStart: handleGestureTouchStart
+  }
+
+  //#endregion
+
   // Set props
   Object.assign(resizingProps, {
     tableBodyRef,
     headColGroupRef,
-    selectionRectRef,
-    resizingContainerRef,
 
-    dragMode,
     columns,
+    showPlaceholder,
 
-    columnResizeStart,
-    dragSelectStart
+    columnResizeStart
   })
 
   return <div
@@ -596,11 +681,22 @@ function ScrollingContainer(props) {
     onPointerMove={handlePointerMove}
     onPointerUp={handlePointerEnd}
     onPointerCancel={handlePointerEnd}
+    onMouseDown={handleMouseDown}
+    onDoubleClick={handleDoubleClick}
+    {...contextMenuGestureEventHandlers}
   >
     <ColumnGroupContext.Provider value={fullColumnGroup}>
-      <ResizingContainer {...resizingProps} />
+      <div className="rst-selectionContainer">
+        <ResizingContainer {...resizingProps} />
+        {dragMode === DragModes.Select &&
+          <div className='rst-dragSelection' ref={selectionRectRef} />}
+      </div>
     </ColumnGroupContext.Provider>
+    {showPlaceholder && <div
+      className="rst-placeholder"
+      {...contextMenuGestureEventHandlers}
+    >{placeholder}</div>}
   </div>
 }
 
-export default ScrollingContainer
+export default withGestures(ScrollingContainer)

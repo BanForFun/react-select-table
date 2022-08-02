@@ -2,6 +2,7 @@ import React from 'react'
 import _ from 'lodash'
 import classNames from 'classnames'
 import TableCell from './TableCell'
+import withGestures from '../hoc/withGestures'
 
 export const ActiveClass = 'rst-active'
 export const SelectedClass = 'rst-selected'
@@ -20,9 +21,9 @@ export function getRowBounds(row) {
  * @type {React.FC}
  */
 const TableRow = ({
+  handleGesturePointerDownCapture,
+  handleGestureTouchStart,
   columns,
-  gestureTargetPointerDownCapture,
-  contextMenuTargetTouchStart,
   selected,
   active,
   index,
@@ -47,13 +48,13 @@ const TableRow = ({
 
   return <tr
     className={trClass}
-    onPointerDownCapture={() => gestureTargetPointerDownCapture(index)}
-    onTouchStart={e => contextMenuTargetTouchStart(e, true)}
+    onPointerDownCapture={handleGesturePointerDownCapture}
+    onTouchStart={handleGestureTouchStart}
   >
     {columns.map(renderColumn)}
     <td className='rst-spacer' />
   </tr>
 }
 
-export default React.memo(TableRow, _.isEqual)
+export default React.memo(withGestures(TableRow), _.isEqual)
 // export default TableRow

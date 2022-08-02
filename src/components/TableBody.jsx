@@ -1,5 +1,4 @@
 import React from 'react'
-import { DragModes } from '../constants/enums'
 import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColGroup from './ColGroup'
@@ -13,11 +12,10 @@ import TableRow from './TableRow'
  */
 function TableBody(props) {
   const {
-    selectionRectRef,
     tableBodyRef,
-    dragMode,
     showPlaceholder,
     getRowClassName,
+    contextMenu,
     utils: { hooks, selectors },
 
     ...rowCommonProps
@@ -42,7 +40,9 @@ function TableBody(props) {
       key: `row_${props.name}_${rowKey}`,
       active: rowIndex === activeRowIndex,
       selected: rowSelected,
-      className: getRowClassName(rowItem)
+      className: getRowClassName(rowItem),
+      gestureTarget: rowIndex,
+      onDualTap: contextMenu
     }
 
     return <TableRow {...rowProps} />
@@ -55,8 +55,6 @@ function TableBody(props) {
         {!showPlaceholder && rowKeys.map(renderRow)}
       </tbody>
     </table>
-    {dragMode === DragModes.Select &&
-      <div className='rst-dragSelection' ref={selectionRectRef} />}
   </div>
 }
 

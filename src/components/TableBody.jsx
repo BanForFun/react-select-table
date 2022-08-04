@@ -3,6 +3,7 @@ import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColGroup from './ColGroup'
 import TableRow from './TableRow'
+import { DragModes } from '../constants/enums'
 
 /**
  * Child of {@link Components.ResizingContainer}.
@@ -12,6 +13,8 @@ import TableRow from './TableRow'
  */
 function TableBody(props) {
   const {
+    dragMode,
+    selectionRectRef,
     tableBodyRef,
     showPlaceholder,
     getRowClassName,
@@ -55,6 +58,8 @@ function TableBody(props) {
         {!showPlaceholder && rowKeys.map(renderRow)}
       </tbody>
     </table>
+    {dragMode === DragModes.Select &&
+      <div className='rst-dragSelection' ref={selectionRectRef} />}
   </div>
 }
 

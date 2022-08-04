@@ -24,24 +24,12 @@
     border-bottom-color: inherit;
   }
 
+  .rst-spacer {
+    border-right: none;
+  }
+
   .rst-header {
     padding-right: 0;
-  }
-
-  .rst-resizingContainer {
-    @include apply-properties("column", "border-width" "padding-right");
-
-    .rst-head, .rst-body {
-      margin-right: calc(#{get-property("column", "border-width")} * -1);
-    }
-  }
-
-  .rst-clipping {
-    @include apply-properties("column", "border" "border-right");
-
-    .rst-resizingContainer {
-      padding-right: 0; //Crop border of the spacer
-    }
   }
 
   .rst-scrollingContainer {

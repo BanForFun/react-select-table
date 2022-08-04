@@ -59,6 +59,15 @@
         width: 100vw;
       }
     }
+
+    .rst-resizingContainer {
+      contain: paint;
+    }
+
+    .rst-head {
+      //To ensure that the table can overflow while the column separator is entirely visible
+      padding-right: 1px;
+    }
   }
 
   &[data-dragmode=select] {
@@ -66,7 +75,11 @@
   }
 }
 
-.rst-clipping {
+.rst-clippingContainer {
+  min-height: 100%;
+}
+
+.rst-clippingContainer[data-clipping] {
   contain: paint;
   min-width: min-content;
 
@@ -76,7 +89,6 @@
 }
 
 .rst-resizingContainer {
-  contain: paint;
   min-width: fit-content;
   box-sizing: border-box;
 }

@@ -192,8 +192,11 @@ function ScrollingContainer(props) {
   // Column resizing
   const columnResizeEnd = useCallback(() => {
     // Account for collapsed border
-    const { clientWidth: availableWidth } = headColGroupRef.current
-    const { scrollWidth: fullWidth, clientWidth: visibleWidth } = scrollingContainerRef.current
+    const {
+      offsetWidth: availableWidth,
+      offsetParent: { offsetWidth: fullWidth }
+    } = headColGroupRef.current
+    const { clientWidth: visibleWidth } = scrollingContainerRef.current
 
     const widths = getCurrentHeaderWidths().map(px => px / availableWidth * fullWidth / visibleWidth * 100)
     setRenderedColumnWidths(widths)
@@ -269,12 +272,10 @@ function ScrollingContainer(props) {
     const lineX = getLine(relX, originRel.x)
     const lineY = getLine(relY, originRel.y)
 
-    const body = tableBodyRef.current
-
     Object.assign(selectionRectRef.current.style, _.mapValues({
       left: lineX.origin,
       width: lineX.size,
-      top: lineY.origin + body.offsetTop,
+      top: lineY.origin,
       height: lineY.size
     }, px))
 
@@ -287,7 +288,7 @@ function ScrollingContainer(props) {
     // Animate active row
     if (dragSelection.activeIndex == null) return
 
-    const [prevActiveRow] = body.getElementsByClassName(ActiveClass)
+    const [prevActiveRow] = tableBodyRef.current.getElementsByClassName(ActiveClass)
     prevActiveRow.classList.remove(ActiveClass)
 
     const newActiveRow = getRow(dragSelection.activeIndex)
@@ -338,14 +339,7 @@ function ScrollingContainer(props) {
     if (constantWidth)
       changedWidths[index] = sharedWidth - newWidth
 
-    // If we were to calculate the scroll position even when scrollOffset and movementOffset is 0,
-    // the table can slowly drift due to rounding errors on hi-dpi screens
-    const absPos = _.clamp(drag.pointerPos.x - containerX, 0, containerWidth)
-    const overscroll = newWidth !== targetWidth
-    const newScroll = !overscroll && (scrollOffset || movementOffset)
-      ? distanceToStart + newWidth - absPos
-      : scroll + scrollOffset + movementOffset
-
+    const newScroll = scroll + scrollOffset + movementOffset
     dragAnimate(columnResizeAnimation, changedWidths, newScroll)
   }, [
     drag,
@@ -666,10 +660,11 @@ function ScrollingContainer(props) {
   Object.assign(resizingProps, {
     tableBodyRef,
     headColGroupRef,
+    selectionRectRef,
 
     columns,
     showPlaceholder,
-
+    dragMode,
     columnResizeStart
   })
 
@@ -686,11 +681,7 @@ function ScrollingContainer(props) {
     {...contextMenuGestureEventHandlers}
   >
     <ColumnGroupContext.Provider value={fullColumnGroup}>
-      <div className="rst-selectionContainer">
-        <ResizingContainer {...resizingProps} />
-        {dragMode === DragModes.Select &&
-          <div className='rst-dragSelection' ref={selectionRectRef} />}
-      </div>
+      <ResizingContainer {...resizingProps} />
     </ColumnGroupContext.Provider>
     {showPlaceholder && <div
       className="rst-placeholder"

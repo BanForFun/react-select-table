@@ -4,8 +4,8 @@ import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { GestureTargets } from '../constants/enums'
-import classNames from 'classnames'
 import { pc } from '../utils/tableUtils'
+import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 
 /**
  * Child of {@link Components.ScrollingContainer}.
@@ -26,6 +26,8 @@ function ResizingContainer(props) {
     tableBodyRef,
     showPlaceholder,
     contextMenu,
+    dragMode,
+    selectionRectRef,
 
     ...commonProps
   } = props
@@ -52,7 +54,9 @@ function ResizingContainer(props) {
   const bodyProps = {
     ...commonProps,
     tableBodyRef,
+    selectionRectRef,
 
+    dragMode,
     showPlaceholder,
     getRowClassName,
     contextMenu
@@ -103,10 +107,10 @@ function ResizingContainer(props) {
   const overflowing = containerWidth > 100
   const showClipStoppers = !!containerWidth && !overflowing // containerWidth is 0 when resizing the columns
 
-  return <div className={classNames({
-    'rst-clippingContainer': true,
-    'rst-clipping': showClipStoppers
-  })}>
+  return <div
+    className='rst-clippingContainer'
+    {...dataAttributeFlags({ clipping: showClipStoppers })}
+  >
     {showClipStoppers && columnStoppers}
     <div
       className='rst-resizingContainer'

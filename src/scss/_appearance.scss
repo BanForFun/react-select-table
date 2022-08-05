@@ -54,7 +54,8 @@
     $separator-color: get-property("column-separator", "color");
 
     .rst-endCap {
-      box-shadow: outset-border($separator-width, $separator-color, left);
+      box-shadow: 0 0 0 $separator-width $separator-color;
+      clip-path: border-box inset(0 0 0 calc(#{$separator-width} * -1));
     }
 
     .rst-header {

@@ -29,11 +29,11 @@ $debugStoppers: false;
 .rst-endCap {
   width: 0;
   box-sizing: content-box;
+}
 
-  .rst-columnResizer {
-    max-width: unset;
-    transform: none;
-  }
+.rst-spacer .rst-columnResizer {
+  max-width: unset;
+  transform: none;
 }
 
 .rst-search {

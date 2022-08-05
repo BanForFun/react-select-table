@@ -80,7 +80,9 @@ function ResizingContainer(props) {
     if (e.shiftKey) return // Show browser context menu when holding shift
 
     const { target } = gesture
-    if (gesture.pointerType !== 'mouse' && !showPlaceholder) {
+    if (gesture.pointerType !== 'mouse') {
+      if (showPlaceholder) return
+
       if (target >= 0)
         actions.select(indexOffset + target, false, true)
       else if (target !== GestureTargets.BelowItems)

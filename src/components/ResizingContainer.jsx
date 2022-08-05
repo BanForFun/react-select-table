@@ -26,6 +26,7 @@ function ResizingContainer(props) {
 
     // HeadContainer props
     headColGroupRef,
+    headerRef,
     columnResizeStart,
     actions,
 
@@ -46,7 +47,7 @@ function ResizingContainer(props) {
 
   const showPlaceholder = !!placeholder
 
-  const { containerWidth, widths } = useContext(ColumnGroupContext)
+  const { containerWidth, widths, resizingIndex } = useContext(ColumnGroupContext)
   const gesture = useContext(GestureContext)
 
   const rowCount = hooks.useSelector(s => s.rowKeys.length)
@@ -147,14 +148,15 @@ function ResizingContainer(props) {
   const resizingStopperWidths = _.map(columnKeys, key =>
     containerWidth / widths[key] * options.minColumnWidth)
 
-  const overflowing = containerWidth > 100
-  const isResizing = !containerWidth
-  const showClippingStoppers = !isResizing && !overflowing
+  const isOverflowing = containerWidth > 100
+  const isResizing = resizingIndex >= 0
+  const showClippingStoppers = !isResizing && !isOverflowing
 
   const headProps = {
     ...commonProps,
     headColGroupRef,
     actions,
+    headerRef,
 
     columnResizeStart
   }
@@ -184,7 +186,7 @@ function ResizingContainer(props) {
         }}
         {...gestureEventHandlers}
       >
-        {!isResizing && (overflowing ? clippingStoppers
+        {!isResizing && (isOverflowing ? clippingStoppers
           : <div className="rst-stoppers">{
             _.map(columnKeys, (key, index) =>
               <div className="rst-resizingStopper rst-stopper"

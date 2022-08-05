@@ -24,7 +24,6 @@ const ColGroup = ({ name, columns }, ref) => {
         data-col-key={key}
       />
     )}
-    <col />
   </colgroup>
 }
 

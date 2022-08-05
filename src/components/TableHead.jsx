@@ -19,6 +19,7 @@ function TableHead(props) {
     columns,
     name,
     headColGroupRef,
+    headerRef,
     ...commonHeaderProps
   } = props
 
@@ -69,7 +70,7 @@ function TableHead(props) {
     <table>
       <ColGroup name={name} columns={columns} ref={headColGroupRef} />
       <thead>
-        <tr className='rst-row'>
+        <tr className='rst-row' ref={headerRef}>
           {columns.map((col, idx) =>
             <TableHeader key={`header_${name}_${col.key}`} {...getHeaderProps(col, idx)} />)}
 

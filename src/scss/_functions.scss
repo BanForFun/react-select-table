@@ -45,11 +45,15 @@
   @return str-slice($result, 1, -1 - str-length($separator));
 }
 
+@function negative($value) {
+  @return calc(#{$value} * -1);
+}
+
 @function inset-border($width, $color, $side) {
   $offsets: (
     top: 0 $width,
-    right: calc(#{$width} * -1) 0,
-    bottom: 0 calc(#{$width} * -1),
+    right: negative($width) 0,
+    bottom: 0 negative($width),
     left: $width 0
   );
 

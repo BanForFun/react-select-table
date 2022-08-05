@@ -2,6 +2,7 @@ import Utils from '../models/Utils'
 
 export const px = n => `${n}px`
 export const pc = n => `${n}%`
+export const negative = n => -Math.abs(n)
 
 const tableUtils = {}
 

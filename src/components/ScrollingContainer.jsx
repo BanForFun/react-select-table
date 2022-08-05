@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import ResizingContainer from './ResizingContainer'
-import { pc, px } from '../utils/tableUtils'
+import { pc, px, negative } from '../utils/tableUtils'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
@@ -92,6 +92,7 @@ function ScrollingContainer(props) {
 
   const tableBodyRef = useRef()
   const headColGroupRef = useRef()
+  const headerRef = useRef()
   const selectionRectRef = useRef()
   const scrollingContainerRef = useRef()
 
@@ -122,8 +123,13 @@ function ScrollingContainer(props) {
     return getRenderedColumnsWidthsPatch(widths)
   }, [columns, getRenderedColumnsWidthsPatch])
 
-  const allWidths = useMemo(() => ({ ...defaultWidths, ...columnGroup.widths }),
-    [columnGroup, defaultWidths])
+  const allWidths = useMemo(() => {
+    // Fix invalid initial column widths state, that may have resulted from using version <5.1.1
+    const validWidths = _.mapValues(columnGroup.widths,
+      (width, key) => width || negative(defaultWidths[key]))
+
+    return { ...defaultWidths, ...validWidths }
+  }, [columnGroup, defaultWidths])
 
   const fullColumnGroup = useMemo(() => {
     // Negative widths (columns that were hidden using css at the time of the last resize),
@@ -144,7 +150,7 @@ function ScrollingContainer(props) {
   const setRenderedColumnWidths = useCallback((widths, resizingIndex = -1) => {
     const renderedPatch = getRenderedColumnsWidthsPatch(widths)
     const visiblePatch = _.pickBy(renderedPatch, isColumnVisible)
-    const hiddenPatch = _.mapValues(renderedPatch, (w, key) => -Math.abs(allWidths[key]))
+    const hiddenPatch = _.mapValues(renderedPatch, (w, key) => negative(allWidths[key]))
 
     setColumnGroup({
       widths: _.defaults(visiblePatch, hiddenPatch, allWidths),
@@ -191,15 +197,14 @@ function ScrollingContainer(props) {
 
   // Column resizing
   const columnResizeEnd = useCallback(() => {
-    // Account for collapsed border
-    const {
-      offsetWidth: fullWidth,
-      lastChild: { offsetLeft: availableWidth }
-    } = headColGroupRef.current
+    // Account for end-cap border
+    const { offsetWidth: availableWidth } = headColGroupRef.current
+    const { lastChild: { offsetLeft: fullWidth } } = headerRef.current
     const { clientWidth: visibleWidth } = scrollingContainerRef.current
 
     const scale = fullWidth > visibleWidth ? fullWidth / availableWidth : 1
     const widths = getCurrentHeaderWidths().map(px => px / visibleWidth * scale * 100)
+
     setRenderedColumnWidths(widths)
   }, [getCurrentHeaderWidths, setRenderedColumnWidths])
 
@@ -490,7 +495,7 @@ function ScrollingContainer(props) {
     const {
       lastChild: { offsetLeft: contentWidth },
       children: { [prevVisibleIndex]: prevHeader, [index]: header }
-    } = headColGroupRef.current.offsetParent.rows.item(0)
+    } = headerRef.current
 
     Object.assign(columnResizing, {
       prevVisibleIndex,
@@ -635,6 +640,7 @@ function ScrollingContainer(props) {
     tableBodyRef,
     headColGroupRef,
     selectionRectRef,
+    headerRef,
 
     columns,
     dragMode,

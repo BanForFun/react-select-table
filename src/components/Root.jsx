@@ -3,10 +3,7 @@ import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
 import classNames from 'classnames'
-import { GestureTargets } from '../constants/enums'
-import * as setUtils from '../utils/setUtils'
 import GestureContext from '../context/GestureTarget'
-import useDecoupledCallback from '../hooks/useDecoupledCallback'
 
 const parseColumn = col => ({
   render: value => value,
@@ -39,7 +36,7 @@ function Root(props) {
   } = props
 
   const {
-    utils: { hooks, selectors, events, options },
+    utils: { hooks, selectors },
     onItemsOpen
   } = props
 
@@ -60,14 +57,11 @@ function Root(props) {
 
   const pageIndex = hooks.useSelector(selectors.getPageIndex)
   const pageCount = hooks.useSelector(selectors.getPageCount)
-  const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
   const activeIndex = hooks.useSelector(s => s.activeIndex)
   const pageSize = hooks.useSelector(s => s.pageSize)
   const isLoading = hooks.useSelector(s => s.isLoading)
   const error = hooks.useSelector(s => s.error)
   const itemCount = hooks.useSelector(s => s.visibleItemCount)
-  const rowCount = hooks.useSelector(s => s.rowKeys.length)
-  const noSelection = hooks.useSelector(s => setUtils.isEmpty(s.selected))
 
   const getState = hooks.useGetState()
 
@@ -189,38 +183,6 @@ function Root(props) {
     isDragging: false
   }).current
 
-  const contextMenu = useDecoupledCallback(useCallback(e => {
-    const { target } = gesture
-
-    if (showPlaceholder)
-      events.contextMenu(getState(), true)
-    else if (e.altKey)
-      events.contextMenu(getState(), !e.ctrlKey)
-    else if (target === GestureTargets.Header)
-      events.contextMenu(getState(), true)
-    else if (target === GestureTargets.BelowItems) {
-      if (e.shiftKey)
-        actions.withContextMenu.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
-      else if (!options.listBox && !e.ctrlKey)
-        actions.withContextMenu.clearSelection()
-      else
-        events.contextMenu(getState(), !e.ctrlKey, true)
-    } else if (options.listBox && e.ctrlKey)
-      events.contextMenu(getState(), false, true)
-    else if (options.listBox || (selectors.getSelected(getState(), target) && !e.ctrlKey))
-      actions.withContextMenu.setActive(indexOffset + target)
-    else
-      actions.withContextMenu.select(indexOffset + target, e.shiftKey, e.ctrlKey)
-
-    return false // Prevent other dual-tap gestures
-  }, [gesture, events, options, rowCount, actions, indexOffset, getState, selectors, showPlaceholder]))
-
-  const itemsOpen = useDecoupledCallback(useCallback(e => {
-    if (e.ctrlKey || noSelection || showPlaceholder) return
-    onItemsOpen(selectors.getSelectionArg(getState()), false)
-    return false // Prevent other dual-tap gestures
-  }, [noSelection, showPlaceholder, onItemsOpen, selectors, getState]))
-
   const handlePointerDown = useCallback(e => {
     gesture.pointerType = e.pointerType
     gesture.pointerId = e.isPrimary ? e.pointerId : null
@@ -231,9 +193,7 @@ function Root(props) {
   // Scrolling container props
   Object.assign(scrollingProps, {
     actions,
-    placeholder,
-    contextMenu,
-    itemsOpen
+    placeholder
   })
 
   // Pagination container props
@@ -261,9 +221,6 @@ function Root(props) {
       <SearchContainer {...searchProps} />
       <ScrollingContainer {...scrollingProps}
         columns={columns.map(parseColumn)}
-        gestureTarget={GestureTargets.BelowItems}
-        onDualTap={itemsOpen}
-        onDualTapDirect={contextMenu}
       />
       {!showPlaceholder && pageCount > 1 &&
         <PaginationContainer {...paginationProps} />}

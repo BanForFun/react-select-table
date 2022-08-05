@@ -1,4 +1,4 @@
-import React, { useContext } from 'react'
+import React, { Fragment, useContext, useCallback } from 'react'
 import _ from 'lodash'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
@@ -6,6 +6,8 @@ import ColumnGroupContext from '../context/ColumnGroup'
 import { GestureTargets } from '../constants/enums'
 import { pc } from '../utils/tableUtils'
 import { dataAttributeFlags } from '../utils/dataAttributeUtils'
+import withGestures from '../hoc/withGestures'
+import GestureContext from '../context/GestureTarget'
 
 /**
  * Child of {@link Components.ScrollingContainer}.
@@ -16,6 +18,12 @@ import { dataAttributeFlags } from '../utils/dataAttributeUtils'
  */
 function ResizingContainer(props) {
   const {
+    handleGesturePointerDownCapture,
+    handleGestureTouchStart,
+    dragSelect,
+    itemsOpen,
+    placeholder,
+
     // HeadContainer props
     headColGroupRef,
     columnResizeStart,
@@ -24,7 +32,6 @@ function ResizingContainer(props) {
     // BodyContainer props
     getRowClassName,
     tableBodyRef,
-    showPlaceholder,
     contextMenu,
     dragMode,
     selectionRectRef,
@@ -33,36 +40,68 @@ function ResizingContainer(props) {
   } = props
 
   const {
-    utils: { options },
+    utils: { options, hooks, selectors, events },
     columns
   } = props
 
-  //#region Event handlers
-
-  //#endregion
-
-  const headProps = {
-    ...commonProps,
-    headColGroupRef,
-    actions,
-    gestureTarget: GestureTargets.Header,
-    onDualTap: contextMenu,
-
-    columnResizeStart
-  }
-
-  const bodyProps = {
-    ...commonProps,
-    tableBodyRef,
-    selectionRectRef,
-
-    dragMode,
-    showPlaceholder,
-    getRowClassName,
-    contextMenu
-  }
+  const showPlaceholder = !!placeholder
 
   const { containerWidth, widths } = useContext(ColumnGroupContext)
+  const gesture = useContext(GestureContext)
+
+  const rowCount = hooks.useSelector(s => s.rowKeys.length)
+  const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
+
+  const handleMouseDown = useCallback(e => {
+    if (showPlaceholder || e.button !== 0) return
+
+    const { target } = gesture
+    switch (target) {
+      case GestureTargets.Header: return
+      case GestureTargets.BelowItems:
+        if (e.shiftKey)
+          actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
+        else if (!options.listBox && !e.ctrlKey)
+          actions.clearSelection()
+
+        break
+      default:
+        actions.select(indexOffset + target, e.shiftKey, e.ctrlKey)
+        break
+    }
+
+    if (gesture.pointerType === 'mouse') {
+      getSelection().removeAllRanges()
+      dragSelect(e)
+    }
+  }, [gesture, actions, options, indexOffset, rowCount, dragSelect, showPlaceholder])
+
+  const handleContextMenu = useCallback(e => {
+    if (e.shiftKey) return // Show browser context menu when holding shift
+
+    const { target } = gesture
+    if (gesture.pointerType !== 'mouse' && !showPlaceholder) {
+      if (target >= 0)
+        actions.select(indexOffset + target, false, true)
+      else if (target !== GestureTargets.BelowItems)
+        return
+
+      return dragSelect(e)
+    }
+
+    if (events.hasListener('onContextMenu'))
+      e.preventDefault()
+
+    contextMenu(e)
+  }, [gesture, indexOffset, contextMenu, actions, events, dragSelect, showPlaceholder])
+
+  const gestureEventHandlers = {
+    onMouseDown: handleMouseDown,
+    onDoubleClick: itemsOpen,
+    onContextMenu: handleContextMenu,
+    onPointerDownCapture: handleGesturePointerDownCapture,
+    onTouchStart: handleGestureTouchStart
+  }
 
   // The width of a hidden column must be distributed to the other columns, because the width of the container
   // must stay constant, as columns can be hidden using css while shrinking the container,
@@ -110,32 +149,59 @@ function ResizingContainer(props) {
   const isResizing = !containerWidth
   const showClippingStoppers = !isResizing && !overflowing
 
-  return <div
-    className='rst-clippingContainer'
-    {...dataAttributeFlags({ clipping: showClippingStoppers })}
-  >
-    {showClippingStoppers && clippingStoppers}
+  const headProps = {
+    ...commonProps,
+    headColGroupRef,
+    actions,
+
+    columnResizeStart
+  }
+
+  const bodyProps = {
+    ...commonProps,
+    tableBodyRef,
+    selectionRectRef,
+
+    dragMode,
+    showPlaceholder,
+    getRowClassName,
+    contextMenu
+  }
+
+  return <Fragment>
     <div
-      className='rst-resizingContainer'
-      style={{
-        width: pc(containerWidth),
-        marginRight: showClippingStoppers ? -_.max(resizingStopperWidths) : 0
-      }}
+      className='rst-clippingContainer'
+      {...dataAttributeFlags({ clipping: showClippingStoppers })}
     >
-      {!isResizing && (overflowing ? clippingStoppers
-        : <div className="rst-stoppers">{
-          _.map(columnKeys, (key, index) =>
-            <div className="rst-resizingStopper rst-stopper"
-              data-col-key={key}
-              key={`stopper-${key}`}
-              style={{ width: resizingStopperWidths[index] }}
-            />)
-        }</div>
-      )}
-      <TableHead {...headProps} />
-      <TableBody {...bodyProps} />
+      {showClippingStoppers && clippingStoppers}
+      <div
+        className='rst-resizingContainer'
+        style={{
+          width: pc(containerWidth),
+          marginRight: showClippingStoppers ? -_.max(resizingStopperWidths) : 0
+        }}
+        {...gestureEventHandlers}
+      >
+        {!isResizing && (overflowing ? clippingStoppers
+          : <div className="rst-stoppers">{
+            _.map(columnKeys, (key, index) =>
+              <div className="rst-resizingStopper rst-stopper"
+                data-col-key={key}
+                key={`stopper-${key}`}
+                style={{ width: resizingStopperWidths[index] }}
+              />)
+          }</div>
+        )}
+        <TableHead {...headProps}
+          gestureTarget={GestureTargets.Header}
+          onDualTap={contextMenu}
+        />
+        <TableBody {...bodyProps} />
+      </div>
     </div>
-  </div>
+    {showPlaceholder &&
+      <div className="rst-placeholder" {...gestureEventHandlers}>{placeholder}</div>}
+  </Fragment>
 }
 
-export default ResizingContainer
+export default withGestures(ResizingContainer)

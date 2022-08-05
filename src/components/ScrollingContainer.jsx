@@ -7,8 +7,8 @@ import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { DragModes, GestureTargets } from '../constants/enums'
 import GestureContext from '../context/GestureTarget'
-import withGestures from '../hoc/withGestures'
 import { dataAttributeFlags } from '../utils/dataAttributeUtils'
+import * as setUtils from '../utils/setUtils'
 
 const cancelScrollType = 'touchmove'
 const cancelScrollOptions = { passive: false }
@@ -54,24 +54,19 @@ function getRelativeOffset(absolute, origin, minVisible, maxVisible, scrollFacto
  */
 function ScrollingContainer(props) {
   const {
-    handleGesturePointerDownCapture,
-    handleGestureTouchStart,
-
     dragSelectScrollFactor,
     columnResizeScrollFactor,
     columns,
     initColumnWidths,
     onColumnResizeEnd,
     onItemsOpen,
-    itemsOpen,
-    placeholder,
     ...resizingProps
   } = props
 
   const {
     utils: { options, hooks, selectors, events },
     actions,
-    contextMenu
+    placeholder
   } = props
 
   const gesture = useContext(GestureContext)
@@ -87,6 +82,9 @@ function ScrollingContainer(props) {
   const rowKeys = hooks.useSelector(s => s.rowKeys)
   const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
+  const noSelection = hooks.useSelector(s => setUtils.isEmpty(s.selected))
+
+  const getState = hooks.useGetState()
 
   //#endregion
 
@@ -598,62 +596,37 @@ function ScrollingContainer(props) {
     dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.target)
   }, [gesture, dragSelectStart])
 
-  //#endregion
-
-  //#region Gestures event handlers
-
-  const handleMouseDown = useCallback(e => {
-    if (e.button !== 0) return
-
+  const contextMenu = useDecoupledCallback(useCallback(e => {
     const { target } = gesture
-    switch (target) {
-      case GestureTargets.Header: return
-      case GestureTargets.BelowItems:
-        if (e.shiftKey)
-          actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
-        else if (!options.listBox && !e.ctrlKey)
-          actions.clearSelection()
 
-        break
-      default:
-        actions.select(indexOffset + target, e.shiftKey, e.ctrlKey)
-        break
-    }
+    if (showPlaceholder)
+      events.contextMenu(getState(), true)
+    else if (e.altKey)
+      events.contextMenu(getState(), !e.ctrlKey)
+    else if (target === GestureTargets.Header)
+      events.contextMenu(getState(), true)
+    else if (target === GestureTargets.BelowItems) {
+      if (e.shiftKey)
+        actions.withContextMenu.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
+      else if (!options.listBox && !e.ctrlKey)
+        actions.withContextMenu.clearSelection()
+      else
+        events.contextMenu(getState(), !e.ctrlKey, true)
+    } else if (options.listBox && e.ctrlKey)
+      events.contextMenu(getState(), false, true)
+    else if (options.listBox || (selectors.getSelected(getState(), target) && !e.ctrlKey))
+      actions.withContextMenu.setActive(indexOffset + target)
+    else
+      actions.withContextMenu.select(indexOffset + target, e.shiftKey, e.ctrlKey)
 
-    if (gesture.pointerType === 'mouse') {
-      getSelection().removeAllRanges()
-      dragSelect(e)
-    }
-  }, [gesture, actions, options, indexOffset, rowCount, dragSelect])
+    return false // Prevent other dual-tap gestures
+  }, [gesture, events, options, rowCount, actions, indexOffset, getState, selectors, showPlaceholder]))
 
-  const handleDoubleClick = useCallback(e => {
-    itemsOpen(e)
-  }, [itemsOpen])
-
-  const handleContextMenu = useCallback(e => {
-    if (e.shiftKey) return // Show browser context menu when holding shift
-
-    const { target } = gesture
-    if (gesture.pointerType !== 'mouse' && !showPlaceholder) {
-      if (target >= 0)
-        actions.select(indexOffset + target, false, true)
-      else if (target !== GestureTargets.BelowItems)
-        return
-
-      return dragSelect(e)
-    }
-
-    if (events.hasListener('onContextMenu'))
-      e.preventDefault()
-
-    contextMenu(e)
-  }, [gesture, indexOffset, contextMenu, actions, events, dragSelect, showPlaceholder])
-
-  const contextMenuGestureEventHandlers = {
-    onContextMenu: handleContextMenu,
-    onPointerDownCapture: handleGesturePointerDownCapture,
-    onTouchStart: handleGestureTouchStart
-  }
+  const itemsOpen = useDecoupledCallback(useCallback(e => {
+    if (showPlaceholder || e.ctrlKey || noSelection) return
+    onItemsOpen(selectors.getSelectionArg(getState()), false)
+    return false // Prevent other dual-tap gestures
+  }, [noSelection, showPlaceholder, onItemsOpen, selectors, getState]))
 
   //#endregion
 
@@ -664,8 +637,10 @@ function ScrollingContainer(props) {
     selectionRectRef,
 
     columns,
-    showPlaceholder,
     dragMode,
+    dragSelect,
+    itemsOpen,
+    contextMenu,
     columnResizeStart
   })
 
@@ -678,18 +653,15 @@ function ScrollingContainer(props) {
     onPointerMove={handlePointerMove}
     onPointerUp={handlePointerEnd}
     onPointerCancel={handlePointerEnd}
-    onMouseDown={handleMouseDown}
-    onDoubleClick={handleDoubleClick}
-    {...contextMenuGestureEventHandlers}
   >
     <ColumnGroupContext.Provider value={fullColumnGroup}>
-      <ResizingContainer {...resizingProps} />
+      <ResizingContainer {...resizingProps}
+        gestureTarget={GestureTargets.BelowItems}
+        onDualTap={itemsOpen}
+        onDualTapDirect={contextMenu}
+      />
     </ColumnGroupContext.Provider>
-    {showPlaceholder && <div
-      className="rst-placeholder"
-      {...contextMenuGestureEventHandlers}
-    >{placeholder}</div>}
   </div>
 }
 
-export default withGestures(ScrollingContainer)
+export default ScrollingContainer

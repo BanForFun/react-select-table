@@ -55,3 +55,14 @@
 
   @return inset map-get($offsets, $side) 0 0 $color;
 }
+
+@function outset-border($width, $color, $side) {
+  $offsets: (
+    top: 0 calc(#{$width} * -1),
+    right: $width 0,
+    bottom: 0 $width,
+    left: calc(#{$width} * -1) 0
+  );
+
+  @return map-get($offsets, $side) 0 0 $color;
+}

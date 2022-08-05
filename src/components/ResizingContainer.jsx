@@ -86,46 +86,52 @@ function ResizingContainer(props) {
   // and starts overflowing its parent (.rst-scrollingContainer) causing the horizontal scrollbar to appear
 
   const columnKeys = _.map(columns, 'key')
-  const columnStoppers = _.map(columnKeys, referenceKey => {
-    const minWidthScale = options.minColumnWidth / widths[referenceKey]
-    return <div className="rst-columnStopper rst-stopper"
-      data-col-key={referenceKey}
-      key={`stoppers-${referenceKey}`}
-    >
-      {_.map(columnKeys, key =>
-        <div
-          data-col-key={key}
-          key={`stopper-${key}`}
-          style={{ width: widths[key] * minWidthScale }}
-        />)}
-    </div>
-  })
+  const clippingStoppers = <div className="rst-stoppers">{
+    _.map(columnKeys, referenceKey => {
+      const minWidthScale = options.minColumnWidth / widths[referenceKey]
+      return <div className="rst-clippingStopper"
+        data-col-key={referenceKey}
+        key={`stoppers-${referenceKey}`}
+      >
+        {_.map(columnKeys, key =>
+          <div
+            data-col-key={key}
+            key={`stopper-${key}`}
+            style={{ width: widths[key] * minWidthScale }}
+          />)}
+      </div>
+    })
+  }</div>
 
-  const containerStopperWidths = _.map(columnKeys, key =>
+  const resizingStopperWidths = _.map(columnKeys, key =>
     containerWidth / widths[key] * options.minColumnWidth)
 
   const overflowing = containerWidth > 100
-  const showClipStoppers = !!containerWidth && !overflowing // containerWidth is 0 when resizing the columns
+  const isResizing = !containerWidth
+  const showClippingStoppers = !isResizing && !overflowing
 
   return <div
     className='rst-clippingContainer'
-    {...dataAttributeFlags({ clipping: showClipStoppers })}
+    {...dataAttributeFlags({ clipping: showClippingStoppers })}
   >
-    {showClipStoppers && columnStoppers}
+    {showClippingStoppers && clippingStoppers}
     <div
       className='rst-resizingContainer'
       style={{
         width: pc(containerWidth),
-        marginRight: showClipStoppers ? -_.max(containerStopperWidths) : 0
+        marginRight: showClippingStoppers ? -_.max(resizingStopperWidths) : 0
       }}
     >
-      {!!containerWidth && (overflowing ? columnStoppers : _.map(columnKeys, (key, index) =>
-        <div className="rst-containerStopper rst-stopper"
-          data-col-key={key}
-          key={`stopper-${key}`}
-          style={{ width: containerStopperWidths[index] }}
-        />
-      ))}
+      {!isResizing && (overflowing ? clippingStoppers
+        : <div className="rst-stoppers">{
+          _.map(columnKeys, (key, index) =>
+            <div className="rst-resizingStopper rst-stopper"
+              data-col-key={key}
+              key={`stopper-${key}`}
+              style={{ width: resizingStopperWidths[index] }}
+            />)
+        }</div>
+      )}
       <TableHead {...headProps} />
       <TableBody {...bodyProps} />
     </div>

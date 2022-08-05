@@ -1,3 +1,5 @@
+$debugStoppers: false;
+
 .rst-container {
   position: relative;
   display: flex;
@@ -8,13 +10,29 @@
   box-sizing: border-box;
 
   table {
-    width: 100%;
     table-layout: fixed;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   th, td {
     box-sizing: border-box;
+  }
+}
+
+.rst-body, .rst-head {
+  table {
+    width: 100%;
+  }
+}
+
+.rst-endCap {
+  width: 0;
+  box-sizing: content-box;
+
+  .rst-columnResizer {
+    max-width: unset;
+    transform: none;
   }
 }
 
@@ -41,12 +59,14 @@
 }
 
 .rst-scrollingContainer {
+  display: flex;
+  flex-direction: column;
   position: relative;
   flex: auto;
   overflow: auto;
   touch-action: pan-x pan-y;
 
-  &[data-dragmode=resize] {
+  &[data-drag-mode=resize] {
     cursor: col-resize;
     user-select: none;
 
@@ -59,24 +79,19 @@
         width: 100vw;
       }
     }
-
-    .rst-resizingContainer {
-      contain: paint;
-    }
-
-    .rst-head {
-      //To ensure that the table can overflow while the column separator is entirely visible
-      padding-right: 1px;
-    }
   }
 
-  &[data-dragmode=select] {
+  &[data-drag-mode=select] {
     cursor: default;
+  }
+
+  &[data-placeholder-shown] .rst-clippingContainer {
+    flex: none;
   }
 }
 
 .rst-clippingContainer {
-  min-height: 100%;
+  flex: auto;
 }
 
 .rst-clippingContainer[data-clipping] {
@@ -89,8 +104,9 @@
 }
 
 .rst-resizingContainer {
+  contain: paint;
   min-width: fit-content;
-  box-sizing: border-box;
+  min-height: 100%;
 }
 
 .rst-placeholder {
@@ -111,11 +127,6 @@
   th {
     overflow: visible;
     position: relative;
-  }
-
-  .rst-spacer .rst-columnResizer {
-    max-width: unset;
-    transform: none;
   }
 }
 
@@ -159,35 +170,28 @@
   max-width: 100%; //To not overflow when column is collapsed
 }
 
-.rst-stopper {
+.rst-stoppers > * {
   overflow: hidden;
   height: 0;
+
+  @if $debugStoppers {
+    height: 10px;
+  }
 }
 
-$debugStoppers: false;
-
-.rst-columnStopper {
+.rst-clippingStopper {
   white-space: nowrap;
   line-height: 0;
 
   & > div {
     display: inline-block;
-  }
-
-  @if $debugStoppers {
-    height: 10px;
-    & > div {
-      height: 100%;
-      background-color: darkorange;
-    }
+    height: 100%;
+    background-color: darkcyan;
   }
 }
 
-.rst-containerStopper {
-  @if $debugStoppers {
-    height: 10px;
-    background-color: lightskyblue;
-  }
+.rst-resizingStopper {
+  background-color: darkred;
 }
 
 .rst-icon {

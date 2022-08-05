@@ -52,6 +52,7 @@ const TableRow = ({
     onTouchStart={handleGestureTouchStart}
   >
     {columns.map(renderColumn)}
+    <td className='rst-endCap' />
     <td className='rst-spacer' />
   </tr>
 }

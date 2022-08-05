@@ -8,6 +8,7 @@ import ColumnGroupContext from '../context/ColumnGroup'
 import { DragModes, GestureTargets } from '../constants/enums'
 import GestureContext from '../context/GestureTarget'
 import withGestures from '../hoc/withGestures'
+import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 
 const cancelScrollType = 'touchmove'
 const cancelScrollOptions = { passive: false }
@@ -102,7 +103,8 @@ function ScrollingContainer(props) {
   }, [])
 
   const getCurrentHeaderWidths = useCallback(() =>
-    _.initial(_.map(headColGroupRef.current.children, h => h.getBoundingClientRect().width)), [])
+    _.map(_.take(headColGroupRef.current.children, columns.length), h => h.getBoundingClientRect().width),
+  [columns])
 
   //#endregion
 
@@ -193,12 +195,13 @@ function ScrollingContainer(props) {
   const columnResizeEnd = useCallback(() => {
     // Account for collapsed border
     const {
-      offsetWidth: availableWidth,
-      offsetParent: { offsetWidth: fullWidth }
+      offsetWidth: fullWidth,
+      lastChild: { offsetLeft: availableWidth }
     } = headColGroupRef.current
     const { clientWidth: visibleWidth } = scrollingContainerRef.current
 
-    const widths = getCurrentHeaderWidths().map(px => px / availableWidth * fullWidth / visibleWidth * 100)
+    const scale = fullWidth > visibleWidth ? fullWidth / availableWidth : 1
+    const widths = getCurrentHeaderWidths().map(px => px / visibleWidth * scale * 100)
     setRenderedColumnWidths(widths)
   }, [getCurrentHeaderWidths, setRenderedColumnWidths])
 
@@ -487,11 +490,9 @@ function ScrollingContainer(props) {
     const prevVisibleIndex = _.findLastIndex(widths, isColumnVisible, index - 1)
 
     const {
-      lastChild: spacer,
+      lastChild: { offsetLeft: contentWidth },
       children: { [prevVisibleIndex]: prevHeader, [index]: header }
     } = headColGroupRef.current.offsetParent.rows.item(0)
-
-    const contentWidth = spacer.offsetLeft + spacer.clientLeft
 
     Object.assign(columnResizing, {
       prevVisibleIndex,
@@ -671,7 +672,8 @@ function ScrollingContainer(props) {
   return <div
     className='rst-scrollingContainer'
     ref={scrollingContainerRef}
-    data-dragmode={dragMode}
+    data-drag-mode={dragMode}
+    {...dataAttributeFlags({ 'placeholder-shown': showPlaceholder })}
     onScroll={handleScroll}
     onPointerMove={handlePointerMove}
     onPointerUp={handlePointerEnd}

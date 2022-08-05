@@ -17,15 +17,22 @@
   //noinspection CssReplaceWithShorthandSafely
   .rst-row > * {
     @include apply-properties("cell", "padding");
-    @include apply-properties("column", "border");
+    @include apply-properties("column", "border" "border-left");
     @include apply-properties("row", "border" "border-bottom");
     background-clip: padding-box;
-    border-top: none;
     border-bottom-color: inherit;
   }
 
+  .rst-clippingStopper {
+    padding-left: get-property("column", "border-width");
+  }
+
+  .rst-endCap {
+    padding: 0;
+  }
+
   .rst-spacer {
-    border-right: none;
+    border-left: none;
   }
 
   .rst-header {
@@ -43,16 +50,16 @@
       border-bottom: none;
     }
 
-    .rst-header {
-      $width: get-property("column-separator", "width");
-      $color: get-property("column-separator", "color");
-      $left-shadow: inset-border($width, $color, left);
-      box-shadow: $left-shadow;
+    $separator-width: get-property("column-separator", "width");
+    $separator-color: get-property("column-separator", "color");
 
-      &:nth-last-child(2) {
-        box-shadow: $left-shadow, inset-border($width, $color, right);
-        padding-right: $width;
-      }
+    .rst-endCap {
+      box-shadow: outset-border($separator-width, $separator-color, left);
+    }
+
+    .rst-header {
+      box-shadow: inset-border($separator-width, $separator-color, left);
+      padding-right: $separator-width;
     }
 
     .rst-headerContent > * {
@@ -60,7 +67,7 @@
     }
   }
 
-  .rst-scrollingContainer[data-dragmode=resize] {
+  .rst-scrollingContainer[data-drag-mode=resize] {
     .rst-head {
       @include apply-properties("head_resizing", "border-image");
     }

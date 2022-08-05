@@ -74,14 +74,14 @@ function TableHead(props) {
             <TableHeader key={`header_${name}_${col.key}`} {...getHeaderProps(col, idx)} />)}
 
           <th className={classNames({
-            'rst-spacer': true,
+            'rst-endCap': true,
             'rst-resizing': resizingIndex === columns.length
           })}>
-            {/* Second column resizer for last header, to ensure that the full width of the resizer
-                        is visible even when the spacer is fully collapsed */}
             {!options.constantWidth &&
               <div className='rst-columnResizer' onPointerDown={handleSpacerPointerDown} />}
           </th>
+
+          <th className="rst-spacer"/>
         </tr>
       </thead>
     </table>

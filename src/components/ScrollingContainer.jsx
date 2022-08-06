@@ -3,11 +3,11 @@ import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, us
 import ResizingContainer from './ResizingContainer'
 import { pc, px, negative } from '../utils/tableUtils'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
-import { ActiveClass, getRowBounds, SelectedClass } from './TableRow'
+import { getRowBounds, StateAttributes } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { DragModes, GestureTargets } from '../constants/enums'
 import GestureContext from '../context/GestureTarget'
-import { dataAttributeFlags } from '../utils/dataAttributeUtils'
+import { dataAttributeFlags, flagAttributeSelector } from '../utils/dataAttributeUtils'
 import * as setUtils from '../utils/setUtils'
 
 const cancelScrollType = 'touchmove'
@@ -287,18 +287,18 @@ function ScrollingContainer(props) {
 
     // Animate selection
     _.forEach(dragSelection.selectionBuffer, (selected, index) => {
-      getRow(index).classList.toggle(SelectedClass, selected)
+      getRow(index).toggleAttribute(StateAttributes.Selected, selected)
     })
     dragSelection.selectionBuffer = {}
 
     // Animate active row
     if (dragSelection.activeIndex == null) return
 
-    const [prevActiveRow] = tableBodyRef.current.getElementsByClassName(ActiveClass)
-    prevActiveRow.classList.remove(ActiveClass)
+    const prevActiveRow = tableBodyRef.current.querySelector(flagAttributeSelector(StateAttributes.Active))
+    prevActiveRow.toggleAttribute(StateAttributes.Active, false)
 
     const newActiveRow = getRow(dragSelection.activeIndex)
-    newActiveRow.classList.add(ActiveClass)
+    newActiveRow.toggleAttribute(StateAttributes.Active, true)
   }, [dragSelection, getRow])
 
   //#endregion

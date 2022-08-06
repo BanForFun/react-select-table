@@ -61,7 +61,7 @@ $debugStoppers: false;
   transition: transform 0.25s;
   transform: translateY(-100%);
 
-  &.rst-visible {
+  &[data-is-visible] {
     transform: translateY(0);
   }
 }
@@ -93,7 +93,7 @@ $debugStoppers: false;
     cursor: default;
   }
 
-  &[data-placeholder-shown] .rst-clippingContainer {
+  &[data-is-placeholder-shown] .rst-clippingContainer {
     flex: none;
   }
 }
@@ -102,7 +102,7 @@ $debugStoppers: false;
   flex: auto;
 }
 
-.rst-clippingContainer[data-clipping] {
+.rst-clippingContainer[data-is-clipping] {
   contain: paint;
   min-width: min-content;
 
@@ -163,7 +163,7 @@ $debugStoppers: false;
   }
 }
 
-.rst-sortable .rst-headerContent {
+.rst-header[data-is-sortable] .rst-headerContent {
   cursor: pointer;
 }
 

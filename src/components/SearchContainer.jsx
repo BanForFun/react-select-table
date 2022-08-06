@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react'
-import classNames from 'classnames'
 import AngleIcon, { angleRotation } from './AngleIcon'
+import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 
 /**
  * Child of {@link Components.Root}.
@@ -50,12 +50,10 @@ function SearchContainer(props) {
     e.preventDefault()
   }, [actions, goToAdjacentMatch, isVisible])
 
-  const className = classNames({
-    'rst-searchContainer': true,
-    'rst-visible': isVisible
-  })
-
-  return <div className={className}>
+  return <div
+    className='rst-searchContainer'
+    {...dataAttributeFlags({ visible: isVisible })}
+  >
     <div className='rst-search'>
       <input
         value={phrase || ''}

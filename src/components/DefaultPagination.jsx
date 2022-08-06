@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import AngleIcon, { angleRotation } from './AngleIcon'
 import _ from 'lodash'
-import classNames from 'classnames'
+import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 
 const startDelay = 600
 const repeatDelay = 100
@@ -36,16 +36,12 @@ function DefaultPagination({ page, pageCount, goToPage }) {
   }, [page, goToPage])
 
   function Page({ number, ...rest }) {
-    const buttonClass = classNames({
-      'rst-page': true,
-      'rst-current': number === page
-    })
-
     return <button
       {...rest}
       tabIndex='-1'
-      className={buttonClass}
+      className='rst-page'
       onClick={() => goToPage(number)}
+      {...dataAttributeFlags({ current: number === page })}
     >{number}
     </button>
   }

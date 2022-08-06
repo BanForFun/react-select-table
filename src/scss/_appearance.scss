@@ -12,6 +12,7 @@
       @include apply-properties("cell", "padding");
       @include apply-properties("row", "border" "border-bottom");
       background-clip: padding-box;
+      border-top: none; // Bootstrap adds top border
       border-bottom-color: inherit;
     }
   }
@@ -109,22 +110,22 @@
 }
 
 %rowActive {
-  .rst-active {
+  .rst-row[data-is-active] {
     --underline-width: #{get-property("row_active", "underline-width")};
     --underline-color: #{get-property("row_active", "underline-color")};
   }
 
-  &:focus-within .rst-active {
+  &:focus-within .rst-row[data-is-active] {
     --underline-color: #{get-property("row_active_focused", "underline-color")};
   }
 }
 
 %rowSelected {
-  .rst-selected {
+  .rst-row[data-is-selected] {
     @include apply-properties("row_selected", "color", "border-color", "background-color");
   }
 
-  &:focus-within .rst-selected {
+  &:focus-within .rst-row[data-is-selected] {
     @include apply-properties("row_selected_focused", "color", "border-color", "background-color");
   }
 }
@@ -136,10 +137,12 @@
     @include apply-properties("column-resizer", "width");
   }
 
-  .rst-resizing .rst-columnResizer {
-    @include apply-properties("column-resizer_resizing", "border" "border-right");
-    transform: none;
-    height: 100vh;
+  .rst-header, .rst-spacer {
+    &[data-is-resizing] .rst-columnResizer {
+      @include apply-properties("column-resizer_resizing", "border" "border-right");
+      transform: none;
+      height: 100vh;
+    }
   }
 }
 
@@ -180,7 +183,7 @@
         @include apply-properties("pg-page_hover", $properties...);
       }
 
-      &.rst-current {
+      &[data-is-current] {
         @include apply-properties("pg-page_current", $properties...);
       }
     }

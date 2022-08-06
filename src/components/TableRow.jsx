@@ -1,11 +1,15 @@
 import React from 'react'
 import _ from 'lodash'
-import classNames from 'classnames'
 import TableCell from './TableCell'
 import withGestures from '../hoc/withGestures'
+import { dataAttributeFlags, getFlagAttributes } from '../utils/dataAttributeUtils'
 
-export const ActiveClass = 'rst-active'
-export const SelectedClass = 'rst-selected'
+const stateFlags = {
+  Selected: 'selected',
+  Active: 'active'
+}
+
+export const StateAttributes = getFlagAttributes(stateFlags)
 
 export function getRowBounds(row) {
   if (!row) return null
@@ -40,16 +44,14 @@ const TableRow = ({
       key={`cell_${name}_${itemKey}_${key}`}
     />
 
-  const trClass = classNames(className, {
-    'rst-row': true,
-    [SelectedClass]: selected,
-    [ActiveClass]: active
-  })
-
   return <tr
-    className={trClass}
+    className={'rst-row ' + className}
     onPointerDownCapture={handleGesturePointerDownCapture}
     onTouchStart={handleGestureTouchStart}
+    {...dataAttributeFlags({
+      [stateFlags.Active]: active,
+      [stateFlags.Selected]: selected
+    })}
   >
     {columns.map(renderColumn)}
     <td className='rst-endCap' />

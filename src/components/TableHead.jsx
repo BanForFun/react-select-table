@@ -3,8 +3,8 @@ import _ from 'lodash'
 import TableHeader from './TableHeader'
 import ColumnGroupContext from '../context/ColumnGroup'
 import ColGroup from './ColGroup'
-import classNames from 'classnames'
 import withGestures from '../hoc/withGestures'
+import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 
 /**
  * Child of {@link Components.ResizingContainer}.
@@ -76,10 +76,9 @@ function TableHead(props) {
 
           <th className='rst-endCap'/>
 
-          <th className={classNames({
-            'rst-spacer': true,
-            'rst-resizing': resizingIndex === columns.length
-          })}>
+          <th className='rst-spacer'
+            {...dataAttributeFlags({ resizing: resizingIndex === columns.length })}
+          >
             {/* Second column resizer for last header, to ensure that the full width of the resizer
                         is visible even when the spacer is fully collapsed */}
             {!options.constantWidth &&

@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
-import classNames from 'classnames'
 import GestureContext from '../context/GestureTarget'
 
 const parseColumn = col => ({
@@ -215,7 +214,7 @@ function Root(props) {
     ref={containerRef}
     onKeyDown={handleKeyDown}
     onPointerDown={handlePointerDown}
-    className={classNames('rst-container', className)}
+    className={'rst-container ' + className}
   >
     <GestureContext.Provider value={gesture}>
       <SearchContainer {...searchProps} />

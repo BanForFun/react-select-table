@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useLayoutEffect, useRef } from 'react'
 import AngleIcon, { angleRotation } from './AngleIcon'
-import classNames from 'classnames'
 import HourGlassIcon from './HourGlassIcon'
+import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 
 /**
  * Child of {@link Components.TableHead}.
@@ -54,13 +54,9 @@ function TableHeader({
     columnResizeStart(e.clientX, e.clientY, e.pointerId, index)
   }, [columnResizeStart, index])
 
-  const className = classNames({
-    'rst-header': true,
-    'rst-sortable': !!path,
-    'rst-resizing': isResizing
-  })
-
-  return <th className={className}>
+  return <th className='rst-header'
+    {...dataAttributeFlags({ sortable: !!path, resizing: isResizing })}
+  >
     <div className='rst-headerContent'
       onMouseDown={handleTitleMouseDown}
       onPointerDown={handlePointerDown}

@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import classNames from 'classnames'
 import React from 'react'
 
 /**
@@ -10,7 +9,7 @@ import React from 'react'
  */
 const TableCell = ({ render, rowItem, rowIndex, path, isHeader }) => {
   const options = {
-    className: null
+    className: ''
   }
 
   const defaultContent = path ? _.get(rowItem, path) : rowIndex + 1
@@ -18,7 +17,7 @@ const TableCell = ({ render, rowItem, rowIndex, path, isHeader }) => {
   const CellType = isHeader ? 'th' : 'td'
 
   return <CellType
-    className={classNames('rst-cell', options.className)}
+    className={'rst-cell ' + options.className}
   >{content}</CellType>
 }
 

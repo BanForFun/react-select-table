@@ -29,6 +29,14 @@ $debugStoppers: false;
 .rst-endCap {
   width: 0;
   box-sizing: content-box;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 100%;
+    bottom: 0;
+  }
 }
 
 .rst-spacer .rst-columnResizer {

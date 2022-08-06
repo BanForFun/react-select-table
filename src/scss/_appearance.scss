@@ -4,43 +4,63 @@
     "background-color"
   );
 
-  th {
-    @include apply-properties("header", "font-weight");
-  }
-
-  $properties: "color", "vertical-align", "text-align", "background-color";
-
+  //noinspection CssReplaceWithShorthandSafely
   .rst-row {
     @include apply-properties("row", "border-color");
+
+    & > * {
+      @include apply-properties("cell", "padding");
+      @include apply-properties("row", "border" "border-bottom");
+      background-clip: padding-box;
+      border-bottom-color: inherit;
+    }
   }
 
-  //noinspection CssReplaceWithShorthandSafely
-  .rst-row > * {
-    @include apply-properties("cell", "padding");
+  .rst-header, .rst-cell {
     @include apply-properties("column", "border" "border-left");
-    @include apply-properties("row", "border" "border-bottom");
-    background-clip: padding-box;
-    border-bottom-color: inherit;
   }
 
   .rst-clippingStopper {
     padding-left: get-property("column", "border-width");
   }
 
+  $separator-width: get-property("column-separator", "width");
+  $separator-color: get-property("column-separator", "color");
+
   .rst-endCap {
     padding: 0;
-  }
+    @include apply-properties("column", "border" "border-right");
 
-  .rst-spacer {
-    border-left: none;
+    &::after {
+      width: $separator-width;
+      background-color: $separator-color;
+    }
   }
 
   .rst-header {
-    padding-right: 0;
+    @include apply-properties("header", "font-weight");
+    box-shadow: inset-border($separator-width, $separator-color, left);
+    padding-right: $separator-width;
   }
+
+  .rst-headerContent > * {
+    @include apply-properties("head", "icon-spacing" "margin-right");
+  }
+
+  $properties: "color", "vertical-align", "text-align", "background-color";
 
   .rst-scrollingContainer {
     @include apply-properties("body", $properties...);
+
+    &[data-drag-mode=resize] {
+      .rst-head {
+        @include apply-properties("head_resizing", "border-image");
+      }
+
+      .rst-body {
+        @include apply-properties("body_resizing", "opacity");
+      }
+    }
   }
 
   .rst-head {
@@ -48,33 +68,6 @@
 
     .rst-row:last-child > * {
       border-bottom: none;
-    }
-
-    $separator-width: get-property("column-separator", "width");
-    $separator-color: get-property("column-separator", "color");
-
-    .rst-endCap {
-      $spread: calc(#{$separator-width} / 2);
-      box-shadow: negative($spread) negative($spread) 0 $spread $separator-color;
-    }
-
-    .rst-header {
-      box-shadow: inset-border($separator-width, $separator-color, left);
-      padding-right: $separator-width;
-    }
-
-    .rst-headerContent > * {
-      @include apply-properties("head", "icon-spacing" "margin-right");
-    }
-  }
-
-  .rst-scrollingContainer[data-drag-mode=resize] {
-    .rst-head {
-      @include apply-properties("head_resizing", "border-image");
-    }
-
-    .rst-body {
-      @include apply-properties("body_resizing", "opacity");
     }
   }
 }

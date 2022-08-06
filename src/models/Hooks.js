@@ -30,6 +30,25 @@ import { bindActionCreators } from 'redux'
  * @returns {StateType} The table state
  */
 
+/**
+ * Returns a property from the table state
+ *
+ * @template Selected
+ * @callback HooksTypes.selector
+ * @param {StateType} state The table state
+ * @returns {Selected} A property from the state
+ */
+
+/**
+ * Should return true if a render is deemed necessary because of a state property change
+ *
+ * @template Selected
+ * @callback HooksTypes.equalityFn
+ * @param {Selected} a The previous value
+ * @param {Selected} b The current value
+ * @returns {boolean} Whether the values are considered equal
+ */
+
 export default class Hooks {
   constructor(options, selectors, actions) {
     /** @private */
@@ -61,7 +80,10 @@ export default class Hooks {
   /**
    * Like normal useSelector, but the table's slice of the state is passed to the selector, instead of the root state
    *
-   * @type {import('react-redux').TypedUseSelectorHook<StateType>}
+   * @template Selected
+   * @param {HooksTypes.selector<Selected>} selector The selector
+   * @param {HooksTypes.equalityFn<Selected>} [equalityFn] The equality comparator
+   * @returns {Selected} The value returned from the selector
    */
   useSelector(selector, equalityFn) {
     return this.useRootSelector((state) => selector(this.selectors.getTableState(state)), equalityFn)

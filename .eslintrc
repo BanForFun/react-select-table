@@ -1,11 +1,10 @@
 {
-  "parser": "@babel/eslint-parser",
   "extends": [
     "standard",
     "plugin:react-hooks/recommended",
     "plugin:react/recommended",
     "plugin:jsdoc/recommended",
-//    "plugin:prettier/recommended",
+    //"plugin:prettier/recommended",
     "prettier/standard",
     "prettier/react"
   ],

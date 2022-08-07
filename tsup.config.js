@@ -7,7 +7,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   format: ['esm', 'cjs'],
-  onSuccess: 'tsc',
+  onSuccess: 'run-s build-definitions',
   esbuildPlugins: [
     sassPlugin()
   ]

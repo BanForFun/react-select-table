@@ -25,6 +25,7 @@
     "node": ">=10"
   },
   "scripts": {
+    "build-definitions": "rm -rf dist/typings && tsc",
     "build": "tsup",
     "start": "tsup --watch",
     "prepare": "run-s build",

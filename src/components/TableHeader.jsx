@@ -1,7 +1,9 @@
-import React, { Fragment, useCallback, useLayoutEffect, useRef } from 'react'
+import React, { Fragment, useCallback, useContext, useLayoutEffect, useRef } from 'react'
 import AngleIcon, { angleRotation } from './AngleIcon'
 import HourGlassIcon from './HourGlassIcon'
+import withGestures from '../hoc/withGestures'
 import { dataAttributeFlags } from '../utils/dataAttributeUtils'
+import GestureContext from '../context/GestureTarget'
 
 /**
  * Child of {@link Components.TableHead}.
@@ -10,18 +12,22 @@ import { dataAttributeFlags } from '../utils/dataAttributeUtils'
  * @type {React.FC}
  */
 function TableHeader({
+  handleGesturePointerDownCapture,
+  handleGestureTouchStart,
   path,
   title,
-  index,
-  columnResizeStart,
+  columnResize,
   actions,
   sortAscending,
   sortPriority,
   showPriority,
-  isResizing
+  isResizing,
+  isResizable,
+  className
 }) {
   const loadingRef = useRef()
-  const pointerType = useRef()
+
+  const gesture = useContext(GestureContext)
 
   const sortColumn = useCallback(addToPrev => {
     if (!path) return
@@ -36,30 +42,22 @@ function TableHeader({
     sortColumn(e.shiftKey)
   }, [sortColumn])
 
-  const handlePointerDown = useCallback(e => {
-    pointerType.current = e.pointerType
-  }, [])
-
   const handleContextMenu = useCallback(() => {
-    if (pointerType.current !== 'touch') return
+    if (gesture.pointerType !== 'touch') return
     sortColumn(true)
-  }, [sortColumn])
+  }, [sortColumn, gesture])
 
   useLayoutEffect(() => {
     loadingRef.current.style.display = 'none'
   }, [sortAscending])
 
-  const handleResizerPointerDown = useCallback(e => {
-    if (!e.isPrimary) return
-    columnResizeStart(e.clientX, e.clientY, e.pointerId, index)
-  }, [columnResizeStart, index])
-
-  return <th className='rst-header'
+  return <th className={className}
+    onPointerDownCapture={handleGesturePointerDownCapture}
+    onTouchStart={handleGestureTouchStart}
     {...dataAttributeFlags({ sortable: !!path, resizing: isResizing })}
   >
     <div className='rst-headerContent'
       onMouseDown={handleTitleMouseDown}
-      onPointerDown={handlePointerDown}
       onContextMenu={handleContextMenu}
     >
       <span className='rst-headerText'>{title}</span>
@@ -69,12 +67,12 @@ function TableHeader({
       </Fragment>}
       <HourGlassIcon ref={loadingRef} />
     </div>
-    {!!index && <div
+    {isResizable && <div
       className='rst-columnResizer'
       onDragStart={e => e.preventDefault()}
-      onPointerDown={handleResizerPointerDown}
+      onPointerDown={columnResize}
     />}
   </th>
 }
 
-export default TableHeader
+export default withGestures(TableHeader)

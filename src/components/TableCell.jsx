@@ -7,13 +7,13 @@ import React from 'react'
  * @name Components.TableCell
  * @type {React.FC}
  */
-const TableCell = ({ render, rowItem, rowIndex, path, isHeader }) => {
+const TableCell = ({ render, data, rowIndex, path, isHeader }) => {
   const options = {
     className: ''
   }
 
-  const defaultContent = path ? _.get(rowItem, path) : rowIndex + 1
-  const content = render(defaultContent, rowItem, options)
+  const defaultContent = path ? _.get(data, path) : rowIndex + 1
+  const content = render(defaultContent, data, options)
   const CellType = isHeader ? 'th' : 'td'
 
   return <CellType

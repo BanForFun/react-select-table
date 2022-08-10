@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColGroup from './ColGroup'
-import TableRow from './TableRow'
 import { DragModes } from '../constants/enums'
+import _ from 'lodash'
+import TableChunk from './TableChunk'
 
 /**
  * Child of {@link Components.ResizingContainer}.
@@ -17,11 +18,9 @@ function TableBody(props) {
     selectionRectRef,
     tableBodyRef,
     showPlaceholder,
-    getRowClassName,
-    contextMenu,
-    utils: { hooks, selectors },
+    utils: { hooks, selectors, options },
 
-    ...rowCommonProps
+    ...chunkCommonProps
   } = props
 
   const { columns, name } = props
@@ -31,32 +30,33 @@ function TableBody(props) {
   const items = hooks.useSelector(s => s.items)
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
-  const renderRow = (rowKey, rowIndex) => {
-    const rowItem = dlMapUtils.getItem(items, rowKey)
-    const rowSelected = setUtils.hasItem(selected, rowKey)
+  const keyChunks = useMemo(() => _.chunk(rowKeys, options.chunkSize),
+    [rowKeys, options])
 
-    const rowProps = {
-      ...rowCommonProps,
-      item: rowItem,
-      itemKey: rowKey,
-      index: rowIndex,
-      key: `row_${props.name}_${rowKey}`,
-      active: rowIndex === activeRowIndex,
-      selected: rowSelected,
-      className: getRowClassName(rowItem),
-      gestureTarget: rowIndex,
-      onDualTap: contextMenu
-    }
+  const renderChunk = (keys, chunkIndex) => {
+    const chunkIndexOffset = chunkIndex * options.chunkSize
+    const rows = keys.map((key, rowIndex) => {
+      const index = chunkIndexOffset + rowIndex
+      return {
+        key,
+        index,
+        data: dlMapUtils.getItem(items, key),
+        selected: setUtils.hasItem(selected, key),
+        active: index === activeRowIndex
+      }
+    })
 
-    return <TableRow {...rowProps} />
+    return <TableChunk
+      rows={rows}
+      key={`chunk_${props.name}_${chunkIndex}`}
+      {...chunkCommonProps}
+    />
   }
 
   return <div className='rst-body' ref={tableBodyRef}>
     <table>
       <ColGroup name={name} columns={columns} />
-      <tbody className='rst-rows'>
-        {!showPlaceholder && rowKeys.map(renderRow)}
-      </tbody>
+      {!showPlaceholder && keyChunks.map(renderChunk)}
     </table>
     {dragMode === DragModes.Select &&
       <div className='rst-dragSelection' ref={selectionRectRef} />}

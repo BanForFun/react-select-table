@@ -3,11 +3,12 @@ import _ from 'lodash'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
-import { GestureTargets } from '../constants/enums'
+import { GestureTargetTypes } from '../constants/enums'
 import { pc } from '../utils/tableUtils'
 import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 import withGestures from '../hoc/withGestures'
 import GestureContext from '../context/GestureTarget'
+import GestureTarget from '../models/GestureTarget'
 
 /**
  * Child of {@link Components.ScrollingContainer}.
@@ -27,7 +28,7 @@ function ResizingContainer(props) {
     // HeadContainer props
     headColGroupRef,
     headerRef,
-    columnResizeStart,
+    columnResize,
     actions,
 
     // BodyContainer props
@@ -57,18 +58,18 @@ function ResizingContainer(props) {
     if (showPlaceholder || e.button !== 0) return
 
     const { target } = gesture
-    switch (target) {
-      case GestureTargets.Header: return
-      case GestureTargets.BelowItems:
+    switch (target.type) {
+      case GestureTargetTypes.BelowRows:
         if (e.shiftKey)
           actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
         else if (!options.listBox && !e.ctrlKey)
           actions.clearSelection()
 
         break
-      default:
-        actions.select(indexOffset + target, e.shiftKey, e.ctrlKey)
+      case GestureTargetTypes.Row:
+        actions.select(indexOffset + target.index, e.shiftKey, e.ctrlKey)
         break
+      default: return
     }
 
     if (gesture.pointerType === 'mouse') {
@@ -84,9 +85,9 @@ function ResizingContainer(props) {
     if (gesture.pointerType !== 'mouse') {
       if (showPlaceholder) return
 
-      if (target >= 0)
-        actions.select(indexOffset + target, false, true)
-      else if (target !== GestureTargets.BelowItems)
+      if (target.type === GestureTargetTypes.Row)
+        actions.select(indexOffset + target.index, false, true)
+      else if (target.type !== GestureTargetTypes.BelowRows)
         return
 
       return dragSelect(e)
@@ -158,7 +159,7 @@ function ResizingContainer(props) {
     actions,
     headerRef,
 
-    columnResizeStart
+    columnResize
   }
 
   const bodyProps = {
@@ -197,7 +198,7 @@ function ResizingContainer(props) {
           }</div>
         )}
         <TableHead {...headProps}
-          gestureTarget={GestureTargets.Header}
+          gestureTarget={GestureTarget(GestureTargetTypes.Header, columns.length)}
           onDualTap={contextMenu}
         />
         <TableBody {...bodyProps} />

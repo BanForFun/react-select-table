@@ -5,10 +5,11 @@ import { pc, px, negative } from '../utils/tableUtils'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
 import { getRowBounds, StateAttributes } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
-import { DragModes, GestureTargets } from '../constants/enums'
+import { DragModes, GestureTargetTypes } from '../constants/enums'
 import GestureContext from '../context/GestureTarget'
 import { dataAttributeFlags, flagAttributeSelector } from '../utils/dataAttributeUtils'
 import * as setUtils from '../utils/setUtils'
+import GestureTarget from '../models/GestureTarget'
 
 const cancelScrollType = 'touchmove'
 const cancelScrollOptions = { passive: false }
@@ -596,10 +597,15 @@ function ScrollingContainer(props) {
 
   const showPlaceholder = !!placeholder
 
-  const dragSelect = useCallback(e => {
+  const dragSelect = useDecoupledCallback(useCallback(e => {
     if (gesture.pointerId == null) return
-    dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.target)
-  }, [gesture, dragSelectStart])
+    dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.target.index)
+  }, [gesture, dragSelectStart]))
+
+  const columnResize = useDecoupledCallback(useCallback(e => {
+    if (gesture.pointerId == null) return
+    columnResizeStart(e.clientX, e.clientY, gesture.pointerId, gesture.target.index)
+  }, [gesture, columnResizeStart]))
 
   const contextMenu = useDecoupledCallback(useCallback(e => {
     const { target } = gesture
@@ -608,9 +614,9 @@ function ScrollingContainer(props) {
       events.contextMenu(getState(), true)
     else if (e.altKey)
       events.contextMenu(getState(), !e.ctrlKey)
-    else if (target === GestureTargets.Header)
+    else if (target.type === GestureTargetTypes.Header)
       events.contextMenu(getState(), true)
-    else if (target === GestureTargets.BelowItems) {
+    else if (target.type === GestureTargetTypes.BelowRows) {
       if (e.shiftKey)
         actions.withContextMenu.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
       else if (!options.listBox && !e.ctrlKey)
@@ -619,10 +625,10 @@ function ScrollingContainer(props) {
         events.contextMenu(getState(), !e.ctrlKey, true)
     } else if (options.listBox && e.ctrlKey)
       events.contextMenu(getState(), false, true)
-    else if (options.listBox || (selectors.getSelected(getState(), target) && !e.ctrlKey))
-      actions.withContextMenu.setActive(indexOffset + target)
+    else if (options.listBox || (selectors.getSelected(getState(), target.index) && !e.ctrlKey))
+      actions.withContextMenu.setActive(indexOffset + target.index)
     else
-      actions.withContextMenu.select(indexOffset + target, e.shiftKey, e.ctrlKey)
+      actions.withContextMenu.select(indexOffset + target.index, e.shiftKey, e.ctrlKey)
 
     return false // Prevent other dual-tap gestures
   }, [gesture, events, options, rowCount, actions, indexOffset, getState, selectors, showPlaceholder]))
@@ -647,7 +653,7 @@ function ScrollingContainer(props) {
     dragSelect,
     itemsOpen,
     contextMenu,
-    columnResizeStart
+    columnResize
   })
 
   return <div
@@ -662,7 +668,7 @@ function ScrollingContainer(props) {
   >
     <ColumnGroupContext.Provider value={fullColumnGroup}>
       <ResizingContainer {...resizingProps}
-        gestureTarget={GestureTargets.BelowItems}
+        gestureTarget={GestureTarget(GestureTargetTypes.BelowRows)}
         onDualTap={itemsOpen}
         onDualTapDirect={contextMenu}
       />

@@ -13,7 +13,7 @@
     "node": true
   },
   "parserOptions": {
-    "ecmaVersion": 2020,
+    "ecmaVersion": 2021,
     "requireConfigFile": false,
     "ecmaFeatures": {
       "legacyDecorators": true,

@@ -1,10 +1,11 @@
-import React, { useMemo, useCallback, useContext } from 'react'
+import React, { useMemo, useContext } from 'react'
 import _ from 'lodash'
 import TableHeader from './TableHeader'
 import ColumnGroupContext from '../context/ColumnGroup'
 import ColGroup from './ColGroup'
+import GestureTarget from '../models/GestureTarget'
+import { GestureTargetTypes } from '../constants/enums'
 import withGestures from '../hoc/withGestures'
-import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 
 /**
  * Child of {@link Components.ResizingContainer}.
@@ -24,7 +25,6 @@ function TableHead(props) {
   } = props
 
   const {
-    columnResizeStart,
     utils: { hooks, options }
   } = props
 
@@ -41,26 +41,23 @@ function TableHead(props) {
 
   const { resizingIndex } = useContext(ColumnGroupContext)
 
-  const getHeaderProps = (column, index) => {
+  const renderHeader = (column, index) => {
     const { path, title } = column
     const sortOrder = sorting.orders[path]
 
-    return {
-      ...commonHeaderProps,
-      path,
-      title,
-      index,
-      isResizing: resizingIndex === index,
-      sortAscending: sortOrder?.ascending,
-      sortPriority: sortOrder?.priority,
-      showPriority: sorting.maxPriority > 1
-    }
+    return <TableHeader {...commonHeaderProps}
+      path={path}
+      title={title}
+      key={`header_${name}_${column.key}`}
+      className='rst-header'
+      gestureTarget={GestureTarget(GestureTargetTypes.Header, index)}
+      isResizable={!!index}
+      isResizing={resizingIndex === index}
+      sortAscending={sortOrder?.ascending}
+      sortPriority={sortOrder?.priority}
+      showPriority={sorting.maxPriority > 1}
+    />
   }
-
-  const handleSpacerPointerDown = useCallback(e => {
-    if (!e.isPrimary) return
-    columnResizeStart(e.clientX, e.clientY, e.pointerId, columns.length)
-  }, [columnResizeStart, columns])
 
   return <div
     className='rst-head'
@@ -71,19 +68,18 @@ function TableHead(props) {
       <ColGroup name={name} columns={columns} ref={headColGroupRef} />
       <thead>
         <tr className='rst-row' ref={headerRef}>
-          {columns.map((col, idx) =>
-            <TableHeader key={`header_${name}_${col.key}`} {...getHeaderProps(col, idx)} />)}
-
+          {columns.map(renderHeader)}
           <th className='rst-endCap'/>
-
-          <th className='rst-spacer'
-            {...dataAttributeFlags({ resizing: resizingIndex === columns.length })}
-          >
-            {/* Second column resizer for last header, to ensure that the full width of the resizer
-                        is visible even when the spacer is fully collapsed */}
-            {!options.constantWidth &&
-              <div className='rst-columnResizer' onPointerDown={handleSpacerPointerDown} />}
-          </th>
+          <TableHeader {...commonHeaderProps}
+            path=''
+            title=''
+            gestureTarget={null}
+            className='rst-spacer'
+            isResizable={!options.constantWidth}
+            sortAscending={true}
+            sortPriority={-1}
+            showPriority={false}
+          />
         </tr>
       </thead>
     </table>

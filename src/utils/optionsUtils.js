@@ -36,6 +36,7 @@ import _ from 'lodash'
  * @property {number} minColumnWidth The minimum width in pixels allowed for a column when resizing it, and before a scrollbar appears when resizing the container
  * @property {string} statePath The path of the redux table state. Set to empty string if the table reducer is the root
  * @property {object} savedState Load from a previously saved state, used for restoring a user's session. Takes an object returned from {@link Selectors.getSaveState}
+ * @property {number} chunkSize The minimum number of rows that can be rendered at one time
  * @property {import("react").Context} context If you use a custom context for your Provider, you can pass it here
  */
 
@@ -51,7 +52,8 @@ const defaultOptions = {
   statePath: '',
   savedState: {},
   context: undefined,
-  keyBy: '_id'
+  keyBy: '_id',
+  chunkSize: 25
 }
 
 /**

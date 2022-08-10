@@ -21,6 +21,7 @@ export default function withGestures(Component) {
     }, [gesture, onDualTap, onDualTapDirect])
 
     props.handleGesturePointerDownCapture = useCallback(() => {
+      if (!gestureTarget) return
       gesture.target = gestureTarget
     }, [gesture, gestureTarget])
 

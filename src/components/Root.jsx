@@ -3,9 +3,14 @@ import ScrollingContainer from './ScrollingContainer'
 import PaginationContainer from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
 import GestureContext from '../context/GestureTarget'
+import { GestureTargetTypes } from '../constants/enums'
+import GestureTarget from '../models/GestureTarget'
+
+// Not integrated into parseColumn, in order for render to be constant
+const defaultColumnRenderer = value => value
 
 const parseColumn = col => ({
-  render: value => value,
+  render: defaultColumnRenderer,
   key: col.path,
   ...col
 })
@@ -177,12 +182,12 @@ function Root(props) {
 
   const gesture = useRef({
     pointerId: null,
-    target: null,
+    target: GestureTarget(GestureTargetTypes.None),
     pointerType: null,
     isDragging: false
   }).current
 
-  const handlePointerDown = useCallback(e => {
+  const handlePointerDownCapture = useCallback(e => {
     gesture.pointerType = e.pointerType
     gesture.pointerId = e.isPrimary ? e.pointerId : null
   }, [gesture])
@@ -213,7 +218,7 @@ function Root(props) {
     id={id}
     ref={containerRef}
     onKeyDown={handleKeyDown}
-    onPointerDown={handlePointerDown}
+    onPointerDownCapture={handlePointerDownCapture}
     className={'rst-container ' + className}
   >
     <GestureContext.Provider value={gesture}>

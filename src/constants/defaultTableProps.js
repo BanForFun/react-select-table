@@ -6,7 +6,7 @@ import DefaultPagination from '../components/DefaultPagination'
 const getNoopEventHandler = _.constant(noopEventHandler)
 
 export default {
-  getRowClassName: () => null,
+  getRowClassName: () => '',
   dragSelectScrollFactor: 0.5,
   columnResizeScrollFactor: 0.2,
   errorComponent: 'span',

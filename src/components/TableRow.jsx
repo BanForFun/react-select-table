@@ -1,5 +1,4 @@
 import React from 'react'
-import _ from 'lodash'
 import TableCell from './TableCell'
 import withGestures from '../hoc/withGestures'
 import { dataAttributeFlags, getFlagAttributes } from '../utils/dataAttributeUtils'
@@ -19,7 +18,7 @@ export function getRowBounds(row) {
 }
 
 /**
- * Child of {@link Components.TableBody}.
+ * Child of {@link Components.TableChunk}.
  *
  * @name Components.TableRow
  * @type {React.FC}
@@ -28,24 +27,20 @@ const TableRow = ({
   handleGesturePointerDownCapture,
   handleGestureTouchStart,
   columns,
-  selected,
-  active,
-  index,
-  className,
   name,
-  itemKey,
-  item
+  getRowClassName,
+  row: { index, key, selected, active, data }
 }) => {
-  const renderColumn = ({ key, ...column }) =>
+  const renderColumn = ({ key: colKey, ...column }) =>
     <TableCell
       {...column}
-      rowItem={item}
+      data={data}
       rowIndex={index}
-      key={`cell_${name}_${itemKey}_${key}`}
+      key={`cell_${name}_${key}_${colKey}`}
     />
 
   return <tr
-    className={'rst-row ' + className}
+    className={'rst-row ' + getRowClassName(data)}
     onPointerDownCapture={handleGesturePointerDownCapture}
     onTouchStart={handleGestureTouchStart}
     {...dataAttributeFlags({
@@ -59,5 +54,4 @@ const TableRow = ({
   </tr>
 }
 
-export default React.memo(withGestures(TableRow), _.isEqual)
-// export default TableRow
+export default withGestures(TableRow)

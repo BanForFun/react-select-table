@@ -16,6 +16,7 @@ export default defineConfig({
   clean: true,
   format: ['esm', 'cjs'],
   onSuccess: 'run-s build-definitions',
+  target: 'es5',
   esbuildPlugins: [
     sassPlugin({
       async transform(source) {

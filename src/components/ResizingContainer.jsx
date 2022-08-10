@@ -3,7 +3,7 @@ import _ from 'lodash'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
 import ColumnGroupContext from '../context/ColumnGroup'
-import { GestureTargetTypes } from '../constants/enums'
+import { DragModes, GestureTargetTypes } from '../constants/enums'
 import { pc } from '../utils/tableUtils'
 import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 import withGestures from '../hoc/withGestures'
@@ -24,10 +24,12 @@ function ResizingContainer(props) {
     dragSelect,
     itemsOpen,
     placeholder,
+    selectionRectRef,
+    dragMode,
 
     // HeadContainer props
     headColGroupRef,
-    headerRef,
+    headRowRef,
     columnResize,
     actions,
 
@@ -35,8 +37,6 @@ function ResizingContainer(props) {
     getRowClassName,
     tableBodyRef,
     contextMenu,
-    dragMode,
-    selectionRectRef,
     chunkObserverRef,
 
     ...commonProps
@@ -158,7 +158,7 @@ function ResizingContainer(props) {
     ...commonProps,
     headColGroupRef,
     actions,
-    headerRef,
+    headRowRef,
 
     columnResize
   }
@@ -166,10 +166,8 @@ function ResizingContainer(props) {
   const bodyProps = {
     ...commonProps,
     tableBodyRef,
-    selectionRectRef,
     chunkObserverRef,
 
-    dragMode,
     showPlaceholder,
     getRowClassName,
     contextMenu
@@ -204,6 +202,8 @@ function ResizingContainer(props) {
           onDualTap={contextMenu}
         />
         <TableBody {...bodyProps} />
+        {dragMode === DragModes.Select &&
+          <div className='rst-dragSelection' ref={selectionRectRef} />}
       </div>
     </div>
     {showPlaceholder &&

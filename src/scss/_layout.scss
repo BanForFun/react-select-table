@@ -64,7 +64,7 @@ $debugStoppers: false;
     .rst-body {
       max-width: 0;
       position: sticky;
-      left: calc(var(--content-width) * -1);
+      left: negative(var(--content-width));
     }
 
     .rst-body .rst-spacer {
@@ -139,8 +139,6 @@ $debugStoppers: false;
 }
 
 .rst-body {
-  position: relative;
-
   td, th {
     overflow: hidden;
   }

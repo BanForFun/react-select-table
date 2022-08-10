@@ -17,6 +17,7 @@ function ChunkObserver(props) {
   } = props
 
   const chunkRef = useRef()
+  const isRefreshingRef = useRef(false)
 
   const { resizingIndex } = useContext(ColumnGroupContext)
 
@@ -25,11 +26,21 @@ function ChunkObserver(props) {
     const isHidden = chunk.hasAttribute(HiddenAttribute)
     if (!isHidden) return
 
-    const observer = chunkObserverRef.current
-    observer.unobserve(chunk)
+    chunkObserverRef.current.unobserve(chunk)
     chunk.toggleAttribute(HiddenAttribute, false)
-    observer.observe(chunk)
+    isRefreshingRef.current = true
+
+    // We don't call observe here, so that the chunk is guaranteed rendered
+    // when the layout effect of ScrollingContainer runs to scroll to the active row.
+    // Instead, observe is called in a normal effect below, which runs after all the layout events
   }, [chunkObserverRef])
+
+  useEffect(() => {
+    if (!isRefreshingRef.current) return
+
+    chunkObserverRef.current.observe(chunkRef.current)
+    isRefreshingRef.current = false
+  })
 
   useLayoutEffect(() => {
     if (resizingIndex >= 0) return

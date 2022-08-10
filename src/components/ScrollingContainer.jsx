@@ -7,7 +7,7 @@ import { getRowBounds, RowAttributes } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { DragModes, GestureTargetTypes } from '../constants/enums'
 import GestureContext from '../context/GestureTarget'
-import { dataAttributeFlags, flagAttributeSelector } from '../utils/dataAttributeUtils'
+import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 import * as setUtils from '../utils/setUtils'
 import GestureTarget from '../models/GestureTarget'
 import { HiddenAttribute } from './ChunkObserver'
@@ -94,17 +94,15 @@ function ScrollingContainer(props) {
 
   const tableBodyRef = useRef()
   const headColGroupRef = useRef()
-  const headerRef = useRef()
+  const headRowRef = useRef() // Used to take measurements, as col elements behave differently in chrome and firefox
   const selectionRectRef = useRef()
   const scrollingContainerRef = useRef()
 
-  const getRow = useCallback(index => {
-    const table = tableBodyRef.current.querySelector('table')
-    return table.rows[index]
-  }, [])
+  const getRow = useCallback(index =>
+    tableBodyRef.current.rows[index], [])
 
   const getCurrentHeaderWidths = useCallback(() =>
-    _.map(_.take(headColGroupRef.current.children, columns.length), h => h.getBoundingClientRect().width),
+    _.map(_.take(headRowRef.current.children, columns.length), h => h.getBoundingClientRect().width),
   [columns])
 
   //#endregion
@@ -205,7 +203,7 @@ function ScrollingContainer(props) {
     const {
       offsetLeft: fullWidth,
       previousElementSibling: { offsetLeft: availableWidth }
-    } = headerRef.current.lastChild
+    } = headRowRef.current.lastChild
     const { clientWidth: visibleWidth } = scrollingContainerRef.current
 
     const scale = fullWidth > visibleWidth ? fullWidth / availableWidth : 1
@@ -272,7 +270,7 @@ function ScrollingContainer(props) {
   }, [])
 
   const dragSelectAnimate = useCallback((
-    relX, relY, scrollLeftOffset, scrollTopOffset
+    relX, relY, scrollLeftOffset, scrollTopOffset, newActiveIndex
   ) => {
     // Animate scrolling
     const container = scrollingContainerRef.current
@@ -284,10 +282,11 @@ function ScrollingContainer(props) {
     const lineX = getLine(relX, originRel.x)
     const lineY = getLine(relY, originRel.y)
 
+    const body = tableBodyRef.current
     Object.assign(selectionRectRef.current.style, _.mapValues({
       left: lineX.origin,
       width: lineX.size,
-      top: lineY.origin,
+      top: lineY.origin + body.offsetTop,
       height: lineY.size
     }, px))
 
@@ -298,13 +297,15 @@ function ScrollingContainer(props) {
     dragSelection.selectionBuffer = {}
 
     // Animate active row
-    if (dragSelection.activeIndex == null) return
+    if (newActiveIndex == null) return
 
-    const prevActiveRow = tableBodyRef.current.querySelector(flagAttributeSelector(RowAttributes.Active))
-    prevActiveRow.toggleAttribute(RowAttributes.Active, false)
+    const prevActiveRow = getRow(dragSelection.activeIndex)
+    prevActiveRow?.toggleAttribute(RowAttributes.Active, false)
 
-    const newActiveRow = getRow(dragSelection.activeIndex)
+    const newActiveRow = getRow(newActiveIndex)
     newActiveRow.toggleAttribute(RowAttributes.Active, true)
+
+    dragSelection.activeIndex = newActiveIndex
   }, [dragSelection, getRow])
 
   //#endregion
@@ -333,7 +334,7 @@ function ScrollingContainer(props) {
     const expandThreshold = containerX + containerWidth
 
     const { relToOrigin: relX, scrollOffset } = getRelativeOffset(
-      drag.pointerPos.x, getClientX(headColGroupRef.current.offsetParent),
+      drag.pointerPos.x, getClientX(headRowRef.current.offsetParent),
       shrinkThreshold, expandThreshold, columnResizeScrollFactor
     )
 
@@ -393,6 +394,7 @@ function ScrollingContainer(props) {
     const { selectionBuffer, originRel: { y: originRelY } } = dragSelection
     const direction = Math.sign(newRelY - dragSelection.prevRelY)
 
+    let newActiveIndex = null
     if (direction) {
       const shouldBeSelected = top =>
         Math.sign(top - originRelY) === direction &&
@@ -420,8 +422,8 @@ function ScrollingContainer(props) {
         getSelection().removeAllRanges()
 
         if (rowIndex >= rowCount) continue
-        dragSelection.activeIndex = rowIndex
         dragSelection.pivotIndex ??= rowIndex
+        newActiveIndex = rowIndex
       }
 
       dragSelection.prevRelY = newRelY
@@ -431,7 +433,8 @@ function ScrollingContainer(props) {
     dragAnimate(dragSelectAnimate,
       newRelX, newRelY,
       scrollLeftOffset + movement.x,
-      scrollTopOffset + movement.y
+      scrollTopOffset + movement.y,
+      newActiveIndex
     )
   }, [drag, dragSelectScrollFactor, dragSelection, dragAnimate, dragSelectAnimate, rowCount, getRow])
 
@@ -501,7 +504,7 @@ function ScrollingContainer(props) {
     const {
       lastChild: { offsetLeft: contentWidth },
       children: { [prevVisibleIndex]: prevHeader, [index]: header }
-    } = headerRef.current
+    } = headRowRef.current
 
     Object.assign(columnResizing, {
       prevVisibleIndex,
@@ -515,8 +518,8 @@ function ScrollingContainer(props) {
     // and when the container is scrolled beyond content-width, the body stops scrolling with it (position: sticky)
     // as the only thing visible at this point is the spacer.
     // This is a performance optimization because having the entire body expand to the header's size is pointless.
-    const body = tableBodyRef.current
-    body.style.setProperty('--content-width', px(contentWidth))
+    const container = scrollingContainerRef.current
+    container.style.setProperty('--content-width', px(contentWidth))
 
     setRenderedColumnWidths(widths, index)
   }, [dragStart, getCurrentHeaderWidths, columnResizing, options, setRenderedColumnWidths])
@@ -532,13 +535,13 @@ function ScrollingContainer(props) {
 
     Object.assign(dragSelection, {
       selection: {},
-      activeIndex: null,
-      pivotIndex: rowIndex < 0 ? null : rowIndex,
-      prevRowIndex: rowIndex < 0 ? rowCount : rowIndex,
+      activeIndex: rowIndex ?? activeRowIndex,
+      pivotIndex: rowIndex,
+      prevRowIndex: rowIndex == null ? rowCount : rowIndex,
       prevRelY: relY,
       originRel: Point(relX, relY)
     })
-  }, [dragStart, dragSelection, rowCount, options])
+  }, [options, dragStart, dragSelection, activeRowIndex, rowCount])
 
   //#endregion
 
@@ -580,23 +583,21 @@ function ScrollingContainer(props) {
     }
   }, [scrollingContainerRef, tableBodyRef])
 
-  // TODO: Add it back
+  useLayoutEffect(() => {
+    const activeRow = getRow(activeRowIndex)
+    if (!activeRow) return
 
-  // useLayoutEffect(() => {
-  //   const activeRow = getRow(activeRowIndex)
-  //   if (!activeRow) return
-  //
-  //   const containerBounds = getContainerVisibleBounds()
-  //   const rowBounds = getRowBounds(activeRow)
-  //   const distanceToTop = rowBounds.top - containerBounds.top
-  //   const distanceToBottom = rowBounds.bottom - containerBounds.bottom
-  //
-  //   const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
-  //   scrollingContainerRef.current.scrollTop += scrollOffset
-  // }, [
-  //   activeRowIndex,
-  //   getRow, getContainerVisibleBounds
-  // ])
+    const containerBounds = getContainerVisibleBounds()
+    const rowBounds = getRowBounds(activeRow)
+    const distanceToTop = rowBounds.top - containerBounds.top
+    const distanceToBottom = rowBounds.bottom - containerBounds.bottom
+
+    const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
+    scrollingContainerRef.current.scrollTop += scrollOffset
+  }, [
+    activeRowIndex,
+    getRow, getContainerVisibleBounds
+  ])
 
   //#endregion
 
@@ -606,7 +607,8 @@ function ScrollingContainer(props) {
 
   const dragSelect = useDecoupledCallback(useCallback(e => {
     if (gesture.pointerId == null) return
-    dragSelectStart(e.clientX, e.clientY, gesture.pointerId, gesture.target.index)
+    dragSelectStart(e.clientX, e.clientY, gesture.pointerId,
+      gesture.target.type === GestureTargetTypes.Row ? gesture.target.index : null)
   }, [gesture, dragSelectStart]))
 
   const columnResize = useDecoupledCallback(useCallback(e => {
@@ -672,7 +674,7 @@ function ScrollingContainer(props) {
     tableBodyRef,
     headColGroupRef,
     selectionRectRef,
-    headerRef,
+    headRowRef,
     chunkObserverRef,
 
     columns,

@@ -2,7 +2,6 @@ import React, { useMemo } from 'react'
 import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColGroup from './ColGroup'
-import { DragModes } from '../constants/enums'
 import _ from 'lodash'
 import ChunkObserver from './ChunkObserver'
 
@@ -14,8 +13,6 @@ import ChunkObserver from './ChunkObserver'
  */
 function TableBody(props) {
   const {
-    dragMode,
-    selectionRectRef,
     tableBodyRef,
     showPlaceholder,
     utils: { hooks, selectors, options },
@@ -53,13 +50,11 @@ function TableBody(props) {
     />
   }
 
-  return <div className='rst-body' ref={tableBodyRef}>
-    <table>
+  return <div className='rst-body'>
+    <table ref={tableBodyRef}>
       <ColGroup name={name} columns={columns} />
       {!showPlaceholder && keyChunks.map(renderChunk)}
     </table>
-    {dragMode === DragModes.Select &&
-      <div className='rst-dragSelection' ref={selectionRectRef} />}
   </div>
 }
 

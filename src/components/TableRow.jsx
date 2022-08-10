@@ -31,7 +31,7 @@ const TableRow = ({
   columns,
   name,
   getRowClassName,
-  row: { index, key, selected, active, data }
+  row: { index, key, selected, active, data, ref }
 }) => {
   const renderColumn = ({ key: colKey, ...column }) =>
     <TableCell
@@ -42,6 +42,7 @@ const TableRow = ({
     />
 
   return <tr
+    ref={ref}
     className={'rst-row ' + getRowClassName(data)}
     onPointerDownCapture={handleGesturePointerDownCapture}
     onTouchStart={handleGestureTouchStart}

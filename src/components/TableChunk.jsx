@@ -19,8 +19,6 @@ function TableChunk(props, ref) {
     ...rowCommonProps
   } = props
 
-  console.log('Rendering chunk')
-
   // Refresh on every prop change
   useLayoutEffect(refresh)
 

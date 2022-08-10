@@ -20,7 +20,7 @@ function TableHead(props) {
     columns,
     name,
     headColGroupRef,
-    headerRef,
+    headRowRef,
     ...commonHeaderProps
   } = props
 
@@ -67,7 +67,7 @@ function TableHead(props) {
     <table>
       <ColGroup name={name} columns={columns} ref={headColGroupRef} />
       <thead>
-        <tr className='rst-row' ref={headerRef}>
+        <tr className='rst-row' ref={headRowRef}>
           {columns.map(renderHeader)}
           <th className='rst-endCap'/>
           <TableHeader {...commonHeaderProps}

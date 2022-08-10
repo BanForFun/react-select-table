@@ -129,8 +129,9 @@ $debugStoppers: false;
   }
 }
 
-.rst-chunk[data-hidden] {
+.rst-chunk[data-is-hidden] {
   display: table-row;
+  height: var(--intrinsic-height);
 
   & > * {
     display: none;

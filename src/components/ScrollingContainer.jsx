@@ -3,13 +3,14 @@ import React, { useCallback, useContext, useEffect, useLayoutEffect, useMemo, us
 import ResizingContainer from './ResizingContainer'
 import { pc, px, negative } from '../utils/tableUtils'
 import useDecoupledCallback from '../hooks/useDecoupledCallback'
-import { getRowBounds, StateAttributes } from './TableRow'
+import { getRowBounds, RowAttributes } from './TableRow'
 import ColumnGroupContext from '../context/ColumnGroup'
 import { DragModes, GestureTargetTypes } from '../constants/enums'
 import GestureContext from '../context/GestureTarget'
 import { dataAttributeFlags, flagAttributeSelector } from '../utils/dataAttributeUtils'
 import * as setUtils from '../utils/setUtils'
 import GestureTarget from '../models/GestureTarget'
+import { HiddenAttribute } from './ChunkObserver'
 
 const cancelScrollType = 'touchmove'
 const cancelScrollOptions = { passive: false }
@@ -98,7 +99,7 @@ function ScrollingContainer(props) {
   const scrollingContainerRef = useRef()
 
   const getRow = useCallback(index => {
-    const [table] = tableBodyRef.current.getElementsByTagName('table')
+    const table = tableBodyRef.current.querySelector('table')
     return table.rows[index]
   }, [])
 
@@ -292,18 +293,18 @@ function ScrollingContainer(props) {
 
     // Animate selection
     _.forEach(dragSelection.selectionBuffer, (selected, index) => {
-      getRow(index).toggleAttribute(StateAttributes.Selected, selected)
+      getRow(index).toggleAttribute(RowAttributes.Selected, selected)
     })
     dragSelection.selectionBuffer = {}
 
     // Animate active row
     if (dragSelection.activeIndex == null) return
 
-    const prevActiveRow = tableBodyRef.current.querySelector(flagAttributeSelector(StateAttributes.Active))
-    prevActiveRow.toggleAttribute(StateAttributes.Active, false)
+    const prevActiveRow = tableBodyRef.current.querySelector(flagAttributeSelector(RowAttributes.Active))
+    prevActiveRow.toggleAttribute(RowAttributes.Active, false)
 
     const newActiveRow = getRow(dragSelection.activeIndex)
-    newActiveRow.toggleAttribute(StateAttributes.Active, true)
+    newActiveRow.toggleAttribute(RowAttributes.Active, true)
   }, [dragSelection, getRow])
 
   //#endregion
@@ -397,9 +398,9 @@ function ScrollingContainer(props) {
         Math.sign(top - originRelY) === direction &&
         Math.sign(newRelY - originRelY) === direction
 
-      const couldBeSelected = (index, bounds) => {
-        if (index === rowCount)
+      const shouldCheckSelected = (index, bounds) => {
         // Can't use _.inRange as it swaps the limits
+        if (index === rowCount)
           return newRelY > body.offsetHeight && newRelY < originRelY
 
         return bounds && (direction > 0 ? bounds.top <= newRelY : bounds.bottom >= newRelY)
@@ -407,11 +408,11 @@ function ScrollingContainer(props) {
 
       for (
         let rowBounds, rowIndex = dragSelection.prevRowIndex + direction;
-        couldBeSelected(rowIndex, rowBounds = getRowBounds(getRow(rowIndex)));
+        shouldCheckSelected(rowIndex, rowBounds = getRowBounds(getRow(rowIndex)));
         rowIndex += direction
       ) {
         // rowIndex is the last row that should be selected
-        const selected = rowBounds && shouldBeSelected(rowBounds.top)
+        const selected = rowIndex < rowCount && shouldBeSelected(rowBounds.top)
         const rowToUpdate = selected ? rowIndex : dragSelection.prevRowIndex
         selectionBuffer[rowToUpdate] = selected
         dragSelection.prevRowIndex = rowIndex
@@ -579,21 +580,23 @@ function ScrollingContainer(props) {
     }
   }, [scrollingContainerRef, tableBodyRef])
 
-  useLayoutEffect(() => {
-    const activeRow = getRow(activeRowIndex)
-    if (!activeRow) return
+  // TODO: Add it back
 
-    const containerBounds = getContainerVisibleBounds()
-    const rowBounds = getRowBounds(activeRow)
-    const distanceToTop = rowBounds.top - containerBounds.top
-    const distanceToBottom = rowBounds.bottom - containerBounds.bottom
-
-    const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
-    scrollingContainerRef.current.scrollTop += scrollOffset
-  }, [
-    activeRowIndex,
-    getRow, getContainerVisibleBounds
-  ])
+  // useLayoutEffect(() => {
+  //   const activeRow = getRow(activeRowIndex)
+  //   if (!activeRow) return
+  //
+  //   const containerBounds = getContainerVisibleBounds()
+  //   const rowBounds = getRowBounds(activeRow)
+  //   const distanceToTop = rowBounds.top - containerBounds.top
+  //   const distanceToBottom = rowBounds.bottom - containerBounds.bottom
+  //
+  //   const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
+  //   scrollingContainerRef.current.scrollTop += scrollOffset
+  // }, [
+  //   activeRowIndex,
+  //   getRow, getContainerVisibleBounds
+  // ])
 
   //#endregion
 
@@ -653,8 +656,9 @@ function ScrollingContainer(props) {
     chunkObserverRef.current = new IntersectionObserver(entries => {
       for (const entry of entries) {
         const chunk = entry.target
-        chunk.style.height = entry.isIntersecting ? 'auto' : px(chunk.offsetHeight)
-        chunk.toggleAttribute('data-hidden', !entry.isIntersecting)
+        if (!entry.isIntersecting)
+          chunk.style.setProperty('--intrinsic-height', px(chunk.offsetHeight))
+        chunk.toggleAttribute(HiddenAttribute, !entry.isIntersecting)
       }
     }, {
       root: scrollingContainerRef.current

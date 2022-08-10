@@ -4,7 +4,7 @@ import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import ColGroup from './ColGroup'
 import { DragModes } from '../constants/enums'
 import _ from 'lodash'
-import TableChunk from './TableChunk'
+import ChunkObserver from './ChunkObserver'
 
 /**
  * Child of {@link Components.ResizingContainer}.
@@ -46,7 +46,7 @@ function TableBody(props) {
       }
     })
 
-    return <TableChunk
+    return <ChunkObserver
       rows={rows}
       key={`chunk_${props.name}_${chunkIndex}`}
       {...chunkCommonProps}

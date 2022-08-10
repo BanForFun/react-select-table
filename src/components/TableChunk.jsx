@@ -1,32 +1,28 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useLayoutEffect } from 'react'
 import TableRow from './TableRow'
 import _ from 'lodash'
 import GestureTarget from '../models/GestureTarget'
 import { GestureTargetTypes } from '../constants/enums'
 
 /**
- * Child of {@link Components.TableBody}.
+ * Child of {@link Components.ChunkObserver}.
  *
  * @name Components.TableChunk
  * @type {React.FC}
  */
-function TableChunk(props) {
+function TableChunk(props, ref) {
   const {
     rows,
     contextMenu,
     chunkObserverRef,
+    refresh,
     ...rowCommonProps
   } = props
 
-  const chunkRef = useRef()
+  console.log('Rendering chunk')
 
-  useEffect(() => {
-    const chunk = chunkRef.current
-    const observer = chunkObserverRef.current
-    observer.observe(chunk)
-
-    return () => observer.unobserve(chunk)
-  }, [chunkObserverRef])
+  // Refresh on every prop change
+  useLayoutEffect(refresh)
 
   const renderRow = row => {
     const rowProps = {
@@ -40,9 +36,9 @@ function TableChunk(props) {
     return <TableRow {...rowProps} />
   }
 
-  return <tbody className='rst-chunk' ref={chunkRef}>
+  return <tbody className='rst-chunk' ref={ref}>
     {rows.map(renderRow)}
   </tbody>
 }
 
-export default React.memo(TableChunk, _.isEqual)
+export default React.memo(React.forwardRef(TableChunk), _.isEqual)

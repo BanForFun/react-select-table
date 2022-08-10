@@ -3,18 +3,20 @@ import TableCell from './TableCell'
 import withGestures from '../hoc/withGestures'
 import { dataAttributeFlags, getFlagAttributes } from '../utils/dataAttributeUtils'
 
-const stateFlags = {
+const flags = {
   Selected: 'selected',
   Active: 'active'
 }
 
-export const StateAttributes = getFlagAttributes(stateFlags)
+export const RowAttributes = getFlagAttributes(flags)
 
 export function getRowBounds(row) {
   if (!row) return null
 
-  const top = row.offsetTop
-  return { top, bottom: top + row.offsetHeight }
+  const { offsetHeight: height, offsetTop: top } = row
+  if (!height) return null
+
+  return { top, bottom: top + height }
 }
 
 /**
@@ -44,8 +46,8 @@ const TableRow = ({
     onPointerDownCapture={handleGesturePointerDownCapture}
     onTouchStart={handleGestureTouchStart}
     {...dataAttributeFlags({
-      [stateFlags.Active]: active,
-      [stateFlags.Selected]: selected
+      [flags.Active]: active,
+      [flags.Selected]: selected
     })}
   >
     {columns.map(renderColumn)}

@@ -37,6 +37,7 @@ function ResizingContainer(props) {
     contextMenu,
     dragMode,
     selectionRectRef,
+    chunkObserverRef,
 
     ...commonProps
   } = props
@@ -166,6 +167,7 @@ function ResizingContainer(props) {
     ...commonProps,
     tableBodyRef,
     selectionRectRef,
+    chunkObserverRef,
 
     dragMode,
     showPlaceholder,

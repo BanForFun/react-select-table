@@ -14,28 +14,11 @@ $debugStoppers: false;
     border-collapse: separate;
     border-spacing: 0;
   }
-
-  th, td {
-    box-sizing: border-box;
-  }
 }
 
 .rst-body, .rst-head {
   table {
     width: 100%;
-  }
-}
-
-.rst-endCap {
-  width: 0;
-  box-sizing: content-box;
-
-  &::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 100%;
-    bottom: 0;
   }
 }
 
@@ -82,10 +65,10 @@ $debugStoppers: false;
       max-width: 0;
       position: sticky;
       left: calc(var(--content-width) * -1);
+    }
 
-      .rst-spacer {
-        width: 100vw;
-      }
+    .rst-body .rst-spacer {
+      width: 100vw;
     }
   }
 
@@ -135,6 +118,22 @@ $debugStoppers: false;
   th {
     overflow: visible;
     position: relative;
+  }
+
+  .rst-row .rst-endCap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 100%;
+    bottom: 0;
+  }
+}
+
+.rst-chunk[data-hidden] {
+  display: table-row;
+
+  & > * {
+    display: none;
   }
 }
 

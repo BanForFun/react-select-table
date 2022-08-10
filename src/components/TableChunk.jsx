@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import TableRow from './TableRow'
 import _ from 'lodash'
 import GestureTarget from '../models/GestureTarget'
@@ -14,8 +14,19 @@ function TableChunk(props) {
   const {
     rows,
     contextMenu,
+    chunkObserverRef,
     ...rowCommonProps
   } = props
+
+  const chunkRef = useRef()
+
+  useEffect(() => {
+    const chunk = chunkRef.current
+    const observer = chunkObserverRef.current
+    observer.observe(chunk)
+
+    return () => observer.unobserve(chunk)
+  }, [chunkObserverRef])
 
   const renderRow = row => {
     const rowProps = {
@@ -29,7 +40,7 @@ function TableChunk(props) {
     return <TableRow {...rowProps} />
   }
 
-  return <tbody className='rst-chunk'>
+  return <tbody className='rst-chunk' ref={chunkRef}>
     {rows.map(renderRow)}
   </tbody>
 }

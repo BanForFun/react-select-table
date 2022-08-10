@@ -4,7 +4,6 @@
     "background-color"
   );
 
-  //noinspection CssReplaceWithShorthandSafely
   .rst-row {
     @include apply-properties("row", "border-color");
 
@@ -15,33 +14,37 @@
       border-top: none; // Bootstrap adds top border
       border-bottom-color: inherit;
     }
-  }
 
-  .rst-header, .rst-cell {
-    @include apply-properties("column", "border" "border-left");
-  }
+    .rst-header, .rst-cell {
+      @include apply-properties("column", "border" "border-left");
+    }
 
-  .rst-clippingStopper {
-    padding-left: get-property("column", "border-width");
-  }
+    $separator-width: get-property("column-separator", "width");
+    $separator-color: get-property("column-separator", "color");
 
-  $separator-width: get-property("column-separator", "width");
-  $separator-color: get-property("column-separator", "color");
+    .rst-header {
+      @include apply-properties("header", "font-weight");
+      box-shadow: inset-border($separator-width, $separator-color, left);
+      padding-right: $separator-width;
+    }
 
-  .rst-endCap {
-    padding: 0;
-    @include apply-properties("column", "border" "border-right");
+    .rst-endCap {
+      padding: 0;
+      @include apply-properties("column", "border" "border-right");
 
-    &::after {
-      width: $separator-width;
-      background-color: $separator-color;
+      &::after {
+        width: $separator-width;
+        background-color: $separator-color;
+      }
     }
   }
 
-  .rst-header {
-    @include apply-properties("header", "font-weight");
-    box-shadow: inset-border($separator-width, $separator-color, left);
-    padding-right: $separator-width;
+  .rst-endCap {
+    @include apply-properties("column", "border-width" "width");
+  }
+
+  .rst-clippingStopper {
+    @include apply-properties("column", "border-width" "padding-left");
   }
 
   .rst-headerContent > * {

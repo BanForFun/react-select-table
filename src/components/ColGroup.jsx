@@ -24,6 +24,8 @@ const ColGroup = ({ name, columns }, ref) => {
         data-col-key={key}
       />
     )}
+    <col className='rst-endCap'/>
+    <col className='rst-spacer'/>
   </colgroup>
 }
 

@@ -199,8 +199,12 @@ function ScrollingContainer(props) {
   // Column resizing
   const columnResizeEnd = useCallback(() => {
     // Account for end-cap border
-    const { offsetWidth: availableWidth } = headColGroupRef.current
-    const { lastChild: { offsetLeft: fullWidth } } = headerRef.current
+
+    // The last child is the spacer, and the previous sibling is the end cap
+    const {
+      offsetLeft: fullWidth,
+      previousElementSibling: { offsetLeft: availableWidth }
+    } = headerRef.current.lastChild
     const { clientWidth: visibleWidth } = scrollingContainerRef.current
 
     const scale = fullWidth > visibleWidth ? fullWidth / availableWidth : 1
@@ -641,12 +645,31 @@ function ScrollingContainer(props) {
 
   //#endregion
 
+  //#region IntersectionObserver
+
+  const chunkObserverRef = useRef()
+
+  useLayoutEffect(() => {
+    chunkObserverRef.current = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        const chunk = entry.target
+        chunk.style.height = entry.isIntersecting ? 'auto' : px(chunk.offsetHeight)
+        chunk.toggleAttribute('data-hidden', !entry.isIntersecting)
+      }
+    }, {
+      root: scrollingContainerRef.current
+    })
+  }, [])
+
+  //#endregion
+
   // Set props
   Object.assign(resizingProps, {
     tableBodyRef,
     headColGroupRef,
     selectionRectRef,
     headerRef,
+    chunkObserverRef,
 
     columns,
     dragMode,

@@ -27,8 +27,9 @@ function TableBody(props) {
   const items = hooks.useSelector(s => s.items)
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
-  const keyChunks = useMemo(() => _.chunk(rowKeys, options.chunkSize),
-    [rowKeys, options])
+  const keyChunks = useMemo(() =>
+    options.chunkSize > 0 ? _.chunk(rowKeys, options.chunkSize) : rowKeys,
+  [rowKeys, options])
 
   const renderChunk = (keys, chunkIndex) => {
     const chunkIndexOffset = chunkIndex * options.chunkSize

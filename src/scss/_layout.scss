@@ -64,7 +64,7 @@ $debugStoppers: false;
     .rst-body {
       max-width: 0;
       position: sticky;
-      left: negative(var(--content-width));
+      left: negative(var(--rst-content-width));
     }
 
     .rst-body .rst-spacer {
@@ -131,7 +131,7 @@ $debugStoppers: false;
 
 .rst-chunk[data-is-hidden] {
   display: table-row;
-  height: var(--intrinsic-height);
+  height: var(--rst-intrinsic-height);
 
   & > * {
     display: none;

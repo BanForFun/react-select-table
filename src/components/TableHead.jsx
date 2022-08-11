@@ -76,6 +76,7 @@ function TableHead(props) {
             gestureTarget={null}
             className='rst-spacer'
             isResizable={!options.constantWidth}
+            isResizing={resizingIndex === columns.length}
             sortAscending={true}
             sortPriority={-1}
             showPriority={false}

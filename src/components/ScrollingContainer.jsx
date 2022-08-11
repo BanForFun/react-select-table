@@ -516,7 +516,7 @@ function ScrollingContainer(props) {
     // as the only thing visible at this point is the spacer.
     // This is a performance optimization because having the entire body expand to the header's size is pointless.
     const container = scrollingContainerRef.current
-    container.style.setProperty('--content-width', px(contentWidth))
+    container.style.setProperty('--rst-content-width', px(contentWidth))
 
     setRenderedColumnWidths(widths, index)
   }, [dragStart, getCurrentHeaderWidths, columnResizing, options, setRenderedColumnWidths])
@@ -657,7 +657,7 @@ function ScrollingContainer(props) {
       for (const entry of entries) {
         const chunk = entry.target
         if (!entry.isIntersecting)
-          chunk.style.setProperty('--intrinsic-height', px(chunk.offsetHeight))
+          chunk.style.setProperty('--rst-intrinsic-height', px(chunk.offsetHeight))
         chunk.toggleAttribute(HiddenAttribute, !entry.isIntersecting)
       }
     }, {

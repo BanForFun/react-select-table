@@ -44,7 +44,7 @@ $debugStoppers: false;
   transition: transform 0.25s;
   transform: translateY(-100%);
 
-  &[data-is-visible] {
+  &[#{flag-attr('visible')}] {
     transform: translateY(0);
   }
 }
@@ -76,7 +76,7 @@ $debugStoppers: false;
     cursor: default;
   }
 
-  &[data-is-placeholder-shown] .rst-clippingContainer {
+  &[#{flag-attr('placeholder-shown')}] .rst-clippingContainer {
     flex: none;
   }
 }
@@ -85,7 +85,7 @@ $debugStoppers: false;
   flex: auto;
 }
 
-.rst-clippingContainer[data-is-clipping] {
+.rst-clippingContainer[#{flag-attr('clipping')}] {
   contain: paint;
   min-width: min-content;
 
@@ -129,7 +129,7 @@ $debugStoppers: false;
   }
 }
 
-.rst-chunk[data-is-hidden] {
+.rst-chunk[#{flag-attr('hidden')}] {
   display: table-row;
   height: var(--rst-intrinsic-height);
 
@@ -161,7 +161,7 @@ $debugStoppers: false;
   }
 }
 
-.rst-header[data-is-sortable] .rst-headerContent {
+.rst-header[#{flag-attr('sortable')}] .rst-headerContent {
   cursor: pointer;
 }
 

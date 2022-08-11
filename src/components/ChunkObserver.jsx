@@ -1,8 +1,9 @@
 import React, { useCallback, useRef, useEffect, useContext, useLayoutEffect } from 'react'
 import TableChunk from './TableChunk'
 import ColumnGroupContext from '../context/ColumnGroup'
+import { getFlagAttribute } from '../utils/dataAttributeUtils'
 
-export const HiddenAttribute = 'data-is-hidden'
+export const HiddenAttribute = getFlagAttribute('hidden')
 
 /**
  * Child of {@link Components.TableBody}.

@@ -113,22 +113,22 @@
 }
 
 %rowActive {
-  .rst-row[data-is-active] {
+  .rst-row[#{flag-attr('active')}] {
     --underline-width: #{get-property("row_active", "underline-width")};
     --underline-color: #{get-property("row_active", "underline-color")};
   }
 
-  &:focus-within .rst-row[data-is-active] {
+  &:focus-within .rst-row[#{flag-attr('active')}] {
     --underline-color: #{get-property("row_active_focused", "underline-color")};
   }
 }
 
 %rowSelected {
-  .rst-row[data-is-selected] {
+  .rst-row[#{flag-attr('selected')}] {
     @include apply-properties("row_selected", "color", "border-color", "background-color");
   }
 
-  &:focus-within .rst-row[data-is-selected] {
+  &:focus-within .rst-row[#{flag-attr('selected')}] {
     @include apply-properties("row_selected_focused", "color", "border-color", "background-color");
   }
 }
@@ -141,7 +141,7 @@
   }
 
   .rst-header, .rst-spacer {
-    &[data-is-resizing] .rst-columnResizer {
+    &[#{flag-attr('resizing')}] .rst-columnResizer {
       @include apply-properties("column-resizer_resizing", "border" "border-right");
       transform: none;
       height: 100vh;
@@ -186,7 +186,7 @@
         @include apply-properties("pg-page_hover", $properties...);
       }
 
-      &[data-is-current] {
+      &[#{flag-attr('current')}] {
         @include apply-properties("pg-page_current", $properties...);
       }
     }

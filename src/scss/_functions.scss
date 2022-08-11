@@ -59,3 +59,7 @@
 
   @return inset map-get($offsets, $side) 0 0 $color;
 }
+
+@function flag-attr($flag) {
+  @return 'data-is-' + $flag
+}

@@ -1,8 +1,8 @@
 import React, { useLayoutEffect } from 'react'
 import TableRow from './TableRow'
-import _ from 'lodash'
 import GestureTarget from '../models/GestureTarget'
 import { GestureTargetTypes } from '../constants/enums'
+import { comparePropsDeep } from '../utils/memoUtils'
 
 /**
  * Child of {@link Components.ChunkObserver}.
@@ -14,7 +14,6 @@ function TableChunk(props, ref) {
   const {
     rows,
     contextMenu,
-    chunkObserverRef,
     refresh,
     ...rowCommonProps
   } = props
@@ -39,4 +38,4 @@ function TableChunk(props, ref) {
   </tbody>
 }
 
-export default React.memo(React.forwardRef(TableChunk), _.isEqual)
+export default React.memo(React.forwardRef(TableChunk), comparePropsDeep)

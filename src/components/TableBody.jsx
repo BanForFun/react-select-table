@@ -27,12 +27,15 @@ function TableBody(props) {
   const items = hooks.useSelector(s => s.items)
   const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
+  const chunkSize = useMemo(() =>
+    Math.ceil(options.chunkSize) * 2, [options])
+
   const keyChunks = useMemo(() =>
-    options.chunkSize > 0 ? _.chunk(rowKeys, options.chunkSize) : rowKeys,
-  [rowKeys, options])
+    chunkSize > 0 ? _.chunk(rowKeys, chunkSize) : [rowKeys],
+  [rowKeys, chunkSize])
 
   const renderChunk = (keys, chunkIndex) => {
-    const chunkIndexOffset = chunkIndex * options.chunkSize
+    const chunkIndexOffset = chunkIndex * chunkSize
     const rows = keys.map((key, rowIndex) => {
       const index = chunkIndexOffset + rowIndex
       return {

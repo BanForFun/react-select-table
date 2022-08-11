@@ -661,7 +661,8 @@ function ScrollingContainer(props) {
         chunk.toggleAttribute(HiddenAttribute, !entry.isIntersecting)
       }
     }, {
-      root: scrollingContainerRef.current
+      root: scrollingContainerRef.current,
+      rootMargin: '50%'
     })
   }, [])
 

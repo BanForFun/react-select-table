@@ -6,6 +6,10 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
+## Changes in version 5.2.0
+- Added item chunking: Items can be divided into chunks, and the chunks that are not visible are not rendered to improve performance (especially in chrome)
+- Added `chunkSize` option to control the size of the chunks
+
 ## Features
 
 * Item filtering
@@ -101,7 +105,7 @@ and a table component to display them.
 * **Tap on a header title** to toggle the sorting order for the column between ascending and descending
 * **Long tap on a header title** to sort the items using this column after first sorting them with the previously selected columns (multiple column sorting)
 
-## Migrating from v4
+## Migrating from version 4
 This version is a complete rewrite, treat it as a completely different library
 
 # Quick start guide

@@ -245,10 +245,10 @@ function ScrollingContainer(props) {
   //#region Drag animation
 
   // Common
-  const dragAnimate = useCallback((animation, ...params) => {
+  const dragAnimate = useCallback((callback) => {
     cancelAnimationFrame(drag.animationId)
     drag.animationId = requestAnimationFrame(() => {
-      animation(...params)
+      callback()
       drag.animationId = null
       drag.movement.x = 0
       drag.movement.y = 0
@@ -269,8 +269,8 @@ function ScrollingContainer(props) {
     container.scrollLeft = scrollLeft
   }, [])
 
-  const dragSelectAnimate = useCallback((
-    relX, relY, scrollLeftOffset, scrollTopOffset, newActiveIndex
+  const dragSelectAnimation = useCallback((
+    relX, relY, scrollLeftOffset, scrollTopOffset
   ) => {
     // Animate scrolling
     const container = scrollingContainerRef.current
@@ -297,15 +297,14 @@ function ScrollingContainer(props) {
     dragSelection.selectionBuffer = {}
 
     // Animate active row
-    if (newActiveIndex == null) return
+    if (dragSelection.activeIndex == null) return
 
-    const prevActiveRow = getRow(dragSelection.activeIndex)
-    prevActiveRow?.toggleAttribute(RowAttributes.Active, false)
+    const newActiveRow = getRow(dragSelection.activeIndex)
+    if (newActiveRow === dragSelection.activeRow) return
 
-    const newActiveRow = getRow(newActiveIndex)
-    newActiveRow.toggleAttribute(RowAttributes.Active, true)
-
-    dragSelection.activeIndex = newActiveIndex
+    dragSelection.activeRow.toggleAttribute(RowAttributes.Active, false)
+    dragSelection.activeRow = newActiveRow
+    dragSelection.activeRow.toggleAttribute(RowAttributes.Active, true)
   }, [dragSelection, getRow])
 
   //#endregion
@@ -353,7 +352,7 @@ function ScrollingContainer(props) {
       changedWidths[index] = sharedWidth - newWidth
 
     const newScroll = scroll + scrollOffset + movementOffset
-    dragAnimate(columnResizeAnimation, changedWidths, newScroll)
+    dragAnimate(() => columnResizeAnimation(changedWidths, newScroll))
   }, [
     drag,
     columnGroup,
@@ -394,7 +393,6 @@ function ScrollingContainer(props) {
     const { selectionBuffer, originRel: { y: originRelY } } = dragSelection
     const direction = Math.sign(newRelY - dragSelection.prevRelY)
 
-    let newActiveIndex = null
     if (direction) {
       const shouldBeSelected = top =>
         Math.sign(top - originRelY) === direction &&
@@ -423,20 +421,19 @@ function ScrollingContainer(props) {
 
         if (rowIndex >= rowCount) continue
         dragSelection.pivotIndex ??= rowIndex
-        newActiveIndex = rowIndex
+        dragSelection.activeIndex = rowIndex
       }
 
       dragSelection.prevRelY = newRelY
       Object.assign(dragSelection.selection, selectionBuffer)
     }
 
-    dragAnimate(dragSelectAnimate,
+    dragAnimate(() => dragSelectAnimation(
       newRelX, newRelY,
       scrollLeftOffset + movement.x,
-      scrollTopOffset + movement.y,
-      newActiveIndex
-    )
-  }, [drag, dragSelectScrollFactor, dragSelection, dragAnimate, dragSelectAnimate, rowCount, getRow])
+      scrollTopOffset + movement.y
+    ))
+  }, [drag, dragSelectScrollFactor, dragSelection, dragAnimate, dragSelectAnimation, rowCount, getRow])
 
   // Common
   const dragUpdate = useMemo(() => ({
@@ -535,13 +532,14 @@ function ScrollingContainer(props) {
 
     Object.assign(dragSelection, {
       selection: {},
-      activeIndex: rowIndex ?? activeRowIndex,
+      activeRow: getRow(rowIndex ?? activeRowIndex),
+      activeIndex: null,
       pivotIndex: rowIndex,
       prevRowIndex: rowIndex == null ? rowCount : rowIndex,
       prevRelY: relY,
       originRel: Point(relX, relY)
     })
-  }, [options, dragStart, dragSelection, activeRowIndex, rowCount])
+  }, [options, dragStart, dragSelection, getRow, activeRowIndex, rowCount])
 
   //#endregion
 

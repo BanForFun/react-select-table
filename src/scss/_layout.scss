@@ -119,14 +119,6 @@ $debugStoppers: false;
     overflow: visible;
     position: relative;
   }
-
-  .rst-row .rst-endCap::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 100%;
-    bottom: 0;
-  }
 }
 
 .rst-chunk[#{flag-attr('hidden')}] {

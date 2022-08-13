@@ -10,13 +10,14 @@
     & > * {
       @include apply-properties("cell", "padding");
       @include apply-properties("row", "border" "border-bottom");
+      @include apply-properties("column", "border" "border-left");
       background-clip: padding-box;
       border-top: none; // Bootstrap adds top border
       border-bottom-color: inherit;
     }
 
-    .rst-header, .rst-cell {
-      @include apply-properties("column", "border" "border-left");
+    .rst-spacer {
+      border-left: none;
     }
 
     $separator-width: get-property("column-separator", "width");
@@ -30,12 +31,8 @@
 
     .rst-endCap {
       padding: 0;
-      @include apply-properties("column", "border" "border-right");
-
-      &::after {
-        width: $separator-width;
-        background-color: $separator-color;
-      }
+      $spread: calc(#{$separator-width} / 2);
+      box-shadow: negative($spread) negative($spread) 0 $spread $separator-color;
     }
   }
 

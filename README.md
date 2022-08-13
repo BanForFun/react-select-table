@@ -6,9 +6,10 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Changes in version 5.2.0
-- Added item chunking: Items can be divided into chunks, and the chunks that are not visible are not rendered to improve performance (especially in chrome)
-- Added `chunkSize` option to control the size of the chunks
+## Version 5.2.1
+- By holding control when resizing a column, the next column is also resized so that the sum of their widths stays constant, even for tables with the `constantWidth` option disabled.
+
+[Older changes](./docs/changelog.md)
 
 ## Features
 
@@ -69,6 +70,7 @@ and a table component to display them.
 * **Click on the green column separator + Drag** to start resizing the column
 * **Move the cursor outside the table while dragging** to start automatically scrolling
 * **If the table is overflowing horizontally (aka the scrollbar is visible), scroll with the wheel while dragging** to expand or shrink the column
+* **Ctrl + Any of the above** to keep the total width of the table constant
 
 ### Column sorting
 * **Click on a header title** to toggle the sorting order for the column between ascending and descending

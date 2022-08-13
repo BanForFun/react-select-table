@@ -89,6 +89,22 @@ function Root(props) {
 
   const showPlaceholder = !!placeholder
 
+  //#region Gestures
+
+  const gesture = useRef({
+    pointerId: null,
+    target: GestureTarget(GestureTargetTypes.None),
+    pointerType: null,
+    isDragging: false
+  }).current
+
+  const handlePointerDownCapture = useCallback(e => {
+    gesture.pointerType = e.pointerType
+    gesture.pointerId = e.isPrimary ? e.pointerId : null
+  }, [gesture])
+
+  //#endregion
+
   //#region Keyboard shortcuts
   const selectionRegisteredRef = useRef(false)
   useEffect(() => {
@@ -173,25 +189,10 @@ function Root(props) {
   ])
 
   const handleKeyDown = useCallback(e => {
+    if (gesture.isDragging) return
     if (handleShortcuts(e) === false) return
     searchInputRef.current.focus()
-  }, [handleShortcuts, searchInputRef])
-  //#endregion
-
-  //#region Touch gestures
-
-  const gesture = useRef({
-    pointerId: null,
-    target: GestureTarget(GestureTargetTypes.None),
-    pointerType: null,
-    isDragging: false
-  }).current
-
-  const handlePointerDownCapture = useCallback(e => {
-    gesture.pointerType = e.pointerType
-    gesture.pointerId = e.isPrimary ? e.pointerId : null
-  }, [gesture])
-
+  }, [gesture, handleShortcuts, searchInputRef])
   //#endregion
 
   // Scrolling container props

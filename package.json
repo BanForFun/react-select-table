@@ -1,6 +1,6 @@
 {
   "name": "react-select-table",
-  "version": "5.2.1",
+  "version": "5.2.2",
   "description": "React table component with selectable items",
   "author": "@BanForFun",
   "license": "MIT",
@@ -22,7 +22,7 @@
   "module": "dist/index.mjs",
   "typings": "dist/typings/index.d.ts",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "scripts": {
     "build-definitions": "rm -rf dist/typings && tsc",
@@ -43,7 +43,6 @@
     "redux": "^4.0.0"
   },
   "devDependencies": {
-    "@swc/core": "^1.2.224",
     "autoprefixer": "^10.4.8",
     "cross-env": "^7.0.2",
     "deep-object-diff": "^1.1.7",

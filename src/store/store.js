@@ -106,15 +106,14 @@ export default function createTable(namespace, options = {}) {
   if (options.savedState) {
     const saved = options.savedState
     const load = (...props) => Object.assign(draft, _.pick(saved, props))
-    const isSaved = name => Object.hasOwn(saved, name)
 
     load('filter', 'sortAscending', 'error', 'isLoading', 'pageSize', 'searchPhrase')
 
-    if (isSaved('items'))
+    if ('items' in saved)
       addKeyedItems(keyItems(saved.items))
 
     let activeKey = null
-    if (isSaved('activeIndex')) {
+    if ('activeIndex' in saved) {
       activeKey = setActiveIndex(saved.activeIndex, true)
       draft.pivotIndex = saved.activeIndex
     }
@@ -124,7 +123,7 @@ export default function createTable(namespace, options = {}) {
       draft.searchMatchIndex = draft.searchMatches.indexOf(activeKey)
     }
 
-    if (isSaved('selected'))
+    if ('selected' in saved)
       setSelection(saved.selected)
 
     load('pivotIndex')

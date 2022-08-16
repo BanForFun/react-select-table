@@ -17,6 +17,7 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   onSuccess: 'run-s build-definitions',
   target: 'node12',
+  legacyOutput: true,
   esbuildPlugins: [
     sassPlugin({
       async transform(source) {

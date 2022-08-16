@@ -6,8 +6,8 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Version 5.2.1
-- By holding control when resizing a column, the next column is also resized so that the sum of their widths stays constant, even for tables with the `constantWidth` option disabled.
+## Version 5.2.3
+- Fixed node support
 
 [Older changes](./docs/changelog.md)
 

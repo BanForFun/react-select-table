@@ -1,6 +1,6 @@
 {
   "name": "react-select-table",
-  "version": "5.2.2",
+  "version": "5.2.3",
   "description": "React table component with selectable items",
   "author": "@BanForFun",
   "license": "MIT",
@@ -19,7 +19,7 @@
     "touch"
   ],
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/esm/index.js",
   "typings": "dist/typings/index.d.ts",
   "engines": {
     "node": ">=12"

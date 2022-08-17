@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/react-select-table/static/css/main.f056f125.css",
-    "main.js": "/react-select-table/static/js/main.841851fa.js",
+    "main.js": "/react-select-table/static/js/main.b519fd09.js",
     "index.html": "/react-select-table/index.html",
     "main.f056f125.css.map": "/react-select-table/static/css/main.f056f125.css.map",
-    "main.841851fa.js.map": "/react-select-table/static/js/main.841851fa.js.map"
+    "main.b519fd09.js.map": "/react-select-table/static/js/main.b519fd09.js.map"
   },
   "entrypoints": [
     "static/css/main.f056f125.css",
-    "static/js/main.841851fa.js"
+    "static/js/main.b519fd09.js"
   ]
 }

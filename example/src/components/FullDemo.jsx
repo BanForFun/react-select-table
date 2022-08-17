@@ -118,7 +118,7 @@ function FullDemo() {
       <button onClick={() => actions.clearItems()}>Clear items</button>
       <button onClick={() => actions.setError("Something went wrong")}>Set error</button>
       <button onClick={() => actions.startLoading()}>Set loading</button>
-      <button onClick={() => actions.replaceItems(todos)}>Replace items</button>
+      <button onClick={() => actions.replaceItems(todos.slice(0, 20))}>Replace items</button>
       <div className="break"/>
 
       <button onClick={() => {
@@ -128,18 +128,18 @@ function FullDemo() {
       }}>Set selected items completed</button>
 
       <button onClick={() => actions.patchItemsByKey({
-        200: { id: 195 },
-        195: { id: 200 }
-      })}>Swap values of items 195 and 200</button>
+        5: { id: 11 },
+        11: { id: 5 }
+      })}>Swap values of items 5 and 11</button>
 
       <button onClick={() => actions.patchItems(
-        { id: 193, title: "Updated title" },
-        { id: 194, completed: true }
-      )}>Change title of item 193 and set 194 completed</button>
+        { id: 8, title: "Updated title" },
+        { id: 9, completed: true }
+      )}>Change title of item 8 and set 9 completed</button>
 
       <button onClick={() => actions.addItems(
-        { id: 201, title: "Download react-select-table", completed: true, userId: 1 },
-        { id: 202, title: "Read documentation", completed: false, userId: 1 }
+        { id: 1, title: "Download react-select-table", completed: true, userId: 1 },
+        { id: 2, title: "Read documentation", completed: false, userId: 1 }
       )}>Add items</button>
     </div>
     <h3>Filtering</h3>

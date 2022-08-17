@@ -8,9 +8,8 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Version 5.2.5
-- Fixed search dialog appearing even when searchProperty was falsy
-- Fixed all items being falsely considered search matches when searchPhraseParser returned an empty string
+## Version 5.2.7
+- Fixed crash when action is dispatched before table render
 
 [Older changes](./docs/changelog.md)
 

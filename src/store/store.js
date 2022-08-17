@@ -53,17 +53,17 @@ function getNoItemsState() {
 
 /**
  * @typedef {object} StoreTypes.State
- * @property {import('../utils/setUtils').Set<StoreTypes.RowKey>} selected A set containing all selected row keys
+ * @property {import('../utils/setUtils').SetTypes.Set<StoreTypes.RowKey>} selected A set containing all selected row keys
  * @property {*} filter The item filter
  * @property {Object<string, boolean>} sortAscending An object with property paths as keys, and true for ascending order or false for descending, as values
  * @property {boolean} isLoading When true, a loading indicator is displayed
  * @property {number} pageSize The maximum number of items in a page, 0 if pagination is disabled
  * @property {*} error When truthy, it is passed as a child to {@link TableProps.errorComponent} which in turn is rendered instead of the table rows
- * @property {import('../utils/trieUtils').TrieNode<StoreTypes.RowKey>} searchIndex The root node of a trie made from the {@link Options.searchProperty} value of each row after being parsed by {@link Options.searchPhraseParser}
+ * @property {import('../utils/trieUtils').TrieTypes.Node<StoreTypes.RowKey>} searchIndex The root node of a trie made from the {@link Options.searchProperty} value of each row after being parsed by {@link Options.searchPhraseParser}
  * @property {string} searchPhrase The search phrase after being parsed by {@link Options.searchPhraseParser}
  * @property {StoreTypes.RowKey[]} matches The keys of the rows that matched the search phrase, sorted in the order they appear
  * @property {number} matchIndex The currently highlighted match index
- * @property {import('../utils/doublyLinkedMapUtils').DoublyLinkedMap<StoreTypes.RowKey, object, StoreTypes.RowMetadata>} items A list of all items, sorted based on {@link sortAscending}
+ * @property {import('../utils/doublyLinkedMapUtils').DlMapTypes.Map<StoreTypes.RowKey, object, StoreTypes.RowMetadata>} items A list of all items, sorted based on {@link sortAscending}
  * @property {StoreTypes.RowKey[]} rowKeys The keys of the visible items, sorted and paginated
  * @property {number} visibleItemCount The total number of visible items on all pages
  * @property {number} activeIndex The index of the active row inside {@link rowKeys}

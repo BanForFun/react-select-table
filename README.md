@@ -8,9 +8,11 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Version 5.2.5
-- Fixed search dialog appearing even when searchProperty was falsy
-- Fixed all items being falsely considered search matches when searchPhraseParser returned an empty string
+## Version 5.2.6
+- Fixed crash when action is dispatched before table render
+- eventMiddleware is no longer required for any event to work. It was replaced with a noop middleware so that the api doesn't break
+- Added getIsStateNormal and getSelection [selectors](./src/models/Selectors.js)
+- Fixed onSelectionChange event not raised as a result of startLoading and setError actions
 
 [Older changes](./docs/changelog.md)
 
@@ -182,8 +184,6 @@ meaning that the item key `1` is considered equal to `'1'`, and that whenever yo
 
 If a reducer isn't the root reducer, you must set the `statePath` option to a string being the path to the reducer.
 
-Lastly you must apply the `eventMiddleware` middleware to enable events.
-
 ### Example
 
 Say we're making a todo list, and our objects are of this format:
@@ -208,8 +208,7 @@ export default configureStore({
   reducer: createTable(tableNamespace, {
     keyBy: 'id',
     searchProperty: 'title'
-  }),
-  middleware: [eventMiddleware]
+  })
 })
 ```
 
@@ -229,8 +228,7 @@ export default configureStore({
       statePath: 'todoTable'
     }),
     ...otherReducers
-  },
-  middleware: getDefault => getDefault().concat(eventMiddleware, ...otherMiddleware)
+  }
 })
 ```
 

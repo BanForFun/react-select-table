@@ -1,19 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { createTable, eventMiddleware, getTableUtils } from 'react-select-table'
+import { createTable, getTableUtils } from 'react-select-table'
 import { getOptions } from './utils/customOptionsUtils'
 import todos from './data/todos.json'
 
 export const tableNamespace = "todos";
 
-const reducer = createTable(tableNamespace, {
-  keyBy: "id",
-  searchProperty: "title",
-  ...getOptions()
-});
-
 const store = configureStore({
-  reducer,
-  middleware: [eventMiddleware]
+  reducer: createTable(tableNamespace, {
+    keyBy: "id",
+    searchProperty: "title",
+    ...getOptions()
+  })
 })
 
 const utils = getTableUtils(tableNamespace)

@@ -1,6 +1,6 @@
 {
   "name": "react-select-table",
-  "version": "5.2.5",
+  "version": "5.2.6",
   "description": "React table component with selectable items",
   "author": "@BanForFun",
   "license": "MIT",
@@ -25,7 +25,7 @@
     "node": ">=12"
   },
   "scripts": {
-    "build-definitions": "rm -rf dist/typings && tsc",
+    "build-definitions": "rm -rf dist/typings && tsc && echo Built typings",
     "build": "tsup",
     "start": "tsup --watch",
     "prepare": "run-s build",

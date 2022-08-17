@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { getTableUtils } from '../utils/tableUtils'
 import Root from './Root'
 import { tablePropTypes, reduxEventHandlersPropTypes } from '../types/TableProps'
@@ -19,13 +19,8 @@ const Table = React.forwardRef((props, ref) => {
   // Register redux event handlers
   const eventHandlers = utils.events[handlersSymbol]
   for (const handlerName in reduxEventHandlersPropTypes) {
-    const handler = props[handlerName]
+    eventHandlers[handlerName] = rootProps[handlerName]
     delete rootProps[handlerName]
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-      eventHandlers[handlerName] = handler
-    }, [handler, eventHandlers, handlerName])
   }
 
   return <Root

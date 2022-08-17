@@ -36,14 +36,16 @@ export const handlersSymbol = Symbol('Event handlers')
  * @typedef {?RowKeyType|Set<RowKeyType>} EventsTypes.ContextMenuArg
  */
 
-export const noopEventHandler = () => {}
+const noopEventHandler = () => {}
 
 export default class Events {
   constructor(selectors) {
     /** @private */
     this.selectors = selectors
 
-    this[handlersSymbol] = {}
+    this[handlersSymbol] = new Proxy({}, {
+      get: (obj, prop) => obj[prop] ?? noopEventHandler
+    })
   }
 
   /**

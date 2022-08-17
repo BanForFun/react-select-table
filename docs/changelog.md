@@ -1,7 +1,3 @@
-## Version 5.2.5
-- Fixed search dialog appearing even when searchProperty was falsy
-- Fixed all items being falsely considered search matches when searchPhraseParser returned an empty string
-
 ## Version 5.2.4
 - Fixed table container having "undefined" class name when not given a custom class
 - Added tab navigation

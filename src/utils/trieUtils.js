@@ -2,15 +2,11 @@ import * as setUtils from './setUtils'
 import _ from 'lodash'
 
 /**
- * @namespace TrieTypes
- */
-
-/**
  * A node of a {@link https://en.wikipedia.org/wiki/Trie|trie}
  *
  * @template Value
- * @typedef {object} TrieTypes.Node
- * @property {Object<string, TrieTypes.Node<Value>>} children The children of the node
+ * @typedef {object} TrieNode
+ * @property {Object<string, TrieNode<Value>>} children The children of the node
  * @property {import('../utils/setUtils').Set<Value>} values The values of the nodes that end at this character
  */
 
@@ -18,7 +14,7 @@ import _ from 'lodash'
  * Returns a new node instance
  *
  * @template Value
- * @returns {TrieTypes.Node<Value>} A new node
+ * @returns {TrieNode<Value>} A new node
  */
 export function instance() {
   return {
@@ -31,7 +27,7 @@ export function instance() {
  * Adds a new node to the trie
  *
  * @template Value
- * @param {TrieTypes.Node<Value>} node The node under which to place the new one
+ * @param {TrieNode<Value>} node The node under which to place the new one
  * @param {Value} value The value of the new node
  * @param {string} text The text of the new node
  * @returns {void}
@@ -52,7 +48,7 @@ export function addNode(node, value, text) {
  * Removes a node from the trie
  *
  * @template Value
- * @param {TrieTypes.Node<Value>} node The node under which the node to remove was placed originally
+ * @param {TrieNode<Value>} node The node under which the node to remove was placed originally
  * @param {Value} value The value of the node to remove
  * @param {string} text The text of the node to remove
  * @returns {boolean} True if the node existed
@@ -105,7 +101,7 @@ function getAllValues(node, values = []) {
  * Returns the values of all nodes whose text begins with the text given
  *
  * @template Value
- * @param {TrieTypes.Node<Value>} node The node from which to begin the search
+ * @param {TrieNode<Value>} node The node from which to begin the search
  * @param {string} text The text to find matching values for
  * @returns {Value[]} The values of the nodes that match the given text
  */

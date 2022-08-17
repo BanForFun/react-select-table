@@ -118,11 +118,12 @@ function FullDemo() {
       <button onClick={() => actions.clearItems()}>Clear items</button>
       <button onClick={() => actions.setError("Something went wrong")}>Set error</button>
       <button onClick={() => actions.startLoading()}>Set loading</button>
+      <button onClick={() => actions.replaceItems(todos)}>Replace items</button>
       <div className="break"/>
 
       <button onClick={() => {
         const selectedKeys = setUtils.getItems(getState().selected)
-        const patch = _.zipObject(selectedKeys, selectedKeys.map(() => ({ completed: true })))
+        const patch = _.zipObject(selectedKeys, selectedKeys.map(_.constant({ completed: true })))
         actions.patchItemsByKey(patch)
       }}>Set selected items completed</button>
 

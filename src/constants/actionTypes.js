@@ -7,6 +7,7 @@ const types = {
   PATCH_ITEMS_BY_KEY: '',
   CLEAR_ITEMS: '',
   SORT_ITEMS: '',
+  REPLACE_ITEMS: '',
   SET_ITEM_FILTER: '',
 
   // Displaying

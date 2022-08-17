@@ -434,15 +434,23 @@ export default function createTable(namespace, options = {}) {
           addKeyedItems(keyItems(payload.items))
           break
         }
+        case types.REPLACE_ITEMS: {
+          const keyedItems = keyItems(payload.items)
+          const selected = setUtils.getItems(draft.selected).filter(key => key in keyedItems)
+
+          clearItems()
+          selected.forEach(key => setUtils.addItem(draft.selected, key))
+          addKeyedItems(keyedItems)
+          break
+        }
         case types.ADD_ITEMS: {
           const { items } = payload
           if (!items.length) break
-
           setSelection(addKeyedItems(keyItems(items)))
           break
         }
         case types.DELETE_ITEMS: {
-          const keys = payload.keys.sort(compareItems)
+          const keys = payload.keys.map(String).sort(compareItems)
           if (!keys.length) break
 
           const setActive = visibleKeyIterator(false, keys[0]).next().value
@@ -451,37 +459,39 @@ export default function createTable(namespace, options = {}) {
           break
         }
         case types.PATCH_ITEMS_BY_KEY: {
-          const selectedSym = Symbol('Selected')
-
           const { patchMap } = payload
+
+          const selectedSym = Symbol('Selected')
+          const patchedItems = []
           for (const key in patchMap) {
-            _.defaultsDeep(patchMap[key], dlMapUtils.getItem(draft.items, key))
-            patchMap[key][selectedSym] = setUtils.hasItem(draft.selected, key)
+            patchedItems.push(_.defaultsDeep(
+              { [selectedSym]: setUtils.hasItem(draft.selected, key) },
+              patchMap[key], dlMapUtils.getItem(draft.items, key)
+            ))
             deleteItem(key)
           }
 
-          const keyedItems = keyItems(patchMap)
-          for (const key in keyedItems) {
-            const item = keyedItems[key]
+          const patchedKeyedItems = keyItems(patchedItems)
+          _.forEach(patchedKeyedItems, (item, key) => {
             if (item[selectedSym])
-              // Items that become hidden after the patch, will be de-selected when filtered
+              // Items that become hidden after the patch, will be deselected when filtered
               setUtils.addItem(draft.selected, key)
 
             delete item[selectedSym]
-          }
+          })
 
           // Note: A item will be selected after the patch if:
           // The item was selected before the patch OR
           // The item it is replacing after the patch is selected
-          addKeyedItems(keyedItems)
+          addKeyedItems(patchedKeyedItems)
           break
         }
         case types.PATCH_ITEMS: {
           const keyedPatches = keyItems(payload.patches)
-          for (const key in keyedPatches)
-            _.defaultsDeep(keyedPatches[key], dlMapUtils.getItem(draft.items, key))
+          const keyedItems = _.mapValues(keyedPatches, (patch, key) =>
+            _.defaultsDeep({}, patch, dlMapUtils.getItem(draft.items, key)))
 
-          addKeyedItems(keyedPatches)
+          addKeyedItems(keyedItems)
           break
         }
         case types.SORT_ITEMS: {

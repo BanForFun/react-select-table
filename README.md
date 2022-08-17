@@ -14,6 +14,9 @@ and a table component to display them.
 - Sortable table headers can be focused, and while they are, pressing space will toggle the sort order
 - Fixed Ctrl + A shortcut only selecting the items from the current page, now it selects the items from all pages
 - Home/End keys now set the first/last item active instead of selecting it
+- No actions modify their payload anymore
+- Added replaceItems action, which does the same thing as setItems but doesn't clear the selection
+- Fixed crash when deleting an item with null key
 
 [Older changes](./docs/changelog.md)
 
@@ -391,8 +394,6 @@ To dispatch an action from inside a React component, there is the `useActions` h
 The hooks can be found in the `hooks` property of the utils object.
 The `useActions` hook returns an object containing the action creators, but already wrapped in a dispatch call.
 Of course, you can still manually dispatch the raw action creators if you prefer.
-
-Note: Some actions mutate the payload, so the payload you see in the developer tools may not be accurate
 
 ### Example
 

@@ -124,6 +124,16 @@ export default class Actions {
   }
 
   /**
+   * Replaces the old rows retaining the selection, clears the error, and resets the loading state.
+   *
+   * @param {object[]} items The new rows
+   * @returns {ActionsTypes.Action} The redux action object
+   */
+  replaceItems(items) {
+    return this.getAction(types.REPLACE_ITEMS, { items })
+  }
+
+  /**
    * Sorts the rows by the property at the given path in ascending order,
    * and toggles the order on subsequent calls
    *

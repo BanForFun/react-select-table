@@ -29,20 +29,32 @@ function TableHeader({
 
   const gesture = useContext(GestureContext)
 
+  const isSortable = !!path
+
   const sortColumn = useCallback(addToPrev => {
-    if (!path) return
+    if (!isSortable) return
     requestAnimationFrame(() => {
       loadingRef.current.style.display = 'initial'
       setTimeout(() => actions.sortItems(path, addToPrev), 0)
     })
-  }, [actions, path])
+    return true
+  }, [actions, path, isSortable])
 
   const handleTitleMouseDown = useCallback(e => {
     if (e.button !== 0) return
     sortColumn(e.shiftKey)
   }, [sortColumn])
 
-  const handleContextMenu = useCallback(() => {
+  const handleTitleKeyDown = useCallback(e => {
+    // Toggle sort order when space is pressed
+    if (e.keyCode !== 32) return
+    e.stopPropagation()
+
+    if (!sortColumn(e.shiftKey)) return
+    e.preventDefault() // Prevent scroll
+  }, [sortColumn])
+
+  const handleTitleContextMenu = useCallback(() => {
     if (gesture.pointerType !== 'touch') return
     sortColumn(true)
   }, [sortColumn, gesture])
@@ -54,11 +66,13 @@ function TableHeader({
   return <th className={className}
     onPointerDownCapture={handleGesturePointerDownCapture}
     onTouchStart={handleGestureTouchStart}
-    {...dataAttributeFlags({ sortable: !!path, resizing: isResizing })}
+    {...dataAttributeFlags({ sortable: isSortable, resizing: isResizing })}
   >
     <div className='rst-headerContent'
       onMouseDown={handleTitleMouseDown}
-      onContextMenu={handleContextMenu}
+      onContextMenu={handleTitleContextMenu}
+      onKeyDown={handleTitleKeyDown}
+      tabIndex={isSortable ? 0 : -1}
     >
       <span className='rst-headerText'>{title}</span>
       {sortPriority >= 0 && <Fragment>

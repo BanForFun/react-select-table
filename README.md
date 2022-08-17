@@ -1,3 +1,5 @@
+
+
 # react-select-table
 
 A combination of item management (addition, deletion, sorting, etc.) using redux,
@@ -6,8 +8,12 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Version 5.2.3
-- Fixed node support
+## Version 5.2.4
+- Fixed table container having "undefined" class name when not given a custom class
+- Added tab navigation
+- Sortable table headers can be focused, and while they are, pressing space will toggle the sort order
+- Fixed Ctrl + A shortcut only selecting the items from the current page, now it selects the items from all pages
+- Home/End keys now set the first/last item active instead of selecting it
 
 [Older changes](./docs/changelog.md)
 

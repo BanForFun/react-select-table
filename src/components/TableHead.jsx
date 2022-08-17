@@ -21,11 +21,8 @@ function TableHead(props) {
     name,
     headColGroupRef,
     headRowRef,
+    utils: { hooks, options },
     ...commonHeaderProps
-  } = props
-
-  const {
-    utils: { hooks, options }
   } = props
 
   const sortAscending = hooks.useSelector(s => s.sortAscending)

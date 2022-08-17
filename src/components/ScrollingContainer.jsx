@@ -713,6 +713,7 @@ function ScrollingContainer(props) {
   })
 
   return <div
+    tabIndex={-1}
     className='rst-scrollingContainer'
     ref={scrollingContainerRef}
     data-drag-mode={dragMode}

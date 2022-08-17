@@ -98,6 +98,9 @@ $debugStoppers: false;
   contain: paint;
   min-width: fit-content;
   min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
 }
 
 .rst-placeholder {
@@ -131,6 +134,8 @@ $debugStoppers: false;
 }
 
 .rst-body {
+  flex: auto;
+
   td, th {
     overflow: hidden;
   }

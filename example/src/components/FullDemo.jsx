@@ -40,7 +40,9 @@ const columns = [
     defaultWidth: 20,
     render: (completed, todo, options) => {
       options.className = completed ? "text-green" : "text-red"
-      return <FontAwesomeIcon icon={completed ? faCheck : faXmark}/>
+      return <>
+        <FontAwesomeIcon icon={completed ? faCheck : faXmark}/>
+      </>
     }
   }
 ];

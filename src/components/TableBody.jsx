@@ -54,7 +54,7 @@ function TableBody(props) {
     />
   }
 
-  return <div className='rst-body'>
+  return <div className='rst-body' tabIndex={0}>
     <table ref={tableBodyRef}>
       <ColGroup name={name} columns={columns} />
       {!showPlaceholder && keyChunks.map(renderChunk)}

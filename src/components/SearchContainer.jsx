@@ -56,6 +56,7 @@ function SearchContainer(props) {
   >
     <div className='rst-search'>
       <input
+        tabIndex={-1}
         value={phrase || ''}
         ref={inputRef}
         onChange={handleChange}

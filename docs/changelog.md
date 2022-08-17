@@ -1,3 +1,6 @@
+## Version 5.2.3
+- Fixed node support
+
 ## Version 5.2.2
 - Changed build target to node 12
 

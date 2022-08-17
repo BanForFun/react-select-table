@@ -153,11 +153,11 @@ function Root(props) {
         break
       case 36: // Home
         if (isActiveFirst) return
-        select(e, 0)
+        select(e, 0, true)
         break
       case 35: // End
         if (isActiveLast) return
-        select(e, itemCount - 1)
+        select(e, itemCount - 1, true)
         break
       case 13: // Enter
         if (
@@ -173,6 +173,8 @@ function Root(props) {
         if (!e.ctrlKey || e.shiftKey) return
         actions.selectAll()
         break
+      case 9: // Tab
+        return false
       default:
         if (e.ctrlKey || e.shiftKey) return false
         return

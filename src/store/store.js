@@ -588,7 +588,7 @@ export default function createTable(namespace, options = {}) {
         }
         case types.SELECT_ALL: {
           if (!options.multiSelect) return
-          setSelection(draft.rowKeys)
+          setSelection([...visibleKeyIterator()])
           break
         }
 

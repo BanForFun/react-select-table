@@ -38,7 +38,7 @@ function DefaultPagination({ page, pageCount, goToPage }) {
   function Page({ number, ...rest }) {
     return <button
       {...rest}
-      tabIndex='-1'
+      tabIndex={-1}
       className='rst-page'
       onClick={() => goToPage(number)}
       {...dataAttributeFlags({ current: number === page })}
@@ -48,7 +48,7 @@ function DefaultPagination({ page, pageCount, goToPage }) {
 
   const prevButton = <button
     key='button_prev'
-    tabIndex='-1'
+    tabIndex={-1}
     className='rst-page'
     onPointerDown={repeatOffsetPage(-1)}
   >
@@ -57,7 +57,7 @@ function DefaultPagination({ page, pageCount, goToPage }) {
 
   const nextButton = <button
     key='button_next'
-    tabIndex='-1'
+    tabIndex={-1}
     className='rst-page'
     onPointerDown={repeatOffsetPage(1)}
   >

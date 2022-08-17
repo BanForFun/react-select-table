@@ -7,6 +7,7 @@ const getNoopEventHandler = _.constant(noopEventHandler)
 
 export default {
   getRowClassName: () => '',
+  className: '',
   dragSelectScrollFactor: 0.5,
   columnResizeScrollFactor: 0.2,
   errorComponent: 'span',

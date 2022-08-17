@@ -40,7 +40,7 @@ function Root(props) {
   } = props
 
   const {
-    utils: { hooks, selectors },
+    utils: { hooks, selectors, options },
     onItemsOpen
   } = props
 
@@ -125,9 +125,6 @@ function Root(props) {
   }, [actions])
 
   const handleShortcuts = useCallback(e => {
-    if (showPlaceholder) return false
-    if (onKeyDown(e, selectors.getSelectionArg(getState())) === false) return false
-
     const isPageFirst = pageIndex === 0
     const isPageLast = pageIndex === pageCount - 1
     const isActiveFirst = activeIndex === 0
@@ -182,19 +179,16 @@ function Root(props) {
 
     e.preventDefault()
     return false
-  }, [
-    actions, selectors, getState,
-    onKeyDown, onItemsOpen,
-    showPlaceholder,
-    activeIndex, itemCount, pageSize, pageCount, pageIndex, // Redux props
-    select // Component methods
-  ])
+  }, [actions, selectors, getState, onItemsOpen, activeIndex, itemCount, pageSize, pageCount, pageIndex, select])
 
   const handleKeyDown = useCallback(e => {
+    if (showPlaceholder) return
     if (gesture.isDragging) return
+    if (onKeyDown(e, selectors.getSelectionArg(getState())) === false) return
     if (handleShortcuts(e) === false) return
+    if (!options.searchProperty) return
     searchInputRef.current.focus()
-  }, [gesture, handleShortcuts, searchInputRef])
+  }, [gesture, onKeyDown, selectors, getState, handleShortcuts, options, showPlaceholder])
   //#endregion
 
   // Scrolling container props

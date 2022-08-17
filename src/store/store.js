@@ -293,6 +293,8 @@ export default function createTable(namespace, options = {}) {
 
   function getSearchMatches() {
     const phrase = options.searchPhraseParser(draft.searchPhrase)
+    if (!phrase) return []
+
     const allMatches = trieUtils.getMatchingValues(draft.searchIndex, phrase)
     const visibleMatches = allMatches.filter(key =>
       dlMapUtils.getItemMetadata(draft.items, key).visible)
@@ -604,23 +606,16 @@ export default function createTable(namespace, options = {}) {
 
         // Search
         case types.SEARCH: {
-          // Leave clearSearch = true, for consistent behavior of hitting escape and any other action
+          // Break, leaving clearSearch be true, to convert undefined search phrase to null
           if (payload.phrase == null) break
-          clearSearch = false
 
           draft.searchPhrase = payload.phrase
-          if (!payload.phrase) {
-            // Empty search phrase -> clear searchMatches (getSearchMatches returns all rows)
-            draft.searchMatches = []
-            break
-          }
-
           draft.searchMatches = getSearchMatches()
+
           // Force wrap-around, in order to start the search from the first row instead of the active one
           payload.index = draft.searchMatches.length
           // Reset to 0, to force forward search
           draft.searchMatchIndex = 0
-
           // Fallthrough
         }
         // eslint-disable-next-line no-fallthrough

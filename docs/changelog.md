@@ -1,3 +1,13 @@
+## Version 5.2.4
+- Fixed table container having "undefined" class name when not given a custom class
+- Added tab navigation
+- Sortable table headers can be focused, and while they are, pressing space will toggle the sort order
+- Fixed Ctrl + A shortcut only selecting the items from the current page, now it selects the items from all pages
+- Home/End keys now set the first/last item active instead of selecting it
+- No actions modify their payload anymore
+- Added replaceItems action, which does the same thing as setItems but doesn't clear the selection
+- Fixed crash when deleting an item with null key
+
 ## Version 5.2.3
 - Fixed node support
 

@@ -161,13 +161,34 @@ export default class Selectors {
   }
 
   /**
+   * Returns true if the table is neither loading nor has an error occurred
+   *
+   * @param {StateType} state The table's state
+   * @returns {boolean} Whether the state is normal
+   */
+  getIsStateNormal(state) {
+    return !state.isLoading && !state.error
+  }
+
+  /**
+   * If the table is loading or an error has occurred, returns an empty {@link SetTypes.Set},
+   * in all other cases returns the {@link State.selected} property.
+   *
+   * @param {StateType} state The table's state
+   * @returns {import('../utils/setUtils').SetTypes.Set} A set containing the selected keys
+   */
+  getSelection(state) {
+    return this.getIsStateNormal(state) ? state.selected : setUtils.instance()
+  }
+
+  /**
    * Returns the value to be passed to event handlers that take the current selection as an argument
    *
    * @param {StateType} state The table's state
    * @returns {import('./Events').EventsTypes.SelectionArgType} See {@link EventsTypes.SelectionArg}
    */
   getSelectionArg(state) {
-    const selectedKeys = setUtils.getItems(state.selected)
+    const selectedKeys = setUtils.getItems(this.getSelection(state))
     if (this.options.multiSelect)
       return new Set(selectedKeys)
 

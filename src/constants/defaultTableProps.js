@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { componentEventHandlersPropTypes } from '../types/TableProps'
 import DefaultPagination from '../components/DefaultPagination'
+import { getNoopHandlers, noopEventHandler } from '../models/Events'
 
 export default {
   getRowClassName: () => '',
@@ -13,5 +14,6 @@ export default {
   emptyPlaceholder: 'No items',
   autoFocus: false,
   initColumnWidths: {},
-  ..._.mapValues(componentEventHandlersPropTypes, _.constant(() => {}))
+  ...getNoopHandlers(),
+  ..._.mapValues(componentEventHandlersPropTypes, _.constant(noopEventHandler))
 }

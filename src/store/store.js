@@ -82,7 +82,7 @@ function getNoItemsState() {
  * @returns {import('redux').Reducer<StoreTypes.State, ActionsClass>} The table reducer
  */
 export default function createTable(namespace, options = {}) {
-  const { selectors } = createTableUtils(namespace, options)
+  const { selectors, events } = createTableUtils(namespace, options)
 
   const {
     keyBy,
@@ -421,13 +421,12 @@ export default function createTable(namespace, options = {}) {
     if (action.namespace !== namespace)
       return state
 
-    return produce(state, newDraft => {
+    let handled = false
+    const nextState = produce(state, newDraft => {
       draft = newDraft
 
       const { payload } = action
-
       let clearSearch = true
-
       // noinspection FallThroughInSwitchStatementJS
       switch (action.type) {
         // Items
@@ -648,9 +647,15 @@ export default function createTable(namespace, options = {}) {
         }
         default: return
       }
+      handled = true
 
       if (clearSearch)
         draft.searchPhrase = null
     })
+
+    if (handled)
+      setTimeout(() => events.actionDispatched(action.internal), 0)
+
+    return nextState
   }
 }

@@ -5,6 +5,7 @@ import SearchContainer from './SearchContainer'
 import GestureContext from '../context/GestureTarget'
 import { GestureTargetTypes } from '../constants/enums'
 import GestureTarget from '../models/GestureTarget'
+import { componentEventHandlersPropTypes } from '../types/TableProps'
 
 // Not integrated into parseColumn, in order for render to be constant
 const defaultColumnRenderer = value => value
@@ -14,8 +15,6 @@ const parseColumn = col => ({
   key: col.path,
   ...col
 })
-
-const internalActionMetadata = { internal: true }
 
 /**
  * Child of {@link Components.Table}.
@@ -34,14 +33,12 @@ function Root(props) {
     loadingIndicator,
     emptyPlaceholder,
     errorComponent,
-    onKeyDown,
     columns,
     ...scrollingProps
   } = props
 
   const {
-    utils: { hooks, selectors, options },
-    onItemsOpen
+    utils: { hooks, selectors, options }
   } = props
 
   // Focus on container
@@ -50,12 +47,7 @@ function Root(props) {
     containerRef.current.focus()
   }, [containerRef, autoFocus])
 
-  const internalActions = hooks.useActions(internalActionMetadata)
-  const internalContextMenuActions = hooks.useActions({ ...internalActionMetadata, contextMenu: true })
-  const actions = useMemo(() => ({
-    ...internalActions,
-    withContextMenu: internalContextMenuActions
-  }), [internalActions, internalContextMenuActions])
+  const actions = hooks.useActions({ internal: true })
 
   const searchInputRef = useRef()
 
@@ -68,6 +60,21 @@ function Root(props) {
   const itemCount = hooks.useSelector(s => s.visibleItemCount)
 
   const getState = hooks.useGetState()
+
+  const eventHandlers = useRef({}).current
+  for (const handlerName in componentEventHandlersPropTypes) {
+    eventHandlers[handlerName] = scrollingProps[handlerName]
+    delete scrollingProps[handlerName]
+  }
+
+  const componentEvents = useMemo(() => ({
+    itemsOpen: fromKeyboard =>
+      eventHandlers.onItemsOpen(selectors.getSelectionArg(getState()), fromKeyboard),
+    keyDown: e =>
+      eventHandlers.onKeyDown(e, selectors.getSelectionArg(getState())),
+    columnResize: widths =>
+      eventHandlers.onColumnResizeEnd(widths)
+  }), [eventHandlers, selectors, getState])
 
   const isEmpty = !itemCount
 
@@ -161,7 +168,7 @@ function Root(props) {
           !e.ctrlKey && !e.shiftKey &&
           selectors.getSelected(getState(), selectors.getActiveRowIndex(getState()))
         )
-          onItemsOpen(selectors.getSelectionArg(getState()), true)
+          componentEvents.itemsOpen(true)
         else
           actions.select(activeIndex, e.shiftKey, e.ctrlKey)
 
@@ -179,22 +186,23 @@ function Root(props) {
 
     e.preventDefault()
     return false
-  }, [actions, selectors, getState, onItemsOpen, activeIndex, itemCount, pageSize, pageCount, pageIndex, select])
+  }, [actions, selectors, getState, componentEvents, activeIndex, itemCount, pageSize, pageCount, pageIndex, select])
 
   const handleKeyDown = useCallback(e => {
     if (showPlaceholder) return
     if (gesture.isDragging) return
-    if (onKeyDown(e, selectors.getSelectionArg(getState())) === false) return
+    if (componentEvents.keyDown(e) === false) return
     if (handleShortcuts(e) === false) return
     if (!options.searchProperty) return
     searchInputRef.current.focus()
-  }, [gesture, onKeyDown, selectors, getState, handleShortcuts, options, showPlaceholder])
+  }, [gesture, componentEvents, handleShortcuts, options, showPlaceholder])
   //#endregion
 
   // Scrolling container props
   Object.assign(scrollingProps, {
     actions,
-    placeholder
+    placeholder,
+    componentEvents
   })
 
   // Pagination container props

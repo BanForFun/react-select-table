@@ -1,3 +1,12 @@
+## Version 5.2.7
+- Reverted some changes done by version 5.2.6, because it broke apps that used redux-thunk
+
+## Version 5.2.6
+- Fixed crash when action is dispatched before table render
+- ~~eventMiddleware is no longer required for any event to work. It was replaced with a noop middleware so that the api doesn't break~~
+- ~~Added getIsStateNormal and getSelection selectors~~
+- ~~Fixed onSelectionChange event not raised as a result of startLoading and setError actions~~
+
 ## Version 5.2.5
 - Fixed search dialog appearing even when searchProperty was falsy
 - Fixed all items being falsely considered search matches when searchPhraseParser returned an empty string

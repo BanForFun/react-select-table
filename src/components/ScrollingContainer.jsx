@@ -55,8 +55,7 @@ function ScrollingContainer(props) {
     columnResizeScrollFactor,
     columns,
     initColumnWidths,
-    onColumnResizeEnd,
-    onItemsOpen,
+    componentEvents,
     ...resizingProps
   } = props
 
@@ -153,8 +152,8 @@ function ScrollingContainer(props) {
     })
 
     if (resizingIndex >= 0) return
-    onColumnResizeEnd(visiblePatch)
-  }, [getRenderedColumnsWidthsPatch, onColumnResizeEnd, allWidths])
+    componentEvents.columnResize(visiblePatch)
+  }, [getRenderedColumnsWidthsPatch, componentEvents, allWidths])
 
   //#endregion
 
@@ -652,27 +651,32 @@ function ScrollingContainer(props) {
     else if (target.type === GestureTargetTypes.Header)
       events.contextMenu(getState(), true)
     else if (target.type === GestureTargetTypes.BelowRows) {
-      if (e.shiftKey)
-        actions.withContextMenu.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
-      else if (!options.listBox && !e.ctrlKey)
-        actions.withContextMenu.clearSelection()
-      else
+      if (e.shiftKey) {
+        actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
+        events.contextMenu(getState())
+      } else if (!options.listBox && !e.ctrlKey) {
+        actions.clearSelection()
+        events.contextMenu(getState())
+      } else
         events.contextMenu(getState(), !e.ctrlKey, true)
     } else if (options.listBox && e.ctrlKey)
       events.contextMenu(getState(), false, true)
-    else if (options.listBox || (selectors.getSelected(getState(), target.index) && !e.ctrlKey))
-      actions.withContextMenu.setActive(indexOffset + target.index)
-    else
-      actions.withContextMenu.select(indexOffset + target.index, e.shiftKey, e.ctrlKey)
+    else if (options.listBox || (selectors.getSelected(getState(), target.index) && !e.ctrlKey)) {
+      actions.setActive(indexOffset + target.index)
+      events.contextMenu(getState())
+    } else {
+      actions.select(indexOffset + target.index, e.shiftKey, e.ctrlKey)
+      events.contextMenu(getState())
+    }
 
     return false // Prevent other dual-tap gestures
   }, [gesture, events, options, rowCount, actions, indexOffset, getState, selectors, showPlaceholder]))
 
   const itemsOpen = useDecoupledCallback(useCallback(e => {
     if (showPlaceholder || e.ctrlKey || noSelection) return
-    onItemsOpen(selectors.getSelectionArg(getState()), false)
+    componentEvents.itemsOpen(false)
     return false // Prevent other dual-tap gestures
-  }, [noSelection, showPlaceholder, onItemsOpen, selectors, getState]))
+  }, [noSelection, showPlaceholder, componentEvents]))
 
   //#endregion
 

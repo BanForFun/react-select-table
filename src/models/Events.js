@@ -1,3 +1,6 @@
+import { reduxEventHandlersPropTypes } from '../types/TableProps'
+import _ from 'lodash'
+
 export const handlersSymbol = Symbol('Event handlers')
 
 /**
@@ -36,16 +39,16 @@ export const handlersSymbol = Symbol('Event handlers')
  * @typedef {?RowKeyType|Set<RowKeyType>} EventsTypes.ContextMenuArg
  */
 
-const noopEventHandler = () => {}
+export const noopEventHandler = () => {}
+export const getNoopHandlers = () =>
+  _.mapValues(reduxEventHandlersPropTypes, _.constant(noopEventHandler))
 
 export default class Events {
   constructor(selectors) {
     /** @private */
     this.selectors = selectors
 
-    this[handlersSymbol] = new Proxy({}, {
-      get: (obj, prop) => obj[prop] ?? noopEventHandler
-    })
+    this[handlersSymbol] = getNoopHandlers()
   }
 
   /**

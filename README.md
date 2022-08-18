@@ -8,8 +8,12 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Version 5.2.7
-- Fixed crash when action is dispatched before table render
+## Version 5.3.0
+- Added getIsStateNormal and getSelection [selectors](./src/models/Selectors.js)
+- Fixed onSelectionChange event not raised as a result of startLoading and setError actions
+- Deprecated eventMiddleware as it is no longer required for any event to work. It was replaced with a noop middleware so that the api doesn't break
+- onSelectionChange event fires after onContextMenu
+- onSelectionChange event fires on mount
 
 [Older changes](./docs/changelog.md)
 

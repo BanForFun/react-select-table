@@ -1,8 +1,12 @@
 import _ from 'lodash'
 
 /**
+ * @namespace DlMapTypes
+ */
+
+/**
  * @template Key, Value, Metadata
- * @typedef {object} DoublyLinkedMapNode
+ * @typedef {object} DlMapTypes.Node
  * @property {Value} value The value of the item
  * @property {Metadata} metadata Metadata for the item
  * @property {Key} prevKey The key of the previous item
@@ -13,17 +17,17 @@ import _ from 'lodash'
  * A kind of {@link https://www.geeksforgeeks.org/linkedhashmap-class-in-java/|LinkedHashMap}
  *
  * @template Key, Value, Metadata
- * @typedef {object} DoublyLinkedMap
+ * @typedef {object} DlMapTypes.Map
  * @property {Key} headKey The key of the first item
  * @property {Key} tailKey The key of the last item
- * @property {Object<Key, DoublyLinkedMapNode<Key, Value, Metadata>>} nodes The map nodes
+ * @property {Object<Key, DlMapTypes.Node<Key, Value, Metadata>>} nodes The map nodes
  */
 
 /**
  * Returns a new doubly linked map instance
  *
  * @template Key, Value, Metadata
- * @returns {DoublyLinkedMap<Key, Value, Metadata>} A new instance
+ * @returns {DlMapTypes.Map<Key, Value, Metadata>} A new instance
  */
 export function instance() {
   return {
@@ -37,7 +41,7 @@ export function instance() {
  * Returns the values of all items in the map in a non-standard order
  *
  * @template Key, Value, Metadata
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @returns {Value[]} The values of the nodes in map
  */
 export const getItems = (map) =>
@@ -47,7 +51,7 @@ export const getItems = (map) =>
  * Returns the value of the item with the given key
  *
  * @template Key, Value, Metadata
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @param {Key} key The key of an item
  * @returns {?Value} The value of the item, or undefined if it wasn't found
  */
@@ -58,7 +62,7 @@ export const getItem = (map, key) =>
  * Returns the metadata of the item with the given key
  *
  * @template Key, Value, Metadata
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @param {Key} key The key of an item
  * @returns {?Metadata} The metadata of the item, or undefined if it wasn't found
  */
@@ -76,7 +80,7 @@ const getPrevKey = (map, key) =>
  *
  * @template Key, Value, Metadata
  * @generator
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @param {boolean} [forward=true] True to yield the next key, or false to yield the previous one
  * @param {Key} [key] The key to start from, or null to start from the beginning
  * @yields {Key?} The next or previous key
@@ -125,7 +129,7 @@ function linkItem(map, prevKey, key, nextKey) {
  * Links items inserted using {@link addUnlinkedItem} in the correct position
  *
  * @template Key, Value, Metadata
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @param {Key[]} keys The keys of the items to link
  * @param {KeyComparator} keyComparator A function that compares two items
  */
@@ -155,7 +159,7 @@ export function sortAndLinkItems(map, keys, keyComparator) {
  * Deletes an item from the map by its key
  *
  * @template Key, Value, Metadata
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @param {Key} key The key of the item to delete
  * @returns {Value|void} Returns the value of the item if it existed, or undefined if it didn't
  */
@@ -172,7 +176,7 @@ export function deleteItem(map, key) {
  * Adds an item to the map, but doesn't link it yet. The linking is done by {@link sortAndLinkItems}
  *
  * @template Key, Value, Metadata
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @param {Key} key The new of the new item
  * @param {Value} value The value of the new item
  * @param {Metadata} metadata The metadata of the new item
@@ -194,7 +198,7 @@ export function addUnlinkedItem(map, key, value, metadata) {
  * Changes the order of the items according to the new key comparator
  *
  * @template Key, Value, Metadata
- * @param {DoublyLinkedMap<Key, Value, Metadata>} map A map instance
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
  * @param {KeyComparator} keyComparator A function that compares two items
  */
 export function sortItems(map, keyComparator) {

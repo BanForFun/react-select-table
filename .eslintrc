@@ -1,12 +1,10 @@
 {
   "extends": [
     "standard",
-    "plugin:react-hooks/recommended",
     "plugin:react/recommended",
-    "plugin:jsdoc/recommended",
-    //"plugin:prettier/recommended",
-    "prettier/standard",
-    "prettier/react"
+    "plugin:jsx-a11y/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsdoc/recommended"
   ],
   "env": {
     "browser": true,
@@ -22,7 +20,7 @@
   },
   "settings": {
     "react": {
-      "version": "16"
+      "version": "detect"
     },
     "jsdoc": {
       "mode": "typescript",
@@ -40,16 +38,22 @@
     "spaced-comment": ["error", "always", {
       "markers": ["#region", "#endregion"]
     }],
+    "space-before-function-paren": 0,
     "jsdoc/valid-types": 0,
     "jsdoc/require-jsdoc": 0,
-    "standard/no-callback-literal": 0,
-    "space-before-function-paren": 0,
+    "n/no-callback-literal": 0,
+    "react/jsx-no-bind": ["error", {
+      "allowArrowFunctions": true,
+      "allowBind": false,
+      "ignoreRefs": true
+    }],
+    "react/no-did-update-set-state": "error",
+    "react/no-unknown-property": "error",
+    "react/no-unused-prop-types": "error",
+    "react/react-in-jsx-scope": "error",
     "react/prop-types": 0,
-    "react/jsx-handler-names": 0,
-    "react/jsx-fragments": 0,
     "react/jsx-closing-tag-location": 0,
     "react/jsx-closing-bracket-location": 0,
-    "react/no-unused-prop-types": 0,
-    "import/export": 0
+    "jsx-a11y/no-noninteractive-tabindex": 0
   }
 }

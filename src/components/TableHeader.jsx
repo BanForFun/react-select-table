@@ -73,6 +73,7 @@ function TableHeader({
       onContextMenu={handleTitleContextMenu}
       onKeyDown={handleTitleKeyDown}
       tabIndex={isSortable ? 0 : -1}
+      role="none"
     >
       <span className='rst-headerText'>{title}</span>
       {sortPriority >= 0 && <Fragment>

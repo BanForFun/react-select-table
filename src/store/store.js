@@ -6,6 +6,7 @@ import { compareAscending } from '../utils/sortUtils'
 import * as setUtils from '../utils/setUtils'
 import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
 import * as trieUtils from '../utils/trieUtils'
+import { SortOrders } from '../constants/enums'
 
 const nextSortOrder = Object.freeze({
   undefined: true,
@@ -496,12 +497,13 @@ export default function createTable(namespace, options = {}) {
           break
         }
         case types.SORT_ITEMS: {
-          const { path } = payload
+          const { path, order } = payload
+          const ascending = (order === SortOrders.Toggle) ? nextSortOrder[draft.sortAscending[path]] : order
 
-          const ascending = nextSortOrder[draft.sortAscending[path]]
           if (!payload.addToPrev)
-            draft.sortAscending = { [path]: ascending ?? true }
-          else if (ascending != null)
+            draft.sortAscending = { }
+
+          if (ascending != null)
             draft.sortAscending[path] = ascending
           else
             delete draft.sortAscending[path]

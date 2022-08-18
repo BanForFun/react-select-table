@@ -8,12 +8,10 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Version 5.3.0
-- Added getIsStateNormal and getSelection [selectors](./src/models/Selectors.js)
-- Fixed onSelectionChange event not raised as a result of startLoading and setError actions
-- Deprecated eventMiddleware as it is no longer required for any event to work. It was replaced with a noop middleware so that the api doesn't break
-- onSelectionChange event fires after onContextMenu
-- onSelectionChange event fires on mount
+## Version 5.3.1
+- Clicking on a sortable header for a third time, now disables sorting by that column, even when not holding shift
+- Added a third optional 'order' parameter to the sortItems action creator, that takes SortOrders enum values, and can be used to set a specific sort order instead of toggling it
+- redux is no longer a peer dependency
 
 [Older changes](./docs/changelog.md)
 
@@ -203,7 +201,7 @@ We must also pick a namespace for the reducer, let's say `todos`. Our completed 
 
 ```javascript
 import { configureStore } from '@reduxjs/toolkit'
-import { createTable, eventMiddleware } from 'react-select-table'
+import { createTable } from 'react-select-table'
 
 export const tableNamespace = 'todos'
 
@@ -211,8 +209,7 @@ export default configureStore({
   reducer: createTable(tableNamespace, {
     keyBy: 'id',
     searchProperty: 'title'
-  }),
-  middleware: [eventMiddleware]
+  })
 })
 ```
 
@@ -220,7 +217,7 @@ In a typical app, where there other reducers as well, the code will look more li
 
 ```javascript
 import { configureStore } from '@reduxjs/toolkit'
-import { createTable, eventMiddleware } from 'react-select-table'
+import { createTable } from 'react-select-table'
 
 export const tableNamespace = 'todos'
 
@@ -232,8 +229,7 @@ export default configureStore({
       statePath: 'todoTable'
     }),
     ...otherReducers
-  },
-  middleware: getDefault => getDefault().concat(eventMiddleware, ...otherMiddleware)
+  }
 })
 ```
 

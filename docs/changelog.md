@@ -1,3 +1,10 @@
+## Version 5.3.0
+- Added getIsStateNormal and getSelection selectors
+- Fixed onSelectionChange event not raised as a result of startLoading and setError actions
+- Deprecated eventMiddleware as it is no longer required for any event to work. It was replaced with a noop middleware so that the api doesn't break
+- onSelectionChange event fires after onContextMenu
+- onSelectionChange event fires on mount
+
 ## Version 5.2.7
 - Reverted some changes done by version 5.2.6, because it broke apps that used redux-thunk
 

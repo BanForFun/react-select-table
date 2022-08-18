@@ -9,3 +9,10 @@ export const GestureTargetTypes = Object.freeze({
   BelowRows: 'belowRows',
   Row: 'row'
 })
+
+export const SortOrders = Object.freeze({
+  Ascending: true,
+  Descending: false,
+  None: null,
+  Toggle: 'toggle'
+})

@@ -1,5 +1,6 @@
 import { bindFunctions } from '../utils/classUtils'
 import types from '../constants/actionTypes'
+import { SortOrders } from '../constants/enums'
 
 /**
  * @class Actions
@@ -138,20 +139,21 @@ export default class Actions {
    * and toggles the order on subsequent calls
    *
    * @param {string} path The path of the property to sort by
-   * @param {boolean} addToPrev Use the property to only sort the rows that are considered equal,
+   * @param {boolean} [addToPrev] Use the property to only sort the rows that are considered equal,
    * based on the current columns
+   * @param {?boolean|string} [order] True to sort by ascending order, false for descending, null for none, 'toggle' to toggle
    * @returns {ActionsTypes.Action} The redux action object
    */
-  sortItems(path, addToPrev = false) {
-    return this.getAction(types.SORT_ITEMS, { path, addToPrev })
+  sortItems(path, addToPrev = false, order = SortOrders.Toggle) {
+    return this.getAction(types.SORT_ITEMS, { path, addToPrev, order })
   }
 
   /**
    * Selects a row or a range of rows. Selected rows have a green background with the default theme.
    *
    * @param {number} index The index of the row to select, in relation to the first row of the first page
-   * @param {boolean} isRange Select all rows in between the latest selected row and this one
-   * @param {boolean} addToPrev Keep the previously selected rows selected
+   * @param {boolean} [isRange] Select all rows in between the latest selected row and this one
+   * @param {boolean} [addToPrev] Keep the previously selected rows selected
    * @returns {ActionsTypes.Action} The redux action object
    */
   select(index, isRange = false, addToPrev = false) {
@@ -194,8 +196,8 @@ export default class Actions {
    *
    * @param {Object<number,boolean>} map An object with row indices as keys,
    * and the new selection statuses as values
-   * @param {?number} activeIndex The index of the row to be set active, or null to leave unchanged
-   * @param {?number} pivotIndex The index of the row to be set as the pivot
+   * @param {?number} [activeIndex] The index of the row to be set active, or null to leave unchanged
+   * @param {?number} [pivotIndex] The index of the row to be set as the pivot
    * for selecting a range of rows using the keyboard, or null to leave unchanged
    * @returns {ActionsTypes.Action} The redux action object
    */

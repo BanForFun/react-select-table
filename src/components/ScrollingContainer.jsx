@@ -333,7 +333,8 @@ function ScrollingContainer(props) {
     // Auto-scroll
     const distanceOfPrevToEnd = headBounds.right - headerBounds.left
     const shrinkThresholdColumn = scrollLeft && (isResizingSpacer || !constantWidth)
-      ? clientWidth - distanceOfPrevToEnd + borderLeft : -Infinity
+      ? clientWidth - distanceOfPrevToEnd + borderLeft
+      : -Infinity
     const shrinkThreshold = containerX + Math.max(0, shrinkThresholdColumn)
     const expandThreshold = containerX + clientWidth
 

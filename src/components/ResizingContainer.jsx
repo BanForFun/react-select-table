@@ -187,7 +187,8 @@ function ResizingContainer(props) {
         }}
         {...gestureEventHandlers}
       >
-        {!isResizing && (isOverflowing ? clippingStoppers
+        {!isResizing && (isOverflowing
+          ? clippingStoppers
           : <div className="rst-stoppers">{
             _.map(columnKeys, (key, index) =>
               <div className="rst-resizingStopper rst-stopper"

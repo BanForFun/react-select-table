@@ -219,6 +219,7 @@ function Root(props) {
   }
 
   return <div
+    role="none"
     tabIndex={0}
     id={id}
     ref={containerRef}

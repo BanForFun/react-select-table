@@ -12,6 +12,8 @@ and a table component to display them.
 - Clicking on a sortable header for a third time, now disables sorting by that column, even when not holding shift
 - Added a third optional 'order' parameter to the sortItems action creator, that takes SortOrders enum values, and can be used to set a specific sort order instead of toggling it
 - redux is no longer a peer dependency
+- Fixed double click not raising onItemsOpen on chrome
+- Added [dlMapUtils](./src/utils/dlMapUtils.js).getKeyedItems method
 
 [Older changes](./docs/changelog.md)
 
@@ -540,3 +542,11 @@ then to hide the column with the key `id` on screens smaller than 600px you can 
   }
 }
 ```
+
+## Troubleshooting
+
+**I added multiple items to the table but only one is visible**
+Check that you have set the 'keyBy' option correctly
+
+**I added the table component inside a flex column, and when I expand the table columns the flex column expands as well**
+Add `min-width: 0` css rule to the flex column containing the table

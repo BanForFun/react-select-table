@@ -26,7 +26,7 @@
   },
   "scripts": {
     "build-definitions": "rm -rf dist/typings && tsc && echo Built typings",
-    "build-package": "node build-package.js",
+    "build-package": "run-s build && node build-package.js",
     "build": "tsup",
     "start": "tsup --watch",
     "prepare": "run-s build",

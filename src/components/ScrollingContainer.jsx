@@ -681,6 +681,55 @@ function ScrollingContainer(props) {
 
   //#endregion
 
+  //#region Gesture event handlers
+
+  const handleMouseDown = useCallback(e => {
+    if (showPlaceholder || e.button !== 0) return
+
+    const { target } = gesture
+    switch (target.type) {
+      case GestureTargetTypes.BelowRows:
+        if (e.shiftKey)
+          actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
+        else if (!options.listBox && !e.ctrlKey)
+          actions.clearSelection()
+
+        break
+      case GestureTargetTypes.Row:
+        actions.select(indexOffset + target.index, e.shiftKey, e.ctrlKey)
+        break
+      default: return
+    }
+
+    if (gesture.pointerType === 'mouse') {
+      getSelection().removeAllRanges()
+      dragSelect(e)
+    }
+  }, [gesture, actions, options, indexOffset, rowCount, dragSelect, showPlaceholder])
+
+  const handleContextMenu = useCallback(e => {
+    if (e.shiftKey) return // Show browser context menu when holding shift
+
+    const { target } = gesture
+    if (gesture.pointerType !== 'mouse') {
+      if (showPlaceholder) return
+
+      if (target.type === GestureTargetTypes.Row)
+        actions.select(indexOffset + target.index, false, true)
+      else if (target.type !== GestureTargetTypes.BelowRows)
+        return
+
+      return dragSelect(e)
+    }
+
+    if (events.hasListener('onContextMenu'))
+      e.preventDefault()
+
+    contextMenu(e)
+  }, [gesture, indexOffset, contextMenu, actions, events, dragSelect, showPlaceholder])
+
+  //#endregion
+
   //#region IntersectionObserver
 
   const chunkObserverRef = useRef()
@@ -711,13 +760,12 @@ function ScrollingContainer(props) {
 
     columns,
     dragMode,
-    dragSelect,
-    itemsOpen,
     contextMenu,
     columnResize
   })
 
   return <div
+    role="none"
     tabIndex={-1}
     className='rst-scrollingContainer'
     ref={scrollingContainerRef}
@@ -727,6 +775,12 @@ function ScrollingContainer(props) {
     onPointerMove={handlePointerMove}
     onPointerUp={handlePointerEnd}
     onPointerCancel={handlePointerEnd}
+
+    // These event handlers have to be on the scrolling container,
+    // because onDoubleClick stops being raised on children after setPointerCapture on chrome (which is called inside onMouseDown)
+    onDoubleClick={itemsOpen}
+    onMouseDown={handleMouseDown}
+    onContextMenu={handleContextMenu}
   >
     <ColumnGroupContext.Provider value={fullColumnGroup}>
       <ResizingContainer {...resizingProps}

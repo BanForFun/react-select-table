@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import * as saveModules from '../constants/saveModules'
 import * as flagUtils from '../utils/flagUtils'
-import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
+import * as dlMapUtils from '../utils/dlMapUtils'
 import * as setUtils from '../utils/setUtils'
 import { bindFunctions } from '../utils/classUtils'
 

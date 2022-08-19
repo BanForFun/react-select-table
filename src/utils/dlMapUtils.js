@@ -48,6 +48,16 @@ export const getItems = (map) =>
   _.map(map.nodes, node => node.value)
 
 /**
+ * Returns the keyed values of all items in the map
+ *
+ * @template Key, Value, Metadata
+ * @param {DlMapTypes.Map<Key, Value, Metadata>} map A map instance
+ * @returns {Object<Key, Value>} The values of the nodes in map
+ */
+export const getKeyedItems = (map) =>
+  _.mapValues(map.nodes, node => node.value)
+
+/**
  * Returns the value of the item with the given key
  *
  * @template Key, Value, Metadata

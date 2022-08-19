@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import * as setUtils from '../utils/setUtils'
-import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
+import * as dlMapUtils from '../utils/dlMapUtils'
 import ColGroup from './ColGroup'
 import _ from 'lodash'
 import ChunkObserver from './ChunkObserver'

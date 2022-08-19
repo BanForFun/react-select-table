@@ -4,7 +4,7 @@ import types from '../constants/actionTypes'
 import { createTableUtils } from '../utils/tableUtils'
 import { compareAscending } from '../utils/sortUtils'
 import * as setUtils from '../utils/setUtils'
-import * as dlMapUtils from '../utils/doublyLinkedMapUtils'
+import * as dlMapUtils from '../utils/dlMapUtils'
 import * as trieUtils from '../utils/trieUtils'
 import { SortOrders } from '../constants/enums'
 
@@ -64,7 +64,7 @@ function getNoItemsState() {
  * @property {string} searchPhrase The search phrase after being parsed by {@link Options.searchPhraseParser}
  * @property {StoreTypes.RowKey[]} matches The keys of the rows that matched the search phrase, sorted in the order they appear
  * @property {number} matchIndex The currently highlighted match index
- * @property {import('../utils/doublyLinkedMapUtils').DlMapTypes.Map<StoreTypes.RowKey, object, StoreTypes.RowMetadata>} items A list of all items, sorted based on {@link sortAscending}
+ * @property {import('../utils/dlMapUtils').DlMapTypes.Map<StoreTypes.RowKey, object, StoreTypes.RowMetadata>} items A list of all items, sorted based on {@link sortAscending}
  * @property {StoreTypes.RowKey[]} rowKeys The keys of the visible items, sorted and paginated
  * @property {number} visibleItemCount The total number of visible items on all pages
  * @property {number} activeIndex The index of the active row inside {@link rowKeys}

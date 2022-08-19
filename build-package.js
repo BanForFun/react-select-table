@@ -9,3 +9,5 @@ fs.mkdirSync(destDir)
 
 for (const file of files.concat('package.json'))
   fs.cpSync(file, path.join(destDir, file), { recursive: true })
+
+console.log('Built package')

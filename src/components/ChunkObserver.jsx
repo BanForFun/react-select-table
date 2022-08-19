@@ -23,11 +23,14 @@ function ChunkObserver(props) {
   const { resizingIndex } = useContext(ColumnGroupContext)
 
   const refreshChunk = useCallback(() => {
+    const observer = chunkObserverRef.current
+    if (!observer) return
+
     const chunk = chunkRef.current
     const isHidden = chunk.hasAttribute(HiddenAttribute)
     if (!isHidden) return
 
-    chunkObserverRef.current.unobserve(chunk)
+    observer.unobserve(chunk)
     chunk.toggleAttribute(HiddenAttribute, false)
     isRefreshingRef.current = true
 
@@ -37,6 +40,7 @@ function ChunkObserver(props) {
   }, [chunkObserverRef])
 
   useEffect(() => {
+    // isRefreshing will never be true when chunking is disabled
     if (!isRefreshingRef.current) return
 
     chunkObserverRef.current.observe(chunkRef.current)
@@ -49,10 +53,11 @@ function ChunkObserver(props) {
   }, [resizingIndex, refreshChunk])
 
   useEffect(() => {
-    const chunk = chunkRef.current
     const observer = chunkObserverRef.current
-    observer.observe(chunk)
+    if (!observer) return
 
+    const chunk = chunkRef.current
+    observer.observe(chunk)
     return () => observer.unobserve(chunk)
   }, [chunkObserverRef])
 

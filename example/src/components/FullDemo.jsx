@@ -66,6 +66,7 @@ function FullDemo() {
     [columnVisibility])
 
   const [pageSize, setPageSize] = useState(10)
+  const [chunkSize, setChunkSize] = useState(options.chunkSize)
 
   const handleTableKeyDown = useCallback((e, selection) => {
     switch(e.keyCode) {
@@ -169,6 +170,7 @@ function FullDemo() {
                     flagUtils.toggleFlag(savedModules, flag, checked, saveModules))}
         />)}
       <div className="break"/>
+
       <button onClick={() => applyOptions({
         savedState: selectors.getSaveState(getState(), savedModules)
       })}>Save state and reload</button>
@@ -202,6 +204,15 @@ function FullDemo() {
                 label="Keep table width constant when resizing columns"
                 checked={options.constantWidth}
                 onChange={checked => applyOptions({ constantWidth: checked })} />
+      <div className="break"/>
+
+      <Input id="chunkSize"
+             label="Half chunk size"
+             value={chunkSize}
+             onChange={setChunkSize}
+             type="number"
+             min="0" />
+      <button onClick={() => applyOptions({ chunkSize })}>Apply</button>
     </div>
 
     <h2>General</h2>

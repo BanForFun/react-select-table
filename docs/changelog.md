@@ -1,3 +1,10 @@
+## Version 5.3.1
+- Clicking on a sortable header for a third time, now disables sorting by that column, even when not holding shift
+- Added a third optional 'order' parameter to the sortItems action creator, that takes SortOrders enum values, and can be used to set a specific sort order instead of toggling it
+- redux is no longer a peer dependency
+- Fixed double click not raising onItemsOpen on chrome
+- Added dlMapUtils.getKeyedItems method
+
 ## Version 5.3.0
 - Added getIsStateNormal and getSelection selectors
 - Fixed onSelectionChange event not raised as a result of startLoading and setError actions

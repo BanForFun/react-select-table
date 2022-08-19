@@ -1,4 +1,4 @@
-import React, { Fragment, useContext } from 'react'
+import React, { Fragment, useContext, useCallback } from 'react'
 import _ from 'lodash'
 import TableBody from './TableBody'
 import TableHead from './TableHead'
@@ -7,6 +7,7 @@ import { DragModes, GestureTargetTypes } from '../constants/enums'
 import { pc } from '../utils/tableUtils'
 import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 import withGestures from '../hoc/withGestures'
+import GestureContext from '../context/GestureTarget'
 import GestureTarget from '../models/GestureTarget'
 
 /**
@@ -20,6 +21,7 @@ function ResizingContainer(props) {
   const {
     handleGesturePointerDownCapture,
     handleGestureTouchStart,
+    dragSelect,
     placeholder,
     selectionRectRef,
     dragMode,
@@ -40,15 +42,67 @@ function ResizingContainer(props) {
   } = props
 
   const {
-    utils: { options },
+    utils: { options, hooks, selectors, events },
     columns
   } = props
 
   const showPlaceholder = !!placeholder
 
   const { containerWidth, widths, resizingIndex } = useContext(ColumnGroupContext)
+  const gesture = useContext(GestureContext)
+
+  const rowCount = hooks.useSelector(s => s.rowKeys.length)
+  const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
+
+  const handleMouseDown = useCallback(e => {
+    if (showPlaceholder || e.button !== 0) return
+
+    const { target } = gesture
+    switch (target.type) {
+      case GestureTargetTypes.BelowRows:
+        if (e.shiftKey)
+          actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
+        else if (!options.listBox && !e.ctrlKey)
+          actions.clearSelection()
+
+        break
+      case GestureTargetTypes.Row:
+        actions.select(indexOffset + target.index, e.shiftKey, e.ctrlKey)
+        break
+      default: return
+    }
+
+    if (gesture.pointerType === 'mouse') {
+      getSelection().removeAllRanges()
+      dragSelect(e)
+    }
+  }, [gesture, actions, options, indexOffset, rowCount, dragSelect, showPlaceholder])
+
+  const handleContextMenu = useCallback(e => {
+    if (e.shiftKey) return // Show browser context menu when holding shift
+
+    const { target } = gesture
+    if (gesture.pointerType !== 'mouse') {
+      if (showPlaceholder) return
+
+      if (target.type === GestureTargetTypes.Row)
+        actions.select(indexOffset + target.index, false, true)
+      else if (target.type !== GestureTargetTypes.BelowRows)
+        return
+
+      return dragSelect(e)
+    }
+
+    if (events.hasListener('onContextMenu'))
+      e.preventDefault()
+
+    contextMenu(e)
+  }, [gesture, indexOffset, contextMenu, actions, events, dragSelect, showPlaceholder])
 
   const gestureEventHandlers = {
+    // This event has to be here, because on the scrolling container, it also registers clicks on the scrollbar
+    onMouseDown: handleMouseDown,
+    onContextMenu: handleContextMenu,
     onPointerDownCapture: handleGesturePointerDownCapture,
     onTouchStart: handleGestureTouchStart
   }
@@ -79,8 +133,8 @@ function ResizingContainer(props) {
     _.map(columnKeys, referenceKey => {
       const minWidthScale = options.minColumnWidth / widths[referenceKey]
       return <div className="rst-clippingStopper"
-        data-col-key={referenceKey}
-        key={`stoppers-${referenceKey}`}
+                  data-col-key={referenceKey}
+                  key={`stoppers-${referenceKey}`}
       >
         {_.map(columnKeys, key =>
           <div
@@ -137,15 +191,15 @@ function ResizingContainer(props) {
           : <div className="rst-stoppers">{
             _.map(columnKeys, (key, index) =>
               <div className="rst-resizingStopper rst-stopper"
-                data-col-key={key}
-                key={`stopper-${key}`}
-                style={{ width: resizingStopperWidths[index] }}
+                   data-col-key={key}
+                   key={`stopper-${key}`}
+                   style={{ width: resizingStopperWidths[index] }}
               />)
           }</div>
         )}
         <TableHead {...headProps}
-          gestureTarget={GestureTarget(GestureTargetTypes.Header, columns.length)}
-          onDualTap={contextMenu}
+                   gestureTarget={GestureTarget(GestureTargetTypes.Header, columns.length)}
+                   onDualTap={contextMenu}
         />
         <TableBody {...bodyProps} />
         {dragMode === DragModes.Select &&

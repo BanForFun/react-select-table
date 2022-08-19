@@ -15,7 +15,7 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   format: ['esm', 'cjs'],
-  onSuccess: 'run-s build-definitions',
+  onSuccess: 'run-s build-definitions build-package',
   target: 'node12',
   legacyOutput: true,
   esbuildPlugins: [

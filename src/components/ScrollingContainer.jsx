@@ -598,35 +598,6 @@ function ScrollingContainer(props) {
 
   //#endregion
 
-  //#region Autoscroll to active index
-
-  const getContainerVisibleBounds = useCallback(() => {
-    const container = scrollingContainerRef.current
-    const body = tableBodyRef.current
-    return {
-      top: container.scrollTop,
-      bottom: container.scrollTop + container.clientHeight - body.offsetTop
-    }
-  }, [scrollingContainerRef, tableBodyRef])
-
-  useLayoutEffect(() => {
-    const activeRow = getRow(activeRowIndex)
-    if (!activeRow) return
-
-    const containerBounds = getContainerVisibleBounds()
-    const rowBounds = getRowBounds(activeRow)
-    const distanceToTop = rowBounds.top - containerBounds.top
-    const distanceToBottom = rowBounds.bottom - containerBounds.bottom
-
-    const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
-    scrollingContainerRef.current.scrollTop += scrollOffset
-  }, [
-    activeRowIndex,
-    getRow, getContainerVisibleBounds
-  ])
-
-  //#endregion
-
   //#region Gesture actions
 
   const showPlaceholder = !!placeholder
@@ -681,60 +652,15 @@ function ScrollingContainer(props) {
 
   //#endregion
 
-  //#region Gesture event handlers
-
-  const handleMouseDown = useCallback(e => {
-    if (showPlaceholder || e.button !== 0) return
-
-    const { target } = gesture
-    switch (target.type) {
-      case GestureTargetTypes.BelowRows:
-        if (e.shiftKey)
-          actions.select(indexOffset + rowCount - 1, e.shiftKey, e.ctrlKey)
-        else if (!options.listBox && !e.ctrlKey)
-          actions.clearSelection()
-
-        break
-      case GestureTargetTypes.Row:
-        actions.select(indexOffset + target.index, e.shiftKey, e.ctrlKey)
-        break
-      default: return
-    }
-
-    if (gesture.pointerType === 'mouse') {
-      getSelection().removeAllRanges()
-      dragSelect(e)
-    }
-  }, [gesture, actions, options, indexOffset, rowCount, dragSelect, showPlaceholder])
-
-  const handleContextMenu = useCallback(e => {
-    if (e.shiftKey) return // Show browser context menu when holding shift
-
-    const { target } = gesture
-    if (gesture.pointerType !== 'mouse') {
-      if (showPlaceholder) return
-
-      if (target.type === GestureTargetTypes.Row)
-        actions.select(indexOffset + target.index, false, true)
-      else if (target.type !== GestureTargetTypes.BelowRows)
-        return
-
-      return dragSelect(e)
-    }
-
-    if (events.hasListener('onContextMenu'))
-      e.preventDefault()
-
-    contextMenu(e)
-  }, [gesture, indexOffset, contextMenu, actions, events, dragSelect, showPlaceholder])
-
-  //#endregion
-
-  //#region IntersectionObserver
+  //#region Chunk intersection observer
 
   const chunkObserverRef = useRef()
-
   useLayoutEffect(() => {
+    if (options.chunkSize <= 0) return
+
+    const container = scrollingContainerRef.current
+    if (!container) return
+
     chunkObserverRef.current = new IntersectionObserver(entries => {
       for (const entry of entries) {
         const chunk = entry.target
@@ -742,11 +668,33 @@ function ScrollingContainer(props) {
           chunk.style.setProperty('--rst-intrinsic-height', px(chunk.offsetHeight))
         chunk.toggleAttribute(HiddenAttribute, !entry.isIntersecting)
       }
-    }, {
-      root: scrollingContainerRef.current,
-      rootMargin: '50%'
-    })
-  }, [])
+    }, { root: container, rootMargin: '50%' })
+  }, [options])
+
+  //#endregion
+
+  //#region Autoscroll to active index
+
+  const getContainerVisibleBounds = useCallback(() => {
+    const container = scrollingContainerRef.current
+    const body = tableBodyRef.current
+    return {
+      top: container.scrollTop,
+      bottom: container.scrollTop + container.clientHeight - body.offsetTop
+    }
+  }, [scrollingContainerRef, tableBodyRef])
+
+  useLayoutEffect(() => {
+    const rowBounds = getRowBounds(getRow(activeRowIndex))
+    if (!rowBounds) return
+
+    const containerBounds = getContainerVisibleBounds()
+    const distanceToTop = rowBounds.top - containerBounds.top
+    const distanceToBottom = rowBounds.bottom - containerBounds.bottom
+
+    const scrollOffset = Math.min(0, distanceToTop) + Math.max(0, distanceToBottom)
+    scrollingContainerRef.current.scrollTop += scrollOffset
+  }, [activeRowIndex, getRow, getContainerVisibleBounds])
 
   //#endregion
 
@@ -758,6 +706,7 @@ function ScrollingContainer(props) {
     headRowRef,
     chunkObserverRef,
 
+    dragSelect,
     columns,
     dragMode,
     contextMenu,
@@ -776,11 +725,10 @@ function ScrollingContainer(props) {
     onPointerUp={handlePointerEnd}
     onPointerCancel={handlePointerEnd}
 
-    // These event handlers have to be on the scrolling container,
-    // because onDoubleClick stops being raised on children after setPointerCapture on chrome (which is called inside onMouseDown)
+    // This event handler has to be here, because onDoubleClick stops being raised on children,
+    // after setPointerCapture on chrome (which is called inside onMouseDown of resizing container)
     onDoubleClick={itemsOpen}
-    onMouseDown={handleMouseDown}
-    onContextMenu={handleContextMenu}
+
   >
     <ColumnGroupContext.Provider value={fullColumnGroup}>
       <ResizingContainer {...resizingProps}

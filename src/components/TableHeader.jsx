@@ -35,7 +35,7 @@ function TableHeader({
     if (!isSortable) return
     requestAnimationFrame(() => {
       loadingRef.current.style.display = 'initial'
-      setTimeout(() => actions.sortItems(path, addToPrev), 0)
+      setTimeout(() => actions.sortItems(path, addToPrev))
     })
     return true
   }, [actions, path, isSortable])

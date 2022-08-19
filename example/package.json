@@ -5,10 +5,10 @@
   "private": true,
   "scripts": {
     "waitForBuild": "./waitforfile.sh ../dist/index.js",
-    "start": "yarn waitForBuild && PORT=2000 node ../node_modules/react-scripts/bin/react-scripts.js start",
-    "build": "node ../node_modules/react-scripts/bin/react-scripts.js build",
-    "test": "node ../node_modules/react-scripts/bin/react-scripts.js test",
-    "eject": "node ../node_modules/react-scripts/bin/react-scripts.js eject"
+    "start": "yarn waitForBuild && PORT=2000 react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
@@ -23,7 +23,10 @@
     "react-toastify": "^9.0.5",
     "sass": "^1.53.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@babel/plugin-syntax-object-rest-spread": "^7.8.3",
+    "react-scripts": "^5.0.1"
+  },
   "eslintConfig": {
     "extends": "react-app"
   },

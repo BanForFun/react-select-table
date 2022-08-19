@@ -1,9 +1,7 @@
 {
   "extends": [
     "standard",
-    "plugin:react/recommended",
-    "plugin:jsx-a11y/recommended",
-    "plugin:react-hooks/recommended",
+    "react-app",
     "plugin:jsdoc/recommended"
   ],
   "env": {
@@ -41,19 +39,6 @@
     "space-before-function-paren": 0,
     "jsdoc/valid-types": 0,
     "jsdoc/require-jsdoc": 0,
-    "n/no-callback-literal": 0,
-    "react/jsx-no-bind": ["error", {
-      "allowArrowFunctions": true,
-      "allowBind": false,
-      "ignoreRefs": true
-    }],
-    "react/no-did-update-set-state": "error",
-    "react/no-unknown-property": "error",
-    "react/no-unused-prop-types": "error",
-    "react/react-in-jsx-scope": "error",
-    "react/prop-types": 0,
-    "react/jsx-closing-tag-location": 0,
-    "react/jsx-closing-bracket-location": 0,
-    "jsx-a11y/no-noninteractive-tabindex": 0
+    "n/no-callback-literal": 0
   }
 }

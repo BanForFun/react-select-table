@@ -3,7 +3,7 @@ import { componentEventHandlersPropTypes } from '../types/TableProps'
 import DefaultPagination from '../components/DefaultPagination'
 import { getNoopHandlers, noopEventHandler } from '../models/Events'
 
-export default {
+const defaultProps = {
   getRowClassName: () => '',
   className: '',
   dragSelectScrollFactor: 0.5,
@@ -17,3 +17,5 @@ export default {
   ...getNoopHandlers(),
   ..._.mapValues(componentEventHandlersPropTypes, _.constant(noopEventHandler))
 }
+
+export default defaultProps

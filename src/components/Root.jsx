@@ -17,6 +17,10 @@ const parseColumn = col => ({
 })
 
 /**
+ * @namespace Components
+ */
+
+/**
  * Child of {@link Components.Table}.
  * Child of {@link Components.SlaveTable}.
  *

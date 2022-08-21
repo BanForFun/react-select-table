@@ -170,9 +170,11 @@ function ScrollingContainer(props) {
 
   const columnResizing = useRef({
     prevVisibleIndex: -1,
-    distanceToStart: 0,
     borderLeft: 0,
-    header: 0
+    header: null,
+    distanceOfPrevToStart: 0,
+    isResizingSpacer: false,
+    minWidth: 0
   }).current
 
   const dragSelection = useRef({

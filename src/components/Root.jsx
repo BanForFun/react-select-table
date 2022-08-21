@@ -193,9 +193,9 @@ function Root(props) {
   }, [actions, selectors, getState, componentEvents, activeIndex, itemCount, pageSize, pageCount, pageIndex, select])
 
   const handleKeyDown = useCallback(e => {
-    if (showPlaceholder) return
     if (gesture.isDragging) return
     if (componentEvents.keyDown(e) === false) return
+    if (showPlaceholder) return
     if (handleShortcuts(e) === false) return
     if (!options.searchProperty) return
     searchInputRef.current.focus()

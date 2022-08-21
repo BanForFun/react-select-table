@@ -32,11 +32,11 @@ function getLine(pointA, pointB) {
 
 function getRelativeOffset(absolute, origin, minVisible, maxVisible, scrollFactor) {
   const reference = _.clamp(absolute, minVisible, maxVisible)
-  const scrollOffset = Math.floor((absolute - reference) * scrollFactor)
+  const scrollOffset = (absolute - reference) * scrollFactor
 
   return {
     scrollOffset,
-    relToOrigin: reference - origin + scrollOffset,
+    relToOrigin: reference - origin,
     relToMin: reference - minVisible,
     relToMax: maxVisible - reference
   }
@@ -198,8 +198,10 @@ function ScrollingContainer(props) {
       offsetLeft: fullWidth,
       previousElementSibling: { offsetLeft: availableWidth }
     } = headRowRef.current.lastChild
-    const { clientWidth: visibleWidth } = scrollingContainerRef.current
+    const container = scrollingContainerRef.current
+    const { clientWidth, offsetWidth } = container
 
+    const visibleWidth = container.getBoundingClientRect().width - (offsetWidth - clientWidth)
     const scale = fullWidth > visibleWidth ? fullWidth / availableWidth : 1
     const widths = getCurrentHeaderWidths().map(px => px / visibleWidth * scale * 100)
 
@@ -305,10 +307,6 @@ function ScrollingContainer(props) {
 
   //#region Drag updating
 
-  const isResizingSpacer = useMemo(() =>
-    columnGroup.resizingIndex === columns.length,
-  [columnGroup, columns])
-
   // Column resizing
   const columnResizeUpdate = useCallback(() => {
     const index = columnGroup.resizingIndex
@@ -317,8 +315,10 @@ function ScrollingContainer(props) {
     const {
       prevVisibleIndex,
       header,
-      borderLeft,
-      distanceOfPrevToStart
+      distanceOfPrevToStart,
+      isResizingSpacer,
+      minWidth,
+      borderLeft
     } = columnResizing
 
     const constantWidth = options.constantWidth || drag.ctrlKey
@@ -327,19 +327,18 @@ function ScrollingContainer(props) {
     const containerX = getClientX(container)
     const { clientWidth, scrollWidth, scrollLeft } = container
 
-    const headBounds = headRowRef.current.getBoundingClientRect()
-    const headerBounds = header.getBoundingClientRect()
+    const head = headRowRef.current
+    const { lastChild: spacer } = head
 
     // Auto-scroll
-    const distanceOfPrevToEnd = headBounds.right - headerBounds.left
     const shrinkThresholdColumn = scrollLeft && (isResizingSpacer || !constantWidth)
-      ? clientWidth - distanceOfPrevToEnd + borderLeft
+      ? clientWidth - spacer.offsetLeft + header.offsetLeft
       : -Infinity
     const shrinkThreshold = containerX + Math.max(0, shrinkThresholdColumn)
     const expandThreshold = containerX + clientWidth
 
     const { relToOrigin: relX, scrollOffset } = getRelativeOffset(
-      drag.pointerPos.x, headBounds.x,
+      drag.pointerPos.x, getClientX(head),
       shrinkThreshold, expandThreshold, columnResizeScrollFactor
     )
 
@@ -350,24 +349,24 @@ function ScrollingContainer(props) {
       movementOffset = _.clamp(drag.movement.x, -scrollLeft, scrollRemaining)
     }
 
+    const offsetSum = Math.floor(movementOffset + scrollOffset)
+
     // Calculate shared width
-    const offsetRight = isResizingSpacer ? headBounds.width : headerBounds.right - headBounds.left
+    const offsetRight = isResizingSpacer ? head.offsetWidth : header.offsetLeft + header.offsetWidth
     const sharedWidth = constantWidth ? offsetRight - distanceOfPrevToStart : Infinity
 
     // Calculate the new width of the previous column
     const minPrevWidth = options.minColumnWidth
-    const minWidth = isResizingSpacer ? borderLeft : options.minColumnWidth
-    const targetWidth = relX - distanceOfPrevToStart - borderLeft + movementOffset
+    const targetWidth = Math.floor(relX - distanceOfPrevToStart) + offsetSum - borderLeft
     const newPrevWidth = _.clamp(targetWidth, minPrevWidth, sharedWidth - minWidth)
 
     const changedWidths = { [prevVisibleIndex]: newPrevWidth }
     if (constantWidth && !isResizingSpacer)
       changedWidths[index] = sharedWidth - newPrevWidth
 
-    const newScroll = scrollLeft + scrollOffset + movementOffset
+    const newScroll = Math.ceil(scrollLeft) + offsetSum
     dragAnimate(() => columnResizeAnimation(changedWidths, newScroll))
   }, [
-    isResizingSpacer,
     drag,
     columnGroup,
     columnResizing,
@@ -401,8 +400,8 @@ function ScrollingContainer(props) {
 
     // Calculate selection
     const availableHeight = container.scrollHeight - body.offsetTop
-    const newRelY = _.clamp(relY + movement.y, top, availableHeight - bottom)
-    const newRelX = _.clamp(relX + movement.x, left, container.scrollWidth - right)
+    const newRelX = _.clamp(relX + movement.x + scrollLeftOffset, left, container.scrollWidth - right)
+    const newRelY = _.clamp(relY + movement.y + scrollTopOffset, top, availableHeight - bottom)
 
     const { selectionBuffer, originRel: { y: originRelY } } = dragSelection
     const direction = Math.sign(newRelY - dragSelection.prevRelY)
@@ -531,10 +530,14 @@ function ScrollingContainer(props) {
       children: { [prevVisibleIndex]: prevHeader, [index]: header }
     } = headRowRef.current
 
+    const isResizingSpacer = index === columns.length
+
     Object.assign(columnResizing, {
       prevVisibleIndex,
-      borderLeft: header.clientLeft,
-      distanceOfPrevToStart: getClientX(prevHeader) - getClientX(headRowRef.current),
+      distanceOfPrevToStart: prevHeader.offsetLeft,
+      borderLeft: prevHeader.clientLeft,
+      isResizingSpacer,
+      minWidth: isResizingSpacer ? header.clientLeft : options.minColumnWidth,
       header
     })
 
@@ -546,7 +549,10 @@ function ScrollingContainer(props) {
     container.style.setProperty('--rst-content-width', px(spacer.offsetLeft))
 
     setRenderedColumnWidths(widths, index)
-  }, [dragStart, getCurrentHeaderWidths, columnResizing, setRenderedColumnWidths])
+  }, [
+    dragStart, getCurrentHeaderWidths, setRenderedColumnWidths,
+    columnResizing, columns.length, options
+  ])
 
   // Drag selection
   const dragSelectStart = useCallback((e, pointerId, rowIndex) => {

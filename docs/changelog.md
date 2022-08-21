@@ -1,3 +1,8 @@
+## Version 5.3.2
+- Fixed crash when the table is invisible while mounted. Note that is those cases the table will not automatically scroll to the active index
+- IntersectionObserver is now only used if item chunking is enabled (options.chunkSize > 0)
+- Fixed click on scrollbar starting drag selection on firefox
+
 ## Version 5.3.1
 - Clicking on a sortable header for a third time, now disables sorting by that column, even when not holding shift
 - Added a third optional 'order' parameter to the sortItems action creator, that takes SortOrders enum values, and can be used to set a specific sort order instead of toggling it

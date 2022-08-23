@@ -181,6 +181,7 @@ const commonTablePropTypes = {
    * Returns a class for the tr element
    *
    * @param {object} row The row object
+   * @param {RowKeyType} key The key of the row
    */
   getRowClassName: PropTypes.func
 }
@@ -210,6 +211,10 @@ export const slaveTablePropTypes = {
    */
   name: PropTypes.string.isRequired
 }
+
+/**
+ * @typedef {import('../store/store').StoreTypes.RowKey} RowKeyType
+ */
 
 /**
  * @typedef {import('../models/Events').EventsTypes.SelectionArg} SelectionArgType

@@ -1,3 +1,8 @@
+## Version 5.3.3
+- Fixed column constantly shrinking when resizing the previous column on constant width mode, when table width is decimal
+- Fixed columns shrinking slightly every time they are resized, when table width is decimal
+- Fixed onKeyDown handler not being called when the table is empty or loading
+
 ## Version 5.3.2
 - Fixed crash when the table is invisible while mounted. Note that is those cases the table will not automatically scroll to the active index
 - IntersectionObserver is now only used if item chunking is enabled (options.chunkSize > 0)

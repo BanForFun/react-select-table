@@ -172,7 +172,7 @@ export default class Selectors {
 
   /**
    * If the table is loading or an error has occurred, returns an empty {@link SetTypes.Set},
-   * in all other cases returns the {@link State.selected} property.
+   * in all other cases returns the {@link StoreTypes.State.selected} property.
    *
    * @param {StateType} state The table's state
    * @returns {import('../utils/setUtils').SetTypes.Set} A set containing the selected keys

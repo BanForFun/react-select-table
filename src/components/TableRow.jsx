@@ -43,7 +43,7 @@ const TableRow = ({
 
   return <tr
     ref={ref}
-    className={'rst-row ' + getRowClassName(data)}
+    className={'rst-row ' + getRowClassName(data, key)}
     onPointerDownCapture={handleGesturePointerDownCapture}
     onTouchStart={handleGestureTouchStart}
     {...dataAttributeFlags({

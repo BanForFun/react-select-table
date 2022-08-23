@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import ScrollingContainer from './ScrollingContainer'
-import PaginationContainer from './PaginationWrapper'
+import PaginationWrapper from './PaginationWrapper'
 import SearchContainer from './SearchContainer'
 import GestureContext from '../context/GestureTarget'
 import { GestureTargetTypes } from '../constants/enums'
@@ -38,6 +38,7 @@ function Root(props) {
     emptyPlaceholder,
     errorComponent,
     columns,
+    children,
     ...scrollingProps
   } = props
 
@@ -231,14 +232,14 @@ function Root(props) {
     onPointerDownCapture={handlePointerDownCapture}
     className={'rst-container ' + className}
   >
+    <SearchContainer {...searchProps} />
     <GestureContext.Provider value={gesture}>
-      <SearchContainer {...searchProps} />
       <ScrollingContainer {...scrollingProps}
         columns={columns.map(parseColumn)}
       />
-      {!showPlaceholder && pageCount > 1 &&
-        <PaginationContainer {...paginationProps} />}
     </GestureContext.Provider>
+    {children}
+    <PaginationWrapper {...paginationProps} />
   </div>
 }
 

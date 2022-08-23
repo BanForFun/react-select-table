@@ -16,11 +16,16 @@ function PaginationWrapper({
   const pageIndex = hooks.useSelector(selectors.getPageIndex)
   const pageSize = hooks.useSelector(s => s.pageSize)
 
+  const isStateNormal = hooks.useSelector(selectors.getIsStateNormal)
+
   const goToPage = useCallback(page => {
     if (!_.inRange(--page, pageCount)) return false
     actions.setActive(page * pageSize)
     return true
   }, [actions, pageCount, pageSize])
+
+  if (!isStateNormal) return null
+  if (pageCount <= 1) return null
 
   return <Pagination
     page={pageIndex + 1}

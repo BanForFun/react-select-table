@@ -154,7 +154,7 @@ $debugStoppers: false;
   overflow: hidden;
 
   .rst-icon {
-    flex: none;
+    flex: 0 0 1rem;
   }
 }
 
@@ -200,6 +200,18 @@ $debugStoppers: false;
 .rst-icon {
   height: 1rem;
   fill: currentColor;
+}
+
+.rst-loadingIcon {
+  display: none;
+
+  &[#{flag-attr("loading")}] {
+    display: initial;
+
+    & + .rst-icon {
+      display: none;
+    }
+  }
 }
 
 .rst-loading {

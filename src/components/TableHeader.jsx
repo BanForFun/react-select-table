@@ -2,8 +2,10 @@ import React, { Fragment, useCallback, useContext, useLayoutEffect, useRef } fro
 import AngleIcon, { angleRotation } from './AngleIcon'
 import HourGlassIcon from './HourGlassIcon'
 import withGestures from '../hoc/withGestures'
-import { dataAttributeFlags } from '../utils/dataAttributeUtils'
+import { dataAttributeFlags, getFlagAttribute } from '../utils/dataAttributeUtils'
 import GestureContext from '../context/GestureTarget'
+
+export const LoadingAttribute = getFlagAttribute('loading')
 
 /**
  * Child of {@link Components.TableHead}.
@@ -25,16 +27,16 @@ function TableHeader({
   isResizable,
   className
 }) {
-  const loadingRef = useRef()
-
   const gesture = useContext(GestureContext)
 
   const isSortable = !!path
 
+  const loadingIconRef = useRef()
+
   const sortColumn = useCallback(addToPrev => {
     if (!isSortable) return
     requestAnimationFrame(() => {
-      loadingRef.current.style.display = 'initial'
+      loadingIconRef.current.toggleAttribute(LoadingAttribute, true)
       setTimeout(() => actions.sortItems(path, addToPrev))
     })
     return true
@@ -60,7 +62,7 @@ function TableHeader({
   }, [sortColumn, gesture])
 
   useLayoutEffect(() => {
-    loadingRef.current.style.display = 'none'
+    loadingIconRef.current.toggleAttribute(LoadingAttribute, false)
   }, [sortAscending])
 
   return <th className={className}
@@ -76,11 +78,11 @@ function TableHeader({
       role="none"
     >
       <span className='rst-headerText'>{title}</span>
+      <HourGlassIcon ref={loadingIconRef} />
       {sortPriority >= 0 && <Fragment>
         <AngleIcon rotation={sortAscending ? angleRotation.Up : angleRotation.Down} />
         {showPriority && <small>{sortPriority}</small>}
       </Fragment>}
-      <HourGlassIcon ref={loadingRef} />
     </div>
     {isResizable && <div
       className='rst-columnResizer'

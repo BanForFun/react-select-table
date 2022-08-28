@@ -183,8 +183,6 @@ meaning that the item key `1` is considered equal to `'1'`, and that whenever yo
 
 If a reducer isn't the root reducer, you must set the `statePath` option to a string being the path to the reducer.
 
-Lastly you must apply the `eventMiddleware` middleware to enable events.
-
 ### Example
 
 Say we're making a todo list, and our objects are of this format:

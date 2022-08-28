@@ -190,7 +190,7 @@ function ResizingContainer(props) {
           ? clippingStoppers
           : <div className="rst-stoppers">{
             _.map(columnKeys, (key, index) =>
-              <div className="rst-resizingStopper rst-stopper"
+              <div className="rst-resizingStopper"
                    data-col-key={key}
                    key={`stopper-${key}`}
                    style={{ width: resizingStopperWidths[index] }}

@@ -4,8 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "waitForBuild": "./waitforfile.sh ../dist/index.js",
-    "start": "yarn waitForBuild && PORT=2000 react-scripts start",
+    "start": "./waitforfile.sh ../dist/index.js && PORT=2000 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

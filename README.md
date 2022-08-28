@@ -10,7 +10,7 @@ and a table component to display them.
 
 ## Version 5.3.4
 - getRowClassName now called with the row key as a new second argument
-- Table component can now accept children, which will be placed between the scrollable portion and the pagination
+- Table component can now accept children, which will be placed between the scrollable portion and the pagination controls
 - Header hourglass icon now replaces sort order indicator when loading, instead of appearing next to it
 
 [Older changes](./docs/changelog.md)

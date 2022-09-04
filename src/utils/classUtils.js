@@ -1,4 +1,4 @@
-export function bindFunctions(instance) {
+export function bindPrototypeMethods(instance) {
   const propertyNames = Object.getOwnPropertyNames(Object.getPrototypeOf(instance))
 
   for (const name of propertyNames) {

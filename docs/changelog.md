@@ -1,3 +1,8 @@
+## Version 5.3.4
+- getRowClassName now called with the row key as a new second argument
+- Table component can now accept children, which will be placed between the scrollable portion and the pagination controls
+- Header hourglass icon now replaces sort order indicator when loading, instead of appearing next to it
+
 ## Version 5.3.3
 - Fixed column constantly shrinking when resizing the previous column on constant width mode, when table width is decimal
 - Fixed columns shrinking slightly every time they are resized, when table width is decimal

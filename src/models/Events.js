@@ -1,5 +1,6 @@
 import { reduxEventHandlersPropTypes } from '../types/TableProps'
 import _ from 'lodash'
+import { bindPrototypeMethods } from '../utils/classUtils'
 
 export const handlersSymbol = Symbol('Event handlers')
 
@@ -45,6 +46,8 @@ export const getNoopHandlers = () =>
 
 export default class Events {
   constructor(selectors) {
+    bindPrototypeMethods(this)
+
     /** @private */
     this.selectors = selectors
 

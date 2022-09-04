@@ -6,6 +6,7 @@ import {
   createStoreHook
 } from 'react-redux'
 import { bindActionCreators } from 'redux'
+import { bindPrototypeMethods } from '../utils/classUtils'
 
 /**
  * @namespace HooksTypes
@@ -51,12 +52,14 @@ import { bindActionCreators } from 'redux'
 
 export default class Hooks {
   constructor(options, selectors, actions) {
+    bindPrototypeMethods(this)
+
+    const { context } = options
     /** @private */
     this.actions = actions
     /** @private */
     this.selectors = selectors
 
-    const { context } = options
     /**
      * The normal useSelector hook, bound to {@link Options.context}
      *

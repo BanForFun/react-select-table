@@ -8,10 +8,8 @@ and a table component to display them.
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)
 
-## Version 5.3.4
-- getRowClassName now called with the row key as a new second argument
-- Table component can now accept children, which will be placed between the scrollable portion and the pagination controls
-- Header hourglass icon now replaces sort order indicator when loading, instead of appearing next to it
+## Version 5.3.5
+- Fixed 'this is undefined' error when calling a hook reference
 
 [Older changes](./docs/changelog.md)
 

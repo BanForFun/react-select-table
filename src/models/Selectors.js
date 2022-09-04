@@ -3,7 +3,7 @@ import * as saveModules from '../constants/saveModules'
 import * as flagUtils from '../utils/flagUtils'
 import * as dlMapUtils from '../utils/dlMapUtils'
 import * as setUtils from '../utils/setUtils'
-import { bindFunctions } from '../utils/classUtils'
+import { bindPrototypeMethods } from '../utils/classUtils'
 
 const moduleProperties = {
   [saveModules.Items]: ['isLoading', 'error', 'items'],
@@ -34,7 +34,7 @@ const moduleProperties = {
 
 export default class Selectors {
   constructor(options) {
-    bindFunctions(this)
+    bindPrototypeMethods(this)
 
     /** @private */
     this.options = options

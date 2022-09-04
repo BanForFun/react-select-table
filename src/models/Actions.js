@@ -1,4 +1,4 @@
-import { bindFunctions } from '../utils/classUtils'
+import { bindPrototypeMethods } from '../utils/classUtils'
 import types from '../constants/actionTypes'
 import { SortOrders } from '../constants/enums'
 
@@ -10,7 +10,7 @@ export default class Actions {
    * @param {string} namespace The namespace passed to {@link createTable}
    */
   constructor(namespace) {
-    bindFunctions(this)
+    bindPrototypeMethods(this)
 
     /**
      * @param {string} type The action type

@@ -13,14 +13,16 @@ import ChunkObserver from './ChunkObserver'
  */
 function TableBody(props) {
   const {
-    tableBodyRef,
     showPlaceholder,
-    utils: { hooks, selectors, options },
-
+    tableBodyRef,
     ...chunkCommonProps
   } = props
 
-  const { columns, name } = props
+  const {
+    columns,
+    name,
+    utils: { hooks, selectors, options }
+  } = props
 
   const rowKeys = hooks.useSelector(s => s.rowKeys)
   const selected = hooks.useSelector(s => s.selected)
@@ -48,6 +50,7 @@ function TableBody(props) {
     })
 
     return <ChunkObserver
+      indexOffset={chunkIndexOffset}
       rows={rows}
       key={`chunk_${props.name}_${chunkIndex}`}
       {...chunkCommonProps}

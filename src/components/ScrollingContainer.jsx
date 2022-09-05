@@ -10,7 +10,7 @@ import GestureContext from '../context/GestureTarget'
 import { dataAttributeFlags } from '../utils/dataAttributeUtils'
 import * as setUtils from '../utils/setUtils'
 import GestureTarget from '../models/GestureTarget'
-import { HiddenAttribute } from './ChunkObserver'
+import { HiddenAttribute, LastWidthAttribute } from './ChunkObserver'
 import useEventListener, { activeListenerOptions } from '../hooks/useEventListener'
 
 const isColumnVisible = width => width > 0
@@ -670,10 +670,14 @@ function ScrollingContainer(props) {
     if (!container) return
 
     chunkObserverRef.current = new IntersectionObserver(entries => {
+      const bodyWidth = tableBodyRef.current.clientWidth
       for (const entry of entries) {
         const chunk = entry.target
-        if (!entry.isIntersecting)
+        if (!entry.isIntersecting) {
           chunk.style.setProperty('--rst-intrinsic-height', px(chunk.offsetHeight))
+          chunk.setAttribute(LastWidthAttribute, bodyWidth)
+        }
+
         chunk.toggleAttribute(HiddenAttribute, !entry.isIntersecting)
       }
     }, { root: container, rootMargin: '50%' })

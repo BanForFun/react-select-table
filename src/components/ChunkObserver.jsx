@@ -4,6 +4,7 @@ import ColumnGroupContext from '../context/ColumnGroup'
 import { getFlagAttribute } from '../utils/dataAttributeUtils'
 
 export const HiddenAttribute = getFlagAttribute('hidden')
+export const LastWidthAttribute = 'data-last-width'
 
 /**
  * Child of {@link Components.TableBody}.
@@ -14,8 +15,12 @@ export const HiddenAttribute = getFlagAttribute('hidden')
 function ChunkObserver(props) {
   const {
     chunkObserverRef,
+    indexOffset,
+    utils: { hooks, selectors },
     ...chunkProps
   } = props
+
+  const activeRowIndex = hooks.useSelector(selectors.getActiveRowIndex)
 
   const chunkRef = useRef()
   const isRefreshingRef = useRef(false)
@@ -51,6 +56,21 @@ function ChunkObserver(props) {
     if (resizingIndex >= 0) return
     refreshChunk()
   }, [resizingIndex, refreshChunk])
+
+  // Refreshes all the chunks above the active one, if the width of the table has changed since the last refresh,
+  // to avoid them refreshing after the table has scrolled to the active row and pushing it out of view again
+  // (because after the scroll position change, some of them may start intersecting the scrolling container).
+  useLayoutEffect(() => {
+    // Don't refresh the chunk that has the active row, or any below it
+    if (activeRowIndex <= indexOffset) return
+
+    const chunk = chunkRef.current
+    const lastWidth = chunk.getAttribute(LastWidthAttribute)
+    const width = chunk.clientWidth.toString()
+    if (width === lastWidth) return
+
+    refreshChunk()
+  }, [activeRowIndex, indexOffset, refreshChunk])
 
   useEffect(() => {
     const observer = chunkObserverRef.current

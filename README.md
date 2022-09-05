@@ -10,6 +10,7 @@ and a table component to display them.
 
 ## Version 5.3.5
 - Fixed 'this is undefined' error when calling a hook reference
+- Fixed auto scrolling to the active row, when in an unloaded chunk, and the table width has changed since the chunk was last unloaded
 
 [Older changes](./docs/changelog.md)
 

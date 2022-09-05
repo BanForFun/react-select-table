@@ -55,7 +55,7 @@ function ResizingContainer(props) {
   const indexOffset = hooks.useSelector(selectors.getPageIndexOffset)
 
   const handleMouseDown = useCallback(e => {
-    if (showPlaceholder || e.button !== 0) return
+    if (showPlaceholder || e.button !== 0 || e.altKey) return
 
     const { target } = gesture
     switch (target.type) {

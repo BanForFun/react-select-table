@@ -11,6 +11,7 @@ and a table component to display them.
 ## Version 5.3.5
 - Fixed 'this is undefined' error when calling a hook reference
 - Fixed auto scrolling to the active row, when in an unloaded chunk, and the table width has changed since the chunk was last unloaded
+- Added **Alt**+**Click** shortcut to select text instead of starting drag selection
 
 [Older changes](./docs/changelog.md)
 
@@ -60,6 +61,7 @@ and a table component to display them.
 * **Shift + Right click** to bring up the browser's context menu
 * **Click + Drag** to start drag selecting (you can also scroll while drag selecting)
 * **Ctrl + Click + Drag** to add the drag selected rows to the previous selection instead of replacing it
+* **Alt + Click + Drag** to select text instead of starting drag selection
 
 ### ListBox mode differences
 * **Click below rows** does not clear the selection

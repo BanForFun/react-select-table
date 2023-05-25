@@ -2,8 +2,7 @@
 
 # react-select-table
 
-A combination of item management (addition, deletion, sorting, etc.) using redux,
-and a table component to display them.
+A react library for a table component, displaying items managed by redux
 
 ## [Demo](https://banforfun.github.io/react-select-table/)
 [Demo source code](./example/src)

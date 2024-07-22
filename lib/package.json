@@ -1,0 +1,52 @@
+{
+  "name": "react-select-table",
+  "version": "6.0.0",
+  "description": "Table component with item selection, resizable columns, keyboard shortcuts and touch gestures",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "typings": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.15.0",
+    "@typescript-eslint/parser": "^7.15.0",
+    "autoprefixer": "^10.4.19",
+    "esbuild-sass-plugin": "^3.3.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "postcss": "^8.4.39",
+    "postcss-preset-env": "^9.6.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tsup": "^8.2.2",
+    "typescript": "^5.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BanForFun/react-select-table.git"
+  },
+  "keywords": [
+    "table",
+    "list",
+    "selectable",
+    "items",
+    "resizable",
+    "columns"
+  ],
+  "author": "John Pegioudis",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BanForFun/react-select-table/issues"
+  },
+  "homepage": "https://github.com/BanForFun/react-select-table#readme"
+}

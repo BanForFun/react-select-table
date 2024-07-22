@@ -2,12 +2,14 @@
   "name": "react-select-table",
   "version": "6.0.0",
   "description": "Table component with item selection, resizable columns, keyboard shortcuts and touch gestures",
+  "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup",
     "dev": "tsup --watch",
+    "build": "tsup",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "peerDependencies": {
@@ -15,10 +17,10 @@
     "react-dom": ">=18"
   },
   "devDependencies": {
+    "@eslint/compat": "^1.1.1",
+    "@eslint/js": "^9.7.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@typescript-eslint/eslint-plugin": "^7.15.0",
-    "@typescript-eslint/parser": "^7.15.0",
     "autoprefixer": "^10.4.19",
     "esbuild-sass-plugin": "^3.3.1",
     "eslint": "^8.57.0",
@@ -29,7 +31,8 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tsup": "^8.2.2",
-    "typescript": "^5.2.2"
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^7.16.1"
   },
   "repository": {
     "type": "git",

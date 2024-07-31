@@ -15,7 +15,7 @@ export const commandsSymbol = Symbol('commands');
 // Public
 export default class Controller<TRow, TFilter> {
     readonly #actionHandlers: ActionHandlers<TRow, TFilter>;
-    readonly [commandsSymbol]: Commands<TRow, TFilter>;
+    readonly [commandsSymbol]: Commands<TRow>;
     readonly [actionCreatorsSymbol]: ActionCreators<TRow, TFilter>;
     readonly config: Config<TRow, TFilter>;
     readonly state: State<TRow, TFilter>;
@@ -23,7 +23,7 @@ export default class Controller<TRow, TFilter> {
 
     constructor(configOverride: ConfigOverride<TRow, TFilter>) {
         this.#actionHandlers = new ActionHandlers<TRow, TFilter>(this);
-        this[commandsSymbol] = new Commands<TRow, TFilter>();
+        this[commandsSymbol] = new Commands<TRow>();
         this[actionCreatorsSymbol] = mapMethods(this.#actionHandlers, this.#actionCreator);
         this.actions = mapMethods(this.#actionHandlers, this.#actionDispatcher);
         this.config = parseConfigOverride(configOverride);
@@ -35,8 +35,7 @@ export default class Controller<TRow, TFilter> {
     };
 
     #actionDispatcher = <TType extends ActionTypes<TRow, TFilter>>(type: TType): ActionDispatcher<TRow, TFilter, TType> => {
-        const self = this;
-        return (...args) => self.#dispatch(self[actionCreatorsSymbol][type](...args));
+        return (...args) => this.#dispatch(this[actionCreatorsSymbol][type](...args));
     };
 
     #dispatch = <TType extends ActionTypes<TRow, TFilter>>(action: Action<TRow, TFilter, TType>) => {

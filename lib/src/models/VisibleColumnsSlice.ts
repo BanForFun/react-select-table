@@ -1,6 +1,7 @@
 import { Controller } from '../index';
 import { Column } from '../utils/columnUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
+import { commandsSymbol } from './Controller';
 
 interface BaseVisibleColumn {
     index: number;
@@ -29,21 +30,25 @@ type ColumnIterator<TRow> = Generator<{
 
 export default class VisibleColumnsSlice<TRow, TFilter> {
     readonly #controller: Controller<TRow, TFilter>;
+    readonly #rootChildren: ColumnChildren<TRow>;
 
     private visibleColumns: VisibleColumn[] = [];
 
     constructor(controller: Controller<TRow, TFilter>) {
         this.#controller = controller;
+        this.#rootChildren = {
+            all: this.#config.columns,
+            visible: this.visibleColumns
+        };
     }
 
     get #config() {
         return this.#controller.config;
     }
 
-    #rootChildren: ColumnChildren<TRow> = {
-        all: this.#config.columns,
-        visible: this.visibleColumns
-    };
+    get #commands() {
+        return this.#controller[commandsSymbol];
+    }
 
     * #columnIterator(columns: ColumnChildren<TRow>): ColumnIterator<TRow> {
         for (let i = 0; i < columns.visible.length; i++) {
@@ -183,7 +188,11 @@ export default class VisibleColumnsSlice<TRow, TFilter> {
         addedColumnSiblings.visible.splice(addedVisibleColumnIndex, 0, addedColumn.column);
 
         const addedLeafPosition = this.#getVisibleLeafColumnIndex(addedColumn.column);
-        return { addedLeafColumns, addedLeafPosition };
+
+        this.#commands.updateHeader.notify({
+            addedColumns: addedLeafColumns,
+            addedPosition: addedLeafPosition
+        });
     };
 
     columnIterator() {

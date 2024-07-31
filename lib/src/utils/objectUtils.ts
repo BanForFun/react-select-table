@@ -1,4 +1,4 @@
-function isObject(obj: any): obj is object {
+function isObject(obj: unknown): obj is object {
     return obj !== null && typeof obj === 'object';
 }
 
@@ -41,7 +41,7 @@ export function mapValues<TSource, TMapped>(
     return result;
 }
 
-export function mapMethods<TSource extends Record<keyof TSource, (...args: any) => any>, TMapped>(
+export function mapMethods<TSource extends Record<keyof TSource, (...args: never) => unknown>, TMapped>(
     obj: TSource,
     map: <K extends keyof TSource>(key: K, value: TSource[K]) => (...args: Parameters<TSource[K]>) => TMapped
 ): { [K in keyof TSource]: ReturnType<typeof map<K>> } {

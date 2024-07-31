@@ -1,8 +1,8 @@
 import { Action } from './Actions';
 
 type UndoableAction<TRow, TFilter> = {
-    redo: Action<TRow, TFilter, any>;
-    undo: Action<TRow, TFilter, any>;
+    redo: Action<TRow, TFilter>;
+    undo: Action<TRow, TFilter>;
 }
 
 export default class HistoryState<TRow, TFilter> {

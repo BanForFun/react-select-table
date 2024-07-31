@@ -21,6 +21,7 @@ interface LeafColumn<TContext> extends BaseColumn {
     children?: never;
 }
 
+export type Column<TContext> = ParentColumn<TContext> | LeafColumn<TContext>
 
 // Public
 export function simpleColumn(header: React.ReactNode, isSortable: boolean = true): LeafColumn<Primitive> {
@@ -31,8 +32,6 @@ export function simpleColumn(header: React.ReactNode, isSortable: boolean = true
         render: (context) => context
     };
 }
-
-export type Column<TContext> = ParentColumn<TContext> | LeafColumn<TContext>
 
 // Public
 export function withContext<TParentContext, TContext>(

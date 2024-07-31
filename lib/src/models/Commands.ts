@@ -1,6 +1,6 @@
 import { Column } from '../utils/columnUtils';
 
-class Command<TArgs = {}> {
+class Command<TArgs> {
     observers: ((args: TArgs) => void)[] = [];
 
     addObserver(observer: (args: TArgs) => void) {
@@ -21,7 +21,7 @@ class Command<TArgs = {}> {
     }
 }
 
-export default class Commands<TRow, TFilter> {
+export default class Commands<TRow> {
     updateHeader = new Command<{
         addedPosition: number,
         addedColumns: Column<TRow>[]

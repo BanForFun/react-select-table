@@ -1,27 +1,12 @@
-import { Action, ActionTypes } from './Actions';
+import HistoryState from './HistoryState';
+import { Controller } from '../index';
+import VisibleColumnsSlice from './VisibleColumnsSlice';
 
-interface BaseVisibleColumn {
-    index: number;
+export default function createState<TRow, TFilter>(controller: Controller<TRow, TFilter>) {
+    return {
+        visibleColumns: new VisibleColumnsSlice<TRow, TFilter>(controller),
+        history: new HistoryState<TRow, TFilter>()
+    };
 }
 
-interface ParentVisibleColumn extends BaseVisibleColumn {
-    children: VisibleColumn[];
-}
-
-interface LeafVisibleColumn extends BaseVisibleColumn {
-    width: number;
-    children?: never;
-}
-
-export type VisibleColumn = LeafVisibleColumn | ParentVisibleColumn;
-
-export type UndoableAction<TRow, TFilter> = {
-    redo: Action<TRow, TFilter, ActionTypes<TRow, TFilter>>;
-    undo: Action<TRow, TFilter, ActionTypes<TRow, TFilter>>;
-}
-
-export default class State<TRow, TFilter> {
-    visibleColumns: VisibleColumn[] = [];
-    past: UndoableAction<TRow, TFilter>[] = [];
-    future: UndoableAction<TRow, TFilter>[] = [];
-}
+export type State<TRow, TFilter> = ReturnType<typeof createState<TRow, TFilter>>

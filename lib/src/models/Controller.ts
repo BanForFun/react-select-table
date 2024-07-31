@@ -1,29 +1,33 @@
 import { Config, ConfigOverride, parseConfigOverride } from '../utils/configUtils';
 import Commands from './Commands';
-import State from './State';
+import createState, { State } from './State';
 import ActionHandlers, {
+    Action,
     ActionCreator, ActionCreators,
     ActionDispatcher, ActionDispatchers,
     ActionTypes
 } from './Actions';
 import { mapMethods } from '../utils/objectUtils';
 
+export const actionCreatorsSymbol = Symbol('actionCreators');
+export const commandsSymbol = Symbol('commands');
+
 // Public
 export default class Controller<TRow, TFilter> {
-    config: Config<TRow, TFilter>;
-    commands: Commands<TRow, TFilter>;
-    state: State<TRow, TFilter>;
-    actions: ActionDispatchers<TRow, TFilter>;
-    actionCreators: ActionCreators<TRow, TFilter>;
-    actionHandlers: ActionHandlers<TRow, TFilter>;
+    readonly #actionHandlers: ActionHandlers<TRow, TFilter>;
+    readonly [commandsSymbol]: Commands<TRow, TFilter>;
+    readonly [actionCreatorsSymbol]: ActionCreators<TRow, TFilter>;
+    readonly config: Config<TRow, TFilter>;
+    readonly state: State<TRow, TFilter>;
+    readonly actions: ActionDispatchers<TRow, TFilter>;
 
     constructor(configOverride: ConfigOverride<TRow, TFilter>) {
-        this.actionHandlers = new ActionHandlers<TRow, TFilter>(this);
-        this.actionCreators = mapMethods(this.actionHandlers, this.#actionCreator) as ActionCreators<TRow, TFilter>;
-        this.actions = mapMethods(this.actionHandlers, this.#actionDispatcher) as ActionDispatchers<TRow, TFilter>;
+        this.#actionHandlers = new ActionHandlers<TRow, TFilter>(this);
+        this[commandsSymbol] = new Commands<TRow, TFilter>();
+        this[actionCreatorsSymbol] = mapMethods(this.#actionHandlers, this.#actionCreator);
+        this.actions = mapMethods(this.#actionHandlers, this.#actionDispatcher);
         this.config = parseConfigOverride(configOverride);
-        this.commands = new Commands<TRow, TFilter>();
-        this.state = new State<TRow, TFilter>();
+        this.state = createState(this);
     }
 
     #actionCreator = <TType extends ActionTypes<TRow, TFilter>>(type: TType): ActionCreator<TRow, TFilter, TType> => {
@@ -32,19 +36,19 @@ export default class Controller<TRow, TFilter> {
 
     #actionDispatcher = <TType extends ActionTypes<TRow, TFilter>>(type: TType): ActionDispatcher<TRow, TFilter, TType> => {
         const self = this;
-        return (...args) => {
-            const handler = self.actionHandlers[type] as (...a: typeof args) =>
-                ReturnType<ActionHandlers<TRow, TFilter>[ActionTypes<TRow, TFilter>]>;
-
-            const undoAction = handler(...args);
-            if (undoAction == null) return;
-
-            self.state.future = [];
-            self.state.past.push({
-                redo: self.actionCreators[type](...args),
-                undo: undoAction
-            });
-        };
+        return (...args) => self.#dispatch(self[actionCreatorsSymbol][type](...args));
     };
 
+    #dispatch = <TType extends ActionTypes<TRow, TFilter>>(action: Action<TRow, TFilter, TType>) => {
+        const handler = this.#actionHandlers[action.type] as (...a: typeof action.args) =>
+            ReturnType<ActionHandlers<TRow, TFilter>[ActionTypes<TRow, TFilter>]>;
+
+        const undoAction = handler(...action.args);
+        if (undoAction == null) return;
+
+        this.state.history.pushAction({
+            redo: action,
+            undo: undoAction
+        });
+    };
 }

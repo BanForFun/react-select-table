@@ -22,10 +22,11 @@ class Command<TArgs = {}> {
 }
 
 export default class Commands<TRow, TFilter> {
-    addColumn = new Command<{
-        column: Column<TRow>;
-        index: number;
+    updateHeader = new Command<{
+        addedPosition: number,
+        addedColumns: Column<TRow>[]
+    } | {
+        removedPosition: number;
+        removedCount: number;
     }>();
-
-    updateHeader = new Command();
 }

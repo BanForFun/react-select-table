@@ -14,9 +14,14 @@ export const commandsSymbol = Symbol('commands');
 
 // Public
 export default class Controller<TRow, TFilter> {
+    //Private
     readonly #actionHandlers: ActionHandlers<TRow, TFilter>;
+
+    //Internal
     readonly [commandsSymbol]: Commands<TRow>;
     readonly [actionCreatorsSymbol]: ActionCreators<TRow, TFilter>;
+
+    //Public
     readonly config: Config<TRow, TFilter>;
     readonly state: State<TRow, TFilter>;
     readonly actions: ActionDispatchers<TRow, TFilter>;

@@ -5,11 +5,13 @@ class Command<TArgs> {
 
     addObserver(observer: (args: TArgs) => void) {
         this.observers.push(observer);
+
+        return () => this.removeObserver(observer);
     }
 
     removeObserver(observer: (args: TArgs) => void) {
         const index = this.observers.indexOf(observer);
-        if (index < -1) return false;
+        if (index < -1) return;
 
         this.observers.splice(index, 1);
     }
@@ -29,4 +31,8 @@ export default class Commands<TRow> {
         removedPosition: number;
         removedCount: number;
     }>();
+}
+
+export type CommandArgs<TRow> = {
+    [K in keyof Commands<TRow>]: Commands<TRow>[K] extends Command<infer TArgs> ? TArgs : never;
 }

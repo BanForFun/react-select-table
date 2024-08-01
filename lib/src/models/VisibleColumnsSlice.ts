@@ -3,36 +3,42 @@ import { Column } from '../utils/columnUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
 import { commandsSymbol } from './Controller';
 
-interface BaseVisibleColumn {
+interface BaseVisibleColumnRef {
     index: number;
+    id: number;
 }
 
-interface ParentVisibleColumn extends BaseVisibleColumn {
-    children: VisibleColumn[];
+interface ParentVisibleColumnRef extends BaseVisibleColumnRef {
+    children: VisibleColumnRef[];
 }
 
-interface LeafVisibleColumn extends BaseVisibleColumn {
+interface LeafVisibleColumnRef extends BaseVisibleColumnRef {
     width: number;
     children?: never;
 }
 
-export type VisibleColumn = LeafVisibleColumn | ParentVisibleColumn;
+export type VisibleColumnRef = LeafVisibleColumnRef | ParentVisibleColumnRef;
 
 interface ColumnChildren<TRow> {
     readonly all: Column<TRow>[];
-    readonly visible: VisibleColumn[];
+    readonly visible: VisibleColumnRef[];
 }
 
-type ColumnIterator<TRow> = Generator<{
-    column: Column<TRow>,
-    children: ColumnIterator<TRow> | null
-}>
+export interface VisibleColumn<TRow> {
+    info: Column<TRow>;
+    id: number;
+    visibleChildren: VisibleColumnIterator<TRow> | null;
+}
+
+type VisibleColumnIterator<TRow> = Generator<VisibleColumn<TRow>>
+
+let lastId = 0;
 
 export default class VisibleColumnsSlice<TRow, TFilter> {
     readonly #controller: Controller<TRow, TFilter>;
     readonly #rootChildren: ColumnChildren<TRow>;
 
-    private visibleColumns: VisibleColumn[] = [];
+    private visibleColumns: VisibleColumnRef[] = [];
 
     constructor(controller: Controller<TRow, TFilter>) {
         this.#controller = controller;
@@ -50,37 +56,43 @@ export default class VisibleColumnsSlice<TRow, TFilter> {
         return this.#controller[commandsSymbol];
     }
 
-    * #columnIterator(columns: ColumnChildren<TRow>): ColumnIterator<TRow> {
-        for (let i = 0; i < columns.visible.length; i++) {
-            const visibleColumn = columns.visible[i];
+    * #visibleColumnIterator(columns: ColumnChildren<TRow>, rightToLeft: boolean): VisibleColumnIterator<TRow> {
+        const getVisibleColumn = (index: number): VisibleColumn<TRow> => {
+            const visibleColumn = columns.visible[index];
             const column = columns.all[visibleColumn.index];
             if (!column) throw new Error('Invalid referenced column');
 
-            yield {
-                column,
-                children: visibleColumn.children ? this.#columnIterator({
+            return {
+                id: visibleColumn.id,
+                info: column,
+                visibleChildren: visibleColumn.children ? this.#visibleColumnIterator({
                     all: column.children!,
                     visible: visibleColumn.children
-                }) : null
+                }, rightToLeft) : null
             };
-        }
+        };
+
+        if (rightToLeft)
+            for (let i = columns.visible.length - 1; i >= 0; i--) yield getVisibleColumn(i);
+        else
+            for (let i = 0; i < columns.visible.length; i++) yield getVisibleColumn(i);
     }
 
     #createVisibleColumn(index: number, from: Column<TRow>): {
-        column: VisibleColumn,
+        column: VisibleColumnRef,
         children: ColumnChildren<TRow> | null
     } {
         if (from == null)
             throw new Error('Invalid reference column');
 
         if (from.children == null) return {
-            column: { index, width: this.#config.defaultColumnWidthPc },
+            column: { index, id: ++lastId, width: this.#config.defaultColumnWidthPc },
             children: null
         };
 
-        const children: VisibleColumn[] = [];
+        const children: VisibleColumnRef[] = [];
         return {
-            column: { index, children: children },
+            column: { index, id: ++lastId, children: children },
             children: {
                 all: from.children,
                 visible: children
@@ -90,10 +102,10 @@ export default class VisibleColumnsSlice<TRow, TFilter> {
 
     #makeAllChildrenVisible(children: ColumnChildren<TRow>): Column<TRow>[] {
         const addedLeafColumns: Column<TRow>[] = [];
-        const childrenQueue: ColumnChildren<TRow>[] = [children];
-        while (childrenQueue.length) {
-            const children = childrenQueue.pop()!;
-            for (let i = children.all.length - 1; i >= 0; i--) {
+        const childrenStack: ColumnChildren<TRow>[] = [children];
+        while (childrenStack.length) {
+            const children = childrenStack.pop()!;
+            for (let i = 0; i < children.all.length; i++) {
                 const referenceColumn = children.all[i];
                 const addedColumn = this.#createVisibleColumn(i, referenceColumn);
                 children.visible.push(addedColumn.column);
@@ -103,7 +115,7 @@ export default class VisibleColumnsSlice<TRow, TFilter> {
                     continue;
                 }
 
-                childrenQueue.push(addedColumn.children);
+                childrenStack.push(addedColumn.children);
             }
         }
 
@@ -140,7 +152,7 @@ export default class VisibleColumnsSlice<TRow, TFilter> {
         return children;
     }
 
-    #getVisibleLeafColumnIndex(column: VisibleColumn): number {
+    #getVisibleLeafColumnIndex(column: VisibleColumnRef): number {
         let index = 0;
         const columnStack = [...this.visibleColumns];
         while (columnStack.length) {
@@ -195,7 +207,7 @@ export default class VisibleColumnsSlice<TRow, TFilter> {
         });
     };
 
-    columnIterator() {
-        return this.#columnIterator(this.#rootChildren);
+    iterator(rightToLeft: boolean = false) {
+        return this.#visibleColumnIterator(this.#rootChildren, rightToLeft);
     }
 }

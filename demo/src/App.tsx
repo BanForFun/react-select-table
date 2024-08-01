@@ -1,4 +1,4 @@
-import { Controller, withContext } from 'react-select-table';
+import { Controller, withContext, Table } from 'react-select-table';
 import './App.css';
 import { useRef } from 'react';
 
@@ -86,10 +86,15 @@ function App() {
                 parseColumnPathInput(visibleColumnPathInputRef.current?.value)
             );
 
+            // controller.actions.addColumn([0], [0]);
+            // controller.actions.addColumn([0], [0]);
+
             console.log(controller.state.visibleColumns);
         }}>
             Add
         </button>
+
+        <Table controller={controller} />
     </div>;
 }
 

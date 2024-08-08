@@ -1,12 +1,16 @@
 import HistoryState from './HistoryState';
-import { Controller } from '../index';
-import VisibleColumnsSlice from './VisibleColumnsSlice';
+import ColumnState from './ColumnState';
+import RowState from './RowState';
+import { Config, TableData } from '../utils/configUtils';
 
-export default function createState<TRow, TFilter>(controller: Controller<TRow, TFilter>) {
-    return {
-        visibleColumns: new VisibleColumnsSlice<TRow, TFilter>(controller),
-        history: new HistoryState<TRow, TFilter>()
-    };
+export default class State<TData extends TableData> {
+    columns: ColumnState<TData>;
+    history: HistoryState<TData>;
+    rows: RowState<TData>;
+
+    constructor(config: Config<TData>) {
+        this.columns = new ColumnState(config);
+        this.history = new HistoryState<TData>();
+        this.rows = new RowState(config, this.columns);
+    }
 }
-
-export type State<TRow, TFilter> = ReturnType<typeof createState<TRow, TFilter>>

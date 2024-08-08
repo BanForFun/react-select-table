@@ -10,18 +10,23 @@ interface BaseColumn {
     header: React.ReactNode;
 }
 
-interface ParentColumn<TContext> extends BaseColumn {
+export interface ColumnGroup<TContext> extends BaseColumn {
     children: Column<TContext>[];
 }
 
-interface LeafColumn<TContext> extends BaseColumn {
+export interface LeafColumn<TContext> extends BaseColumn {
     render: (context: TContext, options: ColumnOptions) => React.ReactNode;
     compareContext?: (a: TContext, b: TContext) => number;
     isContextEqual?: (a: TContext, b: TContext) => boolean;
     children?: never;
 }
 
-export type Column<TContext> = ParentColumn<TContext> | LeafColumn<TContext>
+// Public
+export type Column<TContext> = ColumnGroup<TContext> | LeafColumn<TContext>
+
+export function isColumnGroup<TContext>(column: Column<TContext>): column is ColumnGroup<TContext> {
+    return !!column.children;
+}
 
 // Public
 export function simpleColumn(header: React.ReactNode, isSortable: boolean = true): LeafColumn<Primitive> {

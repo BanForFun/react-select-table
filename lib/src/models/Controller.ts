@@ -1,58 +1,30 @@
-import { Config, ConfigOverride, parseConfigOverride } from '../utils/configUtils';
-import Commands from './Commands';
-import createState, { State } from './State';
-import ActionHandlers, {
-    Action,
-    ActionCreator, ActionCreators,
-    ActionDispatcher, ActionDispatchers,
-    ActionTypes
-} from './Actions';
-import { mapMethods } from '../utils/objectUtils';
+import {
+    Config, ConfigOverride, defaultConfig,
+    TableData
+} from '../utils/configUtils';
+import State from './State';
+import ActionHandlers, { ActionDispatchers } from './Actions';
+import { assignDefaults, deepFreeze } from '../utils/objectUtils';
 
-export const actionCreatorsSymbol = Symbol('actionCreators');
-export const commandsSymbol = Symbol('commands');
+export default class Controller<TData extends TableData> {
+    //Public
+    readonly config: Config<TData>;
+    readonly state: State<TData>;
+    readonly actions: ActionDispatchers<TData>;
+
+    constructor(config: Config<TData>) {
+        this.config = config;
+        this.state = new State(this.config);
+        this.actions = ActionHandlers.createActionDispatchers(this.state);
+    }
+}
 
 // Public
-export default class Controller<TRow, TFilter> {
-    //Private
-    readonly #actionHandlers: ActionHandlers<TRow, TFilter>;
-
-    //Internal
-    readonly [commandsSymbol]: Commands<TRow>;
-    readonly [actionCreatorsSymbol]: ActionCreators<TRow, TFilter>;
-
-    //Public
-    readonly config: Config<TRow, TFilter>;
-    readonly state: State<TRow, TFilter>;
-    readonly actions: ActionDispatchers<TRow, TFilter>;
-
-    constructor(configOverride: ConfigOverride<TRow, TFilter>) {
-        this.#actionHandlers = new ActionHandlers<TRow, TFilter>(this);
-        this[commandsSymbol] = new Commands<TRow>();
-        this[actionCreatorsSymbol] = mapMethods(this.#actionHandlers, this.#actionCreator);
-        this.actions = mapMethods(this.#actionHandlers, this.#actionDispatcher);
-        this.config = parseConfigOverride(configOverride);
-        this.state = createState(this);
-    }
-
-    #actionCreator = <TType extends ActionTypes<TRow, TFilter>>(type: TType): ActionCreator<TRow, TFilter, TType> => {
-        return (...args) => ({ type, args });
-    };
-
-    #actionDispatcher = <TType extends ActionTypes<TRow, TFilter>>(type: TType): ActionDispatcher<TRow, TFilter, TType> => {
-        return (...args) => this.#dispatch(this[actionCreatorsSymbol][type](...args));
-    };
-
-    #dispatch = <TType extends ActionTypes<TRow, TFilter>>(action: Action<TRow, TFilter, TType>) => {
-        const handler = this.#actionHandlers[action.type] as (...a: typeof action.args) =>
-            ReturnType<ActionHandlers<TRow, TFilter>[ActionTypes<TRow, TFilter>]>;
-
-        const undoAction = handler(...action.args);
-        if (undoAction == null) return;
-
-        this.state.history.pushAction({
-            redo: action,
-            undo: undoAction
-        });
-    };
+export function createController<
+    TRow,
+    TError extends NonNullable<unknown> = never,
+    TFilter extends NonNullable<unknown> = never
+>(override: ConfigOverride<TableData<TRow, TError, TFilter>>) {
+    const config = deepFreeze(assignDefaults(override, defaultConfig));
+    return new Controller<TableData<TRow, TError, TFilter>>(config);
 }

@@ -1,32 +1,32 @@
 import { Action } from './Actions';
+import { TableData } from '../utils/configUtils';
 
-type UndoableAction<TRow, TFilter> = {
-    redo: Action<TRow, TFilter>;
-    undo: Action<TRow, TFilter>;
-}
+type PopCallback<TData extends TableData> = (action: Action<TData>) => Action<TData> | void;
 
-export default class HistoryState<TRow, TFilter> {
-    past: UndoableAction<TRow, TFilter>[] = [];
-    future: UndoableAction<TRow, TFilter>[] = [];
+export default class HistoryState<TData extends TableData> {
+    readonly #past: Action<TData>[] = [];
+    #future: Action<TData>[] = [];
 
-    pushAction(action: UndoableAction<TRow, TFilter>) {
-        this.past.push(action);
-        this.future = [];
+    pushAction(action: Action<TData>) {
+        this.#past.push(action);
+        this.#future = [];
     }
 
-    popPast() {
-        const actions = this.past.pop();
-        if (actions)
-            this.future.push(actions);
+    #pop(source: Action<TData>[], dest: Action<TData>[], callback: PopCallback<TData>) {
+        const action = source.pop();
+        if (!action) return;
 
-        return actions?.undo;
+        const inverse = callback(action);
+        if (!inverse) return;
+
+        dest.push(inverse);
     }
 
-    popFuture() {
-        const actions = this.future.pop();
-        if (actions)
-            this.past.push(actions);
+    popPast(callback: PopCallback<TData>) {
+        this.#pop(this.#past, this.#future, callback);
+    }
 
-        return actions?.undo;
+    popFuture(callback: PopCallback<TData>) {
+        this.#pop(this.#future, this.#past, callback);
     }
 }

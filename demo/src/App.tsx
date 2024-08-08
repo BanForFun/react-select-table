@@ -1,11 +1,11 @@
-import { Controller, withContext, Table } from 'react-select-table';
+import { createController, withContext, Table, Column } from 'react-select-table';
 import './App.css';
 import { useRef } from 'react';
 
-interface Duration {
-    start: string;
-    end: string;
-}
+type Duration = {
+    startHour: number;
+    endHour: number;
+} | null;
 
 interface Lesson {
     name: string;
@@ -13,51 +13,72 @@ interface Lesson {
 }
 
 function renderDuration(duration: Duration) {
-    return `${duration.start} - ${duration.end}`;
+    if (!duration) return null;
+    return `${duration.startHour}:00 - ${duration.endHour}:00`;
 }
 
-const controller = new Controller<Lesson, never>({
+function compareStart(a: Duration, b: Duration) {
+    if (a === b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+
+    return a.startHour - b.startHour;
+}
+
+function lessonColumn(header: string): Column<Duration> {
+    return {
+        header,
+        render: renderDuration,
+        compareContext: compareStart
+    };
+}
+
+const controller = createController<Lesson>({
     getRowKey: row => row.name,
     columns: [
         { header: 'Name', render: row => row.name },
         {
             header: 'Weekdays', children: [
-                withContext(row => row.lectures[0], {
-                    header: 'Monday',
-                    render: renderDuration
-                }),
-                withContext(row => row.lectures[1], {
-                    header: 'Tuesday',
-                    render: renderDuration
-                }),
-                withContext(row => row.lectures[2], {
-                    header: 'Wednesday',
-                    render: renderDuration
-                }),
-                withContext(row => row.lectures[3], {
-                    header: 'Thursday',
-                    render: renderDuration
-                }),
-                withContext(row => row.lectures[4], {
-                    header: 'Friday',
-                    render: renderDuration
-                })
+                withContext(row => row.lectures[0], lessonColumn('Monday')),
+                withContext(row => row.lectures[1], lessonColumn('Tuesday')),
+                withContext(row => row.lectures[2], lessonColumn('Wednesday')),
+                withContext(row => row.lectures[3], lessonColumn('Thursday')),
+                withContext(row => row.lectures[4], lessonColumn('Friday'))
             ]
         },
         {
             header: 'Weekend', children: [
-                withContext(row => row.lectures[5], {
-                    header: 'Saturday',
-                    render: renderDuration
-                }),
-                withContext(row => row.lectures[6], {
-                    header: 'Sunday',
-                    render: renderDuration
-                })
+                withContext(row => row.lectures[5], lessonColumn('Saturday')),
+                withContext(row => row.lectures[6], lessonColumn('Sunday'))
             ]
         }
+        // { header: 'r3,c1', render: () => 'c1' },
+        // {
+        //     header: 'r1,c2-3',
+        //     children: [
+        //         {
+        //             header: 'r2,c2',
+        //             children: [{ header: 'r3,c2', render: () => 'c2' }]
+        //         },
+        //         { header: 'r3,c3', render: () => 'c3' }
+        //     ]
+        // },
+        // {
+        //     header: 'r1,c4-5',
+        //     children: [
+        //         { header: 'r3,c4', render: () => 'c4' },
+        //         {
+        //             header: 'r2,c5',
+        //             children: [{ header: 'r3,c5', render: () => 'c5' }]
+        //         }
+        //     ]
+        // }
     ]
 });
+
+for (let i = 0; i < controller.config.columns.length; i++) {
+    controller.actions.addColumn([i], [i]);
+}
 
 function parseColumnPathInput(input?: string) {
     if (!input) return [];
@@ -86,10 +107,7 @@ function App() {
                 parseColumnPathInput(visibleColumnPathInputRef.current?.value)
             );
 
-            // controller.actions.addColumn([0], [0]);
-            // controller.actions.addColumn([0], [0]);
-
-            console.log(controller.state.visibleColumns);
+            console.log(controller.state.columns);
         }}>
             Add
         </button>

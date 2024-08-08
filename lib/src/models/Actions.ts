@@ -1,53 +1,75 @@
 import { TreePath } from '../utils/unrootedTreeUtils';
-import { Controller } from '../index';
-import { actionCreatorsSymbol } from './Controller';
+import State from './State';
+import { TableData } from '../utils/configUtils';
+import { mapMethods } from '../utils/objectUtils';
+import { NewSortOrder } from './ColumnState';
 
+export default class ActionHandlers<TData extends TableData> {
+    readonly #creators: ActionCreators<TData>;
+    readonly #dispatchers: ActionDispatchers<TData>;
 
-export default class ActionHandlers<TRow, TFilter> {
-    readonly #controller: Controller<TRow, TFilter>;
-
-    constructor(controller: Controller<TRow, TFilter>) {
-        this.#controller = controller;
+    private constructor(private _state: State<TData>) {
+        const handlers = this as ActionHandlers<TData>;
+        this.#creators = mapMethods(handlers, this.#actionCreator);
+        this.#dispatchers = mapMethods(handlers, this.#actionDispatcher);
     }
 
-    get #state() {
-        return this.#controller.state;
+    static createActionDispatchers<TData extends TableData>(state: State<TData>) {
+        return new ActionHandlers(state).#dispatchers;
     }
 
-    get #actionCreators() {
-        return this.#controller[actionCreatorsSymbol];
-    }
-
-    addColumn = (columnPath: TreePath, visibleColumnPath: TreePath) => {
-        this.#state.visibleColumns.addColumn(columnPath, visibleColumnPath);
-        return this.#actionCreators.removeColumn(visibleColumnPath);
+    #actionCreator = <TType extends ActionTypes<TData>>(type: TType): ActionCreator<TData, TType> => {
+        return (...args) => ({ type, args });
     };
 
-    removeColumn = (visiblePath: TreePath) => {
+    #actionDispatcher = <TType extends ActionTypes<TData>>(type: TType): ActionDispatcher<TData, TType> => {
+        return (...args) => this.#dispatch(this.#creators[type](...args));
+    };
 
+    #dispatch = <TType extends ActionTypes<TData>>(action: Action<TData, TType>) => {
+        const handler = this[action.type] as ActionHandler<TData, TType>;
+        const undoAction = handler(...action.args);
+        if (undoAction)
+            this._state.history.pushAction(undoAction);
+    };
 
+    addColumn = (columnPath: TreePath, headerPath: TreePath) => {
+        this._state.columns.addHeader(columnPath, headerPath);
+    };
+
+    sortByColumn = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
+        const oldOrder = this._state.columns.sortByColumn(path, newOrder, append);
+        return this.#creators.sortByColumn(path, oldOrder, false);
+    };
+
+    sortByHeader = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
+        const oldOrder = this._state.columns.sortByHeader(path, newOrder, append);
+        return this.#creators.sortByHeader(path, oldOrder, false);
     };
 }
 
-export type ActionTypes<TRow, TFilter> =
-    keyof ActionHandlers<TRow, TFilter>;
+export type ActionTypes<TData extends TableData> =
+    keyof ActionHandlers<TData>;
 
-export type ActionArgs<TRow, TFilter, TType extends ActionTypes<TRow, TFilter>> =
-    Parameters<ActionHandlers<TRow, TFilter>[TType]>;
+export type ActionArgs<TData extends TableData, TType extends ActionTypes<TData>> =
+    Parameters<ActionHandlers<TData>[TType]>;
 
-export type Action<TRow, TFilter, TType extends ActionTypes<TRow, TFilter> = ActionTypes<TRow, TFilter>> =
-    { type: TType, args: ActionArgs<TRow, TFilter, TType> }
+export type Action<TData extends TableData, TType extends ActionTypes<TData> = ActionTypes<TData>> =
+    { type: TType, args: ActionArgs<TData, TType> }
 
-export type ActionCreator<TRow, TFilter, TType extends ActionTypes<TRow, TFilter>> =
-    (...args: ActionArgs<TRow, TFilter, TType>) => Action<TRow, TFilter>;
+type ActionHandler<TData extends TableData, TType extends ActionTypes<TData>> =
+    (...args: ActionArgs<TData, TType>) => ReturnType<ActionHandlers<TData>[ActionTypes<TData>]>
 
-export type ActionDispatcher<TRow, TFilter, TType extends ActionTypes<TRow, TFilter>> =
-    (...args: ActionArgs<TRow, TFilter, TType>) => void;
+export type ActionCreator<TData extends TableData, TType extends ActionTypes<TData>> =
+    (...args: ActionArgs<TData, TType>) => Action<TData>;
 
-export type ActionCreators<TRow, TFilter> = {
-    [TType in ActionTypes<TRow, TFilter>]: ActionCreator<TRow, TFilter, TType>;
+export type ActionDispatcher<TData extends TableData, TType extends ActionTypes<TData>> =
+    (...args: ActionArgs<TData, TType>) => void;
+
+export type ActionCreators<TData extends TableData> = {
+    [TType in ActionTypes<TData>]: ActionCreator<TData, TType>;
 };
 
-export type ActionDispatchers<TRow, TFilter> = {
-    [TType in ActionTypes<TRow, TFilter>]: ActionDispatcher<TRow, TFilter, TType>;
+export type ActionDispatchers<TData extends TableData> = {
+    [TType in ActionTypes<TData>]: ActionDispatcher<TData, TType>;
 };

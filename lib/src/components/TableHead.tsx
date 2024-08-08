@@ -1,98 +1,132 @@
-import { Controller } from '../index';
-import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
-import { commandsSymbol } from '../models/Controller';
-import { CommandArgs } from '../models/Commands';
-import { VisibleColumn } from '../models/VisibleColumnsSlice';
+import React, { useEffect, useLayoutEffect, useState, useRef, useContext } from 'react';
+import { Header, isSortableHeader, SortColumn, UpdateHeaderEventArgs } from '../models/ColumnState';
+import getTableContext from '../context/controllerContext';
+import { TableData } from '../utils/configUtils';
+import { TreePath } from '../utils/unrootedTreeUtils';
 
-interface Header {
+interface SortHeader {
+    path: TreePath;
+    column: SortColumn | null;
+}
+
+interface VisibleHeader {
     key: string;
     span: number;
     content: React.ReactNode;
+    sort?: SortHeader;
 }
 
-interface AddedHeader extends Header {
+interface AddedVisibleHeader extends VisibleHeader {
     height: number;
 }
 
-interface Props<TRow, TFilter> {
-    controller: Controller<TRow, TFilter>;
-}
+export default function TableHead<TData extends TableData>() {
+    const { controller, callbacks } = useContext(getTableContext<TData>());
 
-export default function TableHead<TRow, TFilter>({ controller }: Props<TRow, TFilter>) {
-    const queuedUpdatesRef = useRef<CommandArgs<TRow>['updateHeader'][]>([]);
-    const [updates, setUpdates] = useState<CommandArgs<TRow>['updateHeader'][]>([]);
+    const queuedUpdatesRef = useRef<UpdateHeaderEventArgs<TData>[]>([]);
+    const [updates, setUpdates] = useState<UpdateHeaderEventArgs<TData>[]>([]);
 
     useEffect(() => {
-        return controller[commandsSymbol].updateHeader.addObserver(args => {
+        return controller!.state.columns.updateHeader.addObserver(args => {
             queuedUpdatesRef.current.push(args);
             setUpdates(queuedUpdatesRef.current);
         });
     }, [controller]);
 
-    useLayoutEffect(() => {
-        console.log('Applying', updates.length, 'updates');
-        queuedUpdatesRef.current = [];
-    }, [updates]);
+    useEffect(() => {
+        return controller!.state.columns.refreshHeader.addObserver(() => {
+            setUpdates(queuedUpdatesRef.current);
+        });
+    }, [controller]);
 
-    const headerRows: Header[][] = [[]];
+    useLayoutEffect(() => {
+        queuedUpdatesRef.current = [];
+        callbacks.updateBody!(updates);
+    }, [updates, callbacks]);
+
+    const headerRows: VisibleHeader[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;
 
-    function addHeader(column: VisibleColumn<TRow>, siblingIndex: number, tallestSibling: number): AddedHeader {
-        const header: AddedHeader = { key: `header_${column.id}`, content: column.info.header, span: 1, height: 0 };
+    function addHeader(header: Header, path: TreePath, tallestSibling: number): AddedVisibleHeader {
+        const visibleHeader: AddedVisibleHeader = {
+            key: `header_${header.id}`,
+            span: 1,
+            height: 0,
+            content: header.content
+        };
+
+        console.log(header);
+
+        if (isSortableHeader(header))
+            visibleHeader.sort = { path, column: header.sortColumn };
 
         let childCount = 0;
-        if (column.visibleChildren) {
+        if (header.children) {
             let tallestChild = 0;
             let totalSpan = 0;
 
-            for (const child of column.visibleChildren) {
-                const header = addHeader(child, childCount++, tallestChild);
+            for (const child of header.children) {
+                const header = addHeader(child, [...path, childCount++], tallestChild);
                 tallestChild = Math.max(tallestChild, header.height);
                 totalSpan += header.span;
             }
 
-            header.height = tallestChild + 1;
-            header.span = totalSpan;
+            visibleHeader.height = tallestChild + 1;
+            visibleHeader.span = totalSpan;
         }
 
         const addSpacers = (siblingsOnly: boolean = false) => {
-            const bottomRow = headerRows[header.height - 1];
+            const bottomRow = headerRows[visibleHeader.height - 1];
 
             const endIndex = bottomRow.length - childCount;
-            const startIndex = siblingsOnly ? endIndex - siblingIndex : 0;
+            const startIndex = siblingsOnly ? endIndex - path.at(-1)! : 0;
 
             for (let i = startIndex; i < endIndex; i++) {
                 const column = bottomRow[i];
-                headerRows[header.height].push({ key: `spacer_${column.key}`, span: column.span, content: null });
+                headerRows[visibleHeader.height].push({
+                    key: `spacer_${column.key}`,
+                    span: column.span,
+                    content: null
+                });
             }
         };
 
-        if (header.height >= headerRows.length) {
+        if (visibleHeader.height >= headerRows.length) {
             headerRows.push([]);
             addSpacers();
-        } else if (header.height > tallestSibling) {
+        } else if (visibleHeader.height > tallestSibling) {
             addSpacers(true);
         }
 
-        headerRows[header.height].push(header);
+        headerRows[visibleHeader.height].push(visibleHeader);
 
-        for (let height = header.height + 1; height <= tallestSibling; height++)
-            headerRows[height].push({ key: `spacer_${header.key}`, span: header.span, content: null });
+        for (let height = visibleHeader.height + 1; height <= tallestSibling; height++)
+            headerRows[height].push({
+                key: `spacer_${visibleHeader.key}`,
+                span: visibleHeader.span,
+                content: null
+            });
 
-        return header;
+        return visibleHeader;
     }
 
-    for (const column of controller.state.visibleColumns.iterator())
-        addHeader(column, headerRows.at(-1)!.length, headerRows.length - 1);
+    for (const column of controller!.state.columns.headerIterator())
+        addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
-    return <div className="rst-table">
+    return <div className="rst-head">
         <table>
             <thead>
             {headerRows.map((_, level) => {
                 const height = heightOfRowLevel(level);
                 const headers = headerRows[height];
                 return <tr key={height}>
-                    {headers.map(header => <th key={header.key} colSpan={header.span}>{header.content}</th>)}
+                    {headers.map(header => <th key={header.key} colSpan={header.span} onClick={e => {
+                        if (!header.sort) return;
+                        controller!.actions.sortByHeader(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                    }}>
+                        {header.content}<br />
+                        {header.sort?.column && `${header.sort.column.order} (${header.sort.column.index})`}
+                    </th>)}
                 </tr>;
             })}
             </thead>

@@ -1,10 +1,10 @@
 import { createContext, Context } from 'react';
 import { TableData } from '../utils/configUtils';
-import { UpdateHeaderEventArgs } from '../models/ColumnState';
+import { UpdateColumnsEventArgs } from '../models/ColumnState';
 import Controller from '../models/Controller';
 
 export interface TableCallbacks<TData extends TableData> {
-    updateBody?: (updates: UpdateHeaderEventArgs<TData>[]) => void;
+    updateBody?: (updates: UpdateColumnsEventArgs<TData>[]) => void;
 }
 
 interface TableContextValue<TData extends TableData> {

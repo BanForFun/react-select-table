@@ -20,7 +20,7 @@ export default class RowState<TData extends TableData> {
     #filter: TData['filter'] | null = null;
 
     constructor(private _config: Config<TData>, private _columnState: ColumnState<TData>) {
-
+        this._columnState.refreshRows.addObserver(this.#sortAll);
     }
 
     #getRowKey = (row: Row<TData>) => {
@@ -43,6 +43,10 @@ export default class RowState<TData extends TableData> {
         return shouldRowBeVisible(rowData, this.#filter);
     };
 
+    #sortAll = () => {
+
+    };
+
     add(rowData: TData['row'][]) {
         // const rows: Row<TData>[] = rowData.map(data => ({
         //     data,
@@ -51,6 +55,7 @@ export default class RowState<TData extends TableData> {
         //     previous: null,
         //     next: null
         // })).sort(this.#compareRows);
-
     }
+
+
 }

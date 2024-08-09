@@ -76,9 +76,12 @@ const controller = createController<Lesson>({
     ]
 });
 
-for (let i = 0; i < controller.config.columns.length; i++) {
-    controller.actions.addColumn([i], [i]);
-}
+controller.batchActions(actions => {
+    for (let i = 0; i < controller.config.columns.length; i++) {
+        actions.addColumn([i], [i]);
+    }
+});
+
 
 function parseColumnPathInput(input?: string) {
     if (!input) return [];

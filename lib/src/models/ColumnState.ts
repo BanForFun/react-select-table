@@ -10,8 +10,9 @@ import React from 'react';
 import { Config, TableData } from '../utils/configUtils';
 import { PickRequired } from '../utils/types';
 import { indexOf } from '../utils/iterableUtils';
+import JobBatch from './JobBatch';
 
-export type UpdateHeaderEventArgs<TData extends TableData> = {
+export type UpdateColumnsEventArgs<TData extends TableData> = {
     addedPosition: number,
     addedColumns: LeafColumn<TData['row']>[]
 } | {
@@ -94,10 +95,11 @@ export default class ColumnState<TData extends TableData> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
     readonly #headers: HeaderDetails<TData>[] = [];
 
-    readonly updateHeader = new Event<UpdateHeaderEventArgs<TData>>();
-    readonly refreshHeader = new Command();
+    readonly updateColumns = new Event<UpdateColumnsEventArgs<TData>>();
+    readonly refreshHeaders = new Command();
+    readonly refreshRows = new Command();
 
-    constructor(private _config: Config<TData>) {
+    constructor(private _config: Config<TData>, private _jobBatch: JobBatch) {
 
     }
 
@@ -247,6 +249,15 @@ export default class ColumnState<TData extends TableData> {
         }
     }
 
+    #refreshHeadersJob = () => {
+        this.refreshHeaders.notify();
+    };
+
+    #refreshSortOrdersJob = () => {
+        this.refreshHeaders.notify();
+        this.refreshRows.notify();
+    };
+
     #sortBy(column: Column<TData['row']>, newOrder: NewSortOrder, append: boolean) {
         if (!isSortableColumn(column))
             throw new Error('Cannot sort by this column');
@@ -262,7 +273,8 @@ export default class ColumnState<TData extends TableData> {
         else
             this.#sortOrders.set(column, resolvedOrder);
 
-        this.refreshHeader.notify();
+        this._jobBatch.add(this.#refreshSortOrdersJob);
+
         return oldOrder;
     }
 
@@ -317,10 +329,12 @@ export default class ColumnState<TData extends TableData> {
         const addedHeaderIndex = headerPath[headerPath.length - 1];
         headers.splice(addedHeaderIndex, 0, toAdd);
 
-        this.updateHeader.notify({
+        this.updateColumns.notify({
             addedColumns: this.#addAllSubHeaders(lastToAdd),
             addedPosition: this.#getLeafHeaderIndex(toAdd)
         });
+
+        this._jobBatch.add(this.#refreshHeadersJob);
     };
 
     compareRowData(a: TData['row'], b: TData['row']) {

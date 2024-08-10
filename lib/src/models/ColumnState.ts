@@ -6,22 +6,20 @@ import {
 } from '../utils/columnUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
 import Command, { Event } from './Command';
-import React from 'react';
 import { Config, TableData } from '../utils/configUtils';
 import { PickRequired } from '../utils/types';
 import { indexOf } from '../utils/iterableUtils';
 import JobBatch from './JobBatch';
 
-export type UpdateColumnsEventArgs<TData extends TableData> = {
-    addedPosition: number,
-    addedColumns: LeafColumn<TData['row']>[]
+export type ColumnUpdate<TData extends TableData> = {
+    type: 'add';
+    addedPosition: number;
+    addedColumns: LeafColumn<TData['row']>[];
 } | {
+    type: 'remove';
     removedPosition: number;
     removedCount: number;
 };
-
-export type SortOrder = 'ascending' | 'descending';
-export type NewSortOrder = SortOrder | null | 'toggle' | 'cycle';
 
 export interface SortColumn {
     order: SortOrder;
@@ -43,59 +41,57 @@ interface LeafHeaderDetails<TData extends TableData> extends BaseHeaderDetails {
     width: number;
 }
 
-type HeaderDetails<TData extends TableData> = HeaderGroupDetails<TData> | LeafHeaderDetails<TData>;
-
 interface BaseHeader {
     readonly id: number;
-    readonly content: React.ReactNode;
 }
 
-interface BaseLeafHeader extends BaseHeader {
+interface HeaderGroup<TData extends TableData> extends BaseHeader {
+    readonly column: ColumnGroup<TData['row']>;
+    readonly children: HeaderIterator<TData>;
+}
+
+interface LeafHeader<TData extends TableData> extends BaseHeader {
+    readonly column: LeafColumn<TData['row']>;
     readonly children: null;
+    readonly sortColumn?: SortColumn | null;
+    readonly width: number;
 }
 
-interface UnSortableLeafHeader extends BaseLeafHeader {
-    readonly isSortable: false;
-}
+type SortableColumn<TContext> = PickRequired<LeafColumn<TContext>, 'compareContext'>
 
-interface SortableLeafHeader extends BaseLeafHeader {
-    readonly isSortable: true;
-    readonly sortColumn: SortColumn | null;
-}
+type HeaderDetails<TData extends TableData> = HeaderGroupDetails<TData> | LeafHeaderDetails<TData>;
 
-interface HeaderGroup extends BaseHeader {
-    readonly children: HeaderIterator;
-}
+export type SortOrder = 'ascending' | 'descending';
+export type NewSortOrder = SortOrder | null | 'toggle' | 'cycle';
 
-export type Header = SortableLeafHeader | UnSortableLeafHeader | HeaderGroup;
-
-type HeaderIterator = Generator<Header, void, undefined>
-
-export type SortableColumn<TContext> = PickRequired<LeafColumn<TContext>, 'compareContext'>
+export type Header<TData extends TableData> = LeafHeader<TData> | HeaderGroup<TData>;
+export type SortableHeader<TData extends TableData> = PickRequired<LeafHeader<TData>, 'sortColumn'>
+export type HeaderIterator<TData extends TableData> = Generator<Header<TData>, void, undefined>
+export type LeafHeaderIterator<TData extends TableData> = Generator<LeafHeader<TData>, void, undefined>
 
 let lastHeaderId = 0;
 
 function isSortableColumn<TContext>(column: Column<TContext>): column is SortableColumn<TContext> {
-    return !isColumnGroup(column) && !!column.compareContext;
+    return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
 function isHeaderGroupDetails<TData extends TableData>(details: HeaderDetails<TData>): details is HeaderGroupDetails<TData> {
     return isColumnGroup(details.column);
 }
 
-function isHeaderGroup(header: Header): header is HeaderGroup {
+function isHeaderGroup<TData extends TableData>(header: Header<TData>): header is HeaderGroup<TData> {
     return !!header.children;
 }
 
-export function isSortableHeader(header: Header): header is SortableLeafHeader {
-    return !isHeaderGroup(header) && header.isSortable;
+export function isSortableHeader<TData extends TableData>(header: Header<TData>): header is SortableHeader<TData> {
+    return !isHeaderGroup(header) && header.sortColumn !== undefined;
 }
 
 export default class ColumnState<TData extends TableData> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
     readonly #headers: HeaderDetails<TData>[] = [];
 
-    readonly updateColumns = new Event<UpdateColumnsEventArgs<TData>>();
+    readonly updateColumns = new Event<ColumnUpdate<TData>>();
     readonly refreshHeaders = new Command();
     readonly refreshRows = new Command();
 
@@ -202,30 +198,32 @@ export default class ColumnState<TData extends TableData> {
         return { index: indexOf(this.#sortOrders.keys(), column), order };
     }
 
-    * #headerIterator(headers: HeaderDetails<TData>[]): HeaderIterator {
+    * #headerIterator(headers: HeaderDetails<TData>[]): HeaderIterator<TData> {
         for (let i = 0; i < headers.length; i++) {
             const header = headers[i];
             if (isHeaderGroupDetails(header))
                 yield {
                     id: header.id,
-                    content: header.column.header,
+                    column: header.column,
                     children: this.#headerIterator(header.children)
-                };
-            else if (isSortableColumn(header.column))
-                yield {
-                    id: header.id,
-                    content: header.column.header,
-                    children: null,
-                    isSortable: true,
-                    sortColumn: this.#getSortColumn(header.column)
                 };
             else
                 yield {
                     id: header.id,
-                    content: header.column.header,
+                    column: header.column,
                     children: null,
-                    isSortable: false
+                    sortColumn: isSortableColumn(header.column) ? this.#getSortColumn(header.column) : undefined,
+                    width: header.width
                 };
+        }
+    }
+
+    * #leafHeaderIterator(headers: HeaderIterator<TData>): LeafHeaderIterator<TData> {
+        for (const header of headers) {
+            if (isHeaderGroup(header))
+                yield* this.#leafHeaderIterator(header.children);
+            else
+                yield header;
         }
     }
 
@@ -282,7 +280,11 @@ export default class ColumnState<TData extends TableData> {
         return this.#headerIterator(this.#headers);
     }
 
-    addHeader(columnPath: TreePath, headerPath: TreePath) {
+    leafHeaderIterator() {
+        return this.#leafHeaderIterator(this.headerIterator());
+    }
+
+    addHeader(headerPath: TreePath, columnPath: TreePath) {
         if (columnPath.length === 0)
             throw new Error('Empty column path given');
 
@@ -330,12 +332,17 @@ export default class ColumnState<TData extends TableData> {
         headers.splice(addedHeaderIndex, 0, toAdd);
 
         this.updateColumns.notify({
+            type: 'add',
             addedColumns: this.#addAllSubHeaders(lastToAdd),
             addedPosition: this.#getLeafHeaderIndex(toAdd)
         });
 
         this._jobBatch.add(this.#refreshHeadersJob);
     };
+
+    removeHeader(path: TreePath) {
+
+    }
 
     compareRowData(a: TData['row'], b: TData['row']) {
         for (const [column, order] of this.#sortOrders) {

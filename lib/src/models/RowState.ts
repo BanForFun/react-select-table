@@ -1,25 +1,32 @@
 import { comparePrimitives } from '../utils/sortUtils';
 import { Config, TableData } from '../utils/configUtils';
 import ColumnState from './ColumnState';
+import Command from './Command';
+import JobBatch from './JobBatch';
+import DoublyLinkedList, { DoublyLinkedNode, DoublyLinkedNodeWrapper } from './DoublyLinkedList';
 
-interface Row<TData extends TableData> {
+interface Row<TData extends TableData> extends DoublyLinkedNode<Row<TData>> {
     data: TData['row'];
-    isSelected: boolean;
     isVisible: boolean;
-    previous: Row<TData> | null;
-    next: Row<TData> | null;
+    isSelected: boolean;
 }
 
 export default class RowState<TData extends TableData> {
-    #head: Row<TData> | null = null;
-    #tail: Row<TData> | null = null;
-    #pageHead: Row<TData> | null = null;
-    #pageTail: Row<TData> | null = null;
-    #pageSize: number = 0;
+    #rows = new DoublyLinkedList<Row<TData>>();
+    #currentPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
+    #nextPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
+    #pageSize: number = 10; //TODO: Handle 0 value
     #pageIndex: number = 0;
+    #visibleRowCount: number = 0;
     #filter: TData['filter'] | null = null;
 
-    constructor(private _config: Config<TData>, private _columnState: ColumnState<TData>) {
+    refreshPage = new Command();
+
+    constructor(
+        private _config: Config<TData>,
+        private _jobBatch: JobBatch,
+        private _columnState: ColumnState<TData>
+    ) {
         this._columnState.refreshRows.addObserver(this.#sortAll);
     }
 
@@ -31,7 +38,10 @@ export default class RowState<TData extends TableData> {
         const result = this._columnState.compareRowData(a.data, b.data);
         if (result !== 0) return result;
 
-        return comparePrimitives(this.#getRowKey(a), this.#getRowKey(b));
+        const keyResult = comparePrimitives(this.#getRowKey(a), this.#getRowKey(b));
+        if (keyResult === 0) throw new Error('Encountered multiple rows with the same key');
+
+        return keyResult;
     };
 
     #shouldRowBeVisible = (rowData: TData['row']) => {
@@ -43,19 +53,67 @@ export default class RowState<TData extends TableData> {
         return shouldRowBeVisible(rowData, this.#filter);
     };
 
+    #createRow = (data: TData['row']): Row<TData> => ({
+        data,
+        isSelected: false,
+        isVisible: this.#shouldRowBeVisible(data),
+        previous: null,
+        next: null
+    });
+
     #sortAll = () => {
 
     };
 
-    add(rowData: TData['row'][]) {
-        // const rows: Row<TData>[] = rowData.map(data => ({
-        //     data,
-        //     isSelected: true,
-        //     isVisible: this.#shouldRowBeVisible(data),
-        //     previous: null,
-        //     next: null
-        // })).sort(this.#compareRows);
+    * currentPageIterator() {
+        let i = 0;
+        for (const row of this.#currentPageHead.nextIterator()) {
+            if (i++ >= this.#pageSize) break;
+            yield row;
+        }
     }
 
+    add(rowData: TData['row'][]) {
+        const existingRows = this.#rows.head.nextIterator();
+        const newRows: Row<TData>[] = rowData.map(this.#createRow).sort(this.#compareRows);
 
+        this.#visibleRowCount = 0;
+        this.#currentPageHead.clear();
+        this.#nextPageHead.clear();
+
+        const pageStartIndex = this.#pageIndex * this.#pageSize;
+        const nextPageStartIndex = (this.#pageIndex + 1) * this.#pageSize;
+
+        let rowIndex = 0;
+        let existingRow = existingRows.next();
+
+        while (!existingRow.done || rowIndex < newRows.length) {
+            let row: Row<TData>;
+
+            if (existingRow.done) {
+                row = newRows[rowIndex++];
+                row.isSelected = true;
+                this.#rows.append(row);
+            } else if (rowIndex < newRows.length && this.#compareRows(newRows[rowIndex], existingRow.value) < 0) {
+                row = newRows[rowIndex++];
+                row.isSelected = true;
+                this.#rows.link(existingRow.value.previous, row, existingRow.value);
+            } else {
+                row = existingRow.value;
+                row.isSelected = false;
+                existingRow = existingRows.next();
+            }
+
+            if (!row.isVisible) continue;
+
+            if (this.#visibleRowCount === pageStartIndex)
+                this.#currentPageHead.set(row);
+            else if (this.#visibleRowCount === nextPageStartIndex)
+                this.#nextPageHead.set(row);
+
+            this.#visibleRowCount++;
+        }
+
+        this._jobBatch.add(this.refreshPage.notify.bind(this.refreshPage));
+    }
 }

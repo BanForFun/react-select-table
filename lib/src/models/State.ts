@@ -12,6 +12,6 @@ export default class State<TData extends TableData> {
     constructor(config: Config<TData>, jobBatch: JobBatch) {
         this.columns = new ColumnState(config, jobBatch);
         this.history = new HistoryState<TData>();
-        this.rows = new RowState(config, this.columns);
+        this.rows = new RowState(config, jobBatch, this.columns);
     }
 }

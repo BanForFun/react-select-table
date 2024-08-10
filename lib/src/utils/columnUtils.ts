@@ -2,8 +2,8 @@ import React from 'react';
 import { Primitive } from './types';
 import { comparePrimitives } from './sortUtils';
 
-interface ColumnOptions {
-    className: string;
+export interface ColumnOptions {
+    className?: string;
 }
 
 interface BaseColumn {
@@ -17,7 +17,7 @@ export interface ColumnGroup<TContext> extends BaseColumn {
 export interface LeafColumn<TContext> extends BaseColumn {
     render: (context: TContext, options: ColumnOptions) => React.ReactNode;
     compareContext?: (a: TContext, b: TContext) => number;
-    isContextEqual?: (a: TContext, b: TContext) => boolean;
+    // isContextEqual?: (a: TContext, b: TContext) => boolean;
     children?: never;
 }
 
@@ -33,7 +33,7 @@ export function simpleColumn(header: React.ReactNode, isSortable: boolean = true
     return {
         header,
         compareContext: isSortable ? comparePrimitives : undefined,
-        isContextEqual: (a, b) => a === b,
+        // isContextEqual: (a, b) => a === b,
         render: (context) => context
     };
 }
@@ -44,13 +44,13 @@ export function withContext<TParentContext, TContext>(
     column: Column<TContext>
 ): Column<TParentContext> {
     if (!column.children) {
-        const { isContextEqual, compareContext, render } = column;
+        const { compareContext, render } = column;
 
         return {
             ...column,
-            isContextEqual: isContextEqual
-                ? (a: TParentContext, b: TParentContext) => isContextEqual(getContext(a), getContext(b))
-                : isContextEqual,
+            // isContextEqual: isContextEqual
+            //     ? (a: TParentContext, b: TParentContext) => isContextEqual(getContext(a), getContext(b))
+            //     : isContextEqual,
             compareContext: compareContext
                 ? (a: TParentContext, b: TParentContext) => compareContext(getContext(a), getContext(b))
                 : compareContext,

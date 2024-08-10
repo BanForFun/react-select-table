@@ -78,10 +78,13 @@ const controller = createController<Lesson>({
 
 controller.batchActions(actions => {
     for (let i = 0; i < controller.config.columns.length; i++) {
-        actions.addColumn([i], [i]);
+        actions.addHeader([i], [i]);
     }
 });
 
+controller.actions.addRows([
+    { name: 'Katevenis', lectures: [] }
+]);
 
 function parseColumnPathInput(input?: string) {
     if (!input) return [];
@@ -105,12 +108,10 @@ function App() {
         </div>
 
         <button onClick={() => {
-            controller.actions.addColumn(
-                parseColumnPathInput(columnPathInputRef.current?.value),
-                parseColumnPathInput(visibleColumnPathInputRef.current?.value)
+            controller.actions.addHeader(
+                parseColumnPathInput(visibleColumnPathInputRef.current?.value),
+                parseColumnPathInput(columnPathInputRef.current?.value)
             );
-
-            console.log(controller.state.columns);
         }}>
             Add
         </button>

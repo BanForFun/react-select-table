@@ -33,8 +33,12 @@ export default class ActionHandlers<TData extends TableData> {
             this._state.history.pushAction(undoAction);
     };
 
-    addColumn = (columnPath: TreePath, headerPath: TreePath) => {
-        this._state.columns.addHeader(columnPath, headerPath);
+    addHeader = (headerPath: TreePath, columnPath: TreePath) => {
+        this._state.columns.addHeader(headerPath, columnPath);
+    };
+
+    addRows = (data: TData['row'][]) => {
+        this._state.rows.add(data);
     };
 
     sortByColumn = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {

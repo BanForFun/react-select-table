@@ -10,7 +10,7 @@ export default class JobBatch {
             return;
         }
 
-        if (job != this.#lastJob) {
+        if (job !== this.#lastJob) {
             console.warn('Commited job implicitly');
             this.#lastJob?.();
         }
@@ -23,8 +23,7 @@ export default class JobBatch {
         callback();
         this.#autoCommit = true;
 
-        if (this.#lastJob == null) return;
-        this.#lastJob();
+        this.#lastJob?.();
         this.#lastJob = null;
     }
 }

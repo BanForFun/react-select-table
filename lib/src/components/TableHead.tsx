@@ -1,8 +1,10 @@
-import React, { useEffect, useLayoutEffect, useState, useRef, useContext } from 'react';
-import { Header, isSortableHeader, SortColumn, UpdateColumnsEventArgs } from '../models/ColumnState';
+import React, { useEffect, useLayoutEffect } from 'react';
+import { Header, isSortableHeader, SortColumn, ColumnUpdate } from '../models/ColumnState';
 import getTableContext from '../context/controllerContext';
 import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
+import useStateBuilder from '../hooks/useStateBuilder';
+import useRequiredContext from '../hooks/useRequiredContext';
 
 interface SortHeader {
     path: TreePath;
@@ -21,37 +23,38 @@ interface AddedVisibleHeader extends VisibleHeader {
 }
 
 export default function TableHead<TData extends TableData>() {
-    const { controller, callbacks } = useContext(getTableContext<TData>());
+    const { controller, callbacks } = useRequiredContext(getTableContext<TData>());
 
-    const queuedUpdatesRef = useRef<UpdateColumnsEventArgs<TData>[]>([]);
-    const [updates, setUpdates] = useState<UpdateColumnsEventArgs<TData>[]>([]);
-
-    useEffect(() => {
-        return controller!.state.columns.updateColumns.addObserver(args => {
-            queuedUpdatesRef.current.push(args);
-        });
-    }, [controller]);
+    const [updates, modifyUpdates, commitUpdates] = useStateBuilder<ColumnUpdate<TData>[]>(() => []);
 
     useEffect(() => {
-        return controller!.state.columns.refreshHeaders.addObserver(() => {
-            setUpdates(queuedUpdatesRef.current);
+        return controller.state.columns.updateColumns.addObserver(args => {
+            modifyUpdates(updates => {
+                updates.push(args);
+                return updates;
+            });
         });
-    }, [controller]);
+    }, [controller, modifyUpdates]);
+
+    useEffect(() => {
+        return controller.state.columns.refreshHeaders.addObserver(() => {
+            commitUpdates();
+        });
+    }, [controller, commitUpdates]);
 
     useLayoutEffect(() => {
-        queuedUpdatesRef.current = [];
-        callbacks.updateBody!(updates);
+        callbacks.updateColumns!(updates);
     }, [updates, callbacks]);
 
     const headerRows: VisibleHeader[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;
 
-    function addHeader(header: Header, path: TreePath, tallestSibling: number): AddedVisibleHeader {
+    function addHeader(header: Header<TData>, path: TreePath, tallestSibling: number): AddedVisibleHeader {
         const visibleHeader: AddedVisibleHeader = {
             key: `header_${header.id}`,
             span: 1,
             height: 0,
-            content: header.content
+            content: header.column.header
         };
 
         if (isSortableHeader(header))
@@ -107,7 +110,7 @@ export default function TableHead<TData extends TableData>() {
         return visibleHeader;
     }
 
-    for (const column of controller!.state.columns.headerIterator())
+    for (const column of controller.state.columns.headerIterator())
         addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
     return <div className="rst-head">
@@ -119,7 +122,7 @@ export default function TableHead<TData extends TableData>() {
                 return <tr key={height}>
                     {headers.map(header => <th key={header.key} colSpan={header.span} onClick={e => {
                         if (!header.sort) return;
-                        controller!.actions.sortByHeader(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                        controller.actions.sortByHeader(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
                     }}>
                         {header.content}<br />
                         {header.sort?.column && `${header.sort.column.order} (${header.sort.column.index})`}

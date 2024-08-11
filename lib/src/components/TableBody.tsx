@@ -57,7 +57,7 @@ export default function TableBody<TData extends TableData>() {
     }, [rowRoots, tableBody]);
 
     useEffect(() => {
-        return controller.state.rows.refreshPage.addObserver(() => {
+        return controller.state.rows.pageChanged.addObserver(() => {
             clearRoots();
             addRoots();
         });

@@ -28,7 +28,7 @@ export default function TableHead<TData extends TableData>() {
     const [updates, modifyUpdates, commitUpdates] = useStateBuilder<ColumnUpdate<TData>[]>(() => []);
 
     useEffect(() => {
-        return controller.state.columns.updateColumns.addObserver(args => {
+        return controller.state.columns.columnsChanged.addObserver(args => {
             modifyUpdates(updates => {
                 updates.push(args);
                 return updates;
@@ -37,7 +37,7 @@ export default function TableHead<TData extends TableData>() {
     }, [controller, modifyUpdates]);
 
     useEffect(() => {
-        return controller.state.columns.refreshHeaders.addObserver(() => {
+        return controller.state.columns.headersChanged.addObserver(() => {
             commitUpdates();
         });
     }, [controller, commitUpdates]);

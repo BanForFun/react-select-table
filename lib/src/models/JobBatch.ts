@@ -3,12 +3,12 @@ import { MaybePromise } from '../utils/types';
 
 type Job = () => void;
 
-type AutoCommitSetting = 'always' | 'never' | 'timeout';
+type CommitBehaviour = 'sync' | 'batch' | 'async';
 
 export default class JobBatch {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
-    #autoCommit: AutoCommitSetting = 'timeout';
+    #commitBehaviour: CommitBehaviour = 'async';
 
     add(job: Job) {
         if (this.#queuedJob && job !== this.#queuedJob) {
@@ -18,11 +18,11 @@ export default class JobBatch {
 
         this.#queuedJob = job;
 
-        if (this.#autoCommit === 'always')
+        if (this.#commitBehaviour === 'sync')
             this.#commit();
-        else if (this.#autoCommit === 'timeout')
+        else if (this.#commitBehaviour === 'async')
             this.#scheduleCommit();
-        else if (this.#autoCommit === 'never')
+        else if (this.#commitBehaviour === 'batch')
             this.#cancelScheduledCommit();
     }
 
@@ -47,17 +47,24 @@ export default class JobBatch {
         this.#commitTimeout = null;
     }
 
-    async batch(callback: () => MaybePromise<void>) {
-        this.#autoCommit = 'never';
-        await callback();
-        this.#autoCommit = 'timeout';
+    async #withBehaviour(behaviour: CommitBehaviour, callback: () => MaybePromise<void>) {
+        const oldBehaviour = this.#commitBehaviour;
 
+        this.#commitBehaviour = behaviour;
+        await callback();
+        this.#commitBehaviour = oldBehaviour;
+    }
+
+    async batch(callback: () => MaybePromise<void>) {
+        await this.#withBehaviour('batch', callback);
         this.#commit();
     }
 
     async sync(callback: () => MaybePromise<void>) {
-        this.#autoCommit = 'always';
-        await callback();
-        this.#autoCommit = 'timeout';
+        await this.#withBehaviour('sync', callback);
+    }
+
+    async async(callback: () => MaybePromise<void>) {
+        await this.#withBehaviour('async', callback);
     }
 }

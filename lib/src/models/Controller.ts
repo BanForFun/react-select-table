@@ -6,6 +6,7 @@ import State from './state';
 import ActionHandlers, { ActionDispatchers } from './Actions';
 import { assignDefaults, deepFreeze } from '../utils/objectUtils';
 import JobBatch from './JobBatch';
+import { MaybePromise } from '../utils/types';
 
 export default class Controller<TData extends TableData> {
     #jobBatch: JobBatch = new JobBatch();
@@ -20,12 +21,16 @@ export default class Controller<TData extends TableData> {
         this.actions = ActionHandlers.createActionDispatchers(this.state);
     }
 
-    batchActions(callback: (actions: ActionDispatchers<TData>) => PromiseLike<void>) {
+    batchActions(callback: (actions: ActionDispatchers<TData>) => MaybePromise<void>) {
         return this.#jobBatch.batch(() => callback(this.actions));
     }
 
-    syncActions(callback: (actions: ActionDispatchers<TData>) => PromiseLike<void>) {
+    syncActions(callback: (actions: ActionDispatchers<TData>) => MaybePromise<void>) {
         return this.#jobBatch.sync(() => callback(this.actions));
+    }
+
+    asyncActions(callback: (actions: ActionDispatchers<TData>) => MaybePromise<void>) {
+        return this.#jobBatch.async(() => callback(this.actions));
     }
 }
 

@@ -5,7 +5,7 @@ import {
     isColumnGroup
 } from '../../utils/columnUtils';
 import { TreePath } from '../../utils/unrootedTreeUtils';
-import Command, { Event } from '../Command';
+import { Event } from '../Observable';
 import { Config, TableData } from '../../utils/configUtils';
 import { PickRequired } from '../../utils/types';
 import { indexOf } from '../../utils/iterableUtils';
@@ -91,9 +91,9 @@ export default class ColumnState<TData extends TableData> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
     readonly #headers: HeaderDetails<TData>[] = [];
 
-    readonly updateColumns = new Event<ColumnUpdate<TData>>();
-    readonly refreshHeaders = new Command();
-    readonly refreshRows = new Command();
+    readonly columnsChanged = new Event<ColumnUpdate<TData>>();
+    readonly headersChanged = new Event();
+    readonly sortOrdersChanged = new Event();
 
     constructor(private _config: Config<TData>, private _jobBatch: JobBatch) {
 
@@ -248,12 +248,12 @@ export default class ColumnState<TData extends TableData> {
     }
 
     #refreshHeadersJob = () => {
-        this.refreshHeaders.notify();
+        this.headersChanged.notify();
     };
 
     #refreshSortOrdersJob = () => {
-        this.refreshHeaders.notify();
-        this.refreshRows.notify();
+        this.headersChanged.notify();
+        this.sortOrdersChanged.notify();
     };
 
     #sortBy(column: Column<TData['row']>, newOrder: NewSortOrder, append: boolean) {
@@ -331,7 +331,7 @@ export default class ColumnState<TData extends TableData> {
         const addedHeaderIndex = headerPath[headerPath.length - 1];
         headers.splice(addedHeaderIndex, 0, toAdd);
 
-        this.updateColumns.notify({
+        this.columnsChanged.notify({
             type: 'add',
             addedColumns: this.#addAllSubHeaders(lastToAdd),
             addedPosition: this.#getLeafHeaderIndex(toAdd)

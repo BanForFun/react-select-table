@@ -1,4 +1,4 @@
-export default class Command<TArgs extends unknown[] = []> {
+export default class Observable<TArgs extends unknown[] = []> {
     observers: ((...args: TArgs) => void)[] = [];
 
     addObserver(observer: (...args: TArgs) => void) {
@@ -14,13 +14,13 @@ export default class Command<TArgs extends unknown[] = []> {
         this.observers.splice(index, 1);
     }
 
-    notify(...args: TArgs) {
+    notify = (...args: TArgs) => {
         for (const observer of this.observers) {
             observer(...args);
         }
-    }
+    };
 }
 
-export class Event<TArgs> extends Command<[TArgs]> {
+export class Event<TArgs = undefined> extends Observable<TArgs extends undefined ? [] : [TArgs]> {
 
 }

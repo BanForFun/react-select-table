@@ -1,7 +1,7 @@
 import { comparePrimitives } from '../../utils/sortUtils';
 import { Config, TableData } from '../../utils/configUtils';
 import ColumnState from './ColumnState';
-import Command from '../Command';
+import { Event } from '../Observable';
 import JobBatch from '../JobBatch';
 import DoublyLinkedList, { DoublyLinkedNode, DoublyLinkedNodeWrapper } from '../DoublyLinkedList';
 
@@ -16,14 +16,14 @@ export default class RowState<TData extends TableData> {
     #visibleRowCount: number = 0;
     #filter: TData['filter'] | null = null;
 
-    refreshPage = new Command();
+    readonly pageChanged = new Event();
 
     constructor(
         private _config: Config<TData>,
         private _jobBatch: JobBatch,
         private _columnState: ColumnState<TData>
     ) {
-        this._columnState.refreshRows.addObserver(this.#sortAll);
+        this._columnState.sortOrdersChanged.addObserver(this.#sortAll);
     }
 
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key and visibility
@@ -107,6 +107,6 @@ export default class RowState<TData extends TableData> {
             this.#visibleRowCount++;
         }
 
-        this._jobBatch.add(this.refreshPage.notify.bind(this.refreshPage));
+        this._jobBatch.add(this.pageChanged.notify);
     }
 }

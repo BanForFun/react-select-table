@@ -1,5 +1,5 @@
 import { TableData } from '../utils/configUtils';
-import { ColumnUpdate } from '../models/ColumnState';
+import { ColumnUpdate } from '../models/state/ColumnState';
 import Controller from '../models/Controller';
 import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
 

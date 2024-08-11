@@ -76,11 +76,9 @@ const controller = createController<Lesson>({
     ]
 });
 
-controller.batchActions(actions => {
-    for (let i = 0; i < controller.config.columns.length; i++) {
-        actions.addHeader([i], [i]);
-    }
-});
+for (let i = 0; i < controller.config.columns.length; i++) {
+    controller.actions.addHeader([i], [i]);
+}
 
 controller.actions.addRows([
     { name: 'Katevenis', lectures: [] }

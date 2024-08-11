@@ -1,5 +1,5 @@
-import { Action } from './Actions';
-import { TableData } from '../utils/configUtils';
+import { Action } from '../Actions';
+import { TableData } from '../../utils/configUtils';
 
 type PopCallback<TData extends TableData> = (action: Action<TData>) => Action<TData> | void;
 

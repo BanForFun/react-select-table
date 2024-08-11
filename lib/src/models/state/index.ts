@@ -1,8 +1,8 @@
 import HistoryState from './HistoryState';
 import ColumnState from './ColumnState';
 import RowState from './RowState';
-import { Config, TableData } from '../utils/configUtils';
-import JobBatch from './JobBatch';
+import { Config, TableData } from '../../utils/configUtils';
+import JobBatch from '../JobBatch';
 
 export default class State<TData extends TableData> {
     columns: ColumnState<TData>;

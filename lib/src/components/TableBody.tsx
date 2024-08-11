@@ -5,6 +5,7 @@ import { TableData } from '../utils/configUtils';
 import DoublyLinkedList from '../models/DoublyLinkedList';
 import useRequiredContext from '../hooks/useRequiredContext';
 import TableRow from './TableRow';
+import { log } from '../utils/debugUtils';
 
 interface RowRootNode {
     root: ReactDOM.Root;
@@ -49,7 +50,7 @@ export default function TableBody<TData extends TableData>() {
 
         setTimeout(() => {
             for (const rootNode of oldRootsHead.forwardIterator()) {
-                console.log('Unmounting root');
+                log('Unmounting root');
                 rootNode.root.unmount();
             }
         });

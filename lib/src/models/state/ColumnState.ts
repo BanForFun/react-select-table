@@ -3,13 +3,13 @@ import {
     LeafColumn,
     ColumnGroup,
     isColumnGroup
-} from '../utils/columnUtils';
-import { TreePath } from '../utils/unrootedTreeUtils';
-import Command, { Event } from './Command';
-import { Config, TableData } from '../utils/configUtils';
-import { PickRequired } from '../utils/types';
-import { indexOf } from '../utils/iterableUtils';
-import JobBatch from './JobBatch';
+} from '../../utils/columnUtils';
+import { TreePath } from '../../utils/unrootedTreeUtils';
+import Command, { Event } from '../Command';
+import { Config, TableData } from '../../utils/configUtils';
+import { PickRequired } from '../../utils/types';
+import { indexOf } from '../../utils/iterableUtils';
+import JobBatch from '../JobBatch';
 
 export type ColumnUpdate<TData extends TableData> = {
     type: 'add';

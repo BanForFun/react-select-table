@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect } from 'react';
-import { Header, isSortableHeader, SortColumn, ColumnUpdate } from '../models/ColumnState';
+import { Header, isSortableHeader, SortColumn, ColumnUpdate } from '../models/state/ColumnState';
 import getTableContext from '../context/controllerContext';
 import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';

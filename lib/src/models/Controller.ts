@@ -2,7 +2,7 @@ import {
     Config, ConfigOverride, defaultConfig,
     TableData
 } from '../utils/configUtils';
-import State from './State';
+import State from './state';
 import ActionHandlers, { ActionDispatchers } from './Actions';
 import { assignDefaults, deepFreeze } from '../utils/objectUtils';
 import JobBatch from './JobBatch';
@@ -20,8 +20,12 @@ export default class Controller<TData extends TableData> {
         this.actions = ActionHandlers.createActionDispatchers(this.state);
     }
 
-    batchActions(callback: (actions: ActionDispatchers<TData>) => void) {
-        this.#jobBatch.batch(() => callback(this.actions));
+    batchActions(callback: (actions: ActionDispatchers<TData>) => PromiseLike<void>) {
+        return this.#jobBatch.batch(() => callback(this.actions));
+    }
+
+    syncActions(callback: (actions: ActionDispatchers<TData>) => PromiseLike<void>) {
+        return this.#jobBatch.sync(() => callback(this.actions));
     }
 }
 

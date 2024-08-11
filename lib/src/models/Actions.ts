@@ -1,14 +1,17 @@
 import { TreePath } from '../utils/unrootedTreeUtils';
-import State from './State';
+import State from './state';
 import { TableData } from '../utils/configUtils';
 import { mapMethods } from '../utils/objectUtils';
-import { NewSortOrder } from './ColumnState';
+import { NewSortOrder } from './state/ColumnState';
 
 export default class ActionHandlers<TData extends TableData> {
     readonly #creators: ActionCreators<TData>;
     readonly #dispatchers: ActionDispatchers<TData>;
+    readonly #state: State<TData>;
 
-    private constructor(private _state: State<TData>) {
+    private constructor(state: State<TData>) {
+        this.#state = state;
+
         const handlers = this as ActionHandlers<TData>;
         this.#creators = mapMethods(handlers, this.#actionCreator);
         this.#dispatchers = mapMethods(handlers, this.#actionDispatcher);
@@ -30,24 +33,24 @@ export default class ActionHandlers<TData extends TableData> {
         const handler = this[action.type] as ActionHandler<TData, TType>;
         const undoAction = handler(...action.args);
         if (undoAction)
-            this._state.history.pushAction(undoAction);
+            this.#state.history.pushAction(undoAction);
     };
 
     addHeader = (headerPath: TreePath, columnPath: TreePath) => {
-        this._state.columns.addHeader(headerPath, columnPath);
+        this.#state.columns.addHeader(headerPath, columnPath);
     };
 
     addRows = (data: TData['row'][]) => {
-        this._state.rows.add(data);
+        this.#state.rows.add(data);
     };
 
     sortByColumn = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const oldOrder = this._state.columns.sortByColumn(path, newOrder, append);
+        const oldOrder = this.#state.columns.sortByColumn(path, newOrder, append);
         return this.#creators.sortByColumn(path, oldOrder, false);
     };
 
     sortByHeader = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const oldOrder = this._state.columns.sortByHeader(path, newOrder, append);
+        const oldOrder = this.#state.columns.sortByHeader(path, newOrder, append);
         return this.#creators.sortByHeader(path, oldOrder, false);
     };
 }

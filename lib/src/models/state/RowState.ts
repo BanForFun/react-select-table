@@ -1,9 +1,9 @@
-import { comparePrimitives } from '../utils/sortUtils';
-import { Config, TableData } from '../utils/configUtils';
+import { comparePrimitives } from '../../utils/sortUtils';
+import { Config, TableData } from '../../utils/configUtils';
 import ColumnState from './ColumnState';
-import Command from './Command';
-import JobBatch from './JobBatch';
-import DoublyLinkedList, { DoublyLinkedNode, DoublyLinkedNodeWrapper } from './DoublyLinkedList';
+import Command from '../Command';
+import JobBatch from '../JobBatch';
+import DoublyLinkedList, { DoublyLinkedNode, DoublyLinkedNodeWrapper } from '../DoublyLinkedList';
 
 type Row<TData extends TableData> = TData['row']; //Maybe cache key in the future
 
@@ -11,7 +11,7 @@ export default class RowState<TData extends TableData> {
     #rows = new DoublyLinkedList<Row<TData>>();
     #currentPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
     #nextPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
-    #pageSize: number = 10; //TODO: Handle 0 value
+    #pageSize: number = 0;
     #pageIndex: number = 0;
     #visibleRowCount: number = 0;
     #filter: TData['filter'] | null = null;
@@ -64,7 +64,7 @@ export default class RowState<TData extends TableData> {
     * currentPageIterator() {
         let i = 0;
         for (const row of this.#currentPageHead.forwardIterator()) {
-            if (i++ >= this.#pageSize) break;
+            if (this.#pageSize > 0 && i++ >= this.#pageSize) break;
             yield row;
         }
     }

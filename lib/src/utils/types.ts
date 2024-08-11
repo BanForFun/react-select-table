@@ -10,3 +10,5 @@ export type PickRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
 export type PickOptional<T, K extends keyof T> = Partial<Pick<T, K>> & Omit<T, K>;
 
 export type Incompatible<K extends string> = { [incompatibleKeySymbol]?: K };
+
+export type MaybePromise<T> = T | Promise<T> | PromiseLike<T>;

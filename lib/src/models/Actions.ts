@@ -2,7 +2,7 @@ import { TreePath } from '../utils/unrootedTreeUtils';
 import State from './state';
 import { TableData } from '../utils/configUtils';
 import { mapMethods } from '../utils/objectUtils';
-import { NewSortOrder } from './state/ColumnState';
+import { NewSortOrder } from './state/HeaderState';
 
 export default class ActionHandlers<TData extends TableData> {
     readonly #creators: ActionCreators<TData>;
@@ -37,7 +37,7 @@ export default class ActionHandlers<TData extends TableData> {
     };
 
     addHeader = (headerPath: TreePath, columnPath: TreePath) => {
-        this.#state.columns.addHeader(headerPath, columnPath);
+        this.#state.headers.add(headerPath, columnPath);
     };
 
     addRows = (data: TData['row'][]) => {
@@ -45,12 +45,13 @@ export default class ActionHandlers<TData extends TableData> {
     };
 
     sortByColumn = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const oldOrder = this.#state.columns.sortByColumn(path, newOrder, append);
+        const oldOrder = this.#state.sortOrder.sortByPath(path, newOrder, append);
         return this.#creators.sortByColumn(path, oldOrder, false);
     };
 
     sortByHeader = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const oldOrder = this.#state.columns.sortByHeader(path, newOrder, append);
+        const column = this.#state.headers.getColumnAtPath(path);
+        const oldOrder = this.#state.sortOrder.sortByColumn(column, newOrder, append);
         return this.#creators.sortByHeader(path, oldOrder, false);
     };
 }

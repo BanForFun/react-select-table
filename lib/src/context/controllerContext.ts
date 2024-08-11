@@ -1,10 +1,10 @@
 import { TableData } from '../utils/configUtils';
-import { ColumnUpdate } from '../models/state/ColumnState';
+import { LeafHeaderUpdate } from '../models/state/HeaderState';
 import Controller from '../models/Controller';
 import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
 
 export interface TableCallbacks<TData extends TableData> {
-    updateColumns?: (updates: ColumnUpdate<TData>[]) => void;
+    updateColumns?: (updates: LeafHeaderUpdate<TData>[]) => void;
 }
 
 interface TableContextValue<TData extends TableData> {

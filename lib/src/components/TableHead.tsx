@@ -1,10 +1,11 @@
 import React, { useEffect, useLayoutEffect } from 'react';
-import { Header, isSortableHeader, SortColumn, ColumnUpdate } from '../models/state/ColumnState';
+import { ReadonlyHeader, LeafHeaderUpdate } from '../models/state/HeaderState';
 import getTableContext from '../context/controllerContext';
 import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
 import useStateBuilder from '../hooks/useStateBuilder';
 import useRequiredContext from '../hooks/useRequiredContext';
+import { isSortableColumn, SortColumn } from '../models/state/SortOrderState';
 
 interface SortHeader {
     path: TreePath;
@@ -25,10 +26,10 @@ interface AddedVisibleHeader extends VisibleHeader {
 export default function TableHead<TData extends TableData>() {
     const { controller, callbacks } = useRequiredContext(getTableContext<TData>());
 
-    const [updates, modifyUpdates, commitUpdates] = useStateBuilder<ColumnUpdate<TData>[]>(() => []);
+    const [updates, modifyUpdates, commitUpdates] = useStateBuilder<LeafHeaderUpdate<TData>[]>(() => []);
 
     useEffect(() => {
-        return controller.state.columns.columnsChanged.addObserver(args => {
+        return controller.state.headers.leafChanged.addObserver(args => {
             modifyUpdates(updates => {
                 updates.push(args);
                 return updates;
@@ -37,7 +38,13 @@ export default function TableHead<TData extends TableData>() {
     }, [controller, modifyUpdates]);
 
     useEffect(() => {
-        return controller.state.columns.headersChanged.addObserver(() => {
+        return controller.state.headers.changed.addObserver(() => {
+            commitUpdates();
+        });
+    }, [controller, commitUpdates]);
+
+    useEffect(() => {
+        return controller.state.sortOrder.changed.addObserver(() => {
             commitUpdates();
         });
     }, [controller, commitUpdates]);
@@ -49,7 +56,7 @@ export default function TableHead<TData extends TableData>() {
     const headerRows: VisibleHeader[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;
 
-    function addHeader(header: Header<TData>, path: TreePath, tallestSibling: number): AddedVisibleHeader {
+    function addHeader(header: ReadonlyHeader<TData>, path: TreePath, tallestSibling: number): AddedVisibleHeader {
         const visibleHeader: AddedVisibleHeader = {
             key: `header_${header.id}`,
             span: 1,
@@ -57,8 +64,8 @@ export default function TableHead<TData extends TableData>() {
             content: header.column.header
         };
 
-        if (isSortableHeader(header))
-            visibleHeader.sort = { path, column: header.sortColumn };
+        if (isSortableColumn(header.column))
+            visibleHeader.sort = { path, column: controller.state.sortOrder.get(header.column) };
 
         let childCount = 0;
         if (header.children) {
@@ -110,7 +117,7 @@ export default function TableHead<TData extends TableData>() {
         return visibleHeader;
     }
 
-    for (const column of controller.state.columns.headerIterator())
+    for (const column of controller.state.headers.iterator())
         addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
     return <div className="rst-head">

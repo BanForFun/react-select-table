@@ -9,7 +9,7 @@ interface Props<TData extends TableData> {
 }
 
 export default function TableRow<TData extends TableData>(props: Props<TData>) {
-    return Array.from(map(props.controller.state.columns.leafHeaderIterator(), header => {
+    return Array.from(map(props.controller.state.headers.leafIterator(), header => {
         const options: ColumnOptions = {};
         const content = header.column.render(props.data, options);
         return <td key={header.id} className={options.className}>{content}</td>;

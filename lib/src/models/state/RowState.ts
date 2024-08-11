@@ -1,9 +1,9 @@
 import { comparePrimitives } from '../../utils/sortUtils';
 import { Config, TableData } from '../../utils/configUtils';
-import ColumnState from './ColumnState';
 import { Event } from '../Observable';
 import JobBatch from '../JobBatch';
 import DoublyLinkedList, { DoublyLinkedNode, DoublyLinkedNodeWrapper } from '../DoublyLinkedList';
+import SortOrderState from './SortOrderState';
 
 type Row<TData extends TableData> = TData['row']; //Maybe cache key in the future
 
@@ -21,9 +21,9 @@ export default class RowState<TData extends TableData> {
     constructor(
         private _config: Config<TData>,
         private _jobBatch: JobBatch,
-        private _columnState: ColumnState<TData>
+        private _sortOrder: SortOrderState<TData>
     ) {
-        this._columnState.sortOrdersChanged.addObserver(this.#sortAll);
+        this._sortOrder.changed.addObserver(this.#sortAll);
     }
 
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key and visibility
@@ -39,7 +39,7 @@ export default class RowState<TData extends TableData> {
     };
 
     #compareRows = (a: Row<TData>, b: Row<TData>) => {
-        const result = this._columnState.compareRowData(a, b);
+        const result = this._sortOrder.compareRowData(a, b);
         if (result !== 0) return result;
 
         const keyResult = comparePrimitives(this.#getRowKey(a), this.#getRowKey(b));

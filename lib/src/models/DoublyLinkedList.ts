@@ -1,26 +1,29 @@
-export interface DoublyLinkedNode<T> {
-    previous: T | null;
-    next: T | null;
-}
+const previousSymbol = Symbol('previous');
+const nextSymbol = Symbol('next');
 
-class ReadonlyDoublyLinkedNodeWrapper<T extends DoublyLinkedNode<T>> {
-    constructor(protected _node: T | null = null) {
+export type DoublyLinkedNode<T> = T & {
+    [previousSymbol]: DoublyLinkedNode<T> | null;
+    [nextSymbol]: DoublyLinkedNode<T> | null;
+};
+
+class ReadonlyDoublyLinkedNodeWrapper<T> {
+    constructor(protected _node: DoublyLinkedNode<T> | null = null) {
 
     }
 
-    * nextIterator() {
+    * forwardIterator() {
         let current = this._node;
         while (current != null) {
             yield current;
-            current = current.next;
+            current = current[nextSymbol];
         }
     }
 
-    * previousIterator() {
+    * backwardIterator() {
         let current = this._node;
         while (current != null) {
             yield current;
-            current = current.previous;
+            current = current[previousSymbol];
         }
     }
 
@@ -29,60 +32,69 @@ class ReadonlyDoublyLinkedNodeWrapper<T extends DoublyLinkedNode<T>> {
     }
 }
 
-export class DoublyLinkedNodeWrapper<T extends DoublyLinkedNode<T>> extends ReadonlyDoublyLinkedNodeWrapper<T> {
+export class DoublyLinkedNodeWrapper<T> extends ReadonlyDoublyLinkedNodeWrapper<T> {
     clear() {
         this._node = null;
     }
 
-    set(node: T | null): void {
+    set(node: DoublyLinkedNode<T> | null): void {
         this._node = node;
     }
 
     get node() {
         return this._node;
     }
-
-    get isSet() {
-        return this._node != null;
-    }
 }
 
-export default class DoublyLinkedList<T extends DoublyLinkedNode<T>> {
+function getNext<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
+    return node == null ? null : node[nextSymbol];
+}
+
+function getPrevious<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
+    return node == null ? null : node[previousSymbol];
+}
+
+export default class DoublyLinkedList<T extends object> {
     #head = new DoublyLinkedNodeWrapper<T>();
     #tail = new DoublyLinkedNodeWrapper<T>();
 
-    link(previous: T | null, node: T, next: T | null) {
-        node.previous = previous;
-        if (previous == null)
-            this.#head.set(node);
-        else
-            previous.next = node;
+    link(previous: DoublyLinkedNode<T> | null, node: T, next: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> {
+        const linked: DoublyLinkedNode<T> = Object.assign(node, {
+            [previousSymbol]: previous,
+            [nextSymbol]: next
+        });
 
-        node.next = next;
-        if (next == null)
-            this.#tail.set(node);
+        if (previous == null)
+            this.#head.set(linked);
         else
-            next.previous = node;
+            previous[nextSymbol] = linked;
+
+        if (next == null)
+            this.#tail.set(linked);
+        else
+            next[previousSymbol] = linked;
+
+        return linked;
     }
 
-    order(first: T | null, second: T | null): void {
+    order(first: DoublyLinkedNode<T> | null, second: DoublyLinkedNode<T> | null): void {
         if (second == null)
             this.#tail.set(first);
         else
-            second.previous = first;
+            second[previousSymbol] = first;
 
         if (first == null)
             this.#head.set(second);
         else
-            first.next = second;
+            first[nextSymbol] = second;
     }
 
-    append(node: T) {
-        this.link(this.#tail.node, node, null);
+    append(node: T, after = this.#tail.node) {
+        return this.link(after, node, getNext(after));
     }
 
-    prepend(node: T) {
-        this.link(null, node, this.#head.node);
+    prepend(node: T, before = this.#head.node) {
+        return this.link(getPrevious(before), node, before);
     }
 
     clear() {

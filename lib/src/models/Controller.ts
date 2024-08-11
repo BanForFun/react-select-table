@@ -27,7 +27,7 @@ export default class Controller<TData extends TableData> {
 
 // Public
 export function createController<
-    TRow,
+    TRow extends object,
     TError extends NonNullable<unknown> = never,
     TFilter extends NonNullable<unknown> = never
 >(override: ConfigOverride<TableData<TRow, TError, TFilter>>) {

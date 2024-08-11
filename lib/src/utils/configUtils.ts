@@ -1,7 +1,7 @@
 import { Column } from './columnUtils';
 
 export interface TableData<
-    TRow = unknown,
+    TRow = object,
     TError = NonNullable<unknown>,
     TFilter = NonNullable<unknown>
 > {

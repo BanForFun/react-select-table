@@ -127,10 +127,14 @@ export default function TableHead<TData extends TableData>() {
                 const height = heightOfRowLevel(level);
                 const headers = headerRows[height];
                 return <tr key={height}>
-                    {headers.map(header => <th key={header.key} colSpan={header.span} onClick={e => {
-                        if (!header.sort) return;
-                        controller.actions.sortByHeader(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
-                    }}>
+                    {headers.map(header => <th
+                        key={header.key}
+                        colSpan={header.span}
+                        onClick={e => {
+                            if (!header.sort) return;
+                            controller.actions.sortByHeader(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                        }}
+                    >
                         {header.content}<br />
                         {header.sort?.column && `${header.sort.column.order} (${header.sort.column.index})`}
                     </th>)}

@@ -11,8 +11,7 @@ export default class JobBatch {
     #commitBehaviour: CommitBehaviour = 'async';
 
     add(job: Job) {
-        if (this.#queuedJob && job !== this.#queuedJob) {
-            this.#commit();
+        if (job !== this.#queuedJob && this.#commit()) {
             log('Commited job implicitly');
         }
 
@@ -29,8 +28,11 @@ export default class JobBatch {
     #commit() {
         this.#cancelScheduledCommit();
 
-        this.#queuedJob?.();
+        const job = this.#queuedJob;
         this.#queuedJob = null;
+        job?.();
+
+        return job;
     };
 
     #scheduleCommit() {

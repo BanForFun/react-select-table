@@ -10,28 +10,10 @@ import { Config, TableData } from '../../utils/configUtils';
 import JobBatch from '../JobBatch';
 
 export type LeafHeaderUpdate<TData extends TableData> = {
-    type: 'add';
+    type: 'add' | 'remove';
     position: number;
-    columns: LeafColumn<TData['row']>[];
-} | {
-    type: 'remove';
-    position: number;
-    count: number;
+    headers: ReadonlyLeafHeader<TData>[];
 };
-
-interface BaseHeader {
-    readonly id: HeaderId;
-}
-
-interface HeaderGroup<TData extends TableData> extends BaseHeader {
-    readonly column: ColumnGroup<TData['row']>;
-    readonly children: Header<TData>[];
-}
-
-interface LeafHeader<TData extends TableData> extends BaseHeader {
-    readonly column: LeafColumn<TData['row']>;
-    readonly children: null;
-}
 
 interface BaseReadonlyHeader {
     readonly id: HeaderId;
@@ -39,7 +21,7 @@ interface BaseReadonlyHeader {
 
 interface ReadonlyHeaderGroup<TData extends TableData> extends BaseReadonlyHeader {
     readonly column: ColumnGroup<TData['row']>;
-    readonly children: ReadonlyHeaderIterator<TData>;
+    readonly children: Iterable<ReadonlyHeader<TData>>;
 }
 
 interface ReadonlyLeafHeader<TData extends TableData> extends BaseReadonlyHeader {
@@ -48,25 +30,26 @@ interface ReadonlyLeafHeader<TData extends TableData> extends BaseReadonlyHeader
 }
 
 
+interface HeaderGroup<TData extends TableData> extends ReadonlyHeaderGroup<TData> {
+    readonly children: Header<TData>[];
+}
+
+interface LeafHeader<TData extends TableData> extends ReadonlyLeafHeader<TData> {
+
+}
+
 type Header<TData extends TableData> = HeaderGroup<TData> | LeafHeader<TData>;
+export type ReadonlyHeader<TData extends TableData> = ReadonlyLeafHeader<TData> | ReadonlyHeaderGroup<TData>;
 
 export type HeaderId = number;
 
 export type SortOrder = 'ascending' | 'descending';
 export type NewSortOrder = SortOrder | null | 'toggle' | 'cycle';
 
-export type ReadonlyHeader<TData extends TableData> = ReadonlyLeafHeader<TData> | ReadonlyHeaderGroup<TData>;
-export type ReadonlyHeaderIterator<TData extends TableData> = Generator<ReadonlyHeader<TData>, void, undefined>
-export type ReadonlyLeafHeaderIterator<TData extends TableData> = Generator<ReadonlyLeafHeader<TData>, void, undefined>
-
 let lastHeaderId = 0;
 
 function isHeaderGroup<TData extends TableData>(details: Header<TData>): details is HeaderGroup<TData> {
     return isColumnGroup(details.column);
-}
-
-function isReadonlyHeaderGroup<TData extends TableData>(header: ReadonlyHeader<TData>): header is ReadonlyHeaderGroup<TData> {
-    return !!header.children;
 }
 
 export default class HeaderState<TData extends TableData> {
@@ -114,23 +97,23 @@ export default class HeaderState<TData extends TableData> {
         };
     }
 
-    #addAllSubHeaders(header: Header<TData>): LeafColumn<TData['row']>[] {
-        if (!header.children) return [header.column];
+    #addAllSubHeaders(header: Header<TData>) {
+        if (!header.children) return [this.#readonlyLeaf(header)];
 
-        const addedLeafColumns: LeafColumn<TData['row']>[] = [];
+        const addedLeafHeaders: ReadonlyLeafHeader<TData>[] = [];
         for (let i = 0; i <= header.column.children.length - 1; i++) {
             const toAdd = this.#create(header.column.children[i]);
             header.children.push(toAdd);
 
             if (toAdd.children == null) {
-                addedLeafColumns.push(toAdd.column);
+                addedLeafHeaders.push(this.#readonlyLeaf(toAdd));
                 continue;
             }
 
-            addedLeafColumns.push(...this.#addAllSubHeaders(toAdd));
+            addedLeafHeaders.push(...this.#addAllSubHeaders(toAdd));
         }
 
-        return addedLeafColumns;
+        return addedLeafHeaders;
     }
 
     #getLeafIndex(header: Header<TData>): number {
@@ -152,30 +135,37 @@ export default class HeaderState<TData extends TableData> {
         return -1;
     }
 
-    * #iterator(headers: Header<TData>[]): ReadonlyHeaderIterator<TData> {
-        for (let i = 0; i < headers.length; i++) {
-            const header = headers[i];
+    #readonlyLeaf(header: LeafHeader<TData>): ReadonlyLeafHeader<TData> {
+        return {
+            id: header.id,
+            column: header.column,
+            children: null
+        };
+    }
+
+    #readonlyGroup(header: HeaderGroup<TData>): ReadonlyHeaderGroup<TData> {
+        return {
+            id: header.id,
+            column: header.column,
+            children: this.#iterator(header.children)
+        };
+    }
+
+    * #iterator(headers: Header<TData>[]): Iterable<ReadonlyHeader<TData>> {
+        for (const header of headers) {
             if (isHeaderGroup(header))
-                yield {
-                    id: header.id,
-                    column: header.column,
-                    children: this.#iterator(header.children)
-                };
+                yield this.#readonlyGroup(header);
             else
-                yield {
-                    id: header.id,
-                    column: header.column,
-                    children: null
-                };
+                yield this.#readonlyLeaf(header);
         }
     }
 
-    * #leafIterator(headers: ReadonlyHeaderIterator<TData>): ReadonlyLeafHeaderIterator<TData> {
+    * #leafIterator(headers: Header<TData>[]): Iterable<ReadonlyLeafHeader<TData>> {
         for (const header of headers) {
-            if (isReadonlyHeaderGroup(header))
+            if (isHeaderGroup(header))
                 yield* this.#leafIterator(header.children);
             else
-                yield header;
+                yield this.#readonlyLeaf(header);
         }
     }
 
@@ -188,7 +178,7 @@ export default class HeaderState<TData extends TableData> {
     }
 
     leafIterator() {
-        return this.#leafIterator(this.iterator());
+        return this.#leafIterator(this.#headers);
     }
 
     add(headerPath: TreePath, columnPath: TreePath) {
@@ -240,7 +230,7 @@ export default class HeaderState<TData extends TableData> {
 
         this.leafChanged.notify({
             type: 'add',
-            columns: this.#addAllSubHeaders(lastToAdd),
+            headers: this.#addAllSubHeaders(lastToAdd),
             position: this.#getLeafIndex(toAdd)
         });
 

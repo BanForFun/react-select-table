@@ -18,7 +18,7 @@ export default function TableBody<TData extends TableData>() {
     const [rowRoots] = useState(() => new DoublyLinkedList<RowRootNode>());
 
     callbacks.updateColumns = () => {
-        const rows = controller.state.rows.currentPageIterator();
+        const rows = controller.state.visibleRows.iterator();
         const roots = rowRoots.head.forwardIterator();
 
         let rowNode = rows.next();
@@ -33,7 +33,7 @@ export default function TableBody<TData extends TableData>() {
     };
 
     const addRoots = useCallback(() => {
-        const rows = controller.state.rows.currentPageIterator();
+        const rows = controller.state.visibleRows.iterator();
         for (const rowNode of rows) {
             const row = tableBody.insertRow();
             const root = ReactDOM.createRoot(row);
@@ -57,7 +57,7 @@ export default function TableBody<TData extends TableData>() {
     }, [rowRoots, tableBody]);
 
     useEffect(() => {
-        return controller.state.rows.pageChanged.addObserver(() => {
+        return controller.state.visibleRows.changed.addObserver(() => {
             clearRoots();
             addRoots();
         });

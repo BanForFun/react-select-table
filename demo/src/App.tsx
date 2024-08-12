@@ -2,19 +2,22 @@ import { createController, withContext, Table, Column } from 'react-select-table
 import './App.css';
 import { useRef } from 'react';
 
-type Duration = {
-    startHour: number;
-    endHour: number;
-} | null;
+type Duration = [string, string] | undefined;
 
 interface Lesson {
     name: string;
-    lectures: Duration[];
+    monday?: Duration,
+    tuesday?: Duration,
+    wednesday?: Duration,
+    thursday?: Duration,
+    friday?: Duration,
+    saturday?: Duration,
+    sunday?: Duration
 }
 
 function renderDuration(duration: Duration) {
     if (!duration) return null;
-    return `${duration.startHour}:00 - ${duration.endHour}:00`;
+    return `${duration[0]} - ${duration[1]}`;
 }
 
 function compareStart(a: Duration, b: Duration) {
@@ -22,7 +25,7 @@ function compareStart(a: Duration, b: Duration) {
     if (!a) return 1;
     if (!b) return -1;
 
-    return a.startHour - b.startHour;
+    return a[0].localeCompare(b[0]);
 }
 
 function lessonColumn(header: string): Column<Duration> {
@@ -34,22 +37,22 @@ function lessonColumn(header: string): Column<Duration> {
 }
 
 const controller = createController<Lesson>({
-    getRowKey: row => row.name,
+    getRowKey: l => l.name,
     columns: [
-        { header: 'Name', render: row => row.name },
+        { header: 'Name', render: l => l.name },
         {
             header: 'Weekdays', children: [
-                withContext(row => row.lectures[0], lessonColumn('Monday')),
-                withContext(row => row.lectures[1], lessonColumn('Tuesday')),
-                withContext(row => row.lectures[2], lessonColumn('Wednesday')),
-                withContext(row => row.lectures[3], lessonColumn('Thursday')),
-                withContext(row => row.lectures[4], lessonColumn('Friday'))
+                withContext(l => l.monday, lessonColumn('Monday')),
+                withContext(l => l.tuesday, lessonColumn('Tuesday')),
+                withContext(l => l.wednesday, lessonColumn('Wednesday')),
+                withContext(l => l.thursday, lessonColumn('Thursday')),
+                withContext(l => l.friday, lessonColumn('Friday'))
             ]
         },
         {
             header: 'Weekend', children: [
-                withContext(row => row.lectures[5], lessonColumn('Saturday')),
-                withContext(row => row.lectures[6], lessonColumn('Sunday'))
+                withContext(l => l.saturday, lessonColumn('Saturday')),
+                withContext(l => l.sunday, lessonColumn('Sunday'))
             ]
         }
         // { header: 'r3,c1', render: () => 'c1' },
@@ -76,13 +79,26 @@ const controller = createController<Lesson>({
     ]
 });
 
-for (let i = 0; i < controller.config.columns.length; i++) {
-    controller.actions.addHeader([i], [i]);
-}
+controller.batchActions(() => {
+    for (let i = 0; i < controller.config.columns.length; i++) {
+        controller.actions.addHeader([i], [i]);
+    }
 
-controller.actions.addRows([
-    { name: 'Katevenis', lectures: [] }
-]);
+    controller.actions.addRows([
+        {
+            name: 'Katevenis',
+            monday: ['13:00', '15:00'],
+            wednesday: ['13:00', '15:00'],
+            friday: ['13:00', '15:00']
+        },
+        {
+            name: 'Markatos',
+            tuesday: ['14:00', '16:00'],
+            thursday: ['14:00', '16:00']
+        }
+    ]);
+});
+
 
 function parseColumnPathInput(input?: string) {
     if (!input) return [];
@@ -112,6 +128,13 @@ function App() {
             );
         }}>
             Add
+        </button>
+
+        <button onClick={() => {
+            controller.actions.addRows([
+                { name: 'Lesson' + Date.now() }
+            ]);
+        }}>Add row
         </button>
 
         <Table controller={controller} />

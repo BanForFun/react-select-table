@@ -1,23 +1,35 @@
+type Observer<TArgs extends unknown[]> = (...args: TArgs) => void;
+
 export default class Observable<TArgs extends unknown[] = []> {
-    observers: ((...args: TArgs) => void)[] = [];
+    #observers = new Set<Observer<TArgs>>();
+    #onceObservers = new Set<Observer<TArgs>>();
 
-    addObserver(observer: (...args: TArgs) => void) {
-        this.observers.push(observer);
-
+    addObserver(observer: Observer<TArgs>) {
+        this.#observers.add(observer);
         return () => this.removeObserver(observer);
     }
 
-    removeObserver(observer: (...args: TArgs) => void) {
-        const index = this.observers.indexOf(observer);
-        if (index < -1) return;
+    removeObserver(observer: Observer<TArgs>) {
+        this.#observers.delete(observer);
+    }
 
-        this.observers.splice(index, 1);
+    addOnceObserver(observer: Observer<TArgs>) {
+        this.#onceObservers.add(observer);
+        return () => this.removeOnceObserver(observer);
+    }
+
+    removeOnceObserver(observer: Observer<TArgs>) {
+        this.#onceObservers.delete(observer);
     }
 
     notify = (...args: TArgs) => {
-        for (const observer of this.observers) {
+        for (const observer of this.#observers)
             observer(...args);
-        }
+
+        for (const onceObserver of this.#onceObservers)
+            onceObserver(...args);
+
+        this.#onceObservers.clear();
     };
 }
 

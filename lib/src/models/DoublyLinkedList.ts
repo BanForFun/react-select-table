@@ -6,9 +6,29 @@ export type DoublyLinkedNode<T> = T & {
     [nextSymbol]: DoublyLinkedNode<T> | null;
 };
 
-class ReadonlyDoublyLinkedNodeWrapper<T> {
+function getNextNode<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
+    return node == null ? null : node[nextSymbol];
+}
+
+function getPreviousNode<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
+    return node == null ? null : node[previousSymbol];
+}
+
+class ConstDoublyLinkedNodeWrapper<T> {
     constructor(protected _node: DoublyLinkedNode<T> | null = null) {
 
+    }
+
+    get current() {
+        return this._node;
+    }
+
+    get previous() {
+        return getPreviousNode(this.current);
+    }
+
+    get next() {
+        return getNextNode(this.current);
     }
 
     * forwardIterator() {
@@ -26,9 +46,11 @@ class ReadonlyDoublyLinkedNodeWrapper<T> {
             current = current[previousSymbol];
         }
     }
+}
 
+class ReadonlyDoublyLinkedNodeWrapper<T> extends ConstDoublyLinkedNodeWrapper<T> {
     persist() {
-        return new ReadonlyDoublyLinkedNodeWrapper(this._node);
+        return new ConstDoublyLinkedNodeWrapper(this._node);
     }
 }
 
@@ -40,67 +62,88 @@ export class DoublyLinkedNodeWrapper<T> extends ReadonlyDoublyLinkedNodeWrapper<
     set(node: DoublyLinkedNode<T> | null): void {
         this._node = node;
     }
-
-    get node() {
-        return this._node;
-    }
-}
-
-function getNext<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
-    return node == null ? null : node[nextSymbol];
-}
-
-function getPrevious<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
-    return node == null ? null : node[previousSymbol];
 }
 
 export default class DoublyLinkedList<T extends object> {
     #head = new DoublyLinkedNodeWrapper<T>();
     #tail = new DoublyLinkedNodeWrapper<T>();
 
-    link(previous: DoublyLinkedNode<T> | null, node: T, next: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> {
+    // #nodeCount: number = 0;
+
+    #link(previous: DoublyLinkedNode<T> | null, node: T, next: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> {
         const linked: DoublyLinkedNode<T> = Object.assign(node, {
             [previousSymbol]: previous,
             [nextSymbol]: next
         });
 
-        if (previous == null)
-            this.#head.set(linked);
-        else
+        if (previous != null)
             previous[nextSymbol] = linked;
-
-        if (next == null)
-            this.#tail.set(linked);
         else
-            next[previousSymbol] = linked;
+            this.#head.set(linked);
 
+        if (next != null)
+            next[previousSymbol] = linked;
+        else
+            this.#tail.set(linked);
+
+        // this.#nodeCount++;
         return linked;
     }
 
+    unlink(node: DoublyLinkedNode<T>) {
+        if (node[previousSymbol] != null)
+            node[previousSymbol][nextSymbol] = node[nextSymbol];
+        else
+            this.#head.set(node[nextSymbol]);
+
+        if (node[nextSymbol] != null)
+            node[nextSymbol][previousSymbol] = node[previousSymbol];
+        else
+            this.#tail.set(node[previousSymbol]);
+
+        // this.#nodeCount--;
+    }
+
     order(first: DoublyLinkedNode<T> | null, second: DoublyLinkedNode<T> | null): void {
-        if (second == null)
-            this.#tail.set(first);
-        else
-            second[previousSymbol] = first;
-
-        if (first == null)
-            this.#head.set(second);
-        else
+        if (first != null)
             first[nextSymbol] = second;
+        else
+            this.#head.set(second);
+
+        if (second != null)
+            second[previousSymbol] = first;
+        else
+            this.#tail.set(first);
     }
 
-    append(node: T, after = this.#tail.node) {
-        return this.link(after, node, getNext(after));
+
+    append(node: T, after = this.#tail.current) {
+        return this.#link(after, node, getNextNode(after));
     }
 
-    prepend(node: T, before = this.#head.node) {
-        return this.link(getPrevious(before), node, before);
+    prepend(node: T, before = this.#head.current) {
+        return this.#link(getPreviousNode(before), node, before);
+    }
+
+    pop() {
+        if (this.#tail.current)
+            this.unlink(this.#tail.current);
+    }
+
+    shift() {
+        if (this.#head.current)
+            this.unlink(this.#head.current);
     }
 
     clear() {
         this.#head.clear();
         this.#tail.clear();
+        // this.#nodeCount = 0;
     }
+
+    // get length() {
+    //     return this.#nodeCount;
+    // }
 
     get head(): ReadonlyDoublyLinkedNodeWrapper<T> {
         return this.#head;

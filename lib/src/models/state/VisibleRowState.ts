@@ -13,15 +13,19 @@ export default class VisibleRowState<TData extends TableData> {
     #rowCount: number = 0;
 
     readonly changed = new Event();
+    readonly added = new Event();
 
     constructor(
         private _config: Config<TData>,
         private _jobBatch: JobBatch,
-        private _pageSizeState: PageState<TData>,
+        private _pageState: PageState<TData>,
         private _filterState: FilterState<TData>,
         private _rowState: RowState<TData>
     ) {
-        this._rowState.changed.addObserver(this.#rebuildPage);
+        this._rowState.added.addObserver(() => {
+            this.#rebuildPage();
+            this._jobBatch.add(this.added.notify);
+        });
     }
 
     #rebuildPage = () => {
@@ -29,8 +33,8 @@ export default class VisibleRowState<TData extends TableData> {
         this.#currentPageHead.clear();
         this.#nextPageHead.clear();
 
-        const pageStartIndex = this.#pageIndex * this._pageSizeState.size;
-        const nextPageStartIndex = (this.#pageIndex + 1) * this._pageSizeState.size;
+        const pageStartIndex = this._pageState.getPageStartIndex(this.#pageIndex);
+        const nextPageStartIndex = this._pageState.getPageStartIndex(this.#pageIndex + 1);
 
         for (const row of this._rowState.iterator()) {
             if (!this._filterState.isVisible(row)) continue;
@@ -42,14 +46,15 @@ export default class VisibleRowState<TData extends TableData> {
 
             this.#rowCount++;
         }
-        
-        this._jobBatch.add(this.changed.notify);
     };
 
     * iterator() {
-        let i = 0;
+        let visibleIndex = 0;
         for (const row of this.#currentPageHead.forwardIterator()) {
-            if (this._pageSizeState.size > 0 && i++ >= this._pageSizeState.size) break;
+            if (visibleIndex >= this._pageState.size) break;
+            if (!this._filterState.isVisible(row)) continue;
+
+            visibleIndex++;
             yield row;
         }
     }

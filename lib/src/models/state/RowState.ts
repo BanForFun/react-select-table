@@ -11,6 +11,7 @@ export default class RowState<TData extends TableData> {
     #rows = new DoublyLinkedList<Row<TData>>();
 
     readonly changed = new Event();
+    readonly added = new Event();
 
     constructor(
         private _config: Config<TData>,
@@ -22,20 +23,22 @@ export default class RowState<TData extends TableData> {
 
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key in the future
 
-    #getRowKey = (row: Row<TData>) => {
-        // Maybe load from cache in the future
-        return this._config.getRowKey(row);
-    };
-
     #compareRows = (a: Row<TData>, b: Row<TData>) => {
         const result = this._sortOrderState.compareRowData(a, b);
         if (result !== 0) return result;
 
-        return comparePrimitives(this.#getRowKey(a), this.#getRowKey(b));
+        return comparePrimitives(this.getRowKey(a), this.getRowKey(b));
     };
 
     #sortAll = () => {
         //TODO: Implement
+
+        //this._jobBatch.add(this.changed.notify);
+    };
+
+    getRowKey = (row: Row<TData>) => {
+        // Maybe load from cache in the future
+        return this._config.getRowKey(row);
     };
 
     iterator() {
@@ -58,6 +61,6 @@ export default class RowState<TData extends TableData> {
                 existingRow = existingRows.next();
         }
 
-        this._jobBatch.add(this.changed.notify);
+        this._jobBatch.add(this.added.notify);
     }
 }

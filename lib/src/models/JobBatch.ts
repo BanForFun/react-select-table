@@ -1,72 +1,89 @@
 import { log } from '../utils/debugUtils';
 import { MaybePromise } from '../utils/types';
+import { Event } from './Observable';
 
 type Job = () => void;
 
-type CommitBehaviour = 'sync' | 'batch' | 'async';
+type CommitStrategy = 'sync' | 'batch' | 'async';
 
 export default class JobBatch {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
-    #commitBehaviour: CommitBehaviour = 'async';
+    #commitStrategy: CommitStrategy = 'async';
+    #done = new Event();
+
+    get #hasJob() {
+        return this.#queuedJob != null;
+    }
+
+    #commit() {
+        if (this.#commitStrategy === 'sync') {
+            this.#_cancelScheduledCommit();
+            this.#_commitSync();
+            this.#done.notify();
+        } else if (this.#commitStrategy === 'async')
+            this.#_scheduleCommit();
+        else if (this.#commitStrategy === 'batch')
+            this.#_cancelScheduledCommit();
+    }
+
+    #_commitSync() {
+        const job = this.#queuedJob;
+        this.#queuedJob = null;
+        job?.();
+    }
+
+    #_cancelScheduledCommit() {
+        if (this.#commitTimeout == null) return;
+        clearTimeout(this.#commitTimeout);
+        this.#commitTimeout = null;
+    }
+
+    #_scheduleCommit() {
+        this.#commitTimeout ??= setTimeout(() => {
+            this.#commitTimeout = null;
+            this.#_commitSync();
+            this.#done.notify();
+        });
+    }
+
+    async #withStrategy(strategy: CommitStrategy, callback: () => MaybePromise<void>) {
+        const oldStrategy = this.#commitStrategy;
+
+        this.#commitStrategy = strategy;
+        await callback();
+        this.#commitStrategy = oldStrategy;
+    }
 
     add(job: Job) {
-        if (job !== this.#queuedJob && this.#commit()) {
+        if (this.#hasJob && this.#queuedJob != job) {
+            this.#_cancelScheduledCommit();
+            this.#_commitSync();
             log('Commited job implicitly');
         }
 
         this.#queuedJob = job;
-
-        if (this.#commitBehaviour === 'sync')
-            this.#commit();
-        else if (this.#commitBehaviour === 'async')
-            this.#scheduleCommit();
-        else if (this.#commitBehaviour === 'batch')
-            this.#cancelScheduledCommit();
-    }
-
-    #commit() {
-        this.#cancelScheduledCommit();
-
-        const job = this.#queuedJob;
-        this.#queuedJob = null;
-        job?.();
-
-        return job;
-    };
-
-    #scheduleCommit() {
-        this.#commitTimeout ??= setTimeout(() => {
-            this.#commitTimeout = null;
-            this.#commit();
-        });
-    }
-
-    #cancelScheduledCommit() {
-        if (this.#commitTimeout != null)
-            clearTimeout(this.#commitTimeout);
-
-        this.#commitTimeout = null;
-    }
-
-    async #withBehaviour(behaviour: CommitBehaviour, callback: () => MaybePromise<void>) {
-        const oldBehaviour = this.#commitBehaviour;
-
-        this.#commitBehaviour = behaviour;
-        await callback();
-        this.#commitBehaviour = oldBehaviour;
-    }
-
-    async batch(callback: () => MaybePromise<void>) {
-        await this.#withBehaviour('batch', callback);
         this.#commit();
     }
 
+    whenFree(callback: () => void) {
+        if (!this.#hasJob)
+            callback();
+        else
+            this.#done.addOnceObserver(callback);
+    }
+
+    async batch(callback: () => MaybePromise<void>) {
+        await this.#withStrategy('batch', callback);
+        if (this.#hasJob)
+            this.#commit();
+    }
+
     async sync(callback: () => MaybePromise<void>) {
-        await this.#withBehaviour('sync', callback);
+        await this.#withStrategy('sync', callback);
     }
 
     async async(callback: () => MaybePromise<void>) {
-        await this.#withBehaviour('async', callback);
+        await this.#withStrategy('async', callback);
     }
 }

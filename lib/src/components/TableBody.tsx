@@ -2,13 +2,15 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import getTableContext from '../context/controllerContext';
 import { TableData } from '../utils/configUtils';
-import DoublyLinkedList from '../models/DoublyLinkedList';
+import DoublyLinkedList, { DoublyLinkedNodeWrapper } from '../models/DoublyLinkedList';
 import useRequiredContext from '../hooks/useRequiredContext';
 import TableRow from './TableRow';
 import { log } from '../utils/debugUtils';
+import { namedTable, table } from '../utils/iterableUtils';
+import { Row } from '../models/state/RowState';
 
 interface RowRootNode {
-    root: ReactDOM.Root;
+    value: ReactDOM.Root;
 }
 
 export default function TableBody<TData extends TableData>() {
@@ -17,31 +19,38 @@ export default function TableBody<TData extends TableData>() {
     const [tableBody] = useState<HTMLTableSectionElement>(() => document.createElement('tbody'));
     const [rowRoots] = useState(() => new DoublyLinkedList<RowRootNode>());
 
-    callbacks.updateColumns = () => {
+    callbacks.updateColumns = updates => {
+        if (!updates.length) return;
+
         const rows = controller.state.visibleRows.iterator();
-        const roots = rowRoots.head.forwardIterator();
+        const rootNodes = rowRoots.head.forwardIterator();
 
-        let rowNode = rows.next();
-        let rootNode = roots.next();
-
-        while (!rowNode.done && !rootNode.done) {
-            rootNode.value.root.render(<TableRow controller={controller} data={rowNode.value} />);
-
-            rowNode = rows.next();
-            rootNode = roots.next();
+        for (const [row, rootNode] of table(rows, rootNodes)) {
+            rootNode.value.render(<TableRow controller={controller} data={row} />);
         }
     };
 
-    const addRoots = useCallback(() => {
-        const rows = controller.state.visibleRows.iterator();
-        for (const rowNode of rows) {
-            const row = tableBody.insertRow();
-            const root = ReactDOM.createRoot(row);
-            root.render(<TableRow controller={controller} data={rowNode} />);
+    const createRoot = useCallback((row: Row<TData>) => {
+        const element = document.createElement('tr');
+        element.dataset.key = controller.state.rows.getRowKey(row);
 
-            rowRoots.append({ root });
-        }
-    }, [controller, rowRoots, tableBody]);
+        const root = ReactDOM.createRoot(element);
+        root.render(<TableRow controller={controller} data={row} />);
+
+        const node: RowRootNode = { value: root };
+        return { node, element };
+    }, [controller]);
+
+    const appendRoot = useCallback((row: Row<TData>) => {
+        const { element, node } = createRoot(row);
+        tableBody.append(element);
+        rowRoots.append(node);
+    }, [createRoot, rowRoots, tableBody]);
+
+    const appendRoots = useCallback(() => {
+        const rows = controller.state.visibleRows.iterator();
+        for (const row of rows) appendRoot(row);
+    }, [controller, appendRoot]);
 
     const clearRoots = useCallback(() => {
         const oldRootsHead = rowRoots.head.persist();
@@ -51,22 +60,65 @@ export default function TableBody<TData extends TableData>() {
         setTimeout(() => {
             for (const rootNode of oldRootsHead.forwardIterator()) {
                 log('Unmounting root');
-                rootNode.root.unmount();
+                rootNode.value.unmount();
             }
         });
     }, [rowRoots, tableBody]);
 
-    useEffect(() => {
-        return controller.state.visibleRows.changed.addObserver(() => {
-            clearRoots();
-            addRoots();
+    useEffect(() => controller.state.visibleRows.changed.addObserver(() => {
+        clearRoots();
+        appendRoots();
+    }), [controller, appendRoots, clearRoots]);
+
+    useEffect(() => controller.state.visibleRows.added.addObserver(() => {
+        const rows = controller.state.visibleRows.iterator();
+        const roots = namedTable({
+            node: rowRoots.head.forwardIterator(),
+            element: tableBody.rows[Symbol.iterator]()
         });
-    }, [controller, addRoots, clearRoots]);
+
+        let row = rows.next();
+        let root = roots.next();
+
+        while (!row.done) {
+            if (root.done) {
+                appendRoot(row.value);
+            } else if (root.value.element.dataset.key !== controller.state.rows.getRowKey(row.value)) {
+                const newRoot = createRoot(row.value);
+                rowRoots.prepend(newRoot.node, root.value.node);
+                root.value.element.before(newRoot.element);
+            } else {
+                root = roots.next();
+            }
+
+            row = rows.next();
+        }
+
+        if (root.done) return;
+
+        let element: Element | null = root.value.element;
+        while (element != null) {
+            const nextElement: Element | null = element.nextElementSibling;
+            element.remove();
+            element = nextElement;
+        }
+
+        const node = new DoublyLinkedNodeWrapper(root.value.node);
+        rowRoots.order(node.previous, null);
+
+        setTimeout(() => {
+            for (const rootNode of node.forwardIterator()) {
+                log('Unmounting unused row root');
+                rootNode.value.unmount();
+            }
+        });
+
+    }), [appendRoot, controller, createRoot, rowRoots, tableBody]);
 
     useLayoutEffect(() => {
-        addRoots();
+        appendRoots();
         return clearRoots;
-    }, [addRoots, clearRoots]);
+    }, [appendRoots, clearRoots]);
 
     return <div className="rst-body">
         <table ref={ref => ref?.append(tableBody)} />

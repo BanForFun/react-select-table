@@ -5,6 +5,7 @@ import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
 import { NewSortOrder, SortOrder } from './HeaderState';
 import { indexOf } from '../../utils/iterableUtils';
 import { Event } from '../Observable';
+import Dependent from '../Dependent';
 
 export interface SortColumn {
     order: SortOrder;
@@ -17,13 +18,13 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderState<TData extends TableData> {
+export default class SortOrderState<TData extends TableData> extends Dependent {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
 
     readonly changed = new Event();
 
     constructor(private _config: Config<TData>, private _scheduler: JobScheduler) {
-
+        super({});
     }
 
     #notifyChangedJob = () => {

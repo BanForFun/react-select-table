@@ -1,16 +1,22 @@
 import { Config, TableData } from '../../utils/configUtils';
 import JobScheduler from '../JobScheduler';
 import HeaderState, { HeaderId, LeafHeaderUpdate } from './HeaderState';
+import Dependent from '../Dependent';
 
-export default class HeaderSizeState<TData extends TableData> {
+interface Dependencies<TData extends TableData> {
+    headers: HeaderState<TData>;
+}
+
+export default class HeaderSizeState<TData extends TableData> extends Dependent<Dependencies<TData>> {
     #sizes: Record<HeaderId, number> = {};
 
     constructor(
         private _config: Config<TData>,
         private _scheduler: JobScheduler,
-        private _headerState: HeaderState<TData>
+        private _state: Dependencies<TData>
     ) {
-        _headerState.leafChanged.addObserver(this.#handleLeafChanged);
+        super(_state);
+        this._state.headers.leafChanged.addObserver(this.#handleLeafChanged);
     }
 
     #handleLeafChanged = (update: LeafHeaderUpdate<TData>) => {

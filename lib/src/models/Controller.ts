@@ -9,7 +9,7 @@ import JobScheduler from './JobScheduler';
 import { MaybePromise } from '../utils/types';
 
 export default class Controller<TData extends TableData> {
-    #jobBatch: JobScheduler = new JobScheduler();
+    #scheduler: JobScheduler = new JobScheduler();
 
     readonly config: Config<TData>;
     readonly state: State<TData>;
@@ -17,20 +17,20 @@ export default class Controller<TData extends TableData> {
 
     constructor(config: Config<TData>) {
         this.config = config;
-        this.state = new State(this.config, this.#jobBatch);
+        this.state = new State(this.config, this.#scheduler);
         this.actions = ActionHandlers.createActionDispatchers(this.state);
     }
 
     batchActions(callback: (actions: ActionDispatchers<TData>) => MaybePromise<void>) {
-        return this.#jobBatch.batch(() => callback(this.actions));
+        return this.#scheduler.batch(() => callback(this.actions));
     }
 
     syncActions(callback: (actions: ActionDispatchers<TData>) => MaybePromise<void>) {
-        return this.#jobBatch.sync(() => callback(this.actions));
+        return this.#scheduler.sync(() => callback(this.actions));
     }
 
     asyncActions(callback: (actions: ActionDispatchers<TData>) => MaybePromise<void>) {
-        return this.#jobBatch.async(() => callback(this.actions));
+        return this.#scheduler.async(() => callback(this.actions));
     }
 }
 

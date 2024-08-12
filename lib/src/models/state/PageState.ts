@@ -1,14 +1,15 @@
 import { Config, TableData } from '../../utils/configUtils';
 import JobScheduler from '../JobScheduler';
+import Dependent from '../Dependent';
 
-export default class PageState<TData extends TableData> {
+export default class PageState<TData extends TableData> extends Dependent {
     #size: number = Infinity;
 
     constructor(
         private _config: Config<TData>,
         private _scheduler: JobScheduler
     ) {
-
+        super({});
     }
 
     getPageStartIndex(pageIndex: number) {

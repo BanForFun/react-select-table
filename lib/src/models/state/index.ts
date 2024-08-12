@@ -21,15 +21,25 @@ export default class State<TData extends TableData> {
     filter: FilterState<TData>;
     rows: RowState<TData>;
 
-    constructor(config: Config<TData>, jobBatch: JobScheduler) {
-        this.sortOrder = new SortOrderState(config, jobBatch);
-        this.headers = new HeaderState(config, jobBatch);
-        this.page = new PageState(config, jobBatch);
-        this.filter = new FilterState(config, jobBatch);
-        this.headerSizes = new HeaderSizeState(config, jobBatch, this.headers);
-        this.rows = new RowState(config, jobBatch, this.sortOrder);
-        this.selection = new SelectionState(config, jobBatch, this.rows);
-        this.visibleRows = new VisibleRowState(config, jobBatch, this.page, this.filter, this.rows);
+    constructor(config: Config<TData>, scheduler: JobScheduler) {
         this.history = new HistoryState();
+        this.sortOrder = new SortOrderState(config, scheduler);
+        this.headers = new HeaderState(config, scheduler);
+        this.page = new PageState(config, scheduler);
+        this.filter = new FilterState(config, scheduler);
+        this.headerSizes = new HeaderSizeState(config, scheduler, {
+            headers: this.headers
+        });
+        this.rows = new RowState(config, scheduler, {
+            sortOrder: this.sortOrder
+        });
+        this.selection = new SelectionState(config, scheduler, {
+            rows: this.rows
+        });
+        this.visibleRows = new VisibleRowState(config, scheduler, {
+            page: this.page,
+            rows: this.rows,
+            filter: this.filter
+        });
     }
 }

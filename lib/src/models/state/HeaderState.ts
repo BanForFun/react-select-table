@@ -9,6 +9,7 @@ import { Event } from '../Observable';
 import { Config, TableData } from '../../utils/configUtils';
 import JobScheduler from '../JobScheduler';
 import { getIterableIterator } from '../../utils/iterableUtils';
+import Dependent from '../Dependent';
 
 export type LeafHeaderUpdate<TData extends TableData> = {
     type: 'add' | 'remove';
@@ -52,14 +53,14 @@ function isHeaderGroup<TData extends TableData>(details: Header<TData>): details
     return isColumnGroup(details.column);
 }
 
-export default class HeaderState<TData extends TableData> {
+export default class HeaderState<TData extends TableData> extends Dependent {
     readonly #headers: Header<TData>[] = [];
 
     readonly leafChanged = new Event<LeafHeaderUpdate<TData>>();
     readonly changed = new Event();
 
     constructor(private _config: Config<TData>, private _scheduler: JobScheduler) {
-
+        super({});
     }
 
     #create(basedOn: Column<TData['row']>): Header<TData> {

@@ -1,5 +1,5 @@
 import { Config, TableData } from '../../utils/configUtils';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
 import HeaderState, { HeaderId, LeafHeaderUpdate } from './HeaderState';
 
 export default class HeaderSizeState<TData extends TableData> {
@@ -7,7 +7,7 @@ export default class HeaderSizeState<TData extends TableData> {
 
     constructor(
         private _config: Config<TData>,
-        private _jobBatch: JobBatch,
+        private _scheduler: JobScheduler,
         private _headerState: HeaderState<TData>
     ) {
         _headerState.leafChanged.addObserver(this.#handleLeafChanged);

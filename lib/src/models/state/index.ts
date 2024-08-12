@@ -2,7 +2,7 @@ import HistoryState from './HistoryState';
 import HeaderState from './HeaderState';
 import RowState from './RowState';
 import { Config, TableData } from '../../utils/configUtils';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
 import SortOrderState from './SortOrderState';
 import HeaderSizeState from './HeaderSizeState';
 import VisibleRowState from './VisibleRowState';
@@ -21,7 +21,7 @@ export default class State<TData extends TableData> {
     filter: FilterState<TData>;
     rows: RowState<TData>;
 
-    constructor(config: Config<TData>, jobBatch: JobBatch) {
+    constructor(config: Config<TData>, jobBatch: JobScheduler) {
         this.sortOrder = new SortOrderState(config, jobBatch);
         this.headers = new HeaderState(config, jobBatch);
         this.page = new PageState(config, jobBatch);

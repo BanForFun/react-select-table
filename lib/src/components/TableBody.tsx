@@ -6,8 +6,9 @@ import DoublyLinkedList, { DoublyLinkedNodeWrapper } from '../models/DoublyLinke
 import useRequiredContext from '../hooks/useRequiredContext';
 import TableRow from './TableRow';
 import { log } from '../utils/debugUtils';
-import { namedTable, table } from '../utils/iterableUtils';
 import { Row } from '../models/state/RowState';
+import { namedTable, table } from '../utils/iteratorUtils';
+import { getIterator } from '../utils/iterableUtils';
 
 interface RowRootNode {
     value: ReactDOM.Root;
@@ -74,7 +75,7 @@ export default function TableBody<TData extends TableData>() {
         const rows = controller.state.visibleRows.iterator();
         const roots = namedTable({
             node: rowRoots.head.forwardIterator(),
-            element: tableBody.rows[Symbol.iterator]()
+            element: getIterator(tableBody.rows)
         });
 
         let row = rows.next();

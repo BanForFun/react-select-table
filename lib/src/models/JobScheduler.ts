@@ -6,7 +6,7 @@ type Job = () => void;
 
 type CommitStrategy = 'sync' | 'batch' | 'async';
 
-export default class JobBatch {
+export default class JobScheduler {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
     #commitStrategy: CommitStrategy = 'async';

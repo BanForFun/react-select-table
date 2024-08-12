@@ -45,13 +45,14 @@ export default class ActionHandlers<TData extends TableData> {
     };
 
     sortByColumn = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const oldOrder = this.#state.sortOrder.sortByPath(path, newOrder, append);
+        const column = this.#state.headers.getColumnAtPath(path);
+        const oldOrder = this.#state.sortOrder.sortBy(column, newOrder, append);
         return this.#creators.sortByColumn(path, oldOrder, false);
     };
 
     sortByHeader = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const column = this.#state.headers.getColumnAtPath(path);
-        const oldOrder = this.#state.sortOrder.sortByColumn(column, newOrder, append);
+        const header = this.#state.headers.getAtPath(path);
+        const oldOrder = this.#state.sortOrder.sortBy(header.column, newOrder, append);
         return this.#creators.sortByHeader(path, oldOrder, false);
     };
 }

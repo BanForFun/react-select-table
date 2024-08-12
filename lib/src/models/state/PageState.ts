@@ -1,12 +1,12 @@
 import { Config, TableData } from '../../utils/configUtils';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
 
 export default class PageState<TData extends TableData> {
     #size: number = Infinity;
 
     constructor(
         private _config: Config<TData>,
-        private _jobBatch: JobBatch
+        private _scheduler: JobScheduler
     ) {
 
     }

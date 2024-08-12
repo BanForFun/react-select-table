@@ -1,5 +1,5 @@
 import { Config, TableData } from '../../utils/configUtils';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
 import { Row } from './RowState';
 
 export default class FilterState<TData extends TableData> {
@@ -7,7 +7,7 @@ export default class FilterState<TData extends TableData> {
 
     constructor(
         private _config: Config<TData>,
-        private _jobBatch: JobBatch
+        private _scheduler: JobScheduler
     ) {
 
     }

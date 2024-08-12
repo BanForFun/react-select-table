@@ -1,11 +1,10 @@
 import { Config, TableData } from '../../utils/configUtils';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
 import { PickRequired } from '../../utils/types';
 import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
 import { NewSortOrder, SortOrder } from './HeaderState';
 import { indexOf } from '../../utils/iterableUtils';
 import { Event } from '../Observable';
-import { TreePath } from '../../utils/unrootedTreeUtils';
 
 export interface SortColumn {
     order: SortOrder;
@@ -23,31 +22,13 @@ export default class SortOrderState<TData extends TableData> {
 
     readonly changed = new Event();
 
-    constructor(private _config: Config<TData>, private _jobBatch: JobBatch) {
+    constructor(private _config: Config<TData>, private _scheduler: JobScheduler) {
 
     }
 
     #notifyChangedJob = () => {
         this.changed.notify();
     };
-
-    #getColumnAtPath(path: TreePath): Column<TData['row']> {
-        let columns: Column<TData['row']>[] = this._config.columns;
-        let column: Column<TData['row']> | null = null;
-
-        for (const index of path) {
-            column = columns[index];
-            if (column == null)
-                throw new Error('Invalid path');
-
-            columns = column.children ?? [];
-        }
-
-        if (column == null)
-            throw new Error('Empty path given');
-
-        return column;
-    }
 
     #resolveOrder(newOrder: NewSortOrder, oldOrder: SortOrder | null): SortOrder | null {
         switch (newOrder) {
@@ -76,7 +57,7 @@ export default class SortOrderState<TData extends TableData> {
         return { index: indexOf(this.#sortOrders.keys(), column), order };
     }
 
-    sortByColumn(column: Column<TData['row']>, newOrder: NewSortOrder, append: boolean) {
+    sortBy(column: Column<TData['row']>, newOrder: NewSortOrder, append: boolean) {
         if (!isSortableColumn(column))
             throw new Error('Cannot sort by this column');
 
@@ -91,13 +72,9 @@ export default class SortOrderState<TData extends TableData> {
         else
             this.#sortOrders.set(column, resolvedOrder);
 
-        this._jobBatch.add(this.#notifyChangedJob);
+        this._scheduler.add(this.#notifyChangedJob);
 
         return oldOrder;
-    }
-
-    sortByPath(path: TreePath, newOrder: NewSortOrder, append: boolean) {
-        return this.sortByColumn(this.#getColumnAtPath(path), newOrder, append);
     }
 
     compareRowData(a: TData['row'], b: TData['row']) {

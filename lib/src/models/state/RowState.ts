@@ -1,7 +1,7 @@
 import { comparePrimitives } from '../../utils/sortUtils';
 import { Config, TableData } from '../../utils/configUtils';
 import { Event } from '../Observable';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
 import DoublyLinkedList from '../DoublyLinkedList';
 import SortOrderState from './SortOrderState';
 
@@ -15,7 +15,7 @@ export default class RowState<TData extends TableData> {
 
     constructor(
         private _config: Config<TData>,
-        private _jobBatch: JobBatch,
+        private _scheduler: JobScheduler,
         private _sortOrderState: SortOrderState<TData>
     ) {
         this._sortOrderState.changed.addObserver(this.#sortAll);
@@ -33,7 +33,7 @@ export default class RowState<TData extends TableData> {
     #sortAll = () => {
         //TODO: Implement
 
-        //this._jobBatch.add(this.changed.notify);
+        //this._scheduler.add(this.changed.notify);
     };
 
     getRowKey = (row: Row<TData>) => {
@@ -61,6 +61,6 @@ export default class RowState<TData extends TableData> {
                 existingRow = existingRows.next();
         }
 
-        this._jobBatch.add(this.added.notify);
+        this._scheduler.add(this.added.notify);
     }
 }

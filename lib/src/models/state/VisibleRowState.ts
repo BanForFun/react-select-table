@@ -1,5 +1,5 @@
 import { Config, TableData } from '../../utils/configUtils';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
 import PageState from './PageState';
 import RowState, { Row } from './RowState';
 import { DoublyLinkedNodeWrapper } from '../DoublyLinkedList';
@@ -17,14 +17,14 @@ export default class VisibleRowState<TData extends TableData> {
 
     constructor(
         private _config: Config<TData>,
-        private _jobBatch: JobBatch,
+        private _scheduler: JobScheduler,
         private _pageState: PageState<TData>,
         private _filterState: FilterState<TData>,
         private _rowState: RowState<TData>
     ) {
         this._rowState.added.addObserver(() => {
             this.#rebuildPage();
-            this._jobBatch.add(this.added.notify);
+            this._scheduler.add(this.added.notify);
         });
     }
 

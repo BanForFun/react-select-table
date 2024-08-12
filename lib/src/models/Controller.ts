@@ -5,11 +5,11 @@ import {
 import State from './state';
 import ActionHandlers, { ActionDispatchers } from './Actions';
 import { assignDefaults, deepFreeze } from '../utils/objectUtils';
-import JobBatch from './JobBatch';
+import JobScheduler from './JobScheduler';
 import { MaybePromise } from '../utils/types';
 
 export default class Controller<TData extends TableData> {
-    #jobBatch: JobBatch = new JobBatch();
+    #jobBatch: JobScheduler = new JobScheduler();
 
     readonly config: Config<TData>;
     readonly state: State<TData>;

@@ -7,7 +7,8 @@ import {
 import { TreePath } from '../../utils/unrootedTreeUtils';
 import { Event } from '../Observable';
 import { Config, TableData } from '../../utils/configUtils';
-import JobBatch from '../JobBatch';
+import JobScheduler from '../JobScheduler';
+import { getIterableIterator } from '../../utils/iterableUtils';
 
 export type LeafHeaderUpdate<TData extends TableData> = {
     type: 'add' | 'remove';
@@ -28,7 +29,6 @@ interface ReadonlyLeafHeader<TData extends TableData> extends BaseReadonlyHeader
     readonly column: LeafColumn<TData['row']>;
     readonly children: null;
 }
-
 
 interface HeaderGroup<TData extends TableData> extends ReadonlyHeaderGroup<TData> {
     readonly children: Header<TData>[];
@@ -58,26 +58,8 @@ export default class HeaderState<TData extends TableData> {
     readonly leafChanged = new Event<LeafHeaderUpdate<TData>>();
     readonly changed = new Event();
 
-    constructor(private _config: Config<TData>, private _jobBatch: JobBatch) {
+    constructor(private _config: Config<TData>, private _scheduler: JobScheduler) {
 
-    }
-
-    #atPath(path: TreePath): Header<TData> {
-        let headers: Header<TData>[] = this.#headers;
-        let header: Header<TData> | null = null;
-
-        for (const index of path) {
-            header = headers[index];
-            if (header == null)
-                throw new Error('Invalid path');
-
-            headers = header.children ?? [];
-        }
-
-        if (header == null)
-            throw new Error('Empty path given');
-
-        return header;
     }
 
     #create(basedOn: Column<TData['row']>): Header<TData> {
@@ -97,8 +79,8 @@ export default class HeaderState<TData extends TableData> {
         };
     }
 
-    #addAllSubHeaders(header: Header<TData>) {
-        if (!header.children) return [this.#readonlyLeaf(header)];
+    #addAllSubHeaders(header: Header<TData>): ReadonlyLeafHeader<TData>[] {
+        if (!header.children) return [header];
 
         const addedLeafHeaders: ReadonlyLeafHeader<TData>[] = [];
         for (let i = 0; i <= header.column.children.length - 1; i++) {
@@ -106,7 +88,7 @@ export default class HeaderState<TData extends TableData> {
             header.children.push(toAdd);
 
             if (toAdd.children == null) {
-                addedLeafHeaders.push(this.#readonlyLeaf(toAdd));
+                addedLeafHeaders.push(toAdd);
                 continue;
             }
 
@@ -135,37 +117,12 @@ export default class HeaderState<TData extends TableData> {
         return -1;
     }
 
-    #readonlyLeaf(header: LeafHeader<TData>): ReadonlyLeafHeader<TData> {
-        return {
-            id: header.id,
-            column: header.column,
-            children: null
-        };
-    }
-
-    #readonlyGroup(header: HeaderGroup<TData>): ReadonlyHeaderGroup<TData> {
-        return {
-            id: header.id,
-            column: header.column,
-            children: this.#iterator(header.children)
-        };
-    }
-
-    * #iterator(headers: Header<TData>[]): Iterable<ReadonlyHeader<TData>> {
-        for (const header of headers) {
-            if (isHeaderGroup(header))
-                yield this.#readonlyGroup(header);
-            else
-                yield this.#readonlyLeaf(header);
-        }
-    }
-
-    * #leafIterator(headers: Header<TData>[]): Iterable<ReadonlyLeafHeader<TData>> {
+    * #leafIterator(headers: Header<TData>[]): IterableIterator<ReadonlyLeafHeader<TData>> {
         for (const header of headers) {
             if (isHeaderGroup(header))
                 yield* this.#leafIterator(header.children);
             else
-                yield this.#readonlyLeaf(header);
+                yield header;
         }
     }
 
@@ -174,7 +131,7 @@ export default class HeaderState<TData extends TableData> {
     };
 
     iterator() {
-        return this.#iterator(this.#headers);
+        return getIterableIterator(this.#headers);
     }
 
     leafIterator() {
@@ -234,10 +191,42 @@ export default class HeaderState<TData extends TableData> {
             position: this.#getLeafIndex(toAdd)
         });
 
-        this._jobBatch.add(this.#notifyChangedJob);
+        this._scheduler.add(this.#notifyChangedJob);
     };
 
+    getAtPath(path: TreePath): ReadonlyHeader<TData> {
+        let headers: Header<TData>[] = this.#headers;
+        let header: Header<TData> | null = null;
+
+        for (const index of path) {
+            header = headers[index];
+            if (header == null)
+                throw new Error('Invalid path');
+
+            headers = header.children ?? [];
+        }
+
+        if (header == null)
+            throw new Error('Empty path given');
+
+        return header;
+    }
+
     getColumnAtPath(path: TreePath): Column<TData['row']> {
-        return this.#atPath(path).column;
+        let columns: Column<TData['row']>[] = this._config.columns;
+        let column: Column<TData['row']> | null = null;
+
+        for (const index of path) {
+            column = columns[index];
+            if (column == null)
+                throw new Error('Invalid path');
+
+            columns = column.children ?? [];
+        }
+
+        if (column == null)
+            throw new Error('Empty path given');
+
+        return column;
     }
 }

@@ -1,6 +1,6 @@
 import StateSlice from '../StateSlice';
 
-export default class PageSlice extends StateSlice<object, object> {
+export default class PageSlice extends StateSlice<undefined> {
     #size: number = Infinity;
 
     getPageStartIndex(pageIndex: number) {

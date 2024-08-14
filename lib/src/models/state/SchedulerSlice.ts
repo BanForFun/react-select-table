@@ -7,7 +7,7 @@ type Job = () => void;
 
 type CommitStrategy = 'sync' | 'batch' | 'async';
 
-export default class SchedulerSlice extends StateSlice<object, object> {
+export default class SchedulerSlice extends StateSlice<undefined> {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
     #commitStrategy: CommitStrategy = 'async';

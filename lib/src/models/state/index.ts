@@ -11,6 +11,7 @@ import PageSlice from './PageSlice';
 import FilterSlice from './FilterSlice';
 import StateSlice from '../StateSlice';
 import { Dependencies } from '../Dependent';
+import { PartialByValue } from '../../utils/types';
 
 export default class State<TData extends TableData, TShared extends SliceKeys = never> {
     scheduler: SchedulerSlice;
@@ -30,10 +31,11 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
             createSlice: (config: State<TData>[TKey]['config']) => State<TData>[TKey]
         ): State<TData>[TKey] => {
             const configValue = config[key] as ConfigValue<State<TData>[TKey]>;
-            const slice = configValue instanceof StateSlice ? configValue : createSlice(configValue ?? {});
-            slice.assertCompatible(this);
+            if (!(configValue instanceof StateSlice))
+                return createSlice(configValue);
 
-            return slice;
+            configValue.assertCompatible(this);
+            return configValue;
         };
 
         this.scheduler = getSlice('scheduler', c => new SchedulerSlice(c, {}));
@@ -76,24 +78,18 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
 
 export type SliceKeys = keyof State<TableData>;
 
-type ConfigValue<TSlice extends StateSlice> = TSlice | TSlice['config'] | undefined;
+type ConfigValue<TSlice extends StateSlice> = TSlice | TSlice['config'];
 
-type NotSlice = { config?: never };
-
-type OptionalConfig<TData extends TableData> = {
-    [K in SliceKeys]?: State<TData>[K]['config'] & NotSlice
-}
-
-type RequiredConfigMask = {
-    [K in SliceKeys as object extends State<TableData>[K]['config'] ? never : K]: unknown
+type Config<TData extends TableData> = {
+    [K in SliceKeys]: State<TData>[K]['config']
 }
 
 type DependencyKeys<TName extends SliceKeys> = keyof Dependencies<State<TableData>[TName]> & SliceKeys;
 
 type SubDependencyKeys = {
-    [K in SliceKeys]: DependencyKeys<K> | SubDependencyKeys[DependencyKeys<K>]
+    [K in SliceKeys]: K | SubDependencyKeys[DependencyKeys<K>]
 };
 
-export type SharedConfig<TData extends TableData, TShared extends SliceKeys> = RequiredConfigMask & {
-    [K in SliceKeys]?: K extends (TShared | SubDependencyKeys[TShared]) ? State<TData>[K] : OptionalConfig<TData>[K]
-}
+export type SharedConfig<TData extends TableData, TShared extends SliceKeys> = PartialByValue<{
+    [K in SliceKeys]: K extends SubDependencyKeys[TShared] ? State<TData>[K & SliceKeys] : Config<TData>[K]
+}>

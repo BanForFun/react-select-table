@@ -22,7 +22,7 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderSlice<TData extends TableData> extends StateSlice<object, Dependencies> {
+export default class SortOrderSlice<TData extends TableData> extends StateSlice<undefined, Dependencies> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
 
     readonly changed = new Event();

@@ -4,7 +4,7 @@ import StateSlice from '../StateSlice';
 
 type PopCallback<TData extends TableData> = (action: Action<TData>) => Action<TData> | void;
 
-export default class HistorySlice<TData extends TableData> extends StateSlice<object, object> {
+export default class HistorySlice<TData extends TableData> extends StateSlice<undefined> {
     readonly #past: Action<TData>[] = [];
     #future: Action<TData>[] = [];
 

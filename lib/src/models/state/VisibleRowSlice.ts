@@ -14,7 +14,7 @@ interface Dependencies<TData extends TableData> {
     rows: RowSlice<TData>;
 }
 
-export default class VisibleRowSlice<TData extends TableData> extends StateSlice<object, Dependencies<TData>> {
+export default class VisibleRowSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
     #currentPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
     #nextPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
     #pageIndex: number = 0;

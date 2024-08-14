@@ -1,8 +1,4 @@
-export default class Dependent<
-    // TDeps extends { [K in keyof TDeps]: TAll[K] },
-    // TAll extends TDeps
-    TDeps extends object
-> {
+export default class Dependent<TDeps extends object = object> {
     #dependencies: TDeps;
 
     constructor(public dependencies: TDeps) {
@@ -17,4 +13,4 @@ export default class Dependent<
     }
 }
 
-export type Dependencies<T> = T extends Dependent<infer TDeps> ? TDeps : never;
+export type Dependencies<T extends Dependent> = T extends Dependent<infer TDeps> ? TDeps : never;

@@ -6,10 +6,18 @@ import {
 } from '../../utils/columnUtils';
 import { TreePath } from '../../utils/unrootedTreeUtils';
 import { Event } from '../Observable';
-import { Config, TableData } from '../../utils/configUtils';
-import JobScheduler from '../JobScheduler';
+import { TableData } from '../../utils/configUtils';
 import { getIterableIterator } from '../../utils/iterableUtils';
-import Dependent from '../Dependent';
+import StateSlice from '../StateSlice';
+import SchedulerSlice from './SchedulerSlice';
+
+interface HeaderConfig<TData extends TableData> {
+    columns: Column<TData['row']>[];
+}
+
+interface Dependencies {
+    scheduler: SchedulerSlice;
+}
 
 export type LeafHeaderUpdate<TData extends TableData> = {
     type: 'add' | 'remove';
@@ -53,15 +61,11 @@ function isHeaderGroup<TData extends TableData>(details: Header<TData>): details
     return isColumnGroup(details.column);
 }
 
-export default class HeaderState<TData extends TableData> extends Dependent {
+export default class HeaderSlice<TData extends TableData> extends StateSlice<HeaderConfig<TData>, Dependencies> {
     readonly #headers: Header<TData>[] = [];
 
     readonly leafChanged = new Event<LeafHeaderUpdate<TData>>();
     readonly changed = new Event();
-
-    constructor(private _config: Config<TData>, private _scheduler: JobScheduler) {
-        super({});
-    }
 
     #create(basedOn: Column<TData['row']>): Header<TData> {
         if (basedOn == null)
@@ -146,7 +150,7 @@ export default class HeaderState<TData extends TableData> extends Dependent {
         if (columnPath.length < headerPath.length)
             throw new Error('Cannot merge column groups');
 
-        let columns = this._config.columns;
+        let columns = this.config.columns;
         let headers = this.#headers;
         for (let pathIndex = 0; pathIndex < headerPath.length - 1; pathIndex++) {
             const columnIndex = columnPath[pathIndex];
@@ -192,7 +196,7 @@ export default class HeaderState<TData extends TableData> extends Dependent {
             position: this.#getLeafIndex(toAdd)
         });
 
-        this._scheduler.add(this.#notifyChangedJob);
+        this._state.scheduler._add(this.#notifyChangedJob);
     };
 
     getAtPath(path: TreePath): ReadonlyHeader<TData> {
@@ -214,7 +218,7 @@ export default class HeaderState<TData extends TableData> extends Dependent {
     }
 
     getColumnAtPath(path: TreePath): Column<TData['row']> {
-        let columns: Column<TData['row']>[] = this._config.columns;
+        let columns: Column<TData['row']>[] = this.config.columns;
         let column: Column<TData['row']> | null = null;
 
         for (const index of path) {

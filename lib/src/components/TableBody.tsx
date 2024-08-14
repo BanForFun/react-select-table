@@ -6,7 +6,7 @@ import DoublyLinkedList, { DoublyLinkedNodeWrapper } from '../models/DoublyLinke
 import useRequiredContext from '../hooks/useRequiredContext';
 import TableRow from './TableRow';
 import { log } from '../utils/debugUtils';
-import { Row } from '../models/state/RowState';
+import { Row } from '../models/state/RowSlice';
 import { namedTable, table } from '../utils/iteratorUtils';
 import { getIterator } from '../utils/iterableUtils';
 
@@ -60,7 +60,7 @@ export default function TableBody<TData extends TableData>() {
 
         setTimeout(() => {
             for (const rootNode of oldRootsHead.forwardIterator()) {
-                log('Unmounting root');
+                log('Unmounting row root');
                 rootNode.value.unmount();
             }
         });

@@ -1,19 +1,20 @@
-import { Config, TableData } from '../../utils/configUtils';
-import JobScheduler from '../JobScheduler';
-import PageState from './PageState';
-import RowState, { Row } from './RowState';
+import { TableData } from '../../utils/configUtils';
+import PageSlice from './PageSlice';
+import RowSlice, { Row } from './RowSlice';
 import { DoublyLinkedNodeWrapper } from '../DoublyLinkedList';
-import FilterState from './FilterState';
+import FilterSlice from './FilterSlice';
 import { Event } from '../Observable';
-import Dependent from '../Dependent';
+import StateSlice from '../StateSlice';
+import SchedulerSlice from './SchedulerSlice';
 
 interface Dependencies<TData extends TableData> {
-    page: PageState<TData>;
-    filter: FilterState<TData>;
-    rows: RowState<TData>;
+    scheduler: SchedulerSlice;
+    page: PageSlice;
+    filter: FilterSlice<TData>;
+    rows: RowSlice<TData>;
 }
 
-export default class VisibleRowState<TData extends TableData> extends Dependent<Dependencies<TData>> {
+export default class VisibleRowSlice<TData extends TableData> extends StateSlice<object, Dependencies<TData>> {
     #currentPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
     #nextPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
     #pageIndex: number = 0;
@@ -22,16 +23,10 @@ export default class VisibleRowState<TData extends TableData> extends Dependent<
     readonly changed = new Event();
     readonly added = new Event();
 
-    constructor(
-        private _config: Config<TData>,
-        private _scheduler: JobScheduler,
-        private _state: Dependencies<TData>
-    ) {
-        super(_state);
-
+    protected _init() {
         this._state.rows.added.addObserver(() => {
             this.#rebuildPage();
-            this._scheduler.add(this.added.notify);
+            this._state.scheduler._add(this.added.notify);
         });
     }
 

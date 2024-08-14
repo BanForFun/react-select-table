@@ -1,16 +1,12 @@
 import { Action } from '../Actions';
 import { TableData } from '../../utils/configUtils';
-import Dependent from '../Dependent';
+import StateSlice from '../StateSlice';
 
 type PopCallback<TData extends TableData> = (action: Action<TData>) => Action<TData> | void;
 
-export default class HistoryState<TData extends TableData> extends Dependent {
+export default class HistorySlice<TData extends TableData> extends StateSlice<object, object> {
     readonly #past: Action<TData>[] = [];
     #future: Action<TData>[] = [];
-
-    constructor() {
-        super({});
-    }
 
     pushAction(action: Action<TData>) {
         this.#past.push(action);

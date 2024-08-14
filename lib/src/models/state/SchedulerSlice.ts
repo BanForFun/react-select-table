@@ -1,12 +1,13 @@
-import { log } from '../utils/debugUtils';
-import { MaybePromise } from '../utils/types';
-import { Event } from './Observable';
+import { log } from '../../utils/debugUtils';
+import { MaybePromise } from '../../utils/types';
+import { Event } from '../Observable';
+import StateSlice from '../StateSlice';
 
 type Job = () => void;
 
 type CommitStrategy = 'sync' | 'batch' | 'async';
 
-export default class JobScheduler {
+export default class SchedulerSlice extends StateSlice<object, object> {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
     #commitStrategy: CommitStrategy = 'async';
@@ -18,31 +19,31 @@ export default class JobScheduler {
 
     #commit() {
         if (this.#commitStrategy === 'sync') {
-            this.#_cancelScheduledCommit();
-            this.#_commitSync();
+            this.#cancelScheduledCommit();
+            this.#commitSync();
             this.#done.notify();
         } else if (this.#commitStrategy === 'async')
-            this.#_scheduleCommit();
+            this.#scheduleCommit();
         else if (this.#commitStrategy === 'batch')
-            this.#_cancelScheduledCommit();
+            this.#cancelScheduledCommit();
     }
 
-    #_commitSync() {
+    #commitSync() {
         const job = this.#queuedJob;
         this.#queuedJob = null;
         job?.();
     }
 
-    #_cancelScheduledCommit() {
+    #cancelScheduledCommit() {
         if (this.#commitTimeout == null) return;
         clearTimeout(this.#commitTimeout);
         this.#commitTimeout = null;
     }
 
-    #_scheduleCommit() {
+    #scheduleCommit() {
         this.#commitTimeout ??= setTimeout(() => {
             this.#commitTimeout = null;
-            this.#_commitSync();
+            this.#commitSync();
             this.#done.notify();
         });
     }
@@ -55,10 +56,10 @@ export default class JobScheduler {
         this.#commitStrategy = oldStrategy;
     }
 
-    add(job: Job) {
+    _add(job: Job) {
         if (this.#hasJob && this.#queuedJob != job) {
-            this.#_cancelScheduledCommit();
-            this.#_commitSync();
+            this.#cancelScheduledCommit();
+            this.#commitSync();
             log('Commited job implicitly');
         }
 
@@ -66,7 +67,7 @@ export default class JobScheduler {
         this.#commit();
     }
 
-    whenFree(callback: () => void) {
+    _whenFree(callback: () => void) {
         if (!this.#hasJob)
             callback();
         else

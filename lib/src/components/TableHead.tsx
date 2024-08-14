@@ -1,11 +1,11 @@
 import React, { useEffect, useLayoutEffect } from 'react';
-import { ReadonlyHeader, LeafHeaderUpdate } from '../models/state/HeaderState';
+import { ReadonlyHeader, LeafHeaderUpdate } from '../models/state/HeaderSlice';
 import getTableContext from '../context/controllerContext';
 import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
 import useStateBuilder from '../hooks/useStateBuilder';
 import useRequiredContext from '../hooks/useRequiredContext';
-import { isSortableColumn, SortColumn } from '../models/state/SortOrderState';
+import { isSortableColumn, SortColumn } from '../models/state/SortOrderSlice';
 
 interface SortHeader {
     path: TreePath;

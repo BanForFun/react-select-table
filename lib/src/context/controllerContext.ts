@@ -1,5 +1,5 @@
 import { TableData } from '../utils/configUtils';
-import { LeafHeaderUpdate } from '../models/state/HeaderState';
+import { LeafHeaderUpdate } from '../models/state/HeaderSlice';
 import Controller from '../models/Controller';
 import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
 

@@ -1,11 +1,15 @@
-import { Config, TableData } from '../../utils/configUtils';
-import JobScheduler from '../JobScheduler';
+import { TableData } from '../../utils/configUtils';
+import SchedulerSlice from './SchedulerSlice';
 import { PickRequired } from '../../utils/types';
 import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
-import { NewSortOrder, SortOrder } from './HeaderState';
+import { NewSortOrder, SortOrder } from './HeaderSlice';
 import { indexOf } from '../../utils/iterableUtils';
 import { Event } from '../Observable';
-import Dependent from '../Dependent';
+import StateSlice from '../StateSlice';
+
+interface Dependencies {
+    scheduler: SchedulerSlice;
+}
 
 export interface SortColumn {
     order: SortOrder;
@@ -18,14 +22,10 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderState<TData extends TableData> extends Dependent {
+export default class SortOrderSlice<TData extends TableData> extends StateSlice<object, Dependencies> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
 
     readonly changed = new Event();
-
-    constructor(private _config: Config<TData>, private _scheduler: JobScheduler) {
-        super({});
-    }
 
     #notifyChangedJob = () => {
         this.changed.notify();
@@ -73,7 +73,7 @@ export default class SortOrderState<TData extends TableData> extends Dependent {
         else
             this.#sortOrders.set(column, resolvedOrder);
 
-        this._scheduler.add(this.#notifyChangedJob);
+        this._state.scheduler._add(this.#notifyChangedJob);
 
         return oldOrder;
     }

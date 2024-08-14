@@ -2,7 +2,7 @@ import { TreePath } from '../utils/unrootedTreeUtils';
 import State from './state';
 import { TableData } from '../utils/configUtils';
 import { mapMethods } from '../utils/objectUtils';
-import { NewSortOrder } from './state/HeaderState';
+import { NewSortOrder } from './state/HeaderSlice';
 
 export default class ActionHandlers<TData extends TableData> {
     readonly #creators: ActionCreators<TData>;

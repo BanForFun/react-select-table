@@ -1,30 +1,30 @@
 import { comparePrimitives } from '../../utils/sortUtils';
-import { Config, TableData } from '../../utils/configUtils';
+import { TableData } from '../../utils/configUtils';
 import { Event } from '../Observable';
-import JobScheduler from '../JobScheduler';
 import DoublyLinkedList from '../DoublyLinkedList';
-import SortOrderState from './SortOrderState';
-import Dependent from '../Dependent';
+import SortOrderSlice from './SortOrderSlice';
+import StateSlice from '../StateSlice';
+import SchedulerSlice from './SchedulerSlice';
+
+interface RowConfig<TData extends TableData> {
+    getRowKey: (row: TData['row']) => string;
+}
 
 interface Dependencies<TData extends TableData> {
-    sortOrder: SortOrderState<TData>;
+    scheduler: SchedulerSlice;
+    sortOrder: SortOrderSlice<TData>;
 }
 
 export type Row<TData extends TableData> = TData['row']; //Maybe cache key in the future
 
-export default class RowState<TData extends TableData> extends Dependent<Dependencies<TData>> {
+export default class RowSlice<TData extends TableData> extends StateSlice<RowConfig<TData>, Dependencies<TData>> {
     #rows = new DoublyLinkedList<Row<TData>>();
 
     readonly changed = new Event();
     readonly added = new Event();
 
-    constructor(
-        private _config: Config<TData>,
-        private _scheduler: JobScheduler,
-        private _state: Dependencies<TData>
-    ) {
-        super(_state);
-        this._state.sortOrder.changed.addObserver(this.#sortAll);
+    protected _init() {
+        this._state.sortOrder.changed.addObserver(() => this.#sortAll());
     }
 
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key in the future
@@ -36,7 +36,7 @@ export default class RowState<TData extends TableData> extends Dependent<Depende
         return comparePrimitives(this.getRowKey(a), this.getRowKey(b));
     };
 
-    #sortAll = () => {
+    #sortAll() {
         //TODO: Implement
 
         //this._scheduler.add(this.changed.notify);
@@ -44,7 +44,7 @@ export default class RowState<TData extends TableData> extends Dependent<Depende
 
     getRowKey = (row: Row<TData>) => {
         // Maybe load from cache in the future
-        return this._config.getRowKey(row);
+        return this.config.getRowKey(row);
     };
 
     iterator() {
@@ -67,6 +67,6 @@ export default class RowState<TData extends TableData> extends Dependent<Depende
                 existingRow = existingRows.next();
         }
 
-        this._scheduler.add(this.added.notify);
+        this._state.scheduler._add(this.added.notify);
     }
 }

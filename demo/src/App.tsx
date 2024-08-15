@@ -43,51 +43,49 @@ const controller = createController<Lesson>({
     rows: {
         getRowKey: l => l.name
     },
-    headers: {
-        columns: [
-            { header: 'Name', render: l => l.name },
-            {
-                header: 'Weekdays', children: [
-                    withContext(l => l.monday, lessonColumn('Monday')),
-                    withContext(l => l.tuesday, lessonColumn('Tuesday')),
-                    withContext(l => l.wednesday, lessonColumn('Wednesday')),
-                    withContext(l => l.thursday, lessonColumn('Thursday')),
-                    withContext(l => l.friday, lessonColumn('Friday'))
-                ]
-            },
-            {
-                header: 'Weekend', children: [
-                    withContext(l => l.saturday, lessonColumn('Saturday')),
-                    withContext(l => l.sunday, lessonColumn('Sunday'))
-                ]
-            }
-            // { header: 'r3,c1', render: () => 'c1' },
-            // {
-            //     header: 'r1,c2-3',
-            //     children: [
-            //         {
-            //             header: 'r2,c2',
-            //             children: [{ header: 'r3,c2', render: () => 'c2' }]
-            //         },
-            //         { header: 'r3,c3', render: () => 'c3' }
-            //     ]
-            // },
-            // {
-            //     header: 'r1,c4-5',
-            //     children: [
-            //         { header: 'r3,c4', render: () => 'c4' },
-            //         {
-            //             header: 'r2,c5',
-            //             children: [{ header: 'r3,c5', render: () => 'c5' }]
-            //         }
-            //     ]
-            // }
-        ]
-    }
+    columns: [
+        { header: 'Name', render: l => l.name },
+        {
+            header: 'Weekdays', children: [
+                withContext(l => l.monday, lessonColumn('Monday')),
+                withContext(l => l.tuesday, lessonColumn('Tuesday')),
+                withContext(l => l.wednesday, lessonColumn('Wednesday')),
+                withContext(l => l.thursday, lessonColumn('Thursday')),
+                withContext(l => l.friday, lessonColumn('Friday'))
+            ]
+        },
+        {
+            header: 'Weekend', children: [
+                withContext(l => l.saturday, lessonColumn('Saturday')),
+                withContext(l => l.sunday, lessonColumn('Sunday'))
+            ]
+        }
+        // { header: 'r3,c1', render: () => 'c1' },
+        // {
+        //     header: 'r1,c2-3',
+        //     children: [
+        //         {
+        //             header: 'r2,c2',
+        //             children: [{ header: 'r3,c2', render: () => 'c2' }]
+        //         },
+        //         { header: 'r3,c3', render: () => 'c3' }
+        //     ]
+        // },
+        // {
+        //     header: 'r1,c4-5',
+        //     children: [
+        //         { header: 'r3,c4', render: () => 'c4' },
+        //         {
+        //             header: 'r2,c5',
+        //             children: [{ header: 'r3,c5', render: () => 'c5' }]
+        //         }
+        //     ]
+        // }
+    ]
 });
 
 controller.state.scheduler.batch(() => {
-    for (let i = 0; i < controller.state.headers.config.columns.length; i++) {
+    for (let i = 0; i < controller.state.columns.config.length; i++) {
         controller.actions.addHeader([i], [i]);
     }
 

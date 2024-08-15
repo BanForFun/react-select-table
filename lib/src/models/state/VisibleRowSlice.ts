@@ -3,7 +3,7 @@ import PageSlice from './PageSlice';
 import RowSlice, { Row } from './RowSlice';
 import { DLNodeWrapper } from '../DLList';
 import FilterSlice from './FilterSlice';
-import { Event } from '../Observable';
+import Observable from '../Observable';
 import StateSlice from '../StateSlice';
 import SchedulerSlice from './SchedulerSlice';
 
@@ -20,8 +20,8 @@ export default class VisibleRowSlice<TData extends TableData> extends StateSlice
     #pageIndex: number = 0;
     #rowCount: number = 0;
 
-    readonly changed = new Event();
-    readonly added = new Event();
+    readonly changed = new Observable();
+    readonly added = new Observable();
 
     protected _init() {
         this._state.rows.added.addObserver(() => {

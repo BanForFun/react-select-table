@@ -2,13 +2,14 @@ import { TableData } from '../../utils/configUtils';
 import SchedulerSlice from './SchedulerSlice';
 import { PickRequired } from '../../utils/types';
 import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
-import { NewSortOrder, SortOrder } from './HeaderSlice';
 import { indexOf } from '../../utils/iterableUtils';
-import { Event } from '../Observable';
+import Observable from '../Observable';
 import StateSlice from '../StateSlice';
+import ColumnSlice, { NewSortOrder, SortByColumnArgs, SortOrder } from './ColumnSlice';
 
-interface Dependencies {
+interface Dependencies<TData extends TableData> {
     scheduler: SchedulerSlice;
+    columns: ColumnSlice<TData>;
 }
 
 export interface SortColumn {
@@ -22,10 +23,10 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderSlice<TData extends TableData> extends StateSlice<undefined, Dependencies> {
+export default class SortOrderSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
 
-    readonly changed = new Event();
+    readonly changed = new Observable();
 
     #notifyChangedJob = () => {
         this.changed.notify();
@@ -51,14 +52,7 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
         }
     }
 
-    get(column: SortableColumn<TData['row']>): SortColumn | null {
-        const order = this.#sortOrders.get(column);
-        if (order == null) return null;
-
-        return { index: indexOf(this.#sortOrders.keys(), column), order };
-    }
-
-    sortBy(column: Column<TData['row']>, newOrder: NewSortOrder, append: boolean) {
+    #sortBy({ column, newOrder, append }: SortByColumnArgs<TData>) {
         if (!isSortableColumn(column))
             throw new Error('Cannot sort by this column');
 
@@ -76,6 +70,17 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
         this._state.scheduler._add(this.#notifyChangedJob);
 
         return oldOrder;
+    };
+
+    protected _init() {
+        this._state.columns.sortByColumn.addObserver(a => this.#sortBy(a));
+    }
+
+    get(column: SortableColumn<TData['row']>): SortColumn | null {
+        const order = this.#sortOrders.get(column);
+        if (order == null) return null;
+
+        return { index: indexOf(this.#sortOrders.keys(), column), order };
     }
 
     compareRowData(a: TData['row'], b: TData['row']) {

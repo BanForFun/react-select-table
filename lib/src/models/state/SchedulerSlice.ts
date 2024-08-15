@@ -1,6 +1,6 @@
 import { log } from '../../utils/debugUtils';
 import { MaybePromise } from '../../utils/types';
-import { Event } from '../Observable';
+import Observable from '../Observable';
 import StateSlice from '../StateSlice';
 
 type Job = () => void;
@@ -11,7 +11,7 @@ export default class SchedulerSlice extends StateSlice<undefined> {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
     #commitStrategy: CommitStrategy = 'async';
-    #done = new Event();
+    #done = new Observable();
 
     get #hasJob() {
         return this.#queuedJob != null;

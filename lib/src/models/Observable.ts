@@ -32,7 +32,3 @@ export default class Observable<TArgs extends unknown[] = []> {
         this.#onceObservers.clear();
     };
 }
-
-export class Event<TArgs = undefined> extends Observable<TArgs extends undefined ? [] : [TArgs]> {
-
-}

@@ -1,23 +1,16 @@
-import {
-    Column,
-    LeafColumn,
-    ColumnGroup,
-    isColumnGroup
-} from '../../utils/columnUtils';
+import { Column, ColumnGroup, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
 import { TreePath } from '../../utils/unrootedTreeUtils';
-import { Event } from '../Observable';
+import Observable from '../Observable';
 import { TableData } from '../../utils/configUtils';
 import { getIterableIterator } from '../../utils/iterableUtils';
 import StateSlice from '../StateSlice';
 import SchedulerSlice from './SchedulerSlice';
 import { optional } from '../../utils/types';
+import ColumnSlice, { NewSortOrder } from './ColumnSlice';
 
-interface HeaderConfig<TData extends TableData> {
-    columns: Column<TData['row']>[];
-}
-
-interface Dependencies {
+interface Dependencies<TData extends TableData> {
     scheduler: SchedulerSlice;
+    columns: ColumnSlice<TData>;
 }
 
 interface BaseReadonlyHeader {
@@ -52,21 +45,39 @@ export type ReadonlyHeader<TData extends TableData> = ReadonlyLeafHeader<TData> 
 
 export type HeaderId = number;
 
-export type SortOrder = 'ascending' | 'descending';
-export type NewSortOrder = SortOrder | null | 'toggle' | 'cycle';
-
 let lastHeaderId = 0;
 
 function isHeaderGroup<TData extends TableData>(details: Header<TData>): details is HeaderGroup<TData> {
     return isColumnGroup(details.column);
 }
 
-export default class HeaderSlice<TData extends TableData> extends StateSlice<HeaderConfig<TData>, Dependencies> {
+export default class HeaderSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
     readonly #headers: Header<TData>[] = [];
 
-    readonly added = new Event<ReadonlyLeafHeader<TData>[]>();
-    readonly removed = new Event<ReadonlyLeafHeader<TData>[]>();
-    readonly changed = new Event();
+    readonly added = new Observable<[ReadonlyLeafHeader<TData>[]]>();
+    readonly changed = new Observable();
+
+    get #columns() {
+        return this._state.columns.config;
+    }
+
+    #getAtPath(path: TreePath): ReadonlyHeader<TData> {
+        let headers = this.#headers;
+        let header: Header<TData> | null = null;
+
+        for (const index of path) {
+            header = headers[index];
+            if (header == null)
+                throw new Error('Invalid path');
+
+            headers = header.children ?? [];
+        }
+
+        if (header == null)
+            throw new Error('Empty path given');
+
+        return header;
+    }
 
     #create(basedOn: Column<TData['row']>): Header<TData> {
         if (basedOn == null)
@@ -146,7 +157,7 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<Hea
         if (columnPath.length < headerPath.length)
             throw new Error('Cannot merge column groups');
 
-        let columns = this.config.columns;
+        let columns = this.#columns;
         let headers = this.#headers;
         for (let pathIndex = 0; pathIndex < headerPath.length - 1; pathIndex++) {
             const columnIndex = columnPath[pathIndex];
@@ -197,7 +208,7 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<Hea
 
         // Step 1: Go down to find the header
         let columnIndexNode = columnIndexRootNode;
-        let columns = optional(this.config.columns);
+        let columns = optional(this.#columns);
         let headers = this.#headers;
         let header: Header<TData> | null = null;
 
@@ -233,39 +244,8 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<Hea
         return columnIndexRootNode.children![0];
     }
 
-    getAtPath(path: TreePath): ReadonlyHeader<TData> {
-        let headers = this.#headers;
-        let header: Header<TData> | null = null;
-
-        for (const index of path) {
-            header = headers[index];
-            if (header == null)
-                throw new Error('Invalid path');
-
-            headers = header.children ?? [];
-        }
-
-        if (header == null)
-            throw new Error('Empty path given');
-
-        return header;
-    }
-
-    getColumnAtPath(path: TreePath): Column<TData['row']> {
-        let columns = this.config.columns;
-        let column: Column<TData['row']> | null = null;
-
-        for (const index of path) {
-            column = columns[index];
-            if (column == null)
-                throw new Error('Invalid path');
-
-            columns = column.children ?? [];
-        }
-
-        if (column == null)
-            throw new Error('Empty path given');
-
-        return column;
+    sortBy(path: TreePath, newOrder: NewSortOrder, append: boolean) {
+        const { column } = this.#getAtPath(path);
+        this._state.columns.sortByColumn.notify({ column, newOrder, append });
     }
 }

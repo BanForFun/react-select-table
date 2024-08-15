@@ -1,6 +1,6 @@
 import { comparePrimitives } from '../../utils/sortUtils';
 import { TableData } from '../../utils/configUtils';
-import { Event } from '../Observable';
+import Observable from '../Observable';
 import DLList, { RestrictedDLList, Sorted } from '../DLList';
 import SortOrderSlice from './SortOrderSlice';
 import StateSlice from '../StateSlice';
@@ -20,8 +20,8 @@ export type Row<TData extends TableData> = TData['row']; //Maybe cache key in th
 export default class RowSlice<TData extends TableData> extends StateSlice<RowConfig<TData>, Dependencies<TData>> {
     #rows = new DLList<Row<TData>>() as RestrictedDLList<Row<TData>, Sorted>;
 
-    readonly changed = new Event();
-    readonly added = new Event();
+    readonly changed = new Observable();
+    readonly added = new Observable();
 
     protected _init() {
         this._state.sortOrder.changed.addObserver(() => this.#sortAll());

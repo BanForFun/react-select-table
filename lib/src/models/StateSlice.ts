@@ -1,6 +1,7 @@
 import { assignDefaults, deepFreeze } from '../utils/objectUtils';
 
 export const sliceKeys = [
+    'columns',
     'scheduler',
     'headers',
     'sortOrder',

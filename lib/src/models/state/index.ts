@@ -12,6 +12,7 @@ import FilterSlice from './FilterSlice';
 import { dependenciesSymbol, sliceKeys, SliceKeys, Slices } from '../StateSlice';
 import { PartialByValue } from '../../utils/types';
 import { assign } from '../../utils/objectUtils';
+import ColumnSlice from './ColumnSlice';
 
 export default class State<TData extends TableData, TShared extends SliceKeys = never> implements Slices {
     scheduler: SchedulerSlice;
@@ -24,6 +25,7 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
     page: PageSlice;
     filter: FilterSlice<TData>;
     rows: RowSlice<TData>;
+    columns: ColumnSlice<TData>;
 
     #installDependencies(dependencies: Partial<State<TData>>) {
         for (const name of sliceKeys) {
@@ -51,12 +53,16 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
 
         this.filter ??= new FilterSlice(config.filter, {});
 
+        this.columns ??= new ColumnSlice(config.columns!, {});
+
         this.sortOrder ??= new SortOrderSlice(config.sortOrder, {
-            scheduler: this.scheduler
+            scheduler: this.scheduler,
+            columns: this.columns
         });
 
         this.headers ??= new HeaderSlice(config.headers!, {
-            scheduler: this.scheduler
+            scheduler: this.scheduler,
+            columns: this.columns
         });
 
         this.headerSizes ??= new HeaderSizeSlice(config.headerSizes!, {

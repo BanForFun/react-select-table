@@ -2,7 +2,8 @@ import { TreePath } from '../utils/unrootedTreeUtils';
 import State from './state';
 import { TableData } from '../utils/configUtils';
 import { mapMethods } from '../utils/objectUtils';
-import { NewSortOrder } from './state/HeaderSlice';
+
+import { NewSortOrder } from './state/ColumnSlice';
 
 export default class ActionHandlers<TData extends TableData> {
     readonly #creators: ActionCreators<TData>;
@@ -32,8 +33,8 @@ export default class ActionHandlers<TData extends TableData> {
     #dispatch = <TType extends ActionTypes<TData>>(action: Action<TData, TType>) => {
         const handler = this[action.type] as ActionHandler<TData, TType>;
         const undoAction = handler(...action.args);
-        if (undoAction)
-            this.#state.history.push(undoAction);
+        // if (undoAction)
+        //     this.#state.history.push(undoAction);
     };
 
     addHeader = (headerPath: TreePath, columnPath: TreePath) => {
@@ -41,7 +42,7 @@ export default class ActionHandlers<TData extends TableData> {
     };
 
     removeHeader = (headerPath: TreePath) => {
-        console.log(this.#state.headers.remove(headerPath));
+        this.#state.headers.remove(headerPath);
     };
 
     addRows = (data: TData['row'][]) => {
@@ -49,15 +50,11 @@ export default class ActionHandlers<TData extends TableData> {
     };
 
     sortByColumn = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const column = this.#state.headers.getColumnAtPath(path);
-        const oldOrder = this.#state.sortOrder.sortBy(column, newOrder, append);
-        return this.#creators.sortByColumn(path, oldOrder, false);
+        this.#state.columns.sortBy(path, newOrder, append);
     };
 
     sortByHeader = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        const header = this.#state.headers.getAtPath(path);
-        const oldOrder = this.#state.sortOrder.sortBy(header.column, newOrder, append);
-        return this.#creators.sortByHeader(path, oldOrder, false);
+        this.#state.headers.sortBy(path, newOrder, append);
     };
 }
 

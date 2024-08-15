@@ -1,15 +1,14 @@
 import { TableData } from '../utils/configUtils';
-import { LeafHeaderUpdate } from '../models/state/HeaderSlice';
 import Controller from '../models/Controller';
 import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
 
-export interface TableCallbacks<TData extends TableData> {
-    updateColumns?: (updates: LeafHeaderUpdate<TData>[]) => void;
+export interface TableCallbacks {
+    updateColumns?: () => void;
 }
 
 interface TableContextValue<TData extends TableData> {
     controller: Controller<TData>;
-    callbacks: TableCallbacks<TData>;
+    callbacks: TableCallbacks;
 }
 
 const TableContext = createRequiredContext<TableContextValue<TableData>>();

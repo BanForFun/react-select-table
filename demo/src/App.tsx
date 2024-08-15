@@ -138,6 +138,12 @@ function App() {
         </button>
 
         <button onClick={() => {
+            controller.actions.removeHeader(parseColumnPathInput(visibleColumnPathInputRef.current?.value));
+        }}>
+            Remove
+        </button>
+
+        <button onClick={() => {
             controller.actions.addRows([
                 { name: 'Lesson' + Date.now() }
             ]);

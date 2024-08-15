@@ -1,11 +1,11 @@
 import React, { useEffect, useLayoutEffect } from 'react';
-import { ReadonlyHeader, LeafHeaderUpdate } from '../models/state/HeaderSlice';
+import { ReadonlyHeader } from '../models/state/HeaderSlice';
 import getTableContext from '../context/controllerContext';
 import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
-import useStateBuilder from '../hooks/useStateBuilder';
 import useRequiredContext from '../hooks/useRequiredContext';
 import { isSortableColumn, SortColumn } from '../models/state/SortOrderSlice';
+import useUpdate from '../hooks/useUpdate';
 
 interface SortHeader {
     path: TreePath;
@@ -26,32 +26,20 @@ interface AddedVisibleHeader extends VisibleHeader {
 export default function TableHead<TData extends TableData>() {
     const { controller, callbacks } = useRequiredContext(getTableContext<TData>());
 
-    const [updates, modifyUpdates, commitUpdates] = useStateBuilder<LeafHeaderUpdate<TData>[]>(() => []);
+    const [updateHeaders, headersUpdated] = useUpdate();
+    const [updateSortOrder] = useUpdate();
 
     useEffect(() => {
-        return controller.state.headers.leafChanged.addObserver(args => {
-            modifyUpdates(updates => {
-                updates.push(args);
-                return updates;
-            });
-        });
-    }, [controller, modifyUpdates]);
+        return controller.state.headers.changed.addObserver(updateHeaders);
+    }, [controller, updateHeaders]);
 
     useEffect(() => {
-        return controller.state.headers.changed.addObserver(() => {
-            commitUpdates();
-        });
-    }, [controller, commitUpdates]);
-
-    useEffect(() => {
-        return controller.state.sortOrder.changed.addObserver(() => {
-            commitUpdates();
-        });
-    }, [controller, commitUpdates]);
+        return controller.state.sortOrder.changed.addObserver(updateSortOrder);
+    }, [controller, updateSortOrder]);
 
     useLayoutEffect(() => {
-        callbacks.updateColumns!(updates);
-    }, [updates, callbacks]);
+        callbacks.updateColumns!();
+    }, [headersUpdated, callbacks]);
 
     const headerRows: VisibleHeader[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;

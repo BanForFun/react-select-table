@@ -1,7 +1,7 @@
 const previousSymbol = Symbol('previous');
 const nextSymbol = Symbol('next');
 
-type DLNode<T = unknown> = T & {
+export type DLNode<T = unknown> = T & {
     [previousSymbol]: DLNode<T> | null;
     [nextSymbol]: DLNode<T> | null;
 };

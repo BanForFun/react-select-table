@@ -10,6 +10,7 @@ import { TableData } from '../../utils/configUtils';
 import { getIterableIterator } from '../../utils/iterableUtils';
 import StateSlice from '../StateSlice';
 import SchedulerSlice from './SchedulerSlice';
+import { optional } from '../../utils/types';
 
 interface HeaderConfig<TData extends TableData> {
     columns: Column<TData['row']>[];
@@ -18,12 +19,6 @@ interface HeaderConfig<TData extends TableData> {
 interface Dependencies {
     scheduler: SchedulerSlice;
 }
-
-export type LeafHeaderUpdate<TData extends TableData> = {
-    type: 'add' | 'remove';
-    position: number;
-    headers: ReadonlyLeafHeader<TData>[];
-};
 
 interface BaseReadonlyHeader {
     readonly id: HeaderId;
@@ -47,6 +42,11 @@ interface LeafHeader<TData extends TableData> extends ReadonlyLeafHeader<TData> 
 
 }
 
+interface ColumnIndexNode {
+    index: number;
+    children?: ColumnIndexNode[];
+}
+
 type Header<TData extends TableData> = HeaderGroup<TData> | LeafHeader<TData>;
 export type ReadonlyHeader<TData extends TableData> = ReadonlyLeafHeader<TData> | ReadonlyHeaderGroup<TData>;
 
@@ -64,7 +64,8 @@ function isHeaderGroup<TData extends TableData>(details: Header<TData>): details
 export default class HeaderSlice<TData extends TableData> extends StateSlice<HeaderConfig<TData>, Dependencies> {
     readonly #headers: Header<TData>[] = [];
 
-    readonly leafChanged = new Event<LeafHeaderUpdate<TData>>();
+    readonly added = new Event<ReadonlyLeafHeader<TData>[]>();
+    readonly removed = new Event<ReadonlyLeafHeader<TData>[]>();
     readonly changed = new Event();
 
     #create(basedOn: Column<TData['row']>): Header<TData> {
@@ -103,23 +104,18 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<Hea
         return addedLeafHeaders;
     }
 
-    #getLeafIndex(header: Header<TData>): number {
-        let index = 0;
-        const headerStack = [...this.#headers];
-        while (headerStack.length) {
-            const current = headerStack.pop()!;
-            if (current === header) return index;
+    #getLeafColumnIndices(header: Header<TData>): ColumnIndexNode[] | undefined {
+        if (!header.children) return;
 
-            if (!current.children) {
-                index++;
-                continue;
-            }
-
-            for (let i = current.children.length - 1; i >= 0; i--)
-                headerStack.push(current.children[i]);
+        const indexNodes: ColumnIndexNode[] = [];
+        for (const child of header.children) {
+            indexNodes.push({
+                index: header.column.children.indexOf(child.column),
+                children: this.#getLeafColumnIndices(child)
+            });
         }
 
-        return -1;
+        return indexNodes;
     }
 
     * #leafIterator(headers: Header<TData>[]): IterableIterator<ReadonlyLeafHeader<TData>> {
@@ -190,17 +186,55 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<Hea
         const addedHeaderIndex = headerPath[headerPath.length - 1];
         headers.splice(addedHeaderIndex, 0, toAdd);
 
-        this.leafChanged.notify({
-            type: 'add',
-            headers: this.#addAllSubHeaders(lastToAdd),
-            position: this.#getLeafIndex(toAdd)
-        });
+        this.added.notify(this.#addAllSubHeaders(lastToAdd));
 
         this._state.scheduler._add(this.#notifyChangedJob);
     };
 
+    remove(headerPath: TreePath) {
+        const siblingTrail: Header<TData>[][] = [];
+        const columnIndexRootNode: ColumnIndexNode = { index: -1 };
+
+        // Step 1: Go down to find the header
+        let columnIndexNode = columnIndexRootNode;
+        let columns = optional(this.config.columns);
+        let headers = this.#headers;
+        let header: Header<TData> | null = null;
+
+        for (const index of headerPath) {
+            header = headers[index];
+            if (header == null)
+                throw new Error('Invalid path');
+
+            siblingTrail.push(headers);
+            headers = header.children ?? [];
+
+            const columnIndex = columns!.indexOf(header.column);
+            columns = header.column.children;
+
+            columnIndexNode.children = [{ index: columnIndex }];
+            columnIndexNode = columnIndexNode.children[0];
+        }
+
+        // Step 2: Go down to find leaf headers
+        if (header == null) throw new Error('Empty path');
+        columnIndexNode.children = this.#getLeafColumnIndices(header);
+
+        // Step 3: Go up deleting empty parents
+        while (siblingTrail.length) {
+            const parent = siblingTrail.pop()!;
+            const index = headerPath.pop()!;
+
+            parent.splice(index, 1);
+            if (parent.length) break;
+        }
+
+        this._state.scheduler._add(this.#notifyChangedJob);
+        return columnIndexRootNode.children![0];
+    }
+
     getAtPath(path: TreePath): ReadonlyHeader<TData> {
-        let headers: Header<TData>[] = this.#headers;
+        let headers = this.#headers;
         let header: Header<TData> | null = null;
 
         for (const index of path) {
@@ -218,7 +252,7 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<Hea
     }
 
     getColumnAtPath(path: TreePath): Column<TData['row']> {
-        let columns: Column<TData['row']>[] = this.config.columns;
+        let columns = this.config.columns;
         let column: Column<TData['row']> | null = null;
 
         for (const index of path) {

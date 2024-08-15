@@ -44,3 +44,17 @@ export function* map<TSource, TResult>(
     for (const item of iterable)
         yield converter(item);
 }
+
+export function count(iterable: Iterable<unknown>): number {
+    const iterator = getIterator(iterable);
+
+    let count = 0;
+    let current = iterator.next();
+
+    while (!current.done) {
+        count++;
+        current = iterator.next();
+    }
+
+    return count;
+}

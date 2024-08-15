@@ -33,11 +33,15 @@ export default class ActionHandlers<TData extends TableData> {
         const handler = this[action.type] as ActionHandler<TData, TType>;
         const undoAction = handler(...action.args);
         if (undoAction)
-            this.#state.history.pushAction(undoAction);
+            this.#state.history.push(undoAction);
     };
 
     addHeader = (headerPath: TreePath, columnPath: TreePath) => {
         this.#state.headers.add(headerPath, columnPath);
+    };
+
+    removeHeader = (headerPath: TreePath) => {
+        console.log(this.#state.headers.remove(headerPath));
     };
 
     addRows = (data: TData['row'][]) => {

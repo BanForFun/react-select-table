@@ -22,9 +22,7 @@ export default function TableBody<TData extends TableData>() {
     const [tableBody] = useState<HTMLTableSectionElement>(() => document.createElement('tbody'));
     const [rowRoots] = useState(() => new DLList<RowRootNode>());
 
-    callbacks.updateColumns = updates => {
-        if (!updates.length) return;
-
+    callbacks.updateColumns = () => {
         const rows = controller.state.visibleRows.iterator();
         const rootNodes = rowRoots.head.forwardIterator();
 

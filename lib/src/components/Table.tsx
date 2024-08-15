@@ -10,7 +10,7 @@ interface Props<TData extends TableData> {
 }
 
 export default function Table<TData extends TableData>({ controller }: Props<TData>) {
-    const [callbacks] = useState<TableCallbacks<TData>>({});
+    const [callbacks] = useState<TableCallbacks>({});
     const contextValue = useMemo(() => ({ controller, callbacks }), [controller, callbacks]);
 
     const TableContext = getTableContext<TData>();

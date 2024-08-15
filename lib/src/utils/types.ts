@@ -22,3 +22,11 @@ export type PickExisting<T, K> = Pick<T, K & keyof T>;
 export type PartialByValue<T, D = undefined> = Partial<T> & {
     [K in keyof T as D extends T[K] ? never : K]: T[K]
 }
+
+export function nullable<T>(value: T): T | null {
+    return value;
+}
+
+export function optional<T>(value: T): T | undefined {
+    return value;
+}

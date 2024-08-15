@@ -2,18 +2,20 @@ import { Action } from '../Actions';
 import { TableData } from '../../utils/configUtils';
 import StateSlice from '../StateSlice';
 
-type PopCallback<TData extends TableData> = (action: Action<TData>) => Action<TData> | void;
+type ActionGroup<TData extends TableData> = Action<TData> | ActionGroup<TData>[];
+
+type PopCallback<TData extends TableData> = (action: ActionGroup<TData>) => ActionGroup<TData> | void;
 
 export default class HistorySlice<TData extends TableData> extends StateSlice<undefined> {
-    readonly #past: Action<TData>[] = [];
-    #future: Action<TData>[] = [];
+    readonly #past: ActionGroup<TData>[] = [];
+    #future: ActionGroup<TData>[] = [];
 
-    pushAction(action: Action<TData>) {
+    push(action: ActionGroup<TData>) {
         this.#past.push(action);
         this.#future = [];
     }
 
-    #pop(source: Action<TData>[], dest: Action<TData>[], callback: PopCallback<TData>) {
+    #pop(source: ActionGroup<TData>[], dest: ActionGroup<TData>[], callback: PopCallback<TData>) {
         const action = source.pop();
         if (!action) return;
 

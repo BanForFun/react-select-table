@@ -1,7 +1,7 @@
 export default class Dependent<TDeps extends object = object> {
     #dependencies: TDeps;
 
-    constructor(public dependencies: TDeps) {
+    constructor(dependencies: TDeps) {
         this.#dependencies = dependencies;
     }
 

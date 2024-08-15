@@ -17,7 +17,7 @@ export type MaybePromise<T> = T | Promise<T> | PromiseLike<T>;
 
 export type OmitStrict<T, K extends keyof T> = Omit<T, K> & NeverKeys<K>;
 
-export type NeverKeys<K extends ObjectKey> = Partial<Record<K, never>>;
+export type NeverKeys<K extends ObjectKey = string> = Partial<Record<K, never>>;
 
 export type ObjectValue<O extends object> = O[keyof O];
 

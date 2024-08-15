@@ -1,6 +1,7 @@
 import { TableData } from '../utils/configUtils';
-import State, { SharedConfig, SliceKeys } from './state';
+import State, { SharedConfig } from './state';
 import ActionHandlers, { ActionDispatchers } from './Actions';
+import { SliceKeys } from './StateSlice';
 
 export default class Controller<TData extends TableData> {
     readonly actions: ActionDispatchers<TData>;

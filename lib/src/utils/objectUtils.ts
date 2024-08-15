@@ -22,6 +22,17 @@ export function assignDefaults<
     return object as TObject & TSource;
 }
 
+export function assign<
+    TObject extends TSource,
+    TSource extends { [key in keyof TSource]: TObject[key] }
+>(object: TObject, source: TSource): TObject & TSource {
+    for (const key in source) {
+        object[key] = source[key];
+    }
+
+    return object as TObject & TSource;
+}
+
 export function buildObject<T>(builder: (result: Partial<T>) => void) {
     const result = {} as Partial<T>;
     builder(result);

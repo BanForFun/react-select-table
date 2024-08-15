@@ -58,3 +58,14 @@ export function mapMethods<TSource extends Record<keyof TSource, (...args: never
 ): { [K in keyof TSource]: ReturnType<typeof map<K>> } {
     return mapValues(obj, map);
 }
+
+export function extract<TObject extends object, TValue>(object: TObject, isValue: (v: unknown) => v is TValue) {
+    const result = {} as Record<keyof TObject, TValue>;
+
+    for (const key in object) {
+        if (!isValue(object[key])) continue;
+        result[key] = object[key];
+    }
+
+    return result;
+}

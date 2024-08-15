@@ -9,10 +9,10 @@ import VisibleRowSlice from './VisibleRowSlice';
 import SelectionSlice from './SelectionSlice';
 import PageSlice from './PageSlice';
 import FilterSlice from './FilterSlice';
-import StateSlice, { dependenciesSymbol, sliceKeys, SliceKeys, Slices } from '../StateSlice';
+import { dependenciesSymbol, sliceKeys, SliceKeys, Slices } from '../StateSlice';
 import { Dependencies } from '../Dependent';
 import { PartialByValue } from '../../utils/types';
-import { assignDefaults } from '../../utils/objectUtils';
+import { assign } from '../../utils/objectUtils';
 
 export default class State<TData extends TableData, TShared extends SliceKeys = never> implements Slices {
     scheduler: SchedulerSlice;
@@ -38,62 +38,49 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
                 throw new Error('Incompatible dependencies');
         }
 
-        assignDefaults(this, dependencies);
+        assign(this, dependencies);
     }
 
-    constructor(config: SharedConfig<TData, TShared>) {
-        for (const name of sliceKeys) {
-            if (config[name] instanceof StateSlice)
-                this.#installDependencies(config[name][dependenciesSymbol]);
-        }
+    constructor(slices: SharedSlices<TData, TShared>, config: SharedConfig<TData, TShared>) {
+        this.#installDependencies(slices);
 
-        const getSlice = <TKey extends SliceKeys>(
-            key: TKey,
-            createSlice: (config: State<TData>[TKey]['config']) => State<TData>[TKey]
-        ): State<TData>[TKey] => {
-            const configValue = config[key] as ConfigValue<State<TData>[TKey]>;
-            return configValue instanceof StateSlice ? configValue : createSlice(configValue);
-        };
+        this.scheduler ??= new SchedulerSlice(config.scheduler, {});
 
-        this.scheduler = getSlice('scheduler', c => new SchedulerSlice(c, {}));
+        this.history ??= new HistorySlice(config.history, {});
 
-        this.history = getSlice('history', c => new HistorySlice(c, {}));
+        this.page ??= new PageSlice(config.page, {});
 
-        this.page = getSlice('page', c => new PageSlice(c, {}));
+        this.filter ??= new FilterSlice(config.filter, {});
 
-        this.filter = getSlice('filter', c => new FilterSlice(c, {}));
-
-        this.sortOrder = getSlice('sortOrder', c => new SortOrderSlice(c, {
+        this.sortOrder ??= new SortOrderSlice(config.sortOrder, {
             scheduler: this.scheduler
-        }));
+        });
 
-        this.headers = getSlice('headers', c => new HeaderSlice(c, {
+        this.headers ??= new HeaderSlice(config.headers!, {
             scheduler: this.scheduler
-        }));
+        });
 
-        this.headerSizes = getSlice('headerSizes', c => new HeaderSizeSlice(c, {
+        this.headerSizes ??= new HeaderSizeSlice(config.headerSizes!, {
             headers: this.headers
-        }));
+        });
 
-        this.rows = getSlice('rows', c => new RowSlice(c, {
+        this.rows ??= new RowSlice(config.rows!, {
             scheduler: this.scheduler,
             sortOrder: this.sortOrder
-        }));
+        });
 
-        this.selection = getSlice('selection', c => new SelectionSlice(c, {
+        this.selection ??= new SelectionSlice(config.selection, {
             rows: this.rows
-        }));
+        });
 
-        this.visibleRows = getSlice('visibleRows', c => new VisibleRowSlice(c, {
+        this.visibleRows ??= new VisibleRowSlice(config.visibleRows, {
             scheduler: this.scheduler,
             page: this.page,
             rows: this.rows,
             filter: this.filter
-        }));
+        });
     }
 }
-
-type ConfigValue<TSlice extends StateSlice> = TSlice | TSlice['config'];
 
 type DependencyKeys<TName extends SliceKeys> = keyof Dependencies<State<TableData>[TName]> & SliceKeys;
 
@@ -101,7 +88,16 @@ type SubDependencyKeys = {
     [K in SliceKeys]: DependencyKeys<K> | SubDependencyKeys[DependencyKeys<K>]
 };
 
+
+export type SharedSlices<TData extends TableData, TShared extends SliceKeys> = PartialByValue<{
+    [K in SliceKeys]: K extends Exclude<TShared, SubDependencyKeys[TShared]> ? State<TData>[K] : undefined
+}>
+
 export type SharedConfig<TData extends TableData, TShared extends SliceKeys> = PartialByValue<{
+    [K in SliceKeys]: K extends TShared | SubDependencyKeys[TShared] ? undefined : State<TData>[K]['config']
+}>
+
+export type Shared<TData extends TableData, TShared extends SliceKeys> = PartialByValue<{
     [K in SliceKeys]: K extends SubDependencyKeys[TShared] ? undefined :
         K extends TShared ? State<TData>[K] : State<TData>[K]['config']
 }>

@@ -1,5 +1,5 @@
 import { TableData } from '../utils/configUtils';
-import State, { SharedConfig } from './state';
+import State, { SharedConfig, SharedSlices } from './state';
 import ActionHandlers, { ActionDispatchers } from './Actions';
 import { SliceKeys } from './StateSlice';
 
@@ -17,7 +17,7 @@ export function createController<
     TError extends NonNullable<unknown> = never,
     TFilter extends NonNullable<unknown> = never
 >(config: SharedConfig<TableData<TRow, TError, TFilter>, never>) {
-    return new Controller(new State(config));
+    return new Controller(new State({}, config));
 }
 
 // Public
@@ -26,6 +26,9 @@ export function createSharedController<
     TRow extends object,
     TError extends NonNullable<unknown> = never,
     TFilter extends NonNullable<unknown> = never
->(config: SharedConfig<TableData<TRow, TError, TFilter>, TShared>) {
-    return new Controller(new State(config));
+>(
+    slices: SharedSlices<TableData<TRow, TError, TFilter>, TShared>,
+    config: SharedConfig<TableData<TRow, TError, TFilter>, TShared>
+) {
+    return new Controller(new State(slices, config));
 }

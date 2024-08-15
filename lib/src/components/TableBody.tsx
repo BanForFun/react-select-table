@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import getTableContext from '../context/controllerContext';
 import { TableData } from '../utils/configUtils';
-import DoublyLinkedList, { DoublyLinkedNodeWrapper } from '../models/DoublyLinkedList';
+import DLList, { DLNodeWrapper } from '../models/DLList';
 import useRequiredContext from '../hooks/useRequiredContext';
 import TableRow from './TableRow';
 import { log } from '../utils/debugUtils';
@@ -20,7 +20,7 @@ export default function TableBody<TData extends TableData>() {
     const { controller, callbacks } = useRequiredContext(getTableContext<TData>());
 
     const [tableBody] = useState<HTMLTableSectionElement>(() => document.createElement('tbody'));
-    const [rowRoots] = useState(() => new DoublyLinkedList<RowRootNode>());
+    const [rowRoots] = useState(() => new DLList<RowRootNode>());
 
     callbacks.updateColumns = updates => {
         if (!updates.length) return;
@@ -108,7 +108,7 @@ export default function TableBody<TData extends TableData>() {
 
         rowRoots.unlinkRight(root.value.node);
 
-        const node = new DoublyLinkedNodeWrapper(root.value.node);
+        const node = new DLNodeWrapper(root.value.node);
         setTimeout(() => {
             for (const rootNode of node.forwardIterator()) {
                 log('Unmounting unused row root');

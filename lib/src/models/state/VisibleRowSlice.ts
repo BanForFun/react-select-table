@@ -1,7 +1,7 @@
 import { TableData } from '../../utils/configUtils';
 import PageSlice from './PageSlice';
 import RowSlice, { Row } from './RowSlice';
-import { DoublyLinkedNodeWrapper } from '../DoublyLinkedList';
+import { DLNodeWrapper } from '../DLList';
 import FilterSlice from './FilterSlice';
 import { Event } from '../Observable';
 import StateSlice from '../StateSlice';
@@ -15,8 +15,8 @@ interface Dependencies<TData extends TableData> {
 }
 
 export default class VisibleRowSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
-    #currentPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
-    #nextPageHead = new DoublyLinkedNodeWrapper<Row<TData>>();
+    #currentPageHead = new DLNodeWrapper<Row<TData>>();
+    #nextPageHead = new DLNodeWrapper<Row<TData>>();
     #pageIndex: number = 0;
     #rowCount: number = 0;
 

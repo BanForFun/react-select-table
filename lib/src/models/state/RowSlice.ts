@@ -1,7 +1,7 @@
 import { comparePrimitives } from '../../utils/sortUtils';
 import { TableData } from '../../utils/configUtils';
 import { Event } from '../Observable';
-import DoublyLinkedList from '../DoublyLinkedList';
+import DLList, { RestrictedDLList, Sorted } from '../DLList';
 import SortOrderSlice from './SortOrderSlice';
 import StateSlice from '../StateSlice';
 import SchedulerSlice from './SchedulerSlice';
@@ -18,7 +18,7 @@ interface Dependencies<TData extends TableData> {
 export type Row<TData extends TableData> = TData['row']; //Maybe cache key in the future
 
 export default class RowSlice<TData extends TableData> extends StateSlice<RowConfig<TData>, Dependencies<TData>> {
-    #rows = new DoublyLinkedList<Row<TData>>();
+    #rows = new DLList<Row<TData>>() as RestrictedDLList<Row<TData>, Sorted>;
 
     readonly changed = new Event();
     readonly added = new Event();
@@ -55,21 +55,9 @@ export default class RowSlice<TData extends TableData> extends StateSlice<RowCon
     }
 
     add(rowData: TData['row'][]) {
-        const existingRows = this.#rows.head.forwardIterator();
-        const newRows: Row<TData>[] = rowData.map(this.#createRow).sort(this.#compareRows);
+        const newRows: Row<TData>[] = rowData.map(this.#createRow);
 
-        let rowIndex = 0;
-        let existingRow = existingRows.next();
-
-        while (!existingRow.done || rowIndex < newRows.length) {
-            if (existingRow.done)
-                this.#rows.append(newRows[rowIndex++]);
-            else if (rowIndex < newRows.length && this.#compareRows(newRows[rowIndex], existingRow.value) < 0)
-                this.#rows.prepend(newRows[rowIndex++], existingRow.value);
-            else
-                existingRow = existingRows.next();
-        }
-
+        this.#rows.add(newRows, this.#compareRows);
         this._state.scheduler._add(this.added.notify);
     }
 }

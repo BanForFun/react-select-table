@@ -1,21 +1,23 @@
 const previousSymbol = Symbol('previous');
 const nextSymbol = Symbol('next');
 
-type DoublyLinkedNode<T = unknown> = T & {
-    [previousSymbol]: DoublyLinkedNode<T> | null;
-    [nextSymbol]: DoublyLinkedNode<T> | null;
+type DLNode<T = unknown> = T & {
+    [previousSymbol]: DLNode<T> | null;
+    [nextSymbol]: DLNode<T> | null;
 };
 
-function getNextNode<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
+type Comparator<T> = (a: T, b: T) => number;
+
+function getNextNode<T>(node: DLNode<T> | null): DLNode<T> | null {
     return node == null ? null : node[nextSymbol];
 }
 
-function getPreviousNode<T>(node: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> | null {
+function getPreviousNode<T>(node: DLNode<T> | null): DLNode<T> | null {
     return node == null ? null : node[previousSymbol];
 }
 
-class ConstDoublyLinkedNodeWrapper<T> {
-    constructor(protected _node: DoublyLinkedNode<T> | null = null) {
+class ConstDLNodeWrapper<T> {
+    constructor(protected _node: DLNode<T> | null = null) {
 
     }
 
@@ -31,7 +33,7 @@ class ConstDoublyLinkedNodeWrapper<T> {
         return getNextNode(this.current);
     }
 
-    * #iterator(direction: keyof DoublyLinkedNode) {
+    * #iterator(direction: keyof DLNode) {
         let current = this._node;
         while (current != null) {
             yield current;
@@ -48,30 +50,30 @@ class ConstDoublyLinkedNodeWrapper<T> {
     }
 }
 
-class ReadonlyDoublyLinkedNodeWrapper<T> extends ConstDoublyLinkedNodeWrapper<T> {
+class ReadonlyDLNodeWrapper<T> extends ConstDLNodeWrapper<T> {
     persist() {
-        return new ConstDoublyLinkedNodeWrapper(this._node);
+        return new ConstDLNodeWrapper(this._node);
     }
 }
 
-export class DoublyLinkedNodeWrapper<T> extends ReadonlyDoublyLinkedNodeWrapper<T> {
+export class DLNodeWrapper<T> extends ReadonlyDLNodeWrapper<T> {
     clear() {
         this._node = null;
     }
 
-    set(node: DoublyLinkedNode<T> | null): void {
+    set(node: DLNode<T> | null): void {
         this._node = node;
     }
 }
 
-export default class DoublyLinkedList<T extends object> {
-    #head = new DoublyLinkedNodeWrapper<T>();
-    #tail = new DoublyLinkedNodeWrapper<T>();
+export default class DLList<T extends object = object> {
+    #head = new DLNodeWrapper<T>();
+    #tail = new DLNodeWrapper<T>();
 
     // #nodeCount: number = 0;
 
-    #link(previous: DoublyLinkedNode<T> | null, node: T, next: DoublyLinkedNode<T> | null): DoublyLinkedNode<T> {
-        const linked: DoublyLinkedNode<T> = Object.assign(node, {
+    #link(previous: DLNode<T> | null, node: T, next: DLNode<T> | null): DLNode<T> {
+        const linked: DLNode<T> = Object.assign(node, {
             [previousSymbol]: previous,
             [nextSymbol]: next
         });
@@ -90,7 +92,7 @@ export default class DoublyLinkedList<T extends object> {
         return linked;
     }
 
-    #order(first: DoublyLinkedNode<T> | null, second: DoublyLinkedNode<T> | null): void {
+    #order(first: DLNode<T> | null, second: DLNode<T> | null): void {
         if (first != null)
             first[nextSymbol] = second;
         else
@@ -102,10 +104,10 @@ export default class DoublyLinkedList<T extends object> {
             this.#tail.set(first);
     }
 
-    sort(comparator: (a: T, b: T) => number) {
+    sort(comparator: Comparator<T>) {
         const nodes = [...this.head.forwardIterator()].sort(comparator);
 
-        let prevNode: DoublyLinkedNode<T> | null = null;
+        let prevNode: DLNode<T> | null = null;
         for (const node of nodes) {
             this.#order(prevNode, node);
             prevNode = node;
@@ -114,7 +116,7 @@ export default class DoublyLinkedList<T extends object> {
         this.#order(prevNode, null);
     }
 
-    unlink(node: DoublyLinkedNode<T>) {
+    unlink(node: DLNode<T>) {
         if (node[previousSymbol] != null)
             node[previousSymbol][nextSymbol] = node[nextSymbol];
         else
@@ -128,11 +130,11 @@ export default class DoublyLinkedList<T extends object> {
         // this.#nodeCount--;
     }
 
-    unlinkRight(node: DoublyLinkedNode<T>) {
+    unlinkRight(node: DLNode<T>) {
         this.#order(node[previousSymbol], null);
     }
 
-    unlinkLeft(node: DoublyLinkedNode<T>) {
+    unlinkLeft(node: DLNode<T>) {
         this.#order(null, node[nextSymbol]);
     }
 
@@ -154,6 +156,22 @@ export default class DoublyLinkedList<T extends object> {
             this.unlink(this.#head.current);
     }
 
+    add(items: T[], comparator: Comparator<T>) {
+        items.sort(comparator);
+
+        let newIndex = 0;
+        let existingItem = this.#head.current;
+
+        while (existingItem != null || newIndex < items.length) {
+            if (existingItem == null)
+                this.append(items[newIndex++]);
+            else if (newIndex < items.length && comparator(items[newIndex], existingItem) < 0)
+                this.prepend(items[newIndex++], existingItem);
+            else
+                existingItem = existingItem[nextSymbol];
+        }
+    }
+
     clear() {
         this.#head.clear();
         this.#tail.clear();
@@ -164,11 +182,20 @@ export default class DoublyLinkedList<T extends object> {
     //     return this.#nodeCount;
     // }
 
-    get head(): ReadonlyDoublyLinkedNodeWrapper<T> {
+    get head(): ReadonlyDLNodeWrapper<T> {
         return this.#head;
     }
 
-    get tail(): ReadonlyDoublyLinkedNodeWrapper<T> {
+    get tail(): ReadonlyDLNodeWrapper<T> {
         return this.#tail;
     }
 }
+
+type Functions = keyof DLList;
+
+type Allow<T extends Functions> = T;
+
+export type Sorted = Allow<'sort' | 'unlink' | 'unlinkLeft' | 'unlinkRight' | 'pop' | 'shift' | 'add' | 'clear' | 'head' | 'tail'>
+
+export type RestrictedDLList<T extends object, TAllow extends Functions> =
+    DLList<T> & Record<Exclude<Functions, TAllow>, never>;

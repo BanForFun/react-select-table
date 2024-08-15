@@ -1,4 +1,3 @@
-import Dependent from './Dependent';
 import { assignDefaults, deepFreeze } from '../utils/objectUtils';
 
 export const sliceKeys = [
@@ -23,7 +22,7 @@ export const dependenciesSymbol = Symbol('dependencies');
 export default abstract class StateSlice<
     TConf extends object | undefined = object | undefined,
     TState extends Partial<Slices> = object,
-> extends Dependent<TState> {
+> {
     [dependenciesSymbol]: TState;
 
     protected get _state() {
@@ -31,7 +30,6 @@ export default abstract class StateSlice<
     }
 
     constructor(public config: TConf, state: TState) {
-        super(state);
         this[dependenciesSymbol] = state;
         deepFreeze(config);
 

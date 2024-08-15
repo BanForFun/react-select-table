@@ -28,9 +28,15 @@ export default class VisibleRowSlice<TData extends TableData> extends StateSlice
             this.#rebuildPage();
             this._state.scheduler._add(this.added.notify);
         });
+
+        this._state.rows.changed.addObserver(() => {
+            this.#pageIndex = 0;
+            this.#rebuildPage();
+            this._state.scheduler._add(this.changed.notify);
+        });
     }
 
-    #rebuildPage = () => {
+    #rebuildPage() {
         this.#rowCount = 0;
         this.#currentPageHead.clear();
         this.#nextPageHead.clear();

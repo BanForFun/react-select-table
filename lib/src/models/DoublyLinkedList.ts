@@ -1,7 +1,7 @@
 const previousSymbol = Symbol('previous');
 const nextSymbol = Symbol('next');
 
-export type DoublyLinkedNode<T> = T & {
+type DoublyLinkedNode<T = unknown> = T & {
     [previousSymbol]: DoublyLinkedNode<T> | null;
     [nextSymbol]: DoublyLinkedNode<T> | null;
 };
@@ -31,20 +31,20 @@ class ConstDoublyLinkedNodeWrapper<T> {
         return getNextNode(this.current);
     }
 
-    * forwardIterator() {
+    * #iterator(direction: keyof DoublyLinkedNode) {
         let current = this._node;
         while (current != null) {
             yield current;
-            current = current[nextSymbol];
+            current = current[direction];
         }
     }
 
-    * backwardIterator() {
-        let current = this._node;
-        while (current != null) {
-            yield current;
-            current = current[previousSymbol];
-        }
+    forwardIterator() {
+        return this.#iterator(nextSymbol);
+    }
+
+    backwardIterator() {
+        return this.#iterator(previousSymbol);
     }
 }
 
@@ -90,6 +90,30 @@ export default class DoublyLinkedList<T extends object> {
         return linked;
     }
 
+    #order(first: DoublyLinkedNode<T> | null, second: DoublyLinkedNode<T> | null): void {
+        if (first != null)
+            first[nextSymbol] = second;
+        else
+            this.#head.set(second);
+
+        if (second != null)
+            second[previousSymbol] = first;
+        else
+            this.#tail.set(first);
+    }
+
+    sort(comparator: (a: T, b: T) => number) {
+        const nodes = [...this.head.forwardIterator()].sort(comparator);
+
+        let prevNode: DoublyLinkedNode<T> | null = null;
+        for (const node of nodes) {
+            this.#order(prevNode, node);
+            prevNode = node;
+        }
+
+        this.#order(prevNode, null);
+    }
+
     unlink(node: DoublyLinkedNode<T>) {
         if (node[previousSymbol] != null)
             node[previousSymbol][nextSymbol] = node[nextSymbol];
@@ -104,18 +128,13 @@ export default class DoublyLinkedList<T extends object> {
         // this.#nodeCount--;
     }
 
-    order(first: DoublyLinkedNode<T> | null, second: DoublyLinkedNode<T> | null): void {
-        if (first != null)
-            first[nextSymbol] = second;
-        else
-            this.#head.set(second);
-
-        if (second != null)
-            second[previousSymbol] = first;
-        else
-            this.#tail.set(first);
+    unlinkRight(node: DoublyLinkedNode<T>) {
+        this.#order(node[previousSymbol], null);
     }
 
+    unlinkLeft(node: DoublyLinkedNode<T>) {
+        this.#order(null, node[nextSymbol]);
+    }
 
     append(node: T, after = this.#tail.current) {
         return this.#link(after, node, getNextNode(after));

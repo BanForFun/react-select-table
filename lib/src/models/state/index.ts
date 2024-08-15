@@ -10,7 +10,6 @@ import SelectionSlice from './SelectionSlice';
 import PageSlice from './PageSlice';
 import FilterSlice from './FilterSlice';
 import { dependenciesSymbol, sliceKeys, SliceKeys, Slices } from '../StateSlice';
-import { Dependencies } from '../Dependent';
 import { PartialByValue } from '../../utils/types';
 import { assign } from '../../utils/objectUtils';
 
@@ -82,10 +81,10 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
     }
 }
 
-type DependencyKeys<TName extends SliceKeys> = keyof Dependencies<State<TableData>[TName]> & SliceKeys;
+type DependencyKeys<TName extends SliceKeys> = keyof State<TableData>[TName][typeof dependenciesSymbol];
 
 type SubDependencyKeys = {
-    [K in SliceKeys]: DependencyKeys<K> | SubDependencyKeys[DependencyKeys<K>]
+    [K in SliceKeys]: DependencyKeys<K> | SubDependencyKeys[DependencyKeys<K> & SliceKeys]
 };
 
 

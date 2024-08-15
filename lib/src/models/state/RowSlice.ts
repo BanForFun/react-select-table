@@ -30,16 +30,19 @@ export default class RowSlice<TData extends TableData> extends StateSlice<RowCon
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key in the future
 
     #compareRows = (a: Row<TData>, b: Row<TData>) => {
-        const result = this._state.sortOrder.compareRowData(a, b);
-        if (result !== 0) return result;
+        //Sort the row key using the least significant sort order
+        const comparison = this._state.sortOrder.compareRowData(a, b);
+        comparison.result ??= comparePrimitives(this.getRowKey(a), this.getRowKey(b));
 
-        return comparePrimitives(this.getRowKey(a), this.getRowKey(b));
+        if (comparison.order === 'ascending')
+            return comparison.result;
+
+        return comparison.result * -1;
     };
 
     #sortAll() {
-        //TODO: Implement
-
-        //this._scheduler.add(this.changed.notify);
+        this.#rows.sort(this.#compareRows);
+        this._state.scheduler._add(this.changed.notify);
     };
 
     getRowKey = (row: Row<TData>) => {

@@ -1,4 +1,4 @@
-import { createController, withContext, Table, Column } from 'react-select-table';
+import { createController, createSharedController, withContext, Table, Column } from 'react-select-table';
 import './App.css';
 import { useRef } from 'react';
 

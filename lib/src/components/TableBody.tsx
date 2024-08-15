@@ -8,7 +8,9 @@ import TableRow from './TableRow';
 import { log } from '../utils/debugUtils';
 import { Row } from '../models/state/RowSlice';
 import { namedTable, table } from '../utils/iteratorUtils';
-import { getIterator } from '../utils/iterableUtils';
+import { cachedIterator } from '../utils/iterableUtils';
+
+const keyKey = 'key';
 
 interface RowRootNode {
     value: ReactDOM.Root;
@@ -33,7 +35,7 @@ export default function TableBody<TData extends TableData>() {
 
     const createRoot = useCallback((row: Row<TData>) => {
         const element = document.createElement('tr');
-        element.dataset.key = controller.state.rows.getRowKey(row);
+        element.dataset[keyKey] = controller.state.rows.getRowKey(row);
 
         const root = ReactDOM.createRoot(element);
         root.render(<TableRow controller={controller} data={row} />);
@@ -75,7 +77,7 @@ export default function TableBody<TData extends TableData>() {
         const rows = controller.state.visibleRows.iterator();
         const roots = namedTable({
             node: rowRoots.head.forwardIterator(),
-            element: getIterator(tableBody.rows)
+            element: cachedIterator(tableBody.rows)
         });
 
         let row = rows.next();
@@ -84,7 +86,7 @@ export default function TableBody<TData extends TableData>() {
         while (!row.done) {
             if (root.done) {
                 appendRoot(row.value);
-            } else if (root.value.element.dataset.key !== controller.state.rows.getRowKey(row.value)) {
+            } else if (root.value.element.dataset[keyKey] !== controller.state.rows.getRowKey(row.value)) {
                 const newRoot = createRoot(row.value);
                 rowRoots.prepend(newRoot.node, root.value.node);
                 root.value.element.before(newRoot.element);
@@ -104,9 +106,9 @@ export default function TableBody<TData extends TableData>() {
             element = nextElement;
         }
 
-        const node = new DoublyLinkedNodeWrapper(root.value.node);
-        rowRoots.order(node.previous, null);
+        rowRoots.unlinkRight(root.value.node);
 
+        const node = new DoublyLinkedNodeWrapper(root.value.node);
         setTimeout(() => {
             for (const rootNode of node.forwardIterator()) {
                 log('Unmounting unused row root');

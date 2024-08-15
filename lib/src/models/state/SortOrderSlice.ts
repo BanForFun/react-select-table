@@ -79,16 +79,15 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
     }
 
     compareRowData(a: TData['row'], b: TData['row']) {
+        let lastOrder: SortOrder = 'ascending';
         for (const [column, order] of this.#sortOrders) {
             const result = column.compareContext(a, b);
-            if (result === 0) continue;
+            if (result !== 0)
+                return { order, result };
 
-            if (order === 'descending')
-                return result * -1;
-
-            return result;
+            lastOrder = order;
         }
 
-        return 0;
+        return { order: lastOrder, result: null };
     }
 }

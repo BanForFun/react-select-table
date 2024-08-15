@@ -26,6 +26,17 @@ export function* getIterableIterator<T>(iterable: Iterable<T>): IterableIterator
     }
 }
 
+export function* cachedIterator<T>(iterable: Iterable<T>): IterableIterator<T> {
+    const iterator = getIterator(iterable);
+    let current = iterator.next();
+
+    while (!current.done) {
+        const next = iterator.next();
+        yield current.value;
+        current = next;
+    }
+}
+
 export function* map<TSource, TResult>(
     iterable: Iterable<TSource>,
     converter: ((value: TSource) => TResult)

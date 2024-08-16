@@ -3,6 +3,7 @@
     "lib": ["DOM", "ES2022", "DOM.Iterable"],
     "jsx": "react-jsx",
     "target": "ES2020",
+    "experimentalDecorators": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "allowJs": true,

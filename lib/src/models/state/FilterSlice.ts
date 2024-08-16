@@ -1,18 +1,12 @@
 import { TableData } from '../../utils/configUtils';
 import { Row } from './RowSlice';
-import { PartialConfigStateSlice } from '../StateSlice';
+import StateSlice from '../StateSlice';
 
 interface FilterConfig<TData extends TableData> {
-    shouldRowBeVisible: (row: TData['row'], filter: TData['filter']) => boolean;
+    shouldRowBeVisible?: (row: TData['row'], filter: TData['filter']) => boolean;
 }
 
-export default class FilterSlice<TData extends TableData> extends PartialConfigStateSlice<FilterConfig<TData>> {
-    protected _getDefaultConfig(): FilterConfig<TData> {
-        return {
-            shouldRowBeVisible: () => true
-        };
-    }
-
+export default class FilterSlice<TData extends TableData> extends StateSlice<object, FilterConfig<TData>> {
     #filter: TData['filter'] | null = null;
 
     isVisible = (row: Row<TData>) => {
@@ -21,7 +15,8 @@ export default class FilterSlice<TData extends TableData> extends PartialConfigS
     };
 
     #shouldRowBeVisible(rowData: TData['row']) {
+        if (!this.config?.shouldRowBeVisible) return true;
         if (this.#filter == null) return true;
-        return this._config.shouldRowBeVisible(rowData, this.#filter);
+        return this.config.shouldRowBeVisible(rowData, this.#filter);
     };
 }

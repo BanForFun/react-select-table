@@ -17,30 +17,30 @@ interface RowRootNode {
 }
 
 export default function TableBody<TData extends TableData>() {
-    const { controller, callbacks } = useRequiredContext(getTableContext<TData>());
+    const { state, callbacks } = useRequiredContext(getTableContext<TData>());
 
     const [tableBody] = useState<HTMLTableSectionElement>(() => document.createElement('tbody'));
     const [rowRoots] = useState(() => new DLList<RowRootNode>());
 
     callbacks.updateColumns = () => {
-        const rows = controller.state.visibleRows.iterator();
+        const rows = state.visibleRows.iterator();
         const rootNodes = rowRoots.head.forwardIterator();
 
         for (const [row, rootNode] of table(rows, rootNodes)) {
-            rootNode.value.render(<TableRow controller={controller} data={row} />);
+            rootNode.value.render(<TableRow state={state} data={row} />);
         }
     };
 
     const createRoot = useCallback((row: Row<TData>) => {
         const element = document.createElement('tr');
-        element.dataset[keyKey] = controller.state.rows.getRowKey(row);
+        element.dataset[keyKey] = state.rows.getRowKey(row);
 
         const root = ReactDOM.createRoot(element);
-        root.render(<TableRow controller={controller} data={row} />);
+        root.render(<TableRow state={state} data={row} />);
 
         const node: RowRootNode = { value: root };
         return { node, element };
-    }, [controller]);
+    }, [state]);
 
     const appendRoot = useCallback((row: Row<TData>) => {
         const { element, node } = createRoot(row);
@@ -49,9 +49,9 @@ export default function TableBody<TData extends TableData>() {
     }, [createRoot, rowRoots, tableBody]);
 
     const appendRoots = useCallback(() => {
-        const rows = controller.state.visibleRows.iterator();
+        const rows = state.visibleRows.iterator();
         for (const row of rows) appendRoot(row);
-    }, [controller, appendRoot]);
+    }, [state, appendRoot]);
 
     const clearRoots = useCallback(() => {
         const oldRootsHead = rowRoots.head.persist();
@@ -66,13 +66,13 @@ export default function TableBody<TData extends TableData>() {
         });
     }, [rowRoots, tableBody]);
 
-    useEffect(() => controller.state.visibleRows.changed.addObserver(() => {
+    useEffect(() => state.visibleRows.changed.addObserver(() => {
         clearRoots();
         appendRoots();
-    }), [controller, appendRoots, clearRoots]);
+    }), [state, appendRoots, clearRoots]);
 
-    useEffect(() => controller.state.visibleRows.added.addObserver(() => {
-        const rows = controller.state.visibleRows.iterator();
+    useEffect(() => state.visibleRows.added.addObserver(() => {
+        const rows = state.visibleRows.iterator();
         const roots = namedTable({
             node: rowRoots.head.forwardIterator(),
             element: cachedIterator(tableBody.rows)
@@ -84,7 +84,7 @@ export default function TableBody<TData extends TableData>() {
         while (!row.done) {
             if (root.done) {
                 appendRoot(row.value);
-            } else if (root.value.element.dataset[keyKey] !== controller.state.rows.getRowKey(row.value)) {
+            } else if (root.value.element.dataset[keyKey] !== state.rows.getRowKey(row.value)) {
                 const newRoot = createRoot(row.value);
                 rowRoots.prepend(newRoot.node, root.value.node);
                 root.value.element.before(newRoot.element);
@@ -114,7 +114,7 @@ export default function TableBody<TData extends TableData>() {
             }
         });
 
-    }), [appendRoot, controller, createRoot, rowRoots, tableBody]);
+    }), [appendRoot, state, createRoot, rowRoots, tableBody]);
 
     useLayoutEffect(() => {
         appendRoots();

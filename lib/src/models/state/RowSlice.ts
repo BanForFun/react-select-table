@@ -5,6 +5,7 @@ import DLList, { RestrictedDLList, Sorted } from '../DLList';
 import SortOrderSlice from './SortOrderSlice';
 import StateSlice from '../StateSlice';
 import SchedulerSlice from './SchedulerSlice';
+import { OptionalIfPartial } from '../../utils/types';
 
 interface RowConfig<TData extends TableData> {
     getRowKey: (row: TData['row']) => string;
@@ -17,15 +18,11 @@ interface Dependencies<TData extends TableData> {
 
 export type Row<TData extends TableData> = TData['row']; //Maybe cache key in the future
 
-export default class RowSlice<TData extends TableData> extends StateSlice<RowConfig<TData>, Dependencies<TData>> {
+export default class RowSlice<TData extends TableData> extends StateSlice<Dependencies<TData>, RowConfig<TData>> {
     #rows = new DLList<Row<TData>>() as RestrictedDLList<Row<TData>, Sorted>;
 
     readonly changed = new Observable();
     readonly added = new Observable();
-
-    protected _init() {
-        this._state.sortOrder.changed.addObserver(() => this.#sortAll());
-    }
 
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key in the future
 
@@ -40,10 +37,15 @@ export default class RowSlice<TData extends TableData> extends StateSlice<RowCon
         return comparison.result * -1;
     };
 
-    #sortAll() {
+    #sortAll = () => {
         this.#rows.sort(this.#compareRows);
         this._state.scheduler._add(this.changed.notify);
     };
+
+    constructor(config: OptionalIfPartial<RowConfig<TData>>, state: Dependencies<TData>) {
+        super(config, state);
+        state.sortOrder.changed.addObserver(this.#sortAll);
+    }
 
     getRowKey = (row: Row<TData>) => {
         // Maybe load from cache in the future

@@ -1,6 +1,6 @@
 import { TableData } from '../../utils/configUtils';
 import SchedulerSlice from './SchedulerSlice';
-import { PickRequired } from '../../utils/types';
+import { OptionalIfPartial, PickRequired } from '../../utils/types';
 import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
 import { indexOf } from '../../utils/iterableUtils';
 import Observable from '../Observable';
@@ -23,7 +23,7 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
+export default class SortOrderSlice<TData extends TableData> extends StateSlice<Dependencies<TData>> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
 
     readonly changed = new Observable();
@@ -52,15 +52,26 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
         }
     }
 
-    #sortBy({ column, newOrder, append }: SortByColumnArgs<TData>) {
+    #sortBy = ({ path, newOrder, append, toUndo }: SortByColumnArgs) => {
+        const column = this._state.columns.getAtPath(path);
+
         if (!isSortableColumn(column))
             throw new Error('Cannot sort by this column');
 
         const oldOrder = this.#sortOrders.get(column) ?? null;
         const resolvedOrder = this.#resolveOrder(newOrder, oldOrder);
 
-        if (!append)
+        if (append || this.#sortOrders.size == 0) {
+            toUndo(path, oldOrder, true);
+        } else {
+            let append = false;
+            for (const [column, order] of this.#sortOrders.entries()) {
+                toUndo(this._state.columns.getPath(column), order, append);
+                append ||= true;
+            }
+
             this.#sortOrders.clear();
+        }
 
         if (resolvedOrder == null)
             this.#sortOrders.delete(column);
@@ -68,12 +79,12 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
             this.#sortOrders.set(column, resolvedOrder);
 
         this._state.scheduler._add(this.#notifyChangedJob);
-
-        return oldOrder;
     };
 
-    protected _init() {
-        this._state.columns.sortByColumn.addObserver(a => this.#sortBy(a));
+
+    constructor(config: OptionalIfPartial<object>, state: Dependencies<TData>) {
+        super(config, state);
+        state.columns._sortByColumn.addObserver(this.#sortBy);
     }
 
     get(column: SortableColumn<TData['row']>): SortColumn | null {

@@ -1,13 +1,13 @@
 import { TableData } from '../utils/configUtils';
-import Controller from '../models/Controller';
 import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
+import State from '../models/state';
 
 export interface TableCallbacks {
     updateColumns?: () => void;
 }
 
 interface TableContextValue<TData extends TableData> {
-    controller: Controller<TData>;
+    state: State<TData>;
     callbacks: TableCallbacks;
 }
 

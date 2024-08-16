@@ -24,18 +24,18 @@ interface AddedVisibleHeader extends VisibleHeader {
 }
 
 export default function TableHead<TData extends TableData>() {
-    const { controller, callbacks } = useRequiredContext(getTableContext<TData>());
+    const { state, callbacks } = useRequiredContext(getTableContext<TData>());
 
     const [updateHeaders, headersUpdated] = useUpdate();
     const [updateSortOrder] = useUpdate();
 
     useEffect(() => {
-        return controller.state.headers.changed.addObserver(updateHeaders);
-    }, [controller, updateHeaders]);
+        return state.headers.changed.addObserver(updateHeaders);
+    }, [state, updateHeaders]);
 
     useEffect(() => {
-        return controller.state.sortOrder.changed.addObserver(updateSortOrder);
-    }, [controller, updateSortOrder]);
+        return state.sortOrder.changed.addObserver(updateSortOrder);
+    }, [state, updateSortOrder]);
 
     useLayoutEffect(() => {
         callbacks.updateColumns!();
@@ -53,7 +53,7 @@ export default function TableHead<TData extends TableData>() {
         };
 
         if (isSortableColumn(header.column))
-            visibleHeader.sort = { path, column: controller.state.sortOrder.get(header.column) };
+            visibleHeader.sort = { path, column: state.sortOrder.get(header.column) };
 
         let childCount = 0;
         if (header.children) {
@@ -105,7 +105,7 @@ export default function TableHead<TData extends TableData>() {
         return visibleHeader;
     }
 
-    for (const column of controller.state.headers.iterator())
+    for (const column of state.headers.iterator())
         addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
     return <div className="rst-head">
@@ -120,7 +120,7 @@ export default function TableHead<TData extends TableData>() {
                         colSpan={header.span}
                         onClick={e => {
                             if (!header.sort) return;
-                            controller.actions.sortByHeader(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                            state.headers.sortBy(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
                         }}
                     >
                         {header.content}<br />

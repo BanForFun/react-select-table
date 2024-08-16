@@ -3,15 +3,15 @@ import TableBody from './TableBody';
 import getTableContext, { TableCallbacks } from '../context/controllerContext';
 import { useMemo, useState } from 'react';
 import { TableData } from '../utils/configUtils';
-import Controller from '../models/Controller';
+import State from '../models/state';
 
 interface Props<TData extends TableData> {
-    controller: Controller<TData>;
+    state: State<TData>;
 }
 
-export default function Table<TData extends TableData>({ controller }: Props<TData>) {
+export default function Table<TData extends TableData>({ state }: Props<TData>) {
     const [callbacks] = useState<TableCallbacks>({});
-    const contextValue = useMemo(() => ({ controller, callbacks }), [controller, callbacks]);
+    const contextValue = useMemo(() => ({ state, callbacks }), [state, callbacks]);
 
     const TableContext = getTableContext<TData>();
     return <div className="rst-container">

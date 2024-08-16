@@ -3,10 +3,10 @@ import { TreePath } from '../../utils/unrootedTreeUtils';
 import Observable from '../Observable';
 import { TableData } from '../../utils/configUtils';
 import { getIterableIterator } from '../../utils/iterableUtils';
-import StateSlice from '../StateSlice';
 import SchedulerSlice from './SchedulerSlice';
-import { optional } from '../../utils/types';
+import { nullable } from '../../utils/types';
 import ColumnSlice, { NewSortOrder } from './ColumnSlice';
+import UndoableStateSlice from '../UndoableStateSlice';
 
 interface Dependencies<TData extends TableData> {
     scheduler: SchedulerSlice;
@@ -51,17 +51,19 @@ function isHeaderGroup<TData extends TableData>(details: Header<TData>): details
     return isColumnGroup(details.column);
 }
 
-export default class HeaderSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
+export default class HeaderSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>, object> {
     readonly #headers: Header<TData>[] = [];
-
-    readonly added = new Observable<[ReadonlyLeafHeader<TData>[]]>();
-    readonly changed = new Observable();
 
     get #columns() {
         return this._state.columns.config;
     }
 
-    #getAtPath(path: TreePath): ReadonlyHeader<TData> {
+    protected readonly _sliceKey = 'headers';
+
+    readonly added = new Observable<ReadonlyLeafHeader<TData>[]>();
+    readonly changed = new Observable();
+
+    #getAtPath(path: TreePath): Header<TData> {
         let headers = this.#headers;
         let header: Header<TData> | null = null;
 
@@ -77,6 +79,26 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<und
             throw new Error('Empty path given');
 
         return header;
+    }
+
+    #getChildrenAtPath(path: TreePath) {
+        let columns = this.#columns;
+        let headers = this.#headers;
+
+        for (const index of path) {
+            const header = headers[index];
+            if (header?.children == null)
+                throw new Error('Invalid header path');
+
+            headers = header.children;
+            columns = header.column.children;
+        }
+
+        return { headers, columns };
+    }
+
+    #getChildren(header: Header<TData>) {
+        return { headers: header.children, columns: header.column.children };
     }
 
     #create(basedOn: Column<TData['row']>): Header<TData> {
@@ -110,6 +132,26 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<und
             }
 
             addedLeafHeaders.push(...this.#addAllSubHeaders(toAdd));
+        }
+
+        return addedLeafHeaders;
+    }
+
+    #addSubHeaders(header: Header<TData>, columns: ColumnIndexNode[] | undefined): ReadonlyLeafHeader<TData>[] {
+        if (!header.children) return [header];
+        if (!columns) return this.#addAllSubHeaders(header);
+
+        const addedLeafHeaders: ReadonlyLeafHeader<TData>[] = [];
+        for (const column of columns) {
+            const toAdd = this.#create(header.column.children[column.index]);
+            header.children.push(toAdd);
+
+            if (toAdd.children == null) {
+                addedLeafHeaders.push(toAdd);
+                continue;
+            }
+
+            addedLeafHeaders.push(...this.#addSubHeaders(toAdd, column.children));
         }
 
         return addedLeafHeaders;
@@ -150,42 +192,21 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<und
         return this.#leafIterator(this.#headers);
     }
 
-    add(headerPath: TreePath, columnPath: TreePath) {
+    add = this._dispatcher('add', toUndo => (columnPath: TreePath, headerPath: TreePath) => {
         if (columnPath.length === 0)
             throw new Error('Empty column path given');
 
-        if (columnPath.length < headerPath.length)
-            throw new Error('Cannot merge column groups');
+        if (headerPath.length === 0)
+            headerPath = [this.#headers.length];
 
-        let columns = this.#columns;
-        let headers = this.#headers;
-        for (let pathIndex = 0; pathIndex < headerPath.length - 1; pathIndex++) {
-            const columnIndex = columnPath[pathIndex];
-            const column = columns[columnIndex];
+        const { columns, headers } = this.#getChildrenAtPath(headerPath.slice(0, -1));
 
-            if (column?.children == null)
-                throw new Error('Invalid column path');
-
-            const headerIndex = headerPath[pathIndex];
-            const header = headers[headerIndex];
-
-            if (header?.children == null)
-                throw new Error('Invalid header path');
-
-            if (header.column !== column)
-                throw new Error('Incompatible column group');
-
-            headers = header.children;
-            columns = column.children;
-        }
-
-        const addedColumnIndex = columnPath[headerPath.length - 1];
-        const toAdd = this.#create(columns[addedColumnIndex]);
+        const toAdd = this.#create(columns[columnPath[0]]);
         let lastToAdd = toAdd;
 
-        for (let pathIndex = headerPath.length; pathIndex < columnPath.length; pathIndex++) {
+        for (let pathIndex = 1; pathIndex < columnPath.length; pathIndex++) {
             if (lastToAdd.children == null)
-                throw new Error('Column path too long');
+                throw new Error('Invalid column path');
 
             const columnIndex = columnPath[pathIndex];
             const toAdd = this.#create(lastToAdd.column.children[columnIndex]);
@@ -194,58 +215,72 @@ export default class HeaderSlice<TData extends TableData> extends StateSlice<und
             lastToAdd = toAdd;
         }
 
-        const addedHeaderIndex = headerPath[headerPath.length - 1];
-        headers.splice(addedHeaderIndex, 0, toAdd);
+        const addedLeafHeaders = this.#addAllSubHeaders(lastToAdd);
+        headers.splice(headerPath[headerPath.length - 1], 0, toAdd);
 
-        this.added.notify(this.#addAllSubHeaders(lastToAdd));
+        this.added.notify(addedLeafHeaders);
+        toUndo(this.remove.action(headerPath));
 
         this._state.scheduler._add(this.#notifyChangedJob);
-    };
+    });
 
-    remove(headerPath: TreePath) {
-        const siblingTrail: Header<TData>[][] = [];
-        const columnIndexRootNode: ColumnIndexNode = { index: -1 };
+    addMany = this._dispatcher('addMany', toUndo => (columnIndices: ColumnIndexNode, headerPath: TreePath) => {
+        if (headerPath.length === 0)
+            headerPath = [this.#headers.length];
+
+        const { headers, columns } = this.#getChildrenAtPath(headerPath.slice(0, -1));
+        const toAdd = this.#create(columns[columnIndices.index]);
+
+        const addedLeafHeaders = this.#addSubHeaders(toAdd, columnIndices.children);
+        headers.splice(headerPath[headerPath.length - 1], 0, toAdd);
+
+        this.added.notify(addedLeafHeaders);
+        toUndo(this.remove.action(headerPath));
+
+        this._state.scheduler._add(this.#notifyChangedJob);
+    });
+
+    remove = this._dispatcher('remove', toUndo => (headerPath: TreePath) => {
+        const headerTrail: { index: number, header: Header<TData>, siblings: Header<TData>[] }[] = [];
 
         // Step 1: Go down to find the header
-        let columnIndexNode = columnIndexRootNode;
-        let columns = optional(this.#columns);
-        let headers = this.#headers;
-        let header: Header<TData> | null = null;
+        let headers = nullable(this.#headers);
+        let header: Header<TData> | undefined;
 
         for (const index of headerPath) {
-            header = headers[index];
+            header = headers?.[index];
             if (header == null)
                 throw new Error('Invalid path');
 
-            siblingTrail.push(headers);
-            headers = header.children ?? [];
-
-            const columnIndex = columns!.indexOf(header.column);
-            columns = header.column.children;
-
-            columnIndexNode.children = [{ index: columnIndex }];
-            columnIndexNode = columnIndexNode.children[0];
+            headerTrail.push({ index, header, siblings: headers! });
+            headers = header.children;
         }
 
         // Step 2: Go down to find leaf headers
         if (header == null) throw new Error('Empty path');
-        columnIndexNode.children = this.#getLeafColumnIndices(header);
+        let removedColumnIndices = this.#getLeafColumnIndices(header);
 
         // Step 3: Go up deleting empty parents
-        while (siblingTrail.length) {
-            const parent = siblingTrail.pop()!;
-            const index = headerPath.pop()!;
+        const lastDeletedPath = [...headerPath];
+        while (headerTrail.length) {
+            const headerInfo = headerTrail.pop()!;
+            removedColumnIndices = [{
+                index: this._state.columns.getIndex(headerInfo.header.column),
+                children: removedColumnIndices
+            }];
 
-            parent.splice(index, 1);
-            if (parent.length) break;
+            headerInfo.siblings.splice(headerInfo.index, 1);
+            if (headerInfo.siblings.length) break;
+
+            lastDeletedPath.pop();
         }
 
-        this._state.scheduler._add(this.#notifyChangedJob);
-        return columnIndexRootNode.children![0];
-    }
+        toUndo(this.addMany.action(removedColumnIndices![0], lastDeletedPath));
 
-    sortBy(path: TreePath, newOrder: NewSortOrder, append: boolean) {
-        const { column } = this.#getAtPath(path);
-        this._state.columns.sortByColumn.notify({ column, newOrder, append });
-    }
+        this._state.scheduler._add(this.#notifyChangedJob);
+    });
+
+    sortBy = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
+        this._state.columns.sortBy(this._state.columns.getPath(this.#getAtPath(path).column), newOrder, append);
+    };
 }

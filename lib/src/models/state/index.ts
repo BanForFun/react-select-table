@@ -19,7 +19,7 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
     headers: HeaderSlice<TData>;
     sortOrder: SortOrderSlice<TData>;
     headerSizes: HeaderSizeSlice<TData>;
-    history: HistorySlice<TData>;
+    history: HistorySlice;
     visibleRows: VisibleRowSlice<TData>;
     selection: SelectionSlice<TData>;
     page: PageSlice;
@@ -53,15 +53,18 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
 
         this.filter ??= new FilterSlice(config.filter, {});
 
-        this.columns ??= new ColumnSlice(config.columns!, {});
+        this.columns ??= new ColumnSlice(config.columns!, {
+            history: this.history
+        });
 
         this.sortOrder ??= new SortOrderSlice(config.sortOrder, {
             scheduler: this.scheduler,
             columns: this.columns
         });
 
-        this.headers ??= new HeaderSlice(config.headers!, {
+        this.headers ??= new HeaderSlice(config.headers, {
             scheduler: this.scheduler,
+            history: this.history,
             columns: this.columns
         });
 
@@ -93,7 +96,6 @@ type SubDependencyKeys = {
     [K in SliceKeys]: DependencyKeys<K> | SubDependencyKeys[DependencyKeys<K> & SliceKeys]
 };
 
-
 export type SharedSlices<TData extends TableData, TShared extends SliceKeys> = PartialByValue<{
     [K in SliceKeys]: K extends Exclude<TShared, SubDependencyKeys[TShared]> ? State<TData>[K] : undefined
 }>
@@ -106,3 +108,25 @@ export type Shared<TData extends TableData, TShared extends SliceKeys> = Partial
     [K in SliceKeys]: K extends SubDependencyKeys[TShared] ? undefined :
         K extends TShared ? State<TData>[K] : State<TData>[K]['config']
 }>
+
+// Public
+export function createState<
+    TRow extends object,
+    TError extends NonNullable<unknown> = never,
+    TFilter extends NonNullable<unknown> = never
+>(config: SharedConfig<TableData<TRow, TError, TFilter>, never>) {
+    return new State({}, config);
+}
+
+// Public
+export function createSharedState<
+    TShared extends SliceKeys,
+    TRow extends object,
+    TError extends NonNullable<unknown> = never,
+    TFilter extends NonNullable<unknown> = never
+>(
+    slices: SharedSlices<TableData<TRow, TError, TFilter>, TShared>,
+    config: SharedConfig<TableData<TRow, TError, TFilter>, TShared>
+) {
+    return new State(slices, config);
+}

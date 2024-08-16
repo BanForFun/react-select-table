@@ -1,4 +1,4 @@
-import { createController, createSharedController, withContext, Table, Column } from 'react-select-table';
+import { createState, withContext, Table, Column } from 'react-select-table';
 import './App.css';
 import { useRef } from 'react';
 
@@ -36,7 +36,7 @@ function lessonColumn(header: string): Column<Duration> {
     };
 }
 
-const controller = createController<Lesson>({
+const state = createState<Lesson>({
     headerSizes: {
         defaultColumnWidthPercentage: 20
     },
@@ -84,12 +84,12 @@ const controller = createController<Lesson>({
     ]
 });
 
-controller.state.scheduler.batch(() => {
-    for (let i = 0; i < controller.state.columns.config.length; i++) {
-        controller.actions.addHeader([i], [i]);
+state.scheduler.batch(() => {
+    for (let i = 0; i < state.columns.config.length; i++) {
+        state.headers.add([i], []);
     }
 
-    controller.actions.addRows([
+    state.rows.add([
         {
             name: 'Katevenis',
             monday: ['13:00', '15:00'],
@@ -113,7 +113,7 @@ function parseColumnPathInput(input?: string) {
 
 function App() {
     const columnPathInputRef = useRef<HTMLInputElement>(null);
-    const visibleColumnPathInputRef = useRef<HTMLInputElement>(null);
+    const headerPathInputRef = useRef<HTMLInputElement>(null);
 
     return <div>
         <div>
@@ -122,33 +122,34 @@ function App() {
         </div>
 
         <div>
-            <label htmlFor="visibleColumnPath">Visible column path</label>
-            <input id="visibleColumnPath" ref={visibleColumnPathInputRef} />
+            <label htmlFor="visibleColumnPath">Header path</label>
+            <input id="visibleColumnPath" ref={headerPathInputRef} />
         </div>
 
-        <button onClick={() => {
-            controller.actions.addHeader(
-                parseColumnPathInput(visibleColumnPathInputRef.current?.value),
-                parseColumnPathInput(columnPathInputRef.current?.value)
-            );
-        }}>
-            Add
+        <button onClick={() => state.headers.add(
+            parseColumnPathInput(columnPathInputRef.current?.value),
+            parseColumnPathInput(headerPathInputRef.current?.value)
+        )}>
+            Add column
         </button>
 
-        <button onClick={() => {
-            controller.actions.removeHeader(parseColumnPathInput(visibleColumnPathInputRef.current?.value));
-        }}>
-            Remove
+        <button onClick={() => state.headers.remove(parseColumnPathInput(headerPathInputRef.current?.value))}>
+            Remove column
         </button>
 
-        <button onClick={() => {
-            controller.actions.addRows([
-                { name: 'Lesson' + Date.now() }
-            ]);
-        }}>Add row
+        <button onClick={() => state.rows.add([{ name: 'Lesson' + Date.now() }])}>
+            Add row
         </button>
 
-        <Table controller={controller} />
+        <button onClick={() => state.history.undo()}>
+            Undo
+        </button>
+
+        <button onClick={() => state.history.redo()}>
+            Redo
+        </button>
+
+        <Table state={state} />
     </div>;
 }
 

@@ -2,7 +2,7 @@ interface NodeLike<T> {
     children?: (T & NodeLike<T>)[];
 }
 
-export type TreePath = number[];
+export type TreePath = readonly number[];
 
 export function getChildrenAtPath<T extends NodeLike<T>>(rootChildren: T[], path: TreePath): T[] | null {
     let children: T[] | null = rootChildren;

@@ -23,6 +23,8 @@ export type PartialByValue<T, D = undefined> = Partial<T> & {
     [K in keyof T as D extends T[K] ? never : K]: T[K]
 }
 
+export type OptionalIfPartial<T extends object> = object extends T ? T | undefined : T;
+
 export function nullable<T>(value: T): T | null {
     return value;
 }

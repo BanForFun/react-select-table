@@ -6,6 +6,7 @@ import FilterSlice from './FilterSlice';
 import Observable from '../Observable';
 import StateSlice from '../StateSlice';
 import SchedulerSlice from './SchedulerSlice';
+import { OptionalIfPartial } from '../../utils/types';
 
 interface Dependencies<TData extends TableData> {
     scheduler: SchedulerSlice;
@@ -14,7 +15,7 @@ interface Dependencies<TData extends TableData> {
     rows: RowSlice<TData>;
 }
 
-export default class VisibleRowSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
+export default class VisibleRowSlice<TData extends TableData> extends StateSlice<Dependencies<TData>> {
     #currentPageHead = new DLNodeWrapper<Row<TData>>();
     #nextPageHead = new DLNodeWrapper<Row<TData>>();
     #pageIndex: number = 0;
@@ -22,19 +23,6 @@ export default class VisibleRowSlice<TData extends TableData> extends StateSlice
 
     readonly changed = new Observable();
     readonly added = new Observable();
-
-    protected _init() {
-        this._state.rows.added.addObserver(() => {
-            this.#rebuildPage();
-            this._state.scheduler._add(this.added.notify);
-        });
-
-        this._state.rows.changed.addObserver(() => {
-            this.#pageIndex = 0;
-            this.#rebuildPage();
-            this._state.scheduler._add(this.changed.notify);
-        });
-    }
 
     #rebuildPage() {
         this.#rowCount = 0;
@@ -55,6 +43,22 @@ export default class VisibleRowSlice<TData extends TableData> extends StateSlice
             this.#rowCount++;
         }
     };
+
+
+    constructor(config: OptionalIfPartial<object>, state: Dependencies<TData>) {
+        super(config, state);
+
+        state.rows.added.addObserver(() => {
+            this.#rebuildPage();
+            state.scheduler._add(this.added.notify);
+        });
+
+        state.rows.changed.addObserver(() => {
+            this.#pageIndex = 0;
+            this.#rebuildPage();
+            state.scheduler._add(this.changed.notify);
+        });
+    }
 
     * iterator() {
         let visibleIndex = 0;

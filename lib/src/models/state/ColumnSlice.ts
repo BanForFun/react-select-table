@@ -1,20 +1,22 @@
 import { TableData } from '../../utils/configUtils';
-import StateSlice from '../StateSlice';
 import { Column } from '../../utils/columnUtils';
 import { TreePath } from '../../utils/unrootedTreeUtils';
 import Observable from '../Observable';
+import UndoableStateSlice from '../UndoableStateSlice';
 
 export type SortOrder = 'ascending' | 'descending';
 export type NewSortOrder = SortOrder | null | 'toggle' | 'cycle';
 
 export interface SortByColumnArgs<TData extends TableData> {
-    column: Column<TData['row']>,
-    newOrder: NewSortOrder,
-    append: boolean
+    toUndo: (oldOrder: SortOrder | null) => void;
+    column: Column<TData['row']>;
+    newOrder: NewSortOrder;
+    append: boolean;
 }
 
-export default class ColumnSlice<TData extends TableData> extends StateSlice<Column<TData['row']>[]> {
-    sortByColumn = new Observable<[SortByColumnArgs<TData>]>();
+export default class ColumnSlice<TData extends TableData> extends UndoableStateSlice<object, Column<TData['row']>[]> {
+    protected _sliceKey: string = 'columns';
+    _sortByColumn = new Observable<SortByColumnArgs<TData>>();
 
     #getAtPath(path: TreePath): Column<TData['row']> {
         let columns = this.config;
@@ -34,7 +36,12 @@ export default class ColumnSlice<TData extends TableData> extends StateSlice<Col
         return column;
     }
 
-    sortBy(path: TreePath, newOrder: NewSortOrder, append: boolean) {
-        this.sortByColumn.notify({ column: this.#getAtPath(path), newOrder, append });
-    }
+    sortBy = this._dispatcher('sortBy', toUndo => (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
+        this._sortByColumn.notify({
+            column: this.#getAtPath(path),
+            newOrder,
+            append,
+            toUndo: (oldOrder) => toUndo(this.sortBy.action(path, oldOrder, append))
+        });
+    });
 }

@@ -1,15 +1,15 @@
 import { TableData } from '../utils/configUtils';
-import Controller from '../models/Controller';
 import { map } from '../utils/iterableUtils';
 import { ColumnOptions } from '../utils/columnUtils';
+import State from '../models/state';
 
 interface Props<TData extends TableData> {
-    controller: Controller<TData>;
+    state: State<TData>;
     data: TData['row'];
 }
 
 export default function TableRow<TData extends TableData>(props: Props<TData>) {
-    return Array.from(map(props.controller.state.headers.leafIterator(), header => {
+    return Array.from(map(props.state.headers.leafIterator(), header => {
         const options: ColumnOptions = {};
         const content = header.column.render(props.data, options);
         return <td key={header.id} className={options.className}>{content}</td>;

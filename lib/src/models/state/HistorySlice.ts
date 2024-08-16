@@ -1,35 +1,72 @@
-import { Action } from '../Actions';
-import { TableData } from '../../utils/configUtils';
 import StateSlice from '../StateSlice';
 
-type ActionGroup<TData extends TableData> = Action<TData> | ActionGroup<TData>[];
+export type Action = {
+    type: string,
+    args: unknown[]
+}
 
-type PopCallback<TData extends TableData> = (action: ActionGroup<TData>) => ActionGroup<TData> | void;
+type ActionGroup = Action[];
 
-export default class HistorySlice<TData extends TableData> extends StateSlice<undefined> {
-    readonly #past: ActionGroup<TData>[] = [];
-    #future: ActionGroup<TData>[] = [];
+export type Handler<TArgs extends unknown[], TReturn> = (toUndo: (action: Action) => void) => (...args: TArgs) => TReturn;
+export type Creator<TArgs extends unknown[]> = (...args: TArgs) => Action;
+export type Dispatcher<TArgs extends unknown[], TReturn> = ((...args: TArgs) => TReturn) & { action: Creator<TArgs> };
 
-    push(action: ActionGroup<TData>) {
-        this.#past.push(action);
-        this.#future = [];
+export default class HistorySlice extends StateSlice {
+    readonly #dispatchers: Record<string, (...args: unknown[]) => void> = {};
+    #currentGroup: ActionGroup | null = null;
+    #past: ActionGroup[] = [];
+    #future: ActionGroup[] = [];
+
+    #pop(source: ActionGroup[], dest: ActionGroup[]) {
+        const group = source.pop();
+        if (!group) return;
+
+        if (this.#currentGroup != null)
+            throw new Error('Recursive undo or redo detected');
+
+        this.#currentGroup = [];
+
+        for (const action of group) {
+            const dispatcher = this.#dispatchers[action.type];
+            dispatcher(...action.args);
+        }
+
+        dest.push(this.#currentGroup);
+
+        this.#currentGroup = null;
     }
 
-    #pop(source: ActionGroup<TData>[], dest: ActionGroup<TData>[], callback: PopCallback<TData>) {
-        const action = source.pop();
-        if (!action) return;
+    createDispatcher<TArgs extends unknown[], TReturn>(
+        type: string,
+        handler: Handler<TArgs, TReturn>
+    ): Dispatcher<TArgs, TReturn> {
+        const dispatcher = (...args: TArgs) => {
+            const isRoot = this.#currentGroup == null;
 
-        const inverse = callback(action);
-        if (!inverse) return;
+            const group = (this.#currentGroup ??= []);
+            const result = handler(action => group.push(action))(...args);
 
-        dest.push(inverse);
+            if (isRoot) {
+                this.#past.push(this.#currentGroup);
+                this.#future = [];
+
+                this.#currentGroup = null;
+            }
+
+            return result;
+        };
+
+        this.#dispatchers[type] = (...args) => dispatcher(...args as TArgs);
+
+        dispatcher.action = (...args: TArgs) => ({ type, args });
+        return dispatcher;
     }
 
-    popPast(callback: PopCallback<TData>) {
-        this.#pop(this.#past, this.#future, callback);
+    undo() {
+        this.#pop(this.#past, this.#future);
     }
 
-    popFuture(callback: PopCallback<TData>) {
-        this.#pop(this.#future, this.#past, callback);
+    redo() {
+        this.#pop(this.#future, this.#past);
     }
 }

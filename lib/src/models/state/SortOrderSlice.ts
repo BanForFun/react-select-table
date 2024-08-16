@@ -1,6 +1,6 @@
 import { TableData } from '../../utils/configUtils';
 import SchedulerSlice from './SchedulerSlice';
-import { PickRequired } from '../../utils/types';
+import { OptionalIfPartial, PickRequired } from '../../utils/types';
 import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
 import { indexOf } from '../../utils/iterableUtils';
 import Observable from '../Observable';
@@ -23,7 +23,7 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderSlice<TData extends TableData> extends StateSlice<undefined, Dependencies<TData>> {
+export default class SortOrderSlice<TData extends TableData> extends StateSlice<Dependencies<TData>> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
 
     readonly changed = new Observable();
@@ -52,7 +52,7 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
         }
     }
 
-    #sortBy({ column, newOrder, append }: SortByColumnArgs<TData>) {
+    #sortBy = ({ column, newOrder, append, toUndo }: SortByColumnArgs<TData>) => {
         if (!isSortableColumn(column))
             throw new Error('Cannot sort by this column');
 
@@ -69,11 +69,13 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
 
         this._state.scheduler._add(this.#notifyChangedJob);
 
-        return oldOrder;
+        toUndo(oldOrder);
     };
 
-    protected _init() {
-        this._state.columns.sortByColumn.addObserver(a => this.#sortBy(a));
+
+    constructor(config: OptionalIfPartial<object>, state: Dependencies<TData>) {
+        super(config, state);
+        state.columns._sortByColumn.addObserver(this.#sortBy);
     }
 
     get(column: SortableColumn<TData['row']>): SortColumn | null {

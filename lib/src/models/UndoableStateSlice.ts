@@ -13,6 +13,6 @@ export default abstract class UndoableStateSlice<
 
     protected _dispatcher<TArgs extends unknown[], TReturn>(key: string, handler: Handler<TArgs, TReturn>) {
         const type = `${this._sliceKey}/${key}`;
-        return this._state.history.createDispatcher(type, handler);
+        return this._state.history._createDispatcher(type, handler);
     }
 }

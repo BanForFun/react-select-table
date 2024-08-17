@@ -53,11 +53,10 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
 
         this.filter ??= new FilterSlice(config.filter, {});
 
-        this.columns ??= new ColumnSlice(config.columns!, {
-            history: this.history
-        });
+        this.columns ??= new ColumnSlice(config.columns!, {});
 
         this.sortOrder ??= new SortOrderSlice(config.sortOrder, {
+            history: this.history,
             scheduler: this.scheduler,
             columns: this.columns
         });

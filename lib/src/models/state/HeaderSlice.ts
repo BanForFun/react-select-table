@@ -257,8 +257,4 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
 
         this._state.scheduler._add(this.#notifyChangedJob);
     });
-
-    sortBy = (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
-        this._state.columns.sortBy(this._state.columns.getPath(this.#getAtPath(path).column), newOrder, append);
-    };
 }

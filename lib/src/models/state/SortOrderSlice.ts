@@ -1,13 +1,16 @@
 import { TableData } from '../../utils/configUtils';
 import SchedulerSlice from './SchedulerSlice';
-import { OptionalIfPartial, PickRequired } from '../../utils/types';
+import { PickRequired } from '../../utils/types';
 import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
 import { indexOf } from '../../utils/iterableUtils';
 import Observable from '../Observable';
-import StateSlice from '../StateSlice';
-import ColumnSlice, { NewSortOrder, SortByColumnArgs, SortOrder } from './ColumnSlice';
+import ColumnSlice, { NewSortOrder, SortOrder } from './ColumnSlice';
+import UndoableStateSlice from '../UndoableStateSlice';
+import HistorySlice from './HistorySlice';
+import { TreePath } from '../../utils/unrootedTreeUtils';
 
 interface Dependencies<TData extends TableData> {
+    history: HistorySlice;
     scheduler: SchedulerSlice;
     columns: ColumnSlice<TData>;
 }
@@ -23,8 +26,10 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderSlice<TData extends TableData> extends StateSlice<Dependencies<TData>> {
+export default class SortOrderSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
+
+    protected _sliceKey: string = 'sortOrder';
 
     readonly changed = new Observable();
 
@@ -52,40 +57,6 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
         }
     }
 
-    #sortBy = ({ path, newOrder, append, toUndo }: SortByColumnArgs) => {
-        const column = this._state.columns.getAtPath(path);
-
-        if (!isSortableColumn(column))
-            throw new Error('Cannot sort by this column');
-
-        const oldOrder = this.#sortOrders.get(column) ?? null;
-        const resolvedOrder = this.#resolveOrder(newOrder, oldOrder);
-
-        if (append || this.#sortOrders.size == 0) {
-            toUndo(path, oldOrder, true);
-        } else {
-            let append = false;
-            for (const [column, order] of this.#sortOrders.entries()) {
-                toUndo(this._state.columns.getPath(column), order, append);
-                append ||= true;
-            }
-
-            this.#sortOrders.clear();
-        }
-
-        if (resolvedOrder == null)
-            this.#sortOrders.delete(column);
-        else
-            this.#sortOrders.set(column, resolvedOrder);
-
-        this._state.scheduler._add(this.#notifyChangedJob);
-    };
-
-
-    constructor(config: OptionalIfPartial<object>, state: Dependencies<TData>) {
-        super(config, state);
-        state.columns._sortByColumn.addObserver(this.#sortBy);
-    }
 
     get(column: SortableColumn<TData['row']>): SortColumn | null {
         const order = this.#sortOrders.get(column);
@@ -106,4 +77,33 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
 
         return { order: lastOrder, result: 0 };
     }
+
+    sortBy = this._dispatcher('sortBy', toUndo => (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
+        const column = this._state.columns.getAtPath(path);
+
+        if (!isSortableColumn(column))
+            throw new Error('Cannot sort by this column');
+
+        const oldOrder = this.#sortOrders.get(column) ?? null;
+        const resolvedOrder = this.#resolveOrder(newOrder, oldOrder);
+
+        if (append || this.#sortOrders.size == 0) {
+            toUndo(this.sortBy.action(path, oldOrder, true));
+        } else {
+            let append = false;
+            for (const [column, order] of this.#sortOrders.entries()) {
+                toUndo(this.sortBy.action(this._state.columns.getPath(column), order, append));
+                append ||= true;
+            }
+
+            this.#sortOrders.clear();
+        }
+
+        if (resolvedOrder == null)
+            this.#sortOrders.delete(column);
+        else
+            this.#sortOrders.set(column, resolvedOrder);
+
+        this._state.scheduler._add(this.#notifyChangedJob);
+    });
 }

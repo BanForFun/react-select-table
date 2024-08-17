@@ -53,7 +53,10 @@ export default function TableHead<TData extends TableData>() {
         };
 
         if (isSortableColumn(header.column))
-            visibleHeader.sort = { path, column: state.sortOrder.get(header.column) };
+            visibleHeader.sort = {
+                path: state.columns.getPath(header.column),
+                column: state.sortOrder.get(header.column)
+            };
 
         let childCount = 0;
         if (header.children) {
@@ -120,7 +123,7 @@ export default function TableHead<TData extends TableData>() {
                         colSpan={header.span}
                         onClick={e => {
                             if (!header.sort) return;
-                            state.headers.sortBy(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                            state.sortOrder.sortBy(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
                         }}
                     >
                         {header.content}<br />

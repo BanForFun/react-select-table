@@ -22,22 +22,33 @@ export default class HistorySlice extends StateSlice {
         const group = source.pop();
         if (!group) return;
 
-        if (this.#currentGroup != null)
-            throw new Error('Recursive undo or redo detected');
+        const undoGroup = this.#group(() => {
+            for (const action of group) {
+                const dispatcher = this.#dispatchers[action.type];
+                dispatcher(...action.args);
+            }
+        });
 
-        this.#currentGroup = [];
-
-        for (const action of group) {
-            const dispatcher = this.#dispatchers[action.type];
-            dispatcher(...action.args);
-        }
-
-        dest.push(this.#currentGroup);
-
-        this.#currentGroup = null;
+        dest.push(undoGroup);
     }
 
-    createDispatcher<TArgs extends unknown[], TReturn>(
+    #push(group: ActionGroup) {
+        this.#past.push(group);
+        this.#future = [];
+    }
+
+    #group(callback: () => void): ActionGroup {
+        if (this.#currentGroup != null)
+            throw new Error('Recursive groups not allowed');
+
+        const group = (this.#currentGroup = []);
+        callback();
+        this.#currentGroup = null;
+
+        return group;
+    }
+
+    _createDispatcher<TArgs extends unknown[], TReturn>(
         type: string,
         handler: Handler<TArgs, TReturn>
     ): Dispatcher<TArgs, TReturn> {
@@ -48,19 +59,27 @@ export default class HistorySlice extends StateSlice {
             const result = handler(action => group.push(action))(...args);
 
             if (isRoot) {
-                this.#past.push(this.#currentGroup);
-                this.#future = [];
-
+                this.#push(group);
                 this.#currentGroup = null;
             }
 
             return result;
         };
 
+        dispatcher.action = (...args: TArgs) => ({ type, args });
         this.#dispatchers[type] = (...args) => dispatcher(...args as TArgs);
 
-        dispatcher.action = (...args: TArgs) => ({ type, args });
         return dispatcher;
+    }
+
+    group(callback: () => void): void {
+        const group = this.#group(callback);
+        this.#push(group);
+    }
+
+    clear() {
+        this.#past = [];
+        this.#future = [];
     }
 
     undo() {

@@ -1,4 +1,4 @@
-import { createState, withContext, Table, Column } from 'react-select-table';
+import { createState, withContext, simpleColumn, Table, Column } from 'react-select-table';
 import './App.css';
 import { useRef } from 'react';
 
@@ -44,7 +44,7 @@ const state = createState<Lesson>({
         getRowKey: l => l.name
     },
     columns: [
-        { header: 'Name', render: l => l.name },
+        withContext(l => l.name, simpleColumn('Name')),
         {
             header: 'Weekdays', children: [
                 withContext(l => l.monday, lessonColumn('Monday')),
@@ -102,6 +102,8 @@ state.scheduler.batch(() => {
             thursday: ['14:00', '16:00']
         }
     ]);
+
+    state.history.clear();
 });
 
 

@@ -23,25 +23,32 @@ export default class VisibleRowSlice<TData extends TableData> extends StateSlice
 
     readonly changed = new Observable();
     readonly added = new Observable();
+    readonly removed = new Observable();
 
     #rebuildPage() {
         this.#rowCount = 0;
         this.#currentPageHead.clear();
         this.#nextPageHead.clear();
 
-        const pageStartIndex = this._state.page.getPageStartIndex(this.#pageIndex);
-        const nextPageStartIndex = this._state.page.getPageStartIndex(this.#pageIndex + 1);
+        let pageIndex = 0;
 
         for (const row of this._state.rows.iterator()) {
             if (!this._state.filter.isVisible(row)) continue;
 
-            if (this.#rowCount === pageStartIndex)
+            if (this.#rowCount === 0) {
                 this.#currentPageHead.set(row);
-            else if (this.#rowCount === nextPageStartIndex)
+            }
+
+            if (pageIndex < this.#pageIndex && this.#rowCount % this._state.page.size === 0) {
+                this.#currentPageHead.set(this.#nextPageHead.current);
                 this.#nextPageHead.set(row);
+                pageIndex++;
+            }
 
             this.#rowCount++;
         }
+
+        this.#pageIndex = pageIndex;
     };
 
 
@@ -51,6 +58,11 @@ export default class VisibleRowSlice<TData extends TableData> extends StateSlice
         state.rows.added.addObserver(() => {
             this.#rebuildPage();
             state.scheduler._add(this.added.notify);
+        });
+
+        state.rows.removed.addObserver(() => {
+            this.#rebuildPage();
+            state.scheduler._add(this.removed.notify);
         });
 
         state.rows.changed.addObserver(() => {

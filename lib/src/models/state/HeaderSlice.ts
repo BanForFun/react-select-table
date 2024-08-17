@@ -1,16 +1,18 @@
 import { Column, ColumnGroup, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
-import { TreePath } from '../../utils/unrootedTreeUtils';
+import { getAtPath, TreePath } from '../../utils/unrootedTreeUtils';
 import Observable from '../Observable';
 import { TableData } from '../../utils/configUtils';
 import { getIterableIterator } from '../../utils/iterableUtils';
 import SchedulerSlice from './SchedulerSlice';
-import { nullable } from '../../utils/types';
+import { optional } from '../../utils/types';
 import ColumnSlice, { NewSortOrder } from './ColumnSlice';
 import UndoableStateSlice from '../UndoableStateSlice';
+import HistorySlice from './HistorySlice';
 
 interface Dependencies<TData extends TableData> {
     scheduler: SchedulerSlice;
     columns: ColumnSlice<TData>;
+    history: HistorySlice;
 }
 
 interface BaseReadonlyHeader {
@@ -24,7 +26,7 @@ interface ReadonlyHeaderGroup<TData extends TableData> extends BaseReadonlyHeade
 
 interface ReadonlyLeafHeader<TData extends TableData> extends BaseReadonlyHeader {
     readonly column: LeafColumn<TData['row']>;
-    readonly children: null;
+    readonly children?: never;
 }
 
 interface HeaderGroup<TData extends TableData> extends ReadonlyHeaderGroup<TData> {
@@ -64,40 +66,17 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
     readonly changed = new Observable();
 
     #getAtPath(path: TreePath): Header<TData> {
-        let headers = this.#headers;
-        let header: Header<TData> | null = null;
-
-        for (const index of path) {
-            header = headers[index];
-            if (header == null)
-                throw new Error('Invalid path');
-
-            headers = header.children ?? [];
-        }
-
-        if (header == null)
-            throw new Error('Empty path given');
-
-        return header;
+        return getAtPath(this.#headers, path);
     }
 
     #getChildrenAtPath(path: TreePath) {
-        let columns = this.#columns;
-        let headers = this.#headers;
+        if (path.length === 0)
+            return { headers: this.#headers, columns: this.#columns };
 
-        for (const index of path) {
-            const header = headers[index];
-            if (header?.children == null)
-                throw new Error('Invalid header path');
+        const header = this.#getAtPath(path);
+        if (!isHeaderGroup(header))
+            throw new Error('Leaf nodes do not have children');
 
-            headers = header.children;
-            columns = header.column.children;
-        }
-
-        return { headers, columns };
-    }
-
-    #getChildren(header: Header<TData>) {
         return { headers: header.children, columns: header.column.children };
     }
 
@@ -113,8 +92,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
 
         return {
             id: ++lastHeaderId,
-            column: basedOn,
-            children: null
+            column: basedOn
         };
     }
 
@@ -244,7 +222,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         const headerTrail: { index: number, header: Header<TData>, siblings: Header<TData>[] }[] = [];
 
         // Step 1: Go down to find the header
-        let headers = nullable(this.#headers);
+        let headers = optional(this.#headers);
         let header: Header<TData> | undefined;
 
         for (const index of headerPath) {

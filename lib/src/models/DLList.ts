@@ -7,6 +7,7 @@ export type DLNode<T = unknown> = T & {
 };
 
 type Comparator<T> = (a: T, b: T) => number;
+type Predicate<T> = (item: T) => boolean;
 
 function getNextNode<T>(node: DLNode<T> | null): DLNode<T> | null {
     return node == null ? null : node[nextSymbol];
@@ -172,6 +173,17 @@ export default class DLList<T extends object = object> {
         }
     }
 
+    remove(predicate: Predicate<T>) {
+        const removed: T[] = [];
+        for (const node of this.head.forwardIterator()) {
+            if (!predicate(node)) continue;
+            this.unlink(node);
+            removed.push(node);
+        }
+
+        return removed;
+    }
+
     clear() {
         this.#head.clear();
         this.#tail.clear();
@@ -195,7 +207,7 @@ type Functions = keyof DLList;
 
 type Allow<T extends Functions> = T;
 
-export type Sorted = Allow<'sort' | 'unlink' | 'unlinkLeft' | 'unlinkRight' | 'pop' | 'shift' | 'add' | 'clear' | 'head' | 'tail'>
+export type Sorted = Allow<'sort' | 'unlink' | 'unlinkLeft' | 'unlinkRight' | 'pop' | 'shift' | 'add' | 'remove' | 'clear' | 'head' | 'tail'>
 
 export type RestrictedDLList<T extends object, TAllow extends Functions> =
     DLList<T> & Record<Exclude<Functions, TAllow>, never>;

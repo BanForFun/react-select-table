@@ -104,6 +104,6 @@ export default class SortOrderSlice<TData extends TableData> extends StateSlice<
             lastOrder = order;
         }
 
-        return { order: lastOrder, result: null };
+        return { order: lastOrder, result: 0 };
     }
 }

@@ -73,6 +73,7 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
         });
 
         this.rows ??= new RowSlice(config.rows!, {
+            history: this.history,
             scheduler: this.scheduler,
             sortOrder: this.sortOrder
         });

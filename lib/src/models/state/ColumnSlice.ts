@@ -1,9 +1,13 @@
 import { TableData } from '../../utils/configUtils';
 import { Column, isColumnGroup } from '../../utils/columnUtils';
-import { TreePath } from '../../utils/unrootedTreeUtils';
+import { getAtPath, TreePath } from '../../utils/unrootedTreeUtils';
 import Observable from '../Observable';
 import UndoableStateSlice from '../UndoableStateSlice';
 import HistorySlice from './HistorySlice';
+
+interface Dependencies {
+    history: HistorySlice;
+}
 
 export type SortOrder = 'ascending' | 'descending';
 export type NewSortOrder = SortOrder | null | 'toggle' | 'cycle';
@@ -15,7 +19,7 @@ export interface SortByColumnArgs {
     append: boolean;
 }
 
-export default class ColumnSlice<TData extends TableData> extends UndoableStateSlice<object, Column<TData['row']>[]> {
+export default class ColumnSlice<TData extends TableData> extends UndoableStateSlice<Dependencies, Column<TData['row']>[]> {
     #paths = new Map<Column<TData['row']>, TreePath>();
 
     protected _sliceKey: string = 'columns';
@@ -23,21 +27,7 @@ export default class ColumnSlice<TData extends TableData> extends UndoableStateS
     _sortByColumn = new Observable<SortByColumnArgs>();
 
     getAtPath(path: TreePath): Column<TData['row']> {
-        let columns = this.config;
-        let column: Column<TData['row']> | null = null;
-
-        for (const index of path) {
-            column = columns[index];
-            if (column == null)
-                throw new Error('Invalid path');
-
-            columns = column.children ?? [];
-        }
-
-        if (column == null)
-            throw new Error('Empty path given');
-
-        return column;
+        return getAtPath(this.config, path);
     }
 
     #buildPaths(columns: Column<TData['row']>[], basePath: TreePath) {
@@ -51,7 +41,7 @@ export default class ColumnSlice<TData extends TableData> extends UndoableStateS
         }
     }
 
-    constructor(config: Column<TData['row']>[], state: { history: HistorySlice }) {
+    constructor(config: Column<TData['row']>[], state: Dependencies) {
         super(config, state);
         this.#buildPaths(config, []);
     }

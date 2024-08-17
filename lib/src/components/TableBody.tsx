@@ -16,6 +16,19 @@ interface RowRootNode {
     value: ReactDOM.Root;
 }
 
+function* siblingIterator(element: Element | null) {
+    let current = element;
+    while (current != null) {
+        yield current;
+        current = current.nextElementSibling;
+    }
+}
+
+function getRowKey(element: Element) {
+    if (!(element instanceof HTMLTableRowElement)) throw new Error('Invalid row element');
+    return element.dataset[keyKey];
+}
+
 export default function TableBody<TData extends TableData>() {
     const { state, callbacks } = useRequiredContext(getTableContext<TData>());
 
@@ -75,7 +88,7 @@ export default function TableBody<TData extends TableData>() {
         const rows = state.visibleRows.iterator();
         const roots = namedTable({
             node: rowRoots.head.forwardIterator(),
-            element: cachedIterator(tableBody.rows)
+            element: siblingIterator(tableBody.firstElementChild)
         });
 
         let row = rows.next();
@@ -84,7 +97,7 @@ export default function TableBody<TData extends TableData>() {
         while (!row.done) {
             if (root.done) {
                 appendRoot(row.value);
-            } else if (root.value.element.dataset[keyKey] !== state.rows.getRowKey(row.value)) {
+            } else if (getRowKey(root.value.element) !== state.rows.getRowKey(row.value)) {
                 const newRoot = createRoot(row.value);
                 rowRoots.prepend(newRoot.node, root.value.node);
                 root.value.element.before(newRoot.element);
@@ -97,24 +110,62 @@ export default function TableBody<TData extends TableData>() {
 
         if (root.done) return;
 
-        let element: Element | null = root.value.element;
-        while (element != null) {
-            const nextElement: Element | null = element.nextElementSibling;
+        for (const element of cachedIterator(siblingIterator(root.value.element)))
             element.remove();
-            element = nextElement;
-        }
 
+        const firstUnusedRoot = new DLNodeWrapper(root.value.node);
         rowRoots.unlinkRight(root.value.node);
 
-        const node = new DLNodeWrapper(root.value.node);
         setTimeout(() => {
-            for (const rootNode of node.forwardIterator()) {
+            for (const rootNode of firstUnusedRoot.forwardIterator()) {
                 log('Unmounting unused row root');
                 rootNode.value.unmount();
             }
         });
 
     }), [appendRoot, state, createRoot, rowRoots, tableBody]);
+
+    useEffect(() => state.visibleRows.removed.addObserver(() => {
+        const rows = state.visibleRows.iterator();
+        const roots = namedTable({
+            //Need cached iterator because we are linking the unlinked nodes into unusedRowRoots
+            node: cachedIterator(rowRoots.head.forwardIterator()),
+            element: cachedIterator(siblingIterator(tableBody.firstElementChild))
+        });
+
+        let row = rows.next();
+        let root = roots.next();
+
+        const unusedRowRoots = new DLList<RowRootNode>();
+        while (!root.done) {
+            // console.log(
+            //     'Row', row.done ? '(done)' : state.rows.getRowKey(row.value), '\t',
+            //     'Root', root.done ? '(done)' : getRowKey(root.value.element)
+            // );
+
+            if (row.done || getRowKey(root.value.element) !== state.rows.getRowKey(row.value)) {
+                root.value.element.remove();
+                rowRoots.unlink(root.value.node);
+                unusedRowRoots.append(root.value.node);
+            } else {
+                row = rows.next();
+            }
+
+            root = roots.next();
+        }
+
+        setTimeout(() => {
+            for (const rootNode of unusedRowRoots.head.forwardIterator()) {
+                log('Unmounting removed row root');
+                rootNode.value.unmount();
+            }
+        });
+
+        while (!row.done) {
+            appendRoot(row.value);
+            row = rows.next();
+        }
+    }), [appendRoot, rowRoots, state, tableBody]);
 
     useLayoutEffect(() => {
         appendRoots();

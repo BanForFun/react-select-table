@@ -7,7 +7,8 @@ export type Action = {
 
 type ActionGroup = Action[];
 
-export type Handler<TArgs extends unknown[], TReturn> = (toUndo: (action: Action) => void) => (...args: TArgs) => TReturn;
+export type ToUndoCallback = (action: Action) => void
+export type Handler<TArgs extends unknown[], TReturn> = (toUndo: ToUndoCallback) => (...args: TArgs) => TReturn;
 export type Creator<TArgs extends unknown[]> = (...args: TArgs) => Action;
 export type Dispatcher<TArgs extends unknown[], TReturn> = ((...args: TArgs) => TReturn) & { action: Creator<TArgs> };
 

@@ -1,21 +1,25 @@
+import { optional } from './types';
+
 interface NodeLike<T> {
     children?: (T & NodeLike<T>)[];
 }
 
 export type TreePath = readonly number[];
 
-export function getChildrenAtPath<T extends NodeLike<T>>(rootChildren: T[], path: TreePath): T[] | null {
-    let children: T[] | null = rootChildren;
-    for (let pathIndex = 0; pathIndex < path.length; pathIndex++) {
-        if (children == null)
-            throw new Error('Tree path too long');
+export function getAtPath<T extends NodeLike<T>>(rootChildren: T[], path: TreePath): T {
+    let children = optional(rootChildren);
+    let node: T | undefined;
 
-        const child: T = children[path[pathIndex]];
-        if (child == null)
-            throw new Error('Invalid tree path');
+    for (const index of path) {
+        node = children?.[index];
+        if (node == null)
+            throw new Error('Invalid path');
 
-        children = child.children ?? null;
+        children = node.children;
     }
 
-    return children;
+    if (node == null)
+        throw new Error('Empty path given');
+
+    return node;
 }

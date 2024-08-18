@@ -1,4 +1,5 @@
 import StateSlice from '../StateSlice';
+import { log } from '../../utils/debugUtils';
 
 export type Action = {
     type: string,
@@ -33,6 +34,11 @@ export default class HistorySlice extends StateSlice {
     }
 
     #push(group: ActionGroup) {
+        if (group.length === 0) {
+            log('Discarding empty undo group');
+            return;
+        }
+
         this.#past.push(group);
         this.#future = [];
     }

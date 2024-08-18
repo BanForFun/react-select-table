@@ -123,7 +123,11 @@ export default function TableHead<TData extends TableData>() {
                         colSpan={header.span}
                         onClick={e => {
                             if (!header.sort) return;
-                            state.sortOrder.sortBy(header.sort.path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                            const { path } = header.sort;
+                            state.history.group(() => {
+                                state.visibleRows.setPageIndex(0, false);
+                                state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                            });
                         }}
                     >
                         {header.content}<br />

@@ -1,3 +1,5 @@
+import { Incompatible } from '../utils/types';
+
 const previousSymbol = Symbol('previous');
 const nextSymbol = Symbol('next');
 
@@ -17,7 +19,7 @@ function getPreviousNode<T>(node: DLNode<T> | null): DLNode<T> | null {
     return node == null ? null : node[previousSymbol];
 }
 
-class ConstDLNodeWrapper<T> {
+class BaseDLNodeWrapper<T> {
     constructor(protected _node: DLNode<T> | null = null) {
 
     }
@@ -51,8 +53,14 @@ class ConstDLNodeWrapper<T> {
     }
 }
 
-class ReadonlyDLNodeWrapper<T> extends ConstDLNodeWrapper<T> {
-    persist() {
+export class ConstDLNodeWrapper<T> extends BaseDLNodeWrapper<T> {
+    readonly isConstant = true;
+}
+
+export class ReadonlyDLNodeWrapper<T> extends BaseDLNodeWrapper<T> {
+    readonly isConstant = false;
+
+    const() {
         return new ConstDLNodeWrapper(this._node);
     }
 }

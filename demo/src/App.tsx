@@ -1,6 +1,6 @@
 import { createState, withContext, simpleColumn, Table, Column } from 'react-select-table';
 import './App.css';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 type Duration = [string, string] | undefined;
 
@@ -103,6 +103,12 @@ state.scheduler.batch(() => {
         }
     ]);
 
+    for (let i = 0; i < 100; i++) {
+        state.rows.add([{ name: 'Lesson ' + i }]);
+    }
+
+    state.pageSize.set(5);
+
     state.history.clear();
 });
 
@@ -116,40 +122,69 @@ function parseColumnPathInput(input?: string) {
 function App() {
     const columnPathInputRef = useRef<HTMLInputElement>(null);
     const headerPathInputRef = useRef<HTMLInputElement>(null);
+    const pageSizeInputRef = useRef<HTMLInputElement>(null);
+    const pageIndexInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => state.visibleRows.pageIndexChanged.addObserver(() => {
+        if (pageIndexInputRef.current)
+            pageIndexInputRef.current.value = state.visibleRows.pageIndex.toString();
+    }), []);
+
+    useEffect(() => state.pageSize.changed.addObserver(() => {
+        if (pageSizeInputRef.current)
+            pageSizeInputRef.current.value = state.pageSize.value.toString();
+    }), []);
 
     return <div>
         <div>
+            <label htmlFor="headerPath">Header path</label>
+            <input id="headerPath" ref={headerPathInputRef} />
+            <button onClick={() => state.headers.remove(parseColumnPathInput(headerPathInputRef.current?.value))}>
+                Remove header
+            </button>
+        </div>
+        <div>
             <label htmlFor="columnPath">Column path</label>
             <input id="columnPath" ref={columnPathInputRef} />
+            <button onClick={() => state.headers.add(
+                parseColumnPathInput(columnPathInputRef.current?.value),
+                parseColumnPathInput(headerPathInputRef.current?.value)
+            )}>
+                Add header
+            </button>
         </div>
 
         <div>
-            <label htmlFor="visibleColumnPath">Header path</label>
-            <input id="visibleColumnPath" ref={headerPathInputRef} />
+            <label htmlFor="pageSize">Page size</label>
+            <input id="pageSize" type="number" ref={pageSizeInputRef} />
+            <button onClick={() => {
+                const value = pageSizeInputRef.current?.value;
+                state.pageSize.set(value ? parseInt(value) : Infinity);
+            }}>Set
+            </button>
         </div>
 
-        <button onClick={() => state.headers.add(
-            parseColumnPathInput(columnPathInputRef.current?.value),
-            parseColumnPathInput(headerPathInputRef.current?.value)
-        )}>
-            Add column
-        </button>
+        <div>
+            <label htmlFor="pageIndex">Page index</label>
+            <input id="pageIndex" type="number" ref={pageIndexInputRef} />
+            <button onClick={() => {
+                const value = pageIndexInputRef.current?.value;
+                state.visibleRows.setPageIndex(value ? parseInt(value) : 0);
+            }}>Set
+            </button>
+        </div>
 
-        <button onClick={() => state.headers.remove(parseColumnPathInput(headerPathInputRef.current?.value))}>
-            Remove column
-        </button>
-
-        <button onClick={() => state.rows.add([{ name: 'Lesson' + Date.now() }])}>
-            Add row
-        </button>
-
-        <button onClick={() => state.history.undo()}>
-            Undo
-        </button>
-
-        <button onClick={() => state.history.redo()}>
-            Redo
-        </button>
+        <div>
+            <button onClick={() => state.rows.add([{ name: 'Lesson' + Date.now() }])}>
+                Add row
+            </button>
+            <button onClick={() => state.history.undo()}>
+                Undo
+            </button>
+            <button onClick={() => state.history.redo()}>
+                Redo
+            </button>
+        </div>
 
         <Table state={state} />
     </div>;

@@ -10,7 +10,7 @@ export const sliceKeys = [
     'history',
     'visibleRows',
     'selection',
-    'page',
+    'pageSize',
     'filter',
     'rows'
 ] as const;

@@ -7,7 +7,7 @@ import SortOrderSlice from './SortOrderSlice';
 import HeaderSizeSlice from './HeaderSizeSlice';
 import VisibleRowSlice from './VisibleRowSlice';
 import SelectionSlice from './SelectionSlice';
-import PageSlice from './PageSlice';
+import PageSizeSlice from './PageSizeSlice';
 import FilterSlice from './FilterSlice';
 import { dependenciesSymbol, sliceKeys, SliceKeys, Slices } from '../StateSlice';
 import { PartialByValue } from '../../utils/types';
@@ -22,7 +22,7 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
     history: HistorySlice;
     visibleRows: VisibleRowSlice<TData>;
     selection: SelectionSlice<TData>;
-    page: PageSlice;
+    pageSize: PageSizeSlice;
     filter: FilterSlice<TData>;
     rows: RowSlice<TData>;
     columns: ColumnSlice<TData>;
@@ -49,11 +49,13 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
 
         this.history ??= new HistorySlice(config.history, {});
 
-        this.page ??= new PageSlice(config.page, {});
+        this.columns ??= new ColumnSlice(config.columns!, {});
 
         this.filter ??= new FilterSlice(config.filter, {});
 
-        this.columns ??= new ColumnSlice(config.columns!, {});
+        this.pageSize ??= new PageSizeSlice(config.pageSize, {
+            history: this.history
+        });
 
         this.sortOrder ??= new SortOrderSlice(config.sortOrder, {
             history: this.history,
@@ -82,8 +84,9 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
         });
 
         this.visibleRows ??= new VisibleRowSlice(config.visibleRows, {
+            history: this.history,
             scheduler: this.scheduler,
-            page: this.page,
+            pageSize: this.pageSize,
             rows: this.rows,
             filter: this.filter
         });

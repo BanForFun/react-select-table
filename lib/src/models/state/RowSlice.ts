@@ -26,9 +26,9 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
 
     protected _sliceKey: string = 'rows';
 
-    readonly changed = new Observable();
-    readonly added = new Observable();
-    readonly removed = new Observable();
+    readonly sorted = new Observable();
+    readonly added = new Observable<Row<TData>[]>();
+    readonly removed = new Observable<Row<TData>[]>();
 
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key in the future
 
@@ -44,7 +44,7 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
 
     #sortAll = () => {
         this.#rows.sort(this.#compareRows);
-        this._state.scheduler._add(this.changed.notify);
+        this._state.scheduler._add(this.sorted.notify);
     };
 
     constructor(config: OptionalIfPartial<RowConfig<TData>>, state: Dependencies<TData>) {
@@ -52,20 +52,24 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
         state.sortOrder.changed.addObserver(this.#sortAll);
     }
 
+    get head() {
+        return this.#rows.head;
+    }
+
+    get tail() {
+        return this.#rows.tail;
+    }
+
     getRowKey = (row: Row<TData>) => {
         // Maybe load from cache in the future
         return this.config.getRowKey(row);
     };
 
-    iterator() {
-        return this.#rows.head.forwardIterator();
-    }
-
     add = this._dispatcher('add', toUndo => (rows: TData['row'][]) => {
         const newRows: Row<TData>[] = rows.map(this.#createRow);
 
         this.#rows.add(newRows, this.#compareRows);
-        this._state.scheduler._add(this.added.notify);
+        this.added.notify(newRows);
 
         const keys = new Set<RowKey>();
         for (const row of newRows)
@@ -76,7 +80,7 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
 
     remove = this._dispatcher('remove', toUndo => (rowKeys: Set<RowKey>) => {
         const removed = this.#rows.remove(row => rowKeys.has(this.getRowKey(row)));
-        this._state.scheduler._add(this.removed.notify);
+        this.removed.notify(removed);
 
         toUndo(this.add.action(removed));
     });

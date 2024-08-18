@@ -32,8 +32,8 @@ function getRowKey(element: Element) {
 export default function TableBody<TData extends TableData>() {
     const { state, callbacks } = useRequiredContext(getTableContext<TData>());
 
-    const [tableBody] = useState<HTMLTableSectionElement>(() => document.createElement('tbody'));
     const [rowRoots] = useState(() => new DLList<RowRootNode>());
+    const [tableBody] = useState(() => document.createElement('tbody'));
 
     callbacks.updateColumns = () => {
         const rows = state.visibleRows.iterator();
@@ -61,15 +61,11 @@ export default function TableBody<TData extends TableData>() {
         rowRoots.append(node);
     }, [createRoot, rowRoots, tableBody]);
 
-    const appendRoots = useCallback(() => {
-        const rows = state.visibleRows.iterator();
-        for (const row of rows) appendRoot(row);
-    }, [state, appendRoot]);
-
     const clearRoots = useCallback(() => {
-        const oldRootsHead = rowRoots.head.persist();
+        tableBody.replaceChildren();
+
+        const oldRootsHead = rowRoots.head.const();
         rowRoots.clear();
-        tableBody.innerHTML = '';
 
         setTimeout(() => {
             for (const rootNode of oldRootsHead.forwardIterator()) {
@@ -78,6 +74,17 @@ export default function TableBody<TData extends TableData>() {
             }
         });
     }, [rowRoots, tableBody]);
+
+    const appendRoots = useCallback(() => {
+        const rows = state.visibleRows.iterator();
+        for (const row of rows)
+            appendRoot(row);
+    }, [state, appendRoot]);
+
+    useLayoutEffect(() => {
+        appendRoots();
+        return clearRoots;
+    }, [appendRoots, clearRoots, tableBody]);
 
     useEffect(() => state.visibleRows.changed.addObserver(() => {
         clearRoots();
@@ -166,11 +173,6 @@ export default function TableBody<TData extends TableData>() {
             row = rows.next();
         }
     }), [appendRoot, rowRoots, state, tableBody]);
-
-    useLayoutEffect(() => {
-        appendRoots();
-        return clearRoots;
-    }, [appendRoots, clearRoots]);
 
     return <div className="rst-body">
         <table ref={ref => ref?.append(tableBody)} />

@@ -24,9 +24,19 @@
 }
 
 .rst-icon {
-  width: 1rem;
+  height: 1rem;
   fill: currentColor;
   flex: none;
+}
+
+.rst-lineHeight::before {
+  content: '\200b'; //Zero width space, to set the height of the container to the line-height
+}
+
+.rst-inlineIcons {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: bottom;
 }
 
 .rst-head {
@@ -46,18 +56,36 @@
       overflow: hidden;
       text-overflow: ellipsis;
 
-      & > .rst-status {
-        display: inline-flex;
-        align-items: center;
-        vertical-align: bottom;
-        max-width: 100%;
-
+      & > .rst-content > .rst-status {
         @include apply-properties("header-status", "color");
+        max-width: 100%; //Prevent ellipsis
       }
     }
   }
 }
 
+.rst-header-nowrap .rst-head .rst-row > * > .rst-content {
+  display: inline-flex;
+  max-width: 100%;
+  white-space: pre;
+
+  & > .rst-inner {
+    flex: 1 0 0; //Shrink first
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  & > .rst-spacer {
+    flex: 0 1 auto; //Shrink second
+    min-width: 0;
+  }
+
+  & > .rst-status {
+    flex: none; //Never shrink
+    //overflow: hidden;
+    //text-overflow: ellipsis;
+  }
+}
 
 .rst-body {
   @include apply-properties("body", "color", "background-color", "text-align");

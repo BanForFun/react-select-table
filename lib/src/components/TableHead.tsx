@@ -112,37 +112,51 @@ export default function TableHead<TData extends TableData>() {
     for (const column of state.headers.iterator())
         addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
-    return <table className="rst-table rst-head">
+    function renderHeader(header: VisibleHeader) {
+        return <th
+            key={header.key}
+            colSpan={header.span}
+            onClick={e => {
+                if (!header.sort) return;
+
+                const { path } = header.sort;
+                state.history.group(() => {
+                    state.visibleRows.setPageIndex(0, false);
+                    state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                });
+            }}
+        >
+            <span className="rst-content">
+                <span className="rst-inner">{header.content}</span>
+                {header.sort?.column && <HeaderStatus>
+                    <AngleIcon rotation={header.sort.column.order === 'ascending' ? Rotation.Up : Rotation.Down} />
+                    <span className="rst-sortIndex">
+                        {/* Narrow non-breaking space */}
+                        &#8239;<small>{header.sort.column.index + 1}</small>
+                    </span>
+                </HeaderStatus>}
+            </span>
+        </th>;
+    }
+
+    return <table className="rst-table rst-head" aria-hidden={true}>
         <thead>
         {headerRows.map((_, level) => {
             const height = heightOfRowLevel(level);
             const headers = headerRows[height];
             return <tr className="rst-row" key={height}>
-                {headers.map(header => <th
-                    key={header.key}
-                    colSpan={header.span}
-                    onClick={e => {
-                        if (!header.sort) return;
-                        const { path } = header.sort;
-                        state.history.group(() => {
-                            state.visibleRows.setPageIndex(0, false);
-                            state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
-                        });
-                    }}
-                >
-                    {header.content}{' '}
-                    {header.sort?.column && <span className="rst-status">
-                        <AngleIcon rotation={header.sort.column.order === 'ascending'
-                            ? Rotation.Up : Rotation.Down} />
-                        <span>
-                            &#8239;
-                            <small>{header.sort.column.index + 1}</small>
-                        </span>
-                    </span>}
-                </th>)}
+                {headers.map(renderHeader)}
                 <th className="rst-spacer" />
             </tr>;
         })}
         </thead>
     </table>;
+}
+
+
+function HeaderStatus({ children }: { children: React.ReactNode }) {
+    return <>
+        <span className="rst-spacer">{' '}</span>
+        <span className="rst-inlineIcons rst-status">{children}</span>
+    </>;
 }

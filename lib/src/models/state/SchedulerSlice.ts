@@ -1,5 +1,4 @@
 import { log } from '../../utils/debugUtils';
-import { MaybePromise } from '../../utils/types';
 import Observable from '../Observable';
 import StateSlice from '../StateSlice';
 
@@ -48,11 +47,11 @@ export default class SchedulerSlice extends StateSlice {
         });
     }
 
-    async #withStrategy(strategy: CommitStrategy, callback: () => MaybePromise<void>) {
+    #withStrategy(strategy: CommitStrategy, callback: () => void) {
         const oldStrategy = this.#commitStrategy;
 
         this.#commitStrategy = strategy;
-        await callback();
+        callback();
         this.#commitStrategy = oldStrategy;
     }
 
@@ -74,17 +73,17 @@ export default class SchedulerSlice extends StateSlice {
             this.#done.addOnceObserver(callback);
     }
 
-    async batch(callback: () => MaybePromise<void>) {
-        await this.#withStrategy('batch', callback);
+    batch(callback: () => void) {
+        this.#withStrategy('batch', callback);
         if (this.#hasJob)
             this.#commit();
     }
 
-    async sync(callback: () => MaybePromise<void>) {
-        await this.#withStrategy('sync', callback);
+    sync(callback: () => void) {
+        this.#withStrategy('sync', callback);
     }
 
-    async async(callback: () => MaybePromise<void>) {
-        await this.#withStrategy('async', callback);
+    async(callback: () => void) {
+        this.#withStrategy('async', callback);
     }
 }

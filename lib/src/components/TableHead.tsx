@@ -1,12 +1,13 @@
 import React, { useEffect, useLayoutEffect } from 'react';
 import { ReadonlyHeader } from '../models/state/HeaderSlice';
-import getTableContext from '../context/controllerContext';
+import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
 import useRequiredContext from '../hooks/useRequiredContext';
 import { isSortableColumn, SortColumn } from '../models/state/SortOrderSlice';
-import useUpdate from '../hooks/useUpdate';
 import AngleIcon, { Rotation } from './AngleIcon';
+import useUpdateWhen from '../hooks/useUpdateWhen';
+import useUpdateStateSync from '../hooks/useUpdateStateSync';
 
 interface SortHeader {
     path: TreePath;
@@ -26,21 +27,14 @@ interface AddedVisibleHeader extends VisibleHeader {
 
 export default function TableHead<TData extends TableData>() {
     const { state, callbacks } = useRequiredContext(getTableContext<TData>());
+    const updateStateSync = useUpdateStateSync();
 
-    const [updateHeaders, headersUpdated] = useUpdate();
-    const [updateSortOrder] = useUpdate();
-
-    useEffect(() => {
-        return state.headers.changed.addObserver(updateHeaders);
-    }, [state, updateHeaders]);
-
-    useEffect(() => {
-        return state.sortOrder.changed.addObserver(updateSortOrder);
-    }, [state, updateSortOrder]);
+    useUpdateWhen(state.sortOrder.changed);
+    const headersChanged = useUpdateWhen(state.headers.changed);
 
     useLayoutEffect(() => {
         callbacks.updateColumns!();
-    }, [headersUpdated, callbacks]);
+    }, [headersChanged, callbacks]);
 
     const headerRows: VisibleHeader[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;
@@ -120,7 +114,7 @@ export default function TableHead<TData extends TableData>() {
                 if (!header.sort) return;
 
                 const { path } = header.sort;
-                state.history.group(() => {
+                updateStateSync(() => {
                     state.visibleRows.setPageIndex(0, false);
                     state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
                 });
@@ -132,7 +126,8 @@ export default function TableHead<TData extends TableData>() {
                     <AngleIcon rotation={header.sort.column.order === 'ascending' ? Rotation.Up : Rotation.Down} />
                     <span className="rst-sortIndex">
                         {/* Narrow non-breaking space */}
-                        &#8239;<small>{header.sort.column.index + 1}</small>
+                        &#8239;
+                        <small>{header.sort.column.index + 1}</small>
                     </span>
                 </HeaderStatus>}
             </span>

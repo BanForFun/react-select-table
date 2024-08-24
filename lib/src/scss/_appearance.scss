@@ -97,6 +97,47 @@
   }
 }
 
+.rst-pagination {
+  display: grid;
+  justify-content: start;
+  grid-auto-flow: column;
+
+  @include apply-properties("pg",
+          "color",
+          "padding",
+          "item-spacing" "grid-gap"
+  );
+}
+
+.rst-page {
+  text-align: center;
+  box-sizing: content-box;
+  line-height: 1.25rem;
+
+  @include apply-properties("pg-page",
+          "padding",
+          "width",
+          "border-radius",
+          "border",
+          "color"
+  );
+
+  border-color: transparent;
+}
+
+button.rst-page {
+  $properties: "background-color", "border-color", "color";
+  @include apply-properties("pg-page", $properties...);
+
+  &:hover {
+    @include apply-properties("pg-page_hover", $properties...);
+  }
+
+  &[data-is-current="true"] {
+    @include apply-properties("pg-page_current", $properties...);
+  }
+}
+
 %disabled-main {
   @include apply-properties("root-container",
           "margin",

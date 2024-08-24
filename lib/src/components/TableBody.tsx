@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import getTableContext from '../context/controllerContext';
+import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import DLList, { DLNodeWrapper } from '../models/DLList';
 import useRequiredContext from '../hooks/useRequiredContext';

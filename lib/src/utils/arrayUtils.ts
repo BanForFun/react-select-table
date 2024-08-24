@@ -11,3 +11,11 @@ export function pushReverse<T>(dest: T[], source: T[]) {
         dest.push(source[i]);
     }
 }
+
+export function repeat<T>(number: number, generate: (index: number) => T) {
+    const result: T[] = [];
+    for (let i = 0; i < number; i++)
+        result.push(generate(i));
+
+    return result;
+}

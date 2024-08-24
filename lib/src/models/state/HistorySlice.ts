@@ -8,18 +8,18 @@ export type Action = {
 
 type ActionGroup = Action[];
 
-export type ToUndoCallback = (action: Action) => void
-export type Handler<TArgs extends unknown[], TReturn> = (toUndo: ToUndoCallback) => (...args: TArgs) => TReturn;
+export type PushActionCallback = (action: Action) => void
+export type Handler<TArgs extends unknown[], TReturn> = (toUndo: PushActionCallback) => (...args: TArgs) => TReturn;
 export type Creator<TArgs extends unknown[]> = (...args: TArgs) => Action;
 export type Dispatcher<TArgs extends unknown[], TReturn> = ((...args: TArgs) => TReturn) & { action: Creator<TArgs> };
 
 export default class HistorySlice extends StateSlice {
     readonly #dispatchers: Record<string, (...args: unknown[]) => void> = {};
     #currentGroup: ActionGroup | null = null;
-    #past: ActionGroup[] = [];
-    #future: ActionGroup[] = [];
+    #past: Readonly<ActionGroup>[] = [];
+    #future: Readonly<ActionGroup>[] = [];
 
-    #pop(source: ActionGroup[], dest: ActionGroup[]) {
+    #pop(source: Readonly<ActionGroup>[], dest: Readonly<ActionGroup>[]) {
         const group = source.pop();
         if (!group) return;
 
@@ -33,7 +33,7 @@ export default class HistorySlice extends StateSlice {
         dest.push(undoGroup);
     }
 
-    #push(group: ActionGroup) {
+    #push(group: Readonly<ActionGroup>) {
         if (group.length === 0) {
             log('Discarding empty undo group');
             return;
@@ -43,15 +43,15 @@ export default class HistorySlice extends StateSlice {
         this.#future = [];
     }
 
-    #group(callback: () => void): ActionGroup {
+    #group(callback: () => void): Readonly<ActionGroup> {
         if (this.#currentGroup != null)
-            throw new Error('Recursive groups not allowed');
+            throw new Error('Nested groups not allowed');
 
         const group = (this.#currentGroup = []);
         callback();
         this.#currentGroup = null;
 
-        return group;
+        return Object.freeze(group);
     }
 
     _createDispatcher<TArgs extends unknown[], TReturn>(
@@ -65,7 +65,7 @@ export default class HistorySlice extends StateSlice {
             const result = handler(action => group.push(action))(...args);
 
             if (isRoot) {
-                this.#push(group);
+                this.#push(Object.freeze(group));
                 this.#currentGroup = null;
             }
 

@@ -11,7 +11,7 @@ interface TableContextValue<TData extends TableData> {
     callbacks: TableCallbacks;
 }
 
-const TableContext = createRequiredContext<TableContextValue<TableData>>();
+export const TableContext = createRequiredContext<TableContextValue<TableData>>();
 TableContext.displayName = 'TableContext';
 
 const getTableContext = <TData extends TableData>() => TableContext as RequiredContext<TableContextValue<TData>>;

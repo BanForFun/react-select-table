@@ -46,6 +46,7 @@ export default function TableBody<TData extends TableData>() {
 
     const createRoot = useCallback((row: Row<TData>) => {
         const element = document.createElement('tr');
+        element.classList.add('rst-row');
         element.dataset[keyKey] = state.rows.getRowKey(row);
 
         const root = ReactDOM.createRoot(element);
@@ -174,7 +175,5 @@ export default function TableBody<TData extends TableData>() {
         }
     }), [appendRoot, rowRoots, state, tableBody]);
 
-    return <div className="rst-body">
-        <table ref={ref => ref?.append(tableBody)} />
-    </div>;
+    return <table className="rst-table rst-body" ref={ref => ref?.append(tableBody)} />;
 }

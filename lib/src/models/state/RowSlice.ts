@@ -44,7 +44,7 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
 
     #sortAll = () => {
         this.#rows.sort(this.#compareRows);
-        this._state.scheduler._add(this.sorted.notify);
+        this.sorted.notify();
     };
 
     constructor(config: OptionalIfPartial<RowConfig<TData>>, state: Dependencies<TData>) {

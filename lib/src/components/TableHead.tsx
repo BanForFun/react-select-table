@@ -6,6 +6,7 @@ import { TreePath } from '../utils/unrootedTreeUtils';
 import useRequiredContext from '../hooks/useRequiredContext';
 import { isSortableColumn, SortColumn } from '../models/state/SortOrderSlice';
 import useUpdate from '../hooks/useUpdate';
+import AngleIcon, { Rotation } from './AngleIcon';
 
 interface SortHeader {
     path: TreePath;
@@ -111,31 +112,37 @@ export default function TableHead<TData extends TableData>() {
     for (const column of state.headers.iterator())
         addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
-    return <div className="rst-head">
-        <table>
-            <thead>
-            {headerRows.map((_, level) => {
-                const height = heightOfRowLevel(level);
-                const headers = headerRows[height];
-                return <tr key={height}>
-                    {headers.map(header => <th
-                        key={header.key}
-                        colSpan={header.span}
-                        onClick={e => {
-                            if (!header.sort) return;
-                            const { path } = header.sort;
-                            state.history.group(() => {
-                                state.visibleRows.setPageIndex(0, false);
-                                state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
-                            });
-                        }}
-                    >
-                        {header.content}<br />
-                        {header.sort?.column && `${header.sort.column.order} (${header.sort.column.index})`}
-                    </th>)}
-                </tr>;
-            })}
-            </thead>
-        </table>
-    </div>;
+    return <table className="rst-table rst-head">
+        <thead>
+        {headerRows.map((_, level) => {
+            const height = heightOfRowLevel(level);
+            const headers = headerRows[height];
+            return <tr className="rst-row" key={height}>
+                {headers.map(header => <th
+                    key={header.key}
+                    colSpan={header.span}
+                    onClick={e => {
+                        if (!header.sort) return;
+                        const { path } = header.sort;
+                        state.history.group(() => {
+                            state.visibleRows.setPageIndex(0, false);
+                            state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+                        });
+                    }}
+                >
+                    {header.content}{' '}
+                    {header.sort?.column && <span className="rst-status">
+                        <AngleIcon rotation={header.sort.column.order === 'ascending'
+                            ? Rotation.Up : Rotation.Down} />
+                        <span>
+                            &#8239;
+                            <small>{header.sort.column.index + 1}</small>
+                        </span>
+                    </span>}
+                </th>)}
+                <th className="rst-spacer" />
+            </tr>;
+        })}
+        </thead>
+    </table>;
 }

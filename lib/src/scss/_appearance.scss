@@ -1,0 +1,307 @@
+@use "mixins" as *;
+@use "functions" as *;
+@use "config" as *;
+
+:root {
+  @include load-config($config);
+}
+
+.rst-table {
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.rst-row {
+  @include apply-properties("row", "border-color");
+
+  & > * {
+    @include apply-properties("cell", "padding");
+    @include apply-properties("column", "border" "border-left");
+    background-clip: padding-box;
+  }
+}
+
+.rst-icon {
+  width: 1rem;
+  fill: currentColor;
+  flex: none;
+}
+
+.rst-head {
+  @include apply-properties("head", "color", "background-color", "border" "border-bottom");
+
+  .rst-row {
+    @include apply-properties("header", "text-align");
+
+    &:last-child {
+      @include apply-properties("header_leaf", "text-align");
+    }
+
+    & > * {
+      @include apply-properties("head", "vertical-align", "font-weight");
+      @include apply-properties("row", "border" "border-top");
+      border-top-color: inherit;
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      & > .rst-status {
+        display: inline-flex;
+        align-items: center;
+        vertical-align: bottom;
+        max-width: 100%;
+
+        @include apply-properties("header-status", "color");
+      }
+    }
+  }
+}
+
+
+.rst-body {
+  @include apply-properties("body", "color", "background-color", "text-align");
+
+  .rst-row > * {
+    @include apply-properties("body", "vertical-align", "font-weight");
+    @include apply-properties("row", "border" "border-bottom");
+    border-bottom-color: inherit;
+  }
+}
+
+%disabled-main {
+  @include apply-properties("root-container",
+          "margin",
+          "background-color"
+  );
+
+  .rst-row {
+    @include apply-properties("row", "border-color");
+
+    & > * {
+      @include apply-properties("cell", "padding");
+      @include apply-properties("row", "border" "border-bottom");
+      @include apply-properties("column", "border" "border-left");
+      background-clip: padding-box;
+      border-top: none; // Bootstrap adds top border
+      border-bottom-color: inherit;
+    }
+
+    .rst-spacer {
+      border-left: none;
+    }
+
+    $separator-width: get-property("column-separator", "width");
+    $separator-color: get-property("column-separator", "color");
+
+    .rst-header {
+      @include apply-properties("header", "font-weight");
+      box-shadow: inset-border($separator-width, $separator-color, left);
+      padding-right: $separator-width;
+    }
+
+    .rst-endCap {
+      padding: 0;
+      $spread: calc(#{$separator-width} / 2);
+      box-shadow: negative($spread) negative($spread) 0 $spread $separator-color;
+    }
+  }
+
+  .rst-endCap {
+    @include apply-properties("column", "border-width" "width");
+  }
+
+  .rst-clippingStopper {
+    @include apply-properties("column", "border-width" "padding-left");
+  }
+
+  .rst-headerContent > * {
+    @include apply-properties("head", "icon-spacing" "margin-right");
+  }
+
+  .rst-scrollingContainer {
+    &[data-drag-mode=resize] {
+      .rst-head {
+        @include apply-properties("head_resizing", "border-image");
+      }
+
+      .rst-body {
+        @include apply-properties("body_resizing", "opacity");
+      }
+    }
+  }
+}
+
+%disabled-placeholder {
+  .rst-placeholder {
+    @include apply-properties("placeholder",
+            "padding",
+            "text-align",
+            "color"
+    );
+  }
+}
+
+%disabled-rowOverlay {
+  .rst-body .rst-row > * {
+    background-color: var(--overlay-color);
+  }
+}
+
+%disabled-rowUnderline {
+  .rst-body .rst-row > * {
+    box-shadow: inset-border(var(--underline-width, 0px), var(--underline-color), bottom);
+  }
+}
+
+%disabled-rowStriped {
+  .rst-body .rst-row:nth-of-type(#{$stripe-order}) {
+    @include apply-properties("row_striped", "color");
+    --overlay-color: #{get-property("row_striped", "overlay-color")};
+  }
+}
+
+%disabled-rowHover {
+  .rst-body .rst-row:hover {
+    @include apply-properties("row_hover", "color");
+    --overlay-color: #{get-property("row_hover", "overlay-color")};
+  }
+}
+
+%disabled-rowActive {
+  .rst-row[#{flag-attr('active')}] {
+    --underline-width: #{get-property("row_active", "underline-width")};
+    --underline-color: #{get-property("row_active", "underline-color")};
+  }
+
+  &:focus-within .rst-row[#{flag-attr('active')}] {
+    --underline-color: #{get-property("row_active_focused", "underline-color")};
+  }
+}
+
+%disabled-rowSelected {
+  .rst-row[#{flag-attr('selected')}] {
+    @include apply-properties("row_selected", "color", "border-color", "background-color");
+  }
+
+  &:focus-within .rst-row[#{flag-attr('selected')}] {
+    @include apply-properties("row_selected_focused", "color", "border-color", "background-color");
+  }
+}
+
+%disabled-columnResizer {
+  .rst-columnResizer {
+    //Cover the column separator
+    transform: translateX(get-property("column-separator", "width"));
+    @include apply-properties("column-resizer", "width");
+  }
+
+  .rst-header, .rst-spacer {
+    &[#{flag-attr('resizing')}] .rst-columnResizer {
+      @include apply-properties("column-resizer_resizing", "border" "border-right");
+      transform: none;
+      height: 100vh;
+    }
+  }
+}
+
+%disabled-dragSelection {
+  .rst-dragSelection {
+    @include apply-properties("drag-selection",
+            "border",
+            "border-radius",
+            "background-color"
+    );
+  }
+}
+
+%disabled-pagination {
+  .rst-pagination {
+    @include apply-properties("pg",
+            "color",
+            "padding",
+            "item-spacing" "grid-gap"
+    );
+
+    .rst-page {
+      @include apply-properties("pg-page",
+              "padding",
+              "width",
+              "border-radius",
+              "border",
+              "color"
+      );
+      border-color: transparent;
+    }
+
+    button.rst-page {
+      $properties: "background-color", "border-color", "color";
+      @include apply-properties("pg-page", $properties...);
+
+      &:hover {
+        @include apply-properties("pg-page_hover", $properties...);
+      }
+
+      &[#{flag-attr('current')}] {
+        @include apply-properties("pg-page_current", $properties...);
+      }
+    }
+  }
+}
+
+%disabled-search {
+  .rst-searchContainer {
+    @include apply-properties("search-container",
+            "padding",
+            "width"
+    );
+  }
+
+  .rst-search {
+    input {
+      border: none;
+      outline: none;
+      background: none;
+    }
+
+    @include apply-properties("search",
+            "background-color",
+            "color",
+            "padding",
+            "border",
+            "border-radius",
+            "box-shadow",
+            "item-spacing" "column-gap"
+    );
+
+    .rst-matches {
+      @include apply-properties("search-matches",
+              "color"
+      );
+    }
+
+    .rst-separator {
+      @include apply-properties("search-separator",
+              "border" "border-right"
+      );
+    }
+
+    button {
+      line-height: 0;
+
+      @include apply-properties("search-btn",
+              "padding",
+              "border",
+              "border-radius",
+              "background-color"
+      );
+
+      &:hover {
+        @include apply-properties("search-btn_hover",
+                "background-color",
+                "border-color"
+        );
+      }
+    }
+  }
+}

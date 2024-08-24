@@ -1,0 +1,51 @@
+@use "functions" as *;
+@use "vars" as *;
+
+@mixin set-property($module, $property, $value) {
+  $name: get-name($module, $property);
+  #{$name}: #{$value};
+}
+
+@mixin load-config($config) {
+  @each $name, $value in $config {
+    $parts: split-string($name, $property-separator);
+
+    $module: nth($parts, 1);
+    $property: nth($parts, 2);
+
+    @if $property == "border" {
+      //Auto generate properties from border, to be used as a fallback for more specific values
+      @include set-property($module, "border-width", nth($value, 1));
+      @include set-property($module, "border-style", nth-or-default($value, 2, initial));
+      @include set-property($module, "border-color", nth-or-default($value, 3, initial));
+    } @else {
+      @include set-property($module, $property, $value);
+    }
+  }
+}
+
+@mixin apply-properties($module, $properties...) {
+  @each $property in $properties {
+    $config-property: nth($property, 1);
+    $property: if(length($property) == 1, $config-property, nth($property, 2));
+
+    @if $config-property == "border" {
+      @include apply-properties($module,
+              "border-width" $property + "-width",
+              "border-style" $property + "-style",
+              "border-color" $property + "-color"
+      )
+    } @else {
+      #{$property}: get-property($module, $config-property);
+    }
+  }
+}
+
+@mixin border-sides($sides) {
+  $all-sides: top, left, right, bottom;
+  @each $side in $all-sides {
+    @if index($sides, $side) == null {
+      border-#{$side}: none;
+    }
+  }
+}

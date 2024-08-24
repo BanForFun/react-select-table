@@ -5,7 +5,7 @@ import { TableData } from '../../utils/configUtils';
 import { getIterableIterator } from '../../utils/iterableUtils';
 import SchedulerSlice from './SchedulerSlice';
 import { optional } from '../../utils/types';
-import ColumnSlice, { NewSortOrder } from './ColumnSlice';
+import ColumnSlice from './ColumnSlice';
 import UndoableStateSlice from '../UndoableStateSlice';
 import HistorySlice from './HistorySlice';
 

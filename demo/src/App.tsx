@@ -1,4 +1,5 @@
 import { createState, withContext, simpleColumn, Table, Column } from 'react-select-table';
+import 'react-select-table/index.css';
 import './App.css';
 import { useEffect, useRef } from 'react';
 

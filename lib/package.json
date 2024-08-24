@@ -5,12 +5,13 @@
   "exports": {
     ".": {
       "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js"
-    }
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./index.css": "./dist/index.css"
   },
   "scripts": {
-    "dev": "tsup --watch",
+    "dev": "tsup --watch src/",
     "build": "tsup",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "test": "echo \"Error: no test specified\" && exit 1"

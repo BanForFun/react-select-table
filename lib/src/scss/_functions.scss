@@ -1,15 +1,44 @@
 @use "vars" as *;
 
-@function get-name($module, $property) {
-  @return --#{$var-prefix}-#{$module}_#{$property}
+@function if-null($value, $fallback) {
+  @if $value == null {
+    @return $fallback;
+  }
+
+  @return $value;
 }
 
-@function get-property($module, $property) {
-  $name: get-name($module, $property);
-  $state-parts: split-string($module, $state-separator);
+@function get-var-name($name) {
+  @return --#{$var-prefix}_#{$name};
+}
+
+@function get-config-name($module, $property) {
+  @return get-var-name(#{$module}_#{$property});
+}
+
+@function get-state-config-name($module, $property) {
+  @return get-config-name(#{get-root-module($module)}_, $property);
+}
+
+@function get-expanded-name($property, $expansion) {
+  @if $expansion == null {
+    @return $property;
+  }
+
+  @return #{$property}-#{$expansion};
+}
+
+@function get-root-module($module) {
+  $state-parts: split($module, $state-separator);
+  @return nth($state-parts, 1);
+}
+
+@function get-config-value($module, $property) {
+  $name: get-config-name($module, $property);
+  $state-parts: split($module, $state-separator);
   @if length($state-parts) >= 2 {
-    $fallback-module: join-to-string(set-nth($state-parts, -1, null), $state-separator);
-    @return var($name, get-property($fallback-module, $property))
+    $fallback-module: join(set-nth($state-parts, -1, null), $state-separator);
+    @return var($name, get-config-value($fallback-module, $property))
   } @else {
     @return var($name);
   }
@@ -23,7 +52,7 @@
   @return $default;
 }
 
-@function split-string($string, $separator, $list: ()) {
+@function split($string, $separator, $list: ()) {
   $index: str-index($string, $separator);
   @if $index == null {
     @return append($list, $string);
@@ -33,10 +62,10 @@
   $end: str-slice($string, $index + 1, -1);
   $list: append($list, $start);
 
-  @return split-string($end, $separator, $list);
+  @return split($end, $separator, $list);
 }
 
-@function join-to-string($list, $separator) {
+@function join($list, $separator) {
   $result: "";
   @each $item in $list {
     @if type-of($item) == "string" {
@@ -45,6 +74,15 @@
   }
 
   @return str-slice($result, 1, -1 - str-length($separator));
+}
+
+@function starts-with($string, $start) {
+  $start-length: str-length($start);
+  @if (str-length($string) < $start-length) {
+    @return false;
+  }
+
+  @return str-slice(1, $start-length) == $start;
 }
 
 @function negative($value) {
@@ -60,8 +98,4 @@
   );
 
   @return inset map-get($offsets, $side) 0 0 $color;
-}
-
-@function flag-attr($flag) {
-  @return 'data-is-' + $flag
 }

@@ -5,117 +5,107 @@ $config: () !default;
 
 //@formatter:off
 $config: map-merge((
-  //Naming convention: element_state1_stateN.property
-  "placeholder.color":                        #616161,
-  "placeholder.padding":                      1rem,
-  "placeholder.text-align":                   center,
+        //Naming convention: element_state1_stateN.property
+        "placeholder.color":                        #616161,
+        "placeholder.padding":                      1rem,
+        "placeholder.text-align":                   center,
 
-  "root-container.margin":                    0 0 1rem 0,
-  "root-container.background-color":          transparent,
+        "root-container.margin":                    0 0 1rem 0,
+        "root-container.background-color":          transparent,
 
-  "search-container.padding":                 2px 12px 12px 2px,
-  "search-container.width":                   400px,
+        "search-container.padding":                 2px 12px 12px 2px,
+        "search-container.width":                   400px,
 
-  "search.padding":                           0.5rem 1rem,
-  "search.border":                            1px solid rgba(#a3a5a5, 0.5),
-  "search.border-radius":                     0.25rem,
-  "search.item-spacing":                      0.75rem,
-  "search.background-color":                  #f7f7f7,
-  "search.color":                             #333333,
-  "search.box-shadow":                        2px 2px 10px rgba(#000, 0.2),
+        "search.padding":                           0.5rem 1rem,
+        "search.border":                            1px solid rgba(#a3a5a5, 0.5),
+        "search.border-radius":                     0.25rem,
+        "search.item-spacing":                      0.75rem,
+        "search.background-color":                  #f7f7f7,
+        "search.color":                             #333333,
+        "search.box-shadow":                        2px 2px 10px rgba(#000, 0.2),
 
-  "search-matches.color":                     #616161,
+        "search-matches.color":                     #616161,
 
-  "search-separator.border":                  1px solid rgba(#616161, 0.5),
+        "search-separator.border":                  1px solid rgba(#616161, 0.5),
 
-  "search-btn.padding":                       0.35rem,
-  "search-btn.border":                        0,
-  "search-btn.border-radius":                 50%,
-  "search-btn.color":                         unset,
-  "search-btn.background-color":              transparent,
-  "search-btn_hover.background-color":        #dee2e6,
-  "search-btn_hover.border-color":            unset,
-  "search-btn_hover.color":                   unset,
+        "search-btn.padding":                       0.35rem,
+        "search-btn.border-radius":                 50%,
+        "search-btn.border":                        0,
+        "search-btn_hover.border-color":            unset,
+        "search-btn.color":                         initial,
+        "search-btn_hover.color":                   unset,
+        "search-btn.background-color":              transparent,
+        "search-btn_hover.background-color":        #dee2e6,
 
-  "cell.padding":                             0.75rem,
+        "cell.padding":                             0.75rem,
 
-  "head.vertical-align":                      bottom,
-  "head.background-color":                    #f7f7f7,
-  "head.border":                              2px solid rgba(#bdc5cd, 0.5),
-  "head_resizing.border-image":               repeating-linear-gradient(
-    to right, get-property("head", "border-color") 0px 10px, transparent 10px 20px) 1 stretch,
+        "head.vertical-align":                      bottom,
+        "head.background-color":                    #f7f7f7,
+        "head.border":                              2px solid rgba(#bdc5cd, 0.5),
+        "head_resizing.border-image":               repeating-linear-gradient(
+                                                      to right,
+                                                      get-config-value("head", "border-color") 0px 10px,
+                                                      transparent 10px 20px
+                                                    ) 1 stretch,
 
-  "header-status.color":                      #616161,
+        "header-status.color":                      #616161,
 
-  "header.color":                             #333333,
-  "header_leaf.color":                        unset,
-  "header_row.color":                         unset,
-  "header.text-align":                        center,
-  "header_leaf.text-align":                   left,
-  "header_row.text-align":                    left,
-  "header.font-weight":                       bold,
-  "header_leaf.font-weight":                  unset,
-  "header_row.font-weight":                   unset,
+        "header.color":                             #333333,
+        "header_leaf.color":                        unset,
+        "header_row.color":                         unset,
+        "header.text-align":                        center,
+        "header_leaf.text-align":                   left,
+        "header_row.text-align":                    left,
+        "header.font-weight":                       bold,
+        "header_leaf.font-weight":                  unset,
+        "header_row.font-weight":                   unset,
 
-  "column-separator.width":                   5px,
-  "column-separator.color":                   #89b363,
+        "column-separator.width":                   5px,
+        "column-separator.color":                   #89b363,
 
-  "column-resizer.width":                     30px,
-  "column-resizer.border":                    2px solid #a3a5a5,
+        "column-resizer.width":                     30px,
+        "column-resizer.border":                    2px solid #a3a5a5,
 
-  "body.vertical-align":                      top,
-  "body.background-color":                    transparent,
-  "body_resizing.opacity":                    0.5,
+        "body.vertical-align":                      top,
+        "body.background-color":                    transparent,
+        "body_resizing.opacity":                    0.5,
 
-  "data.color":                               #333333,
-  "data.text-align":                          left,
-  "data.font-weight":                         normal,
+        "data.color":                               #333333,
+        "data.text-align":                          left,
+        "data.font-weight":                         normal,
 
-  "column.border":                            2px solid #dee2e6,
+        "column.border":                            2px solid #dee2e6,
 
-  "row.border":                               1px solid #dee2e6,
+        "row.border":                               1px solid #dee2e6,
+        "row_selected.border-color":                #f5f5f5,
+        "row_selected_focused.border-color":        unset,
+        "row_selected.background-color":            rgba(#a7b79b, 0.5),
+        "row_selected_focused.background-color":    rgba(#89b363, 0.5),
+        "row_active.underline-width":               3px,
+        "row_active.underline-color":               rgba(#a7b79b, 0.875),
+        "row_active_focused.underline-color":       rgba(#89b363, 0.875),
+        "row_striped.overlay-color":                rgba(#afafaf, 0.1),
+        "row_hover.overlay-color":                  rgba(#afafaf, 0.2),
 
-  "row_selected.border-color":                #f5f5f5,
-  "row_selected_focused.border-color":        unset,
+        "drag-selection.border":                    1px solid rgba(#89b363, 0.5),
+        "drag-selection.border-radius":             0.25rem,
+        "drag-selection.background-color":          rgba(#89b363, 0.25),
 
-  "row_selected.background-color":            rgba(#a7b79b, 0.5),
-  "row_selected_focused.background-color":    rgba(#89b363, 0.5),
+        "pg.padding":                               1rem,
+        "pg.item-spacing":                          0.25rem,
 
-  "row_selected.color":                       unset,
-  "row_selected_focused.color":               unset,
-
-  "row_active.underline-width":               3px,
-  "row_active.underline-color":               rgba(#a7b79b, 0.875),
-  "row_active_focused.underline-color":       rgba(#89b363, 0.875),
-
-  "row_striped.overlay-color":                rgba(#afafaf, 0.1),
-  "row_striped.color":                        unset,
-
-  "row_hover.overlay-color":                  rgba(#afafaf, 0.2),
-  "row_hover.color":                          unset,
-
-  "drag-selection.border":                    1px solid rgba(#89b363, 0.5),
-  "drag-selection.border-radius":             0.25rem,
-  "drag-selection.background-color":          rgba(#89b363, 0.25),
-
-  "pg.padding":                               1rem,
-  "pg.item-spacing":                          0.25rem,
-
-  "pg-page.padding":                          0.25rem 0.5rem,
-  "pg-page.width":                            1.25rem,
-  "pg-page.border":                           0,
-  "pg-page.border-radius":                    0.25rem,
-  "pg-page.background-color":                 transparent,
-  "pg-page.color":                            #616161,
-
-  "pg-page_hover.background-color":           rgba(#afafaf, 0.2),
-  "pg-page_hover.color":                      unset,
-  "pg-page_hover.border-color":               unset,
-
-  "pg-page_current.background-color":         #c4d9b1,
-  "pg-page_current.color":                    unset,
-  "pg-page_current.border-color":             unset,
-
+        "pg-page.padding":                          0.25rem 0.5rem,
+        "pg-page.width":                            1.25rem,
+        "pg-page.border":                           0,
+        "pg-page_hover.border-color":               unset,
+        "pg-page_current.border-color":             unset,
+        "pg-page.border-radius":                    0.25rem,
+        "pg-page.background-color":                 transparent,
+        "pg-page_hover.background-color":           rgba(#afafaf, 0.2),
+        "pg-page_current.background-color":         #c4d9b1,
+        "pg-page.color":                            #616161,
+        "pg-page_hover.color":                      unset,
+        "pg-page_current.color":                    unset,
 ), $config);
 
 

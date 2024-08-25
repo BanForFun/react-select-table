@@ -1,51 +1,110 @@
 @use "functions" as *;
 @use "vars" as *;
+@use "config" as *;
 
-@mixin set-property($module, $property, $value) {
-  $name: get-name($module, $property);
-  #{$name}: #{$value};
+$shorthands: (
+        "border": "width" "style" "color",
+        "padding": "top" "right" "bottom" "left"
+);
+
+@mixin set-config-property($module, $property, $value) {
+  #{get-config-name($module, $property)}: #{$value};
+}
+
+@mixin set-expanded-config-property($module, $base, $expansions) {
+  @each $expansion, $value in $expansions {
+    @include set-config-property($module, get-expanded-name($base, $expansion), $value);
+  }
+}
+
+@mixin load-config-property($name, $value) {
+  $parts: split($name, $property-separator);
+  $module: nth($parts, 1);
+  $property: nth($parts, 2);
+
+  @if $property == "border" {
+    //Auto generate properties from border, to be used as a fallback for more specific values
+    @include set-expanded-config-property($module, $property, (
+            "width": nth($value, 1),
+            "style": nth-or-default($value, 2, initial),
+            "color": nth-or-default($value, 3, initial)
+    ));
+  } @else if $property == "padding" {
+    $top: nth($value, 1);
+    $right: nth-or-default($value, 2, $top);
+    @include set-expanded-config-property($module, $property, (
+            "top": $top,
+            "right": $right,
+            "bottom": nth-or-default($value, 3, $top),
+            "left": nth-or-default($value, 4, $right),
+    ));
+  } @else {
+    @include set-config-property($module, $property, $value);
+  }
 }
 
 @mixin load-config($config) {
   @each $name, $value in $config {
-    $parts: split-string($name, $property-separator);
+    @include load-config-property($name, $value);
+  }
+}
 
-    $module: nth($parts, 1);
-    $property: nth($parts, 2);
+@mixin load-property($module, $source, $destination) {
+  $expansions: map-get($shorthands, $source);
+  @each $expansion in $expansions {
+    $stateConfigName: get-state-config-name($module, get-expanded-name($source, $expansion));
+    #{get-expanded-name($destination, $expansion)}: var($stateConfigName);
+  }
+}
 
-    @if $property == "border" {
-      //Auto generate properties from border, to be used as a fallback for more specific values
-      @include set-property($module, "border-width", nth($value, 1));
-      @include set-property($module, "border-style", nth-or-default($value, 2, initial));
-      @include set-property($module, "border-color", nth-or-default($value, 3, initial));
+@mixin load-properties($module, $properties...) {
+  @each $property in $properties {
+    @if type-of($property) == "list" {
+      @include load-properties($module, $property...);
     } @else {
-      @include set-property($module, $property, $value);
+      @each $source, $destinations in $property {
+        @each $destination in $destinations {
+          @include load-property($module, $source, if-null($destination, $source))
+        }
+      }
+    }
+  }
+}
+
+@mixin override-properties($target-module) {
+  @each $name, $value in $config {
+    $parts: split($name, $property-separator);
+    $module: nth($parts, 1);
+
+    @if $module == $target-module {
+      $property: nth($parts, 2);
+      @each $expansion in map-get($shorthands, $property) {
+        $expanded: get-expanded-name($property, $expansion);
+        #{get-state-config-name($module, $expanded)}: #{get-config-value($module, $expanded)};
+      }
     }
   }
 }
 
 @mixin apply-properties($module, $properties...) {
-  @each $property in $properties {
-    $config-property: nth($property, 1);
-    $property: if(length($property) == 1, $config-property, nth($property, 2));
-
-    @if $config-property == "border" {
-      @include apply-properties($module,
-              "border-width" $property + "-width",
-              "border-style" $property + "-style",
-              "border-color" $property + "-color"
-      )
-    } @else {
-      #{$property}: get-property($module, $config-property);
-    }
-  }
+  @include override-properties($module);
+  @include load-properties($module, $properties...);
 }
 
-@mixin border-sides($sides) {
-  $all-sides: top, left, right, bottom;
-  @each $side in $all-sides {
-    @if index($sides, $side) == null {
-      border-#{$side}: none;
-    }
-  }
-}
+//@mixin apply-properties($module, $properties...) {
+//  @each $source, $destinations in keywords($properties) {
+//    @each $destination in $destinations {
+//      @include apply-property($module, $source, $destination)
+//    }
+//  }
+//
+//  @each $property in $properties {
+//    $type: type-of($property);
+//    @if $type == "list" or $type == "map" {
+//      @include apply-properties($module, $property...);
+//    } @else {
+//      @include apply-property($module, $property, $property);
+//    }
+//  }
+//}
+

@@ -16,6 +16,7 @@ export interface ColumnGroup<TContext> extends BaseColumn {
 
 export interface LeafColumn<TContext> extends BaseColumn {
     render: (context: TContext, options: ColumnOptions) => React.ReactNode;
+    isHeader?: boolean;
     compareContext?: (a: TContext, b: TContext) => number;
     // isContextEqual?: (a: TContext, b: TContext) => boolean;
     children?: never;
@@ -28,11 +29,17 @@ export function isColumnGroup<TContext>(column: Column<TContext>): column is Col
     return !!column.children;
 }
 
+interface SimpleColumnOptions {
+    allowSorting?: boolean;
+    isHeader?: boolean;
+}
+
 // Public
-export function simpleColumn(header: React.ReactNode, isSortable: boolean = true): LeafColumn<Primitive> {
+export function simpleColumn(header: React.ReactNode, options: SimpleColumnOptions = {}): LeafColumn<Primitive> {
     return {
         header,
-        compareContext: isSortable ? comparePrimitives : undefined,
+        isHeader: options.isHeader,
+        compareContext: options.allowSorting ? comparePrimitives : undefined,
         // isContextEqual: (a, b) => a === b,
         render: (context) => context
     };

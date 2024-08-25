@@ -8,14 +8,15 @@ import Pagination from './Pagination';
 
 interface Props<TData extends TableData> {
     state: State<TData>;
+    headerNoWrap?: boolean;
 }
 
-export default function Table<TData extends TableData>({ state }: Props<TData>) {
+export default function Table<TData extends TableData>({ state, headerNoWrap = false }: Props<TData>) {
     const [callbacks] = useState<TableCallbacks>({});
     const contextValue = useMemo(() => ({ state, callbacks }), [state, callbacks]);
 
     const TableContext = getTableContext<TData>();
-    return <div className="rst-container">
+    return <div className="rst-container" data-header-nowrap={headerNoWrap}>
         <TableContext.Provider value={contextValue}>
             <div className="rst-scrollingContainer">
                 <TableHead />

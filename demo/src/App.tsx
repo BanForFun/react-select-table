@@ -45,7 +45,7 @@ const state = createState<Lesson>({
         getRowKey: l => l.name
     },
     columns: [
-        withContext(l => l.name, simpleColumn('Name')),
+        withContext(l => l.name, simpleColumn('Name', { isHeader: true })),
         {
             header: 'Weekdays', children: [
                 withContext(l => l.monday, lessonColumn('Monday')),
@@ -108,7 +108,7 @@ state.scheduler.batch(() => {
         state.rows.add([{ name: 'Lesson ' + i }]);
     }
 
-    state.pageSize.set(5);
+    state.pageSize.set(20);
 
     state.history.clear();
 });
@@ -187,7 +187,7 @@ function App() {
             </button>
         </div>
 
-        <Table state={state} />
+        <Table state={state} headerNoWrap={true} />
     </div>;
 }
 

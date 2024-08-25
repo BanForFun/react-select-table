@@ -6,123 +6,144 @@
   @include load-config($config);
 }
 
-.rst-table {
-  table-layout: fixed;
-  border-collapse: separate;
-  border-spacing: 0;
-  width: 100%;
-}
-
-.rst-row {
-  @include apply-properties("row", "border-color");
-
-  & > * {
-    @include apply-properties("cell", "padding");
-    @include apply-properties("column", "border" "border-left");
-    background-clip: padding-box;
+.rst-container {
+  .rst-table {
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
   }
-}
 
-.rst-icon {
-  height: 1rem;
-  fill: currentColor;
-  flex: none;
-}
+  .rst-row > * {
+    @include apply-properties("column", "border" "border-left");
+  }
 
-.rst-lineHeight::before {
-  content: '\200b'; //Zero width space, to set the height of the container to the line-height
-}
+  .rst-icon {
+    height: 1rem;
+    fill: currentColor;
+    flex: none;
+  }
 
-.rst-inlineIcons {
-  display: inline-flex;
-  align-items: center;
-  vertical-align: bottom;
-}
+  .rst-lineHeight::before {
+    content: '\200b'; //Zero width space, to set the height of the container to the line-height
+  }
 
-.rst-head {
-  @include apply-properties("head", "color", "background-color", "border" "border-bottom");
+  .rst-inlineIcons {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: bottom;
+  }
 
-  .rst-row {
-    @include apply-properties("header", "text-align");
+  .rst-header {
+    @include apply-properties("header", "text-align", "font-weight", "color");
+  }
 
-    &:last-child {
-      @include apply-properties("header_leaf", "text-align");
-    }
+  .rst-head {
+    @include apply-properties("head", "background-color", "border" "border-bottom");
+    background-color: $test;
 
-    & > * {
-      @include apply-properties("head", "vertical-align", "font-weight");
-      @include apply-properties("row", "border" "border-top");
-      border-top-color: inherit;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .rst-row {
+      &:last-child > .rst-header {
+        @include apply-properties("header_leaf", "text-align", "font-weight", "color");
+      }
 
-      & > .rst-content > .rst-status {
-        @include apply-properties("header-status", "color");
-        max-width: 100%; //Prevent ellipsis
+      $separator-width: get-property("column-separator", "width");
+      $separator-color: get-property("column-separator", "color");
+
+      & > * {
+        @include apply-properties("head", "vertical-align");
+        @include apply-properties("row", "border" "border-top");
+
+        box-shadow: inset-border($separator-width, $separator-color, right);
+        padding-right: $separator-width;
+        overflow: hidden;
+
+        & > .rst-content {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          @include apply-properties("cell", "padding");
+
+          & > .rst-status {
+            @include apply-properties("header-status", "color");
+            max-width: 100%; //Prevent ellipsis
+          }
+        }
       }
     }
   }
-}
 
-.rst-header-nowrap .rst-head .rst-row > * > .rst-content {
-  display: inline-flex;
-  max-width: 100%;
-  white-space: pre;
+  &[data-header-nowrap="true"] .rst-head .rst-row > * > .rst-content {
+    display: inline-flex;
+    max-width: 100%;
+    box-sizing: border-box;
+    white-space: pre;
 
-  & > .rst-inner {
-    flex: 1 0 0; //Shrink first
-    overflow: hidden;
-    text-overflow: ellipsis;
+    & > .rst-inner {
+      flex: 1 0 0; //Shrink first
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    & > .rst-spacer {
+      flex: 0 1 auto; //Shrink second
+      min-width: 0;
+    }
+
+    & > .rst-status {
+      flex: none; //Never shrink
+      //overflow: hidden;
+      //text-overflow: ellipsis;
+    }
   }
 
-  & > .rst-spacer {
-    flex: 0 1 auto; //Shrink second
-    min-width: 0;
+  .rst-body {
+    @include apply-properties("body", "background-color");
+
+    .rst-row {
+      @include apply-properties("data", "font-weight", "color", "text-align");
+    }
+
+    .rst-row > * {
+      @include apply-properties("cell", "padding");
+      @include apply-properties("body", "vertical-align");
+      @include apply-properties("row", "border" "border-bottom");
+      //background-clip: padding-box;
+
+      overflow: hidden;
+
+      &.rst-header {
+        @include apply-properties("header_row", "text-align", "font-weight", "color");
+      }
+    }
   }
 
-  & > .rst-status {
-    flex: none; //Never shrink
-    //overflow: hidden;
-    //text-overflow: ellipsis;
+  .rst-pagination {
+    display: grid;
+    justify-content: start;
+    grid-auto-flow: column;
+
+    @include apply-properties("pg",
+            "color",
+            "padding",
+            "item-spacing" "grid-gap"
+    );
   }
-}
 
-.rst-body {
-  @include apply-properties("body", "color", "background-color", "text-align");
+  .rst-page {
+    text-align: center;
+    box-sizing: content-box;
+    line-height: 1.25rem;
 
-  .rst-row > * {
-    @include apply-properties("body", "vertical-align", "font-weight");
-    @include apply-properties("row", "border" "border-bottom");
-    border-bottom-color: inherit;
+    @include apply-properties("pg-page",
+            "padding",
+            "width",
+            "border-radius",
+            "border",
+            "color"
+    );
+
+    border-color: transparent;
   }
-}
-
-.rst-pagination {
-  display: grid;
-  justify-content: start;
-  grid-auto-flow: column;
-
-  @include apply-properties("pg",
-          "color",
-          "padding",
-          "item-spacing" "grid-gap"
-  );
-}
-
-.rst-page {
-  text-align: center;
-  box-sizing: content-box;
-  line-height: 1.25rem;
-
-  @include apply-properties("pg-page",
-          "padding",
-          "width",
-          "border-radius",
-          "border",
-          "color"
-  );
-
-  border-color: transparent;
 }
 
 button.rst-page {

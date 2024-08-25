@@ -200,11 +200,6 @@ $debugStoppers: false;
     background-color: darkred;
   }
 
-  .rst-icon {
-    height: 1rem;
-    fill: currentColor;
-  }
-
   .rst-loadingIcon {
     display: none;
 
@@ -237,25 +232,4 @@ $debugStoppers: false;
     contain: strict;
   }
 
-  .rst-paginationContainer {
-    flex: none;
-  }
-
-  .rst-pagination {
-    display: grid;
-    justify-content: start;
-    grid-auto-flow: column;
-  }
-
-  .rst-page {
-    text-align: center;
-    box-sizing: content-box;
-    color: inherit;
-    display: block;
-    line-height: 1.25rem;
-
-    .rst-icon {
-      vertical-align: text-top;
-    }
-  }
 }

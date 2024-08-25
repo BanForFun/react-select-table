@@ -3,6 +3,7 @@ import { map } from '../utils/iterableUtils';
 import { ColumnOptions } from '../utils/columnUtils';
 import State from '../models/state';
 import React from 'react';
+import { buildClass } from '../utils/elementUtils';
 
 interface Props<TData extends TableData> {
     state: State<TData>;
@@ -14,7 +15,13 @@ export default function TableRow<TData extends TableData>(props: Props<TData>) {
         {Array.from(map(props.state.headers.leafIterator(), header => {
             const options: ColumnOptions = {};
             const content = header.column.render(props.data, options);
-            return <td key={header.id} className={options.className}>{content}</td>;
+            if (!header.column.isHeader)
+                return <td key={header.id} className={options.className}>{content}</td>;
+
+            return <th key={header.id}
+                       className={buildClass('rst-header', options.className)}
+                       scope="row"
+            >{content}</th>;
         }))}
         <td className="rst-spacer" />
     </>;

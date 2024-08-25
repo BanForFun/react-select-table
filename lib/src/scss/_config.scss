@@ -39,31 +39,37 @@ $config: map-merge((
 
   "cell.padding":                             0.75rem,
 
-  "head.font-weight":                         bold,
   "head.vertical-align":                      bottom,
   "head.background-color":                    #f7f7f7,
-  "head.color":                               #333333,
   "head.border":                              2px solid rgba(#bdc5cd, 0.5),
   "head_resizing.border-image":               repeating-linear-gradient(
     to right, get-property("head", "border-color") 0px 10px, transparent 10px 20px) 1 stretch,
 
   "header-status.color":                      #616161,
 
+  "header.color":                             #333333,
+  "header_leaf.color":                        unset,
+  "header_row.color":                         unset,
   "header.text-align":                        center,
   "header_leaf.text-align":                   left,
+  "header_row.text-align":                    left,
+  "header.font-weight":                       bold,
+  "header_leaf.font-weight":                  unset,
+  "header_row.font-weight":                   unset,
 
   "column-separator.width":                   5px,
   "column-separator.color":                   #89b363,
 
   "column-resizer.width":                     30px,
-  "column-resizer_resizing.border":           2px solid #a3a5a5,
+  "column-resizer.border":                    2px solid #a3a5a5,
 
-  "body.font-weight":                         normal,
   "body.vertical-align":                      top,
   "body.background-color":                    transparent,
-  "body.color":                               #333333,
-  "body.text-align":                          left,
   "body_resizing.opacity":                    0.5,
+
+  "data.color":                               #333333,
+  "data.text-align":                          left,
+  "data.font-weight":                         normal,
 
   "column.border":                            2px solid #dee2e6,
 

@@ -61,6 +61,8 @@ export default function Pagination<TData extends TableData>() {
         };
     }, [state, updateStateSync]);
 
+    if (!isFinite(state.pageSize.value)) return null;
+
     const PageButton = ({ index }: { index: number }) =>
         <button {...pageButtonProps}
                 onClick={() => state.visibleRows.setPageIndex(index)}

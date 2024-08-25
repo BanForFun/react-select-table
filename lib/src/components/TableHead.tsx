@@ -110,6 +110,7 @@ export default function TableHead<TData extends TableData>() {
         return <th
             key={header.key}
             colSpan={header.span}
+            className="rst-header"
             onClick={e => {
                 if (!header.sort) return;
 
@@ -120,7 +121,7 @@ export default function TableHead<TData extends TableData>() {
                 });
             }}
         >
-            <span className="rst-content">
+            <div className="rst-content">
                 <span className="rst-inner">{header.content}</span>
                 {header.sort?.column && <HeaderStatus>
                     <AngleIcon rotation={header.sort.column.order === 'ascending' ? Rotation.Up : Rotation.Down} />
@@ -130,7 +131,7 @@ export default function TableHead<TData extends TableData>() {
                         <small>{header.sort.column.index + 1}</small>
                     </span>
                 </HeaderStatus>}
-            </span>
+            </div>
         </th>;
     }
 

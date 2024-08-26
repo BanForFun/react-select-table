@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect } from 'react';
+import React, { useLayoutEffect } from 'react';
 import { ReadonlyHeader } from '../models/state/HeaderSlice';
 import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
@@ -126,14 +126,14 @@ export default function TableHead<TData extends TableData>() {
         >
             {index > 0 && <div className="rst-columnResizer" />}
             <div className="rst-content">
-                <span className="rst-inner">{header.content}</span>
+                <span className="rst-inner rst-ellipsis">{header.content}</span>
                 {header.sort?.column && <HeaderStatus>
                     <AngleIcon rotation={header.sort.column.order === 'ascending' ? Rotation.Up : Rotation.Down} />
-                    <span className="rst-sortIndex">
+                    <div className="rst-ellipsis">
                         {/* Narrow non-breaking space */}
                         &#8239;
                         <small>{header.sort.column.index + 1}</small>
-                    </span>
+                    </div>
                 </HeaderStatus>}
             </div>
         </th>;
@@ -162,6 +162,6 @@ export default function TableHead<TData extends TableData>() {
 function HeaderStatus({ children }: { children: React.ReactNode }) {
     return <>
         <span className="rst-spacer">{' '}</span>
-        <span className="rst-inlineIcons rst-status">{children}</span>
+        <span className="rst-status">{children}</span>
     </>;
 }

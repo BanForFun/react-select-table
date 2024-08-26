@@ -105,14 +105,19 @@
           inset: 0;
         }
 
-        & > .rst-content {
+        .rst-ellipsis {
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+
+        & > .rst-content {
+          @extend .rst-ellipsis;
           @include apply-properties("cell", ["padding"]);
 
           & > .rst-status {
+            @extend .rst-inlineIcons;
+            max-width: 100%;
             @include apply-properties("header-status", ["color"]);
-            max-width: 100%; //Prevent ellipsis
           }
         }
       }
@@ -121,14 +126,18 @@
 
   &[data-header-nowrap="true"] .rst-head .rst-row > * > .rst-content {
     display: inline-flex;
-    max-width: 100%;
     box-sizing: border-box;
+    max-width: 100%;
     white-space: pre;
+    padding-right: 0;
+
+    .rst-ellipsis:last-child {
+      // Transfer padding to shrinking child to ensure that the overflow below the right padding remains visible
+      @include apply-properties("cell", ["padding-right"]);
+    }
 
     & > .rst-inner {
       flex: 1 0 0; //Shrink first
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     & > .rst-spacer {
@@ -137,9 +146,7 @@
     }
 
     & > .rst-status {
-      flex: none; //Never shrink
-      //overflow: hidden;
-      //text-overflow: ellipsis;
+      flex: none; //Shrink third (because of max-width)
     }
   }
 

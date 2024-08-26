@@ -106,21 +106,25 @@ export default function TableHead<TData extends TableData>() {
     for (const column of state.headers.iterator())
         addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
-    function renderHeader(header: VisibleHeader) {
+    function renderHeader(header: VisibleHeader, index: number) {
+        const handleClick: React.MouseEventHandler = e => {
+            if (header.sort == null) return;
+            const { path } = header.sort;
+
+            updateStateSync(() => {
+                state.visibleRows.setPageIndex(0, false);
+                state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+            });
+        };
+
         return <th
             key={header.key}
-            colSpan={header.span}
             className="rst-header"
-            onClick={e => {
-                if (!header.sort) return;
-
-                const { path } = header.sort;
-                updateStateSync(() => {
-                    state.visibleRows.setPageIndex(0, false);
-                    state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
-                });
-            }}
+            colSpan={header.span}
+            data-is-sortable={header.sort != null}
+            onClick={handleClick}
         >
+            {index > 0 && <div className="rst-columnResizer" />}
             <div className="rst-content">
                 <span className="rst-inner">{header.content}</span>
                 {header.sort?.column && <HeaderStatus>
@@ -142,7 +146,12 @@ export default function TableHead<TData extends TableData>() {
             const headers = headerRows[height];
             return <tr className="rst-row" key={height}>
                 {headers.map(renderHeader)}
-                <th className="rst-spacer" />
+                <th className="rst-spacer">
+                    {headers.length > 0 && <>
+                        <div className="rst-columnResizer" />
+                        <div className="rst-edgeResizer" />
+                    </>}
+                </th>
             </tr>;
         })}
         </thead>

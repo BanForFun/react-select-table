@@ -19,8 +19,10 @@ export default function Table<TData extends TableData>({ state, headerNoWrap = f
     return <div className="rst-container" data-header-nowrap={headerNoWrap}>
         <TableContext.Provider value={contextValue}>
             <div className="rst-scrollingContainer">
-                <TableHead />
-                <TableBody />
+                <div className="rst-resizingContainer">
+                    <TableHead />
+                    <TableBody />
+                </div>
             </div>
             <Pagination />
         </TableContext.Provider>

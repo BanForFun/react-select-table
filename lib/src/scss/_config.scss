@@ -60,12 +60,6 @@ $config: map-merge((
         "header_leaf.font-weight":                  unset,
         "header_row.font-weight":                   unset,
 
-        "column-separator.width":                   5px,
-        "column-separator.color":                   #89b363,
-
-        "column-resizer.width":                     30px,
-        "column-resizer.border":                    2px solid #a3a5a5,
-
         "body.vertical-align":                      top,
         "body.background-color":                    transparent,
         "body_resizing.opacity":                    0.5,
@@ -74,9 +68,11 @@ $config: map-merge((
         "data.text-align":                          left,
         "data.font-weight":                         normal,
 
-        "column.border":                            2px solid #dee2e6,
+        //"column.border":                            2px solid #dee2e6,
+        "column.border":                            5px solid #dee2e6,
 
-        "row.border":                               1px solid #dee2e6,
+        //"row.border":                               1px solid #dee2e6,
+        "row.border":                               5px solid #dee2e6,
         "row_selected.border-color":                #f5f5f5,
         "row_selected_focused.border-color":        unset,
         "row_selected.background-color":            rgba(#a7b79b, 0.5),

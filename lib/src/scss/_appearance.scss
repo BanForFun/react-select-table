@@ -14,8 +14,16 @@
     width: 100%;
   }
 
-  .rst-row > * {
-    @include apply-properties("column", ("border": "border-left"));
+  .rst-scrollingContainer {
+    overflow: auto;
+  }
+
+  .rst-resizingContainer {
+    // The first column has a left border, because if it has the same width as another column,
+    // we want it to fit the same amount of content and not border-width more.
+    // But we want the table to have no outside borders, in order to look pretty inside bordered containers,
+    // so we crop the first column's left border
+    margin-left: negative(get-config-value("column", "border-width"))
   }
 
   .rst-icon {
@@ -25,13 +33,24 @@
   }
 
   .rst-lineHeight::before {
-    content: '\200b'; //Zero width space, to set the height of the container to the line-height
+    //Zero width space, to set the height of the container to the line-height
+    content: '\200b';
   }
 
   .rst-inlineIcons {
     display: inline-flex;
     align-items: center;
     vertical-align: bottom;
+  }
+
+  .rst-row {
+    &:not(:last-child) > * {
+      @include apply-properties("row", ("border": "border-bottom"));
+    }
+
+    & > * {
+      @include apply-properties("column", ("border": "border-left"));
+    }
   }
 
   .rst-header {
@@ -46,16 +65,45 @@
         @include override-properties("header_leaf");
       }
 
-      $separator-width: get-config-value("column-separator", "width");
-      $separator-color: get-config-value("column-separator", "color");
-
       & > * {
-        @include apply-properties("head", ["vertical-align"]);
-        @include apply-properties("row", ("border": "border-top"));
+        position: relative;
+        padding: 0;
 
-        box-shadow: inset-border($separator-width, $separator-color, right);
-        padding-right: $separator-width;
-        overflow: hidden;
+        @include apply-properties("head", ["vertical-align"]);
+
+        %resizer {
+          position: absolute;
+          top: 0;
+          height: 100%;
+          width: calc(
+                  #{get-config-value("cell", "padding-left")} +
+                  #{get-config-value("cell", "padding-right")} +
+                  #{get-config-value("column", "border-width")}
+          );
+          cursor: col-resize;
+        }
+
+        & > .rst-columnResizer {
+          @extend %resizer;
+          z-index: 2;
+          left: get-config-value("cell", "padding-left");
+          transform: translateX(-100%);
+          max-width: 100%; //To not overflow when column is collapsed
+        }
+
+        & > .rst-edgeResizer {
+          @extend %resizer;
+          z-index: 1;
+          right: 0;
+        }
+
+        &.rst-spacer::after {
+          // Prevents the edge resizer being visible when not necessary
+          content: '';
+          z-index: 1;
+          position: absolute;
+          inset: 0;
+        }
 
         & > .rst-content {
           overflow: hidden;
@@ -103,12 +151,11 @@
     }
 
     .rst-row > * {
-      @include apply-properties("cell", ["padding"]);
-      @include apply-properties("body", ["vertical-align"]);
-      @include apply-properties("row", ("border": "border-bottom"));
+      overflow: hidden;
       //background-clip: padding-box;
 
-      overflow: hidden;
+      @include apply-properties("cell", ["padding"]);
+      @include apply-properties("body", ["vertical-align"]);
 
       &.rst-header {
         @include override-properties("header_row");

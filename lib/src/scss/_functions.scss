@@ -44,6 +44,16 @@
   }
 }
 
+@function get-config-value-shorthand($module, $property) {
+  $shorthand: ();
+  @each $expansion in map-get($shorthands, $property) {
+    $expanded: get-expanded-name($property, $expansion);
+    $shorthand: append($shorthand, get-config-value($module, $expanded));
+  }
+
+  @return $shorthand;
+}
+
 @function nth-or-default($list, $n, $default: null) {
   @if length($list) >= $n {
     @return nth($list, $n);
@@ -87,15 +97,4 @@
 
 @function negative($value) {
   @return calc(#{$value} * -1);
-}
-
-@function inset-border($width, $color, $side) {
-  $offsets: (
-          top: 0 $width,
-          right: negative($width) 0,
-          bottom: 0 negative($width),
-          left: $width 0
-  );
-
-  @return inset map-get($offsets, $side) 0 0 $color;
 }

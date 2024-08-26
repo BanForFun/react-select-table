@@ -86,9 +86,10 @@ const state = createState<Lesson>({
 });
 
 state.scheduler.batch(() => {
-    for (let i = 0; i < state.columns.config.length; i++) {
+    state.pageSize.set(20);
+
+    for (let i = 0; i < state.columns.config.length; i++)
         state.headers.add([i], []);
-    }
 
     state.rows.add([
         {
@@ -107,8 +108,6 @@ state.scheduler.batch(() => {
     for (let i = 0; i < 100; i++) {
         state.rows.add([{ name: 'Lesson ' + i }]);
     }
-
-    state.pageSize.set(20);
 
     state.history.clear();
 });

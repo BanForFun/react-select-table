@@ -2,11 +2,6 @@
 @use "vars" as *;
 @use "config" as *;
 
-$shorthands: (
-        "border": "width" "style" "color",
-        "padding": "top" "right" "bottom" "left"
-);
-
 @mixin set-config-property($module, $property, $value) {
   #{get-config-name($module, $property)}: #{$value};
 }
@@ -49,22 +44,24 @@ $shorthands: (
   }
 }
 
-@mixin load-property($module, $source, $destination) {
-  $expansions: map-get($shorthands, $source);
-  @each $expansion in $expansions {
-    $stateConfigName: get-state-config-name($module, get-expanded-name($source, $expansion));
+@mixin apply-property($module, $source, $destination) {
+  @each $expansion in map-get($shorthands, $source) {
+    $expandedSourceName: get-expanded-name($source, $expansion);
+    $stateConfigName: get-state-config-name($module, $expandedSourceName);
+
+    #{$stateConfigName}: #{get-config-value($module, $expandedSourceName)};
     #{get-expanded-name($destination, $expansion)}: var($stateConfigName);
   }
 }
 
-@mixin load-properties($module, $properties...) {
+@mixin apply-properties($module, $properties...) {
   @each $property in $properties {
     @if type-of($property) == "list" {
-      @include load-properties($module, $property...);
+      @include apply-properties($module, $property...);
     } @else {
       @each $source, $destinations in $property {
         @each $destination in $destinations {
-          @include load-property($module, $source, if-null($destination, $source))
+          @include apply-property($module, $source, if-null($destination, $source))
         }
       }
     }
@@ -86,11 +83,6 @@ $shorthands: (
   }
 }
 
-@mixin apply-properties($module, $properties...) {
-  @include override-properties($module);
-  @include load-properties($module, $properties...);
-}
-
 //@mixin apply-properties($module, $properties...) {
 //  @each $source, $destinations in keywords($properties) {
 //    @each $destination in $destinations {
@@ -108,3 +100,35 @@ $shorthands: (
 //  }
 //}
 
+@mixin inner-border-above($side, $width, $color) {
+  $offset: map-get((
+          top: 0 $width,
+          right: negative($width) 0,
+          bottom: 0 negative($width),
+          left: $width 0
+  ), $side);
+
+  box-shadow: inset $offset 0 0 $color;
+  padding-#{$side}: $width;
+}
+
+@mixin inner-border-below($side, $border) {
+  $inset: map-get((
+          top: 0 0 auto 0,
+          right: 0 0 0 auto,
+          bottom: auto 0 0 0,
+          left: 0 auto 0 0
+  ), $side);
+  
+  padding-#{$side}: nth($border, 1);
+
+  &::before {
+    content: "";
+    display: block;
+
+    position: absolute;
+    inset: $inset;
+
+    border-#{$side}: $border;
+  }
+}

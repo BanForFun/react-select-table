@@ -1,3 +1,8 @@
 $var-prefix: rst !default;
 $state-separator: "_";
 $property-separator: ".";
+
+$shorthands: (
+        "border": "width" "style" "color",
+        "padding": "top" "right" "bottom" "left"
+);

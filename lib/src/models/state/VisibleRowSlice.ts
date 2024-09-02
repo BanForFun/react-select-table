@@ -6,7 +6,7 @@ import FilterSlice from './FilterSlice';
 import Observable from '../Observable';
 import SchedulerSlice from './SchedulerSlice';
 import { OptionalIfPartial } from '../../utils/types';
-import { countBy, minBy } from '../../utils/iterableUtils';
+import { count, minBy } from '../../utils/iterableUtils';
 import UndoableStateSlice from '../UndoableStateSlice';
 import HistorySlice from './HistorySlice';
 import { clamp } from '../../utils/numericUtils';
@@ -145,12 +145,12 @@ export default class VisibleRowSlice<TData extends TableData> extends UndoableSt
         super(config, state);
 
         state.rows.added.addObserver(added => {
-            this._rowCount += countBy(added, this._state.filter.isVisible);
+            this._rowCount += count(added, this._state.filter.isVisible);
             this._state.scheduler._add(this.#processAddedRowsJob);
         });
 
         state.rows.removed.addObserver(removed => {
-            this._rowCount -= countBy(removed, this._state.filter.isVisible);
+            this._rowCount -= count(removed, this._state.filter.isVisible);
             this.#invalidatePageIndex();
             this._state.scheduler._add(this.#processRemovedRowsJob);
         });

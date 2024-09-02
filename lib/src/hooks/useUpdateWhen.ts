@@ -8,7 +8,7 @@ export default function useUpdateWhen<T>(observable: Observable<T>) {
 
     useEffect(() => {
         return observable.addObserver(update);
-    }, [observable]);
+    }, [observable, update]);
 
     return updated;
 }

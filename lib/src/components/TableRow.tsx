@@ -3,7 +3,7 @@ import { map } from '../utils/iterableUtils';
 import { ColumnOptions } from '../utils/columnUtils';
 import State from '../models/state';
 import React from 'react';
-import { buildClass } from '../utils/elementUtils';
+import { buildClass } from '../utils/classNameUtils';
 
 interface Props<TData extends TableData> {
     state: State<TData>;

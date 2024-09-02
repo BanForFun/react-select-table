@@ -1,11 +1,7 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
+import useUpdatedRef from './useUpdatedRef';
 
-export default function useCurrentCallback<
-    TArgs extends unknown[],
-    TReturn extends unknown
->(callback: (...args: TArgs) => TReturn) {
-    const ref = useRef(callback);
-    ref.current = callback;
-
+export default function useCurrentCallback<TArgs extends unknown[], TReturn>(callback: (...args: TArgs) => TReturn) {
+    const ref = useUpdatedRef(callback);
     return useCallback((...args: TArgs) => ref.current(...args), [ref]);
 }

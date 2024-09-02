@@ -7,6 +7,10 @@ export default function useUpdateStateSync() {
     const { state } = useRequiredContext(TableContext);
 
     return useCallback((callback: () => void) => {
-        flushSync(() => state.history.group(() => state.scheduler.sync(() => state.scheduler.batch(callback))));
+        setTimeout(() => // Set timeout to ensure that flushSync isn't called while React is updating, which sometimes causes a recursive loop
+            flushSync(() =>
+                state.history.group(() =>
+                    state.scheduler.sync(() =>
+                        state.scheduler.batch(callback)))));
     }, [state]);
 }

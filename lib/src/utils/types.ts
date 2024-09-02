@@ -2,6 +2,8 @@ export type Primitive = string | number | boolean | null | undefined;
 
 export type ObjectKey = string | number | symbol;
 
+export type EmptyObject = Record<string, never>;
+
 
 export type PickRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
 

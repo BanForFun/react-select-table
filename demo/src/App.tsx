@@ -91,6 +91,10 @@ state.scheduler.batch(() => {
     for (let i = 0; i < state.columns.config.length; i++)
         state.headers.add([i], []);
 
+    // state.headers.add([3], [1, 1]);
+    // state.headers.add([3], [1, 1]);
+    // state.headers.add([1, 3], [1]);
+
     state.rows.add([
         {
             name: 'Katevenis',

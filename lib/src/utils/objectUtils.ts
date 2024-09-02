@@ -69,3 +69,20 @@ export function extract<TObject extends object, TValue>(object: TObject, isValue
 
     return result;
 }
+
+function isSubset<T>(a: T, b: T) {
+    for (const key in a) {
+        if (!isEqual(a[key], b[key])) return false;
+    }
+
+    return true;
+}
+
+export function isEqual<T>(a: T, b: T) {
+    if (typeof a !== typeof b) return false;
+
+    if (typeof a !== 'object')
+        return a === b;
+
+    return isSubset(a, b) && isSubset(b, a);
+}

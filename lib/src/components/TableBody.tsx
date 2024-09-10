@@ -9,6 +9,7 @@ import { log } from '../utils/debugUtils';
 import { Row } from '../models/state/RowSlice';
 import { namedTable, table } from '../utils/iteratorUtils';
 import { cachedIterator } from '../utils/iterableUtils';
+import { enableGestures } from '../utils/gestureUtils';
 
 const keyKey = 'key';
 
@@ -48,6 +49,8 @@ export default function TableBody<TData extends TableData>() {
         const element = document.createElement('tr');
         element.classList.add('rst-row');
         element.dataset[keyKey] = state.rows.getRowKey(row);
+
+        enableGestures(element);
 
         const root = ReactDOM.createRoot(element);
         root.render(<TableRow state={state} data={row} />);

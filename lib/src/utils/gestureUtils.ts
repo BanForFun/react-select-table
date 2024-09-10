@@ -1,9 +1,9 @@
 import { EmptyObject } from './types';
 import { difference, distance, originPoint, Point } from './pointUtils';
 import { getPointerClientPosition, getPointerInfo, PointerInfo, PointerType } from './pointerUtils';
-import { addElementEventListener, getAddEventListener } from './eventUtils';
 import { getTouchClientPosition } from './touchUtils';
 import { all, first } from './iterableUtils';
+import { createElementEventManager, elementEventManager } from './eventUtils';
 
 interface GestureEventArgs {
     leftMouseDown: EmptyObject;
@@ -35,7 +35,11 @@ let stoppedPropagation = false;
 let globalGestures: Gesture[] = [];
 
 function createGestureEventDispatcher(element: HTMLElement): GestureEventDispatcher {
-    return (name, args) => element.dispatchEvent(new CustomEvent(name, { detail: args }));
+    return (name, args) => element.dispatchEvent(new CustomEvent(name, {
+        detail: args,
+        bubbles: true,
+        cancelable: true
+    }));
 }
 
 function createGestureFactory<T>(
@@ -62,7 +66,9 @@ const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, targe
     target.setPointerCapture(pointer.id);
     dispatchEvent('dragStart', {});
 
-    const disablePointerMove = addElementEventListener(target, 'pointermove', e => {
+    const eventGroup = elementEventManager.createGroup();
+
+    eventGroup.addListener(target, 'pointermove', e => {
         if (e.pointerId !== pointer.id) return;
 
         const clientPosition = getPointerClientPosition(e);
@@ -81,15 +87,12 @@ const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, targe
         dispatchEvent('dragEnd', {});
     };
 
-    const disablePointerCancel = addElementEventListener(target, 'pointercancel', handlePointerLost);
-    const disablePointerUp = addElementEventListener(target, 'pointerup', handlePointerLost);
+    eventGroup.addListener(target, 'pointercancel', handlePointerLost);
+    eventGroup.addListener(target, 'pointerup', handlePointerLost);
 
     const cancel = () => {
         target.releasePointerCapture(pointer.id);
-
-        disablePointerMove();
-        disablePointerCancel();
-        disablePointerUp();
+        eventGroup.removeAllListeners();
     };
 
     return cancel;
@@ -101,13 +104,15 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, target, dispa
 
     dispatchEvent('dragStart', {});
 
-    const disableTouchStart = addElementEventListener(target, 'touchstart', e => {
+    const eventGroup = elementEventManager.createGroup();
+
+    eventGroup.addListener(target, 'touchstart', e => {
         for (const changedTouch of e.changedTouches) {
             scrollTouchPositions.set(changedTouch.identifier, getTouchClientPosition(changedTouch));
         }
     });
 
-    const disableTouchMove = addElementEventListener(target, 'touchmove', e => {
+    eventGroup.addListener(target, 'touchmove', e => {
         e.preventDefault();
 
         const scrollDelta = { x: 0, y: 0 };
@@ -143,25 +148,24 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, target, dispa
         }
     };
 
-    const disableTouchCancel = addElementEventListener(target, 'touchcancel', handleTouchLost);
-    const disableTouchEnd = addElementEventListener(target, 'touchend', handleTouchLost);
+    eventGroup.addListener(target, 'touchcancel', handleTouchLost);
+    eventGroup.addListener(target, 'touchend', handleTouchLost);
 
     const cancel = () => {
-        disableTouchStart();
-        disableTouchMove();
-        disableTouchCancel();
-        disableTouchEnd();
+        eventGroup.removeAllListeners();
     };
 
     return cancel;
 });
 
 const createLongTapGesture = createGestureFactory<Touch>((touch, target, dispatchEvent) => {
-    const disableTouchStart = addElementEventListener(target, 'touchstart', () => {
+    const eventGroup = elementEventManager.createGroup();
+
+    eventGroup.addListener(target, 'touchstart', () => {
         cancel();
     });
 
-    const disableTouchMove = addElementEventListener(target, 'touchmove', e => {
+    eventGroup.addListener(target, 'touchmove', e => {
         e.preventDefault();
 
         const updatedTouch = first(e.changedTouches, t => t.identifier === touch.identifier);
@@ -180,8 +184,8 @@ const createLongTapGesture = createGestureFactory<Touch>((touch, target, dispatc
         cancel();
     };
 
-    const disableTouchCancel = addElementEventListener(target, 'touchcancel', handleTouchLost);
-    const disableTouchEnd = addElementEventListener(target, 'touchend', handleTouchLost);
+    eventGroup.addListener(target, 'touchcancel', handleTouchLost);
+    eventGroup.addListener(target, 'touchend', handleTouchLost);
 
     const timeoutId = setTimeout(() => {
         if (dispatchEvent('longTap', {}))
@@ -191,10 +195,7 @@ const createLongTapGesture = createGestureFactory<Touch>((touch, target, dispatc
     }, longTapDurationMs);
 
     const cancel = (hasTimeout = true) => {
-        disableTouchStart();
-        disableTouchMove();
-        disableTouchCancel();
-        disableTouchEnd();
+        eventGroup.removeAllListeners();
 
         if (hasTimeout)
             clearTimeout(timeoutId);
@@ -204,11 +205,13 @@ const createLongTapGesture = createGestureFactory<Touch>((touch, target, dispatc
 });
 
 export function enableGestures(element: HTMLElement) {
-    function forwardEvent<N extends keyof HTMLElementEventMap>(
+    const eventGroup = elementEventManager.createGroup();
+
+    function registerEventForwarder<N extends keyof HTMLElementEventMap>(
         name: N,
         listener: (dispatchEvent: GestureEventDispatcher, e: HTMLElementEventMap[N]) => boolean
     ) {
-        return addElementEventListener(element, name, e => {
+        eventGroup.addListener(element, name, e => {
             if (e !== lastEvent) {
                 stoppedPropagation = false;
                 globalGestures = [];
@@ -225,7 +228,7 @@ export function enableGestures(element: HTMLElement) {
         });
     }
 
-    const disablePointerDown = forwardEvent('pointerdown', (dispatchEvent, e) => {
+    registerEventForwarder('pointerdown', (dispatchEvent, e) => {
         const pointer = getPointerInfo(e);
         if (pointer.type === PointerType.Mouse && e.button === 0 && dispatchEvent('leftMouseDown', {}))
             globalGestures.push(createMouseDragGesture(pointer, element));
@@ -233,7 +236,7 @@ export function enableGestures(element: HTMLElement) {
         return true;
     });
 
-    const disableTouchStart = forwardEvent('touchstart', (dispatchEvent, e) => {
+    registerEventForwarder('touchstart', (dispatchEvent, e) => {
         if (!all(e.touches, t => element.contains(t.target as Element))) return false;
 
         switch (e.touches.length) {
@@ -250,7 +253,7 @@ export function enableGestures(element: HTMLElement) {
         return true;
     });
 
-    const disableClick = forwardEvent('click', (dispatchEvent, e) => {
+    registerEventForwarder('click', (dispatchEvent, e) => {
         if (e.button === 2) {
             dispatchEvent('contextMenu', {});
             dispatchEvent('mouseContextMenu', {});
@@ -259,11 +262,7 @@ export function enableGestures(element: HTMLElement) {
         return true;
     });
 
-    return () => {
-        disablePointerDown();
-        disableTouchStart();
-        disableClick();
-    };
+    return () => eventGroup.removeAllListeners();
 }
 
-export const addGestureEventListener = getAddEventListener<GestureEventMap>();
+export const gestureEventManager = createElementEventManager<HTMLElement, GestureEventMap>();

@@ -8,6 +8,9 @@ import { isSortableColumn, SortColumn } from '../models/state/SortOrderSlice';
 import AngleIcon, { Rotation } from './AngleIcon';
 import useUpdateWhen from '../hooks/useUpdateWhen';
 import useUpdateStateSync from '../hooks/useUpdateStateSync';
+import { enableGestures } from '../utils/gestureUtils';
+import Resizer, { ResizerType } from './Resizer';
+import useElementRef from '../hooks/useElementRef';
 
 interface SortHeader {
     path: TreePath;
@@ -35,6 +38,10 @@ export default function TableHead<TData extends TableData>() {
     useLayoutEffect(() => {
         callbacks.updateColumns!();
     }, [headersChanged, callbacks]);
+
+    const elementRef = useElementRef<HTMLTableElement>();
+
+    elementRef.useEffect(enableGestures);
 
     const headerRows: VisibleHeader[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;
@@ -124,7 +131,7 @@ export default function TableHead<TData extends TableData>() {
             data-is-sortable={header.sort != null}
             onClick={handleClick}
         >
-            {index > 0 && <div className="rst-columnResizer" />}
+            <Resizer index={index} type={ResizerType.Column} />
             <div className="rst-content">
                 <span className="rst-inner rst-ellipsis">{header.content}</span>
                 {header.sort?.column && <HeaderStatus>
@@ -139,7 +146,11 @@ export default function TableHead<TData extends TableData>() {
         </th>;
     }
 
-    return <table className="rst-table rst-head" aria-hidden={true}>
+    return <table
+        className="rst-table rst-head"
+        aria-hidden={true}
+        ref={elementRef.set}
+    >
         <thead>
         {headerRows.map((_, level) => {
             const height = heightOfRowLevel(level);
@@ -147,10 +158,8 @@ export default function TableHead<TData extends TableData>() {
             return <tr className="rst-row" key={height}>
                 {headers.map(renderHeader)}
                 <th className="rst-spacer">
-                    {headers.length > 0 && <>
-                        <div className="rst-columnResizer" />
-                        <div className="rst-edgeResizer" />
-                    </>}
+                    <Resizer index={headers.length} type={ResizerType.Column} />
+                    <Resizer index={headers.length} type={ResizerType.Edge} />
                 </th>
             </tr>;
         })}

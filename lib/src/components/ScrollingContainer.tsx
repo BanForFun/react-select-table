@@ -1,38 +1,32 @@
 import TableHead from './TableHead';
 import TableBody from './TableBody';
-import { addGestureEventListener, enableGestures } from '../utils/gestureUtils';
-import { useRef } from 'react';
+import useElementRef from '../hooks/useElementRef';
+import { gestureEventManager } from '../utils/gestureUtils';
 
 export default function ScrollingContainer() {
-    const elementRef = useRef<HTMLElement | null>(null);
+    const elementRef = useElementRef();
 
+    gestureEventManager.useListener(elementRef, 'dragStart', () => {
+        console.log('Drag start');
+    });
 
-    return <div className="rst-scrollingContainer" ref={el => {
-        elementRef.current = el;
-        if (el == null) return;
+    gestureEventManager.useListener(elementRef, 'dragUpdate', () => {
+        console.log('Drag update');
+    });
 
-        enableGestures(el);
+    gestureEventManager.useListener(elementRef, 'dragEnd', () => {
+        console.log('Drag end');
+    });
 
-        addGestureEventListener(el, 'dragStart', e => {
-            console.log('Drag start');
-        });
+    gestureEventManager.useListener(elementRef, 'contextMenu', () => {
+        console.log('Context menu');
+    });
 
-        addGestureEventListener(el, 'dragUpdate', e => {
-            console.log('Drag update');
-        });
+    gestureEventManager.useListener(elementRef, 'longTap', () => {
+        console.log('Long tap');
+    });
 
-        addGestureEventListener(el, 'dragEnd', e => {
-            console.log('Drag end');
-        });
-
-        addGestureEventListener(el, 'contextMenu', e => {
-            console.log('Context menu');
-        });
-
-        addGestureEventListener(el, 'longTap', e => {
-            console.log('Long tap');
-        });
-    }}>
+    return <div className="rst-scrollingContainer" ref={elementRef.set}>
         <div className="rst-resizingContainer">
             <TableHead />
             <TableBody />

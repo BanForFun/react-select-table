@@ -4,6 +4,10 @@ export type ObjectKey = string | number | symbol;
 
 export type EmptyObject = Record<string, never>;
 
+export type Tuple = readonly unknown[];
+
+
+export type StringKeyOf<O extends object> = keyof O & string;
 
 export type PickRequired<T, K extends keyof T> = T & Required<Pick<T, K>>;
 
@@ -31,6 +35,10 @@ export type Incompatible<K extends string> = { [incompatibleKeySymbol]?: K };
 export type Converter<F, T> = (value: F) => T;
 
 export type Predicate<T> = (value: T) => boolean;
+
+export type CleanupCallback = () => void;
+
+export type EffectCallback<T extends Tuple = []> = (...args: T) => (void | CleanupCallback);
 
 
 export function nullable<T>(value: T): T | null {

@@ -1,5 +1,3 @@
-import { Incompatible } from '../utils/types';
-
 const previousSymbol = Symbol('previous');
 const nextSymbol = Symbol('next');
 

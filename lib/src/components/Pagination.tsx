@@ -5,8 +5,8 @@ import { TableData } from '../utils/configUtils';
 import useRequiredContext from '../hooks/useRequiredContext';
 import getTableContext from '../context/tableContext';
 import useUpdateWhen from '../hooks/useUpdateWhen';
-import { flushSync } from 'react-dom';
 import useUpdateStateSync from '../hooks/useUpdateStateSync';
+import { windowEventManager } from '../utils/eventUtils';
 
 enum Step {
     Next = 1,
@@ -50,14 +50,24 @@ export default function Pagination<TData extends TableData>() {
             timeoutId = setTimeout(repeatAction, delay);
         };
 
-        return () => {
+        return (e: React.PointerEvent) => {
+            const { pointerId } = e;
+
+            const eventGroup = windowEventManager.createGroup();
             repeatAction(startDelay);
-            window.addEventListener('pointerup', () => {
+
+            const handlePointerLost = (e: PointerEvent) => {
+                if (e.pointerId !== pointerId) return;
+
                 if (timeoutId != null)
                     clearTimeout(timeoutId);
 
                 timeoutId = null;
-            }, { once: true });
+                eventGroup.removeAllListeners();
+            };
+
+            eventGroup.addListener(window, 'pointerup', handlePointerLost);
+            eventGroup.addListener(window, 'pointercancel', handlePointerLost);
         };
     }, [state, updateStateSync]);
 

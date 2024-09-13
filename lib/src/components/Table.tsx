@@ -1,5 +1,3 @@
-import TableHead from './TableHead';
-import TableBody from './TableBody';
 import getTableContext, { TableCallbacks } from '../context/tableContext';
 import { useMemo, useState } from 'react';
 import { TableData } from '../utils/configUtils';

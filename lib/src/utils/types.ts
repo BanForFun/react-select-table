@@ -32,13 +32,16 @@ const incompatibleKeySymbol = Symbol('incompatibleKey');
 
 export type Incompatible<K extends string> = { [incompatibleKeySymbol]?: K };
 
-export type Converter<F, T> = (value: F) => T;
 
-export type Predicate<T> = (value: T) => boolean;
+export type GeneratorCallback<T> = () => T;
 
-export type CleanupCallback = () => void;
+export type ActionCallback = () => void;
 
-export type EffectCallback<T extends Tuple = []> = (...args: T) => (void | CleanupCallback);
+export type ConverterCallback<F, T> = (value: F) => T;
+
+export type PredicateCallback<T> = (value: T) => boolean;
+
+export type EffectCallback<T extends Tuple = []> = (...args: T) => (void | ActionCallback);
 
 
 export function nullable<T>(value: T): T | null {

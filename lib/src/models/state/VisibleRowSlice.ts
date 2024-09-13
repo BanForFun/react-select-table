@@ -128,17 +128,17 @@ export default class VisibleRowSlice<TData extends TableData> extends UndoableSt
 
     #processAddedRowsJob = () => {
         this.#reloadPage();
-        this._state.scheduler._add(this.added.notify);
+        this.added.notify();
     };
 
     #processRemovedRowsJob = () => {
         this.#reloadPage();
-        this._state.scheduler._add(this.removed.notify);
+        this.removed.notify();
     };
 
     #processChangedRowsJob = () => {
         this.#reloadPage();
-        this._state.scheduler._add(this.changed.notify);
+        this.changed.notify();
     };
 
     constructor(config: OptionalIfPartial<object>, state: Dependencies<TData>) {

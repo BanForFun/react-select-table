@@ -3,7 +3,7 @@ import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
 import State from '../models/state';
 
 export interface TableCallbacks {
-    updateColumns?: () => void;
+
 }
 
 interface TableContextValue<TData extends TableData> {

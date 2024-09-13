@@ -29,16 +29,13 @@ interface AddedVisibleHeader extends VisibleHeader {
 }
 
 export default function TableHead<TData extends TableData>() {
-    const { state, callbacks } = useRequiredContext(getTableContext<TData>());
+    const { state } = useRequiredContext(getTableContext<TData>());
     const updateStateSync = useUpdateStateSync();
 
     useUpdateWhen(state.sortOrder.changed);
-    const headersChanged = useUpdateWhen(state.headers.changed);
+    useUpdateWhen(state.headers.changed);
 
-    useLayoutEffect(() => {
-        callbacks.updateColumns!();
-    }, [headersChanged, callbacks]);
-
+    const colGroupRef = useElementRef<HTMLTableColElement>();
     const elementRef = useElementRef<HTMLTableElement>();
 
     elementRef.useEffect(enableGestures);
@@ -151,6 +148,7 @@ export default function TableHead<TData extends TableData>() {
         aria-hidden={true}
         ref={elementRef.set}
     >
+        <colgroup ref={colGroupRef.set} />
         <thead>
         {headerRows.map((_, level) => {
             const height = heightOfRowLevel(level);

@@ -1,89 +1,100 @@
-import { log } from '../../utils/debugUtils';
 import Observable from '../Observable';
 import StateSlice from '../StateSlice';
+import { ActionCallback } from '../../utils/types';
 
 type Job = () => void;
 
-type CommitStrategy = 'sync' | 'batch' | 'async';
+type Strategy = 'async' | 'sync' | 'batch';
 
 export default class SchedulerSlice extends StateSlice {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
-    #commitStrategy: CommitStrategy = 'async';
-    #done = new Observable();
+    #strategy: Strategy = 'async';
+    #free = new Observable();
 
-    get #hasJob() {
-        return this.#queuedJob != null;
+    get isFree() {
+        return this.#strategy === 'async' && this.#commitTimeout == null;
+    }
+
+    #notifyIfFree() {
+        if (!this.isFree) return;
+        this.#free.notify();
     }
 
     #commit() {
-        if (this.#commitStrategy === 'sync') {
-            this.#cancelScheduledCommit();
+        if (this.#queuedJob == null) return;
+        this.#cancelCommit();
+
+        if (this.#strategy === 'sync')
             this.#commitSync();
-            this.#done.notify();
-        } else if (this.#commitStrategy === 'async')
+        else if (this.#strategy === 'async')
             this.#scheduleCommit();
-        else if (this.#commitStrategy === 'batch')
-            this.#cancelScheduledCommit();
     }
 
-    #commitSync() {
+    #queue(nextJob: Job | null) {
         const job = this.#queuedJob;
         this.#queuedJob = null;
-        job?.();
-    }
 
-    #cancelScheduledCommit() {
-        if (this.#commitTimeout == null) return;
-        clearTimeout(this.#commitTimeout);
-        this.#commitTimeout = null;
-    }
-
-    #scheduleCommit() {
-        this.#commitTimeout ??= setTimeout(() => {
-            this.#commitTimeout = null;
+        if (job != null && job !== nextJob) {
+            job();
             this.#commitSync();
-            this.#done.notify();
-        });
-    }
-
-    #withStrategy(strategy: CommitStrategy, callback: () => void) {
-        const oldStrategy = this.#commitStrategy;
-
-        this.#commitStrategy = strategy;
-        callback();
-        this.#commitStrategy = oldStrategy;
-    }
-
-    _add(job: Job) {
-        if (this.#hasJob && this.#queuedJob != job) {
-            this.#cancelScheduledCommit();
-            this.#commitSync();
-            log('Commited job implicitly');
         }
 
-        this.#queuedJob = job;
+        this.#queuedJob = nextJob;
         this.#commit();
     }
 
-    _whenFree(callback: () => void) {
-        if (!this.#hasJob)
+    #commitSync() {
+        this.#queue(null);
+    }
+
+    #scheduleCommit() {
+        this.#commitTimeout = setTimeout(() => {
+            this.#commitTimeout = null;
+
+            this.#commitSync();
+            this.#notifyIfFree();
+        });
+    }
+
+    #cancelCommit() {
+        if (this.#commitTimeout != null)
+            clearTimeout(this.#commitTimeout);
+
+        this.#commitTimeout = null;
+    }
+
+    #withStrategy(strategy: Strategy, callback: ActionCallback) {
+        const previous = this.#strategy;
+        if (previous === strategy) {
+            callback();
+            return;
+        }
+
+        this.#strategy = strategy;
+        callback();
+        this.#strategy = previous;
+
+        this.#commit();
+        this.#notifyIfFree();
+    }
+
+    _add(job: Job) {
+        this.#queue(job);
+    }
+
+    _onceFree(callback: ActionCallback) {
+        if (this.isFree)
             callback();
         else
-            this.#done.addOnceObserver(callback);
+            this.#free.addOnceObserver(callback);
     }
 
-    batch(callback: () => void) {
+    batch(callback: ActionCallback) {
         this.#withStrategy('batch', callback);
-        if (this.#hasJob)
-            this.#commit();
     }
 
-    sync(callback: () => void) {
+    sync(callback: ActionCallback) {
         this.#withStrategy('sync', callback);
-    }
-
-    async(callback: () => void) {
-        this.#withStrategy('async', callback);
     }
 }

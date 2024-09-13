@@ -1,12 +1,12 @@
 import { ElementRef } from '../hooks/useElementRef';
-import { CleanupCallback, StringKeyOf } from './types';
+import { ActionCallback, StringKeyOf } from './types';
 import { useCallback } from 'react';
 import useDeepMemo from '../hooks/useDeepMemo';
 import useCurrentCallback from '../hooks/useCurrentCallback';
 
 export default function createEventManager<B extends EventTarget, M extends object>() {
     function createGroup() {
-        const removeListenerCallbacks = new Set<CleanupCallback>();
+        const removeListenerCallbacks = new Set<ActionCallback>();
 
         return {
             addListener<T extends B, E extends StringKeyOf<M>>(

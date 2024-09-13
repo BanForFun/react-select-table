@@ -27,15 +27,14 @@ export default function useElementRef<T extends HTMLElement>(): ElementRef<T> {
                 if (value !== prev) onChanged.notify();
             },
             useEffect: (callback) => {
-                useRenderEffect(useCallback(() => {
-                    const run = () => {
-                        if (valueRef.current == null) return;
-                        return callback(valueRef.current);
-                    };
-
-                    run();
-                    return onChanged.addObserver(run);
+                const runEffect = useRenderEffect(useCallback(() => {
+                    if (valueRef.current == null) return;
+                    return callback(valueRef.current);
                 }, [callback]));
+
+                useRenderEffect(useCallback(() => {
+                    return onChanged.addObserver(runEffect);
+                }, [runEffect]));
             }
         };
     }, []);

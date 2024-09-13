@@ -1,6 +1,6 @@
-import { Converter, Predicate } from './types';
+import { ConverterCallback, PredicateCallback } from './types';
 
-const AllPass: Predicate<unknown> = () => true;
+const AllPass: PredicateCallback<unknown> = () => true;
 
 export function indexOf<T>(iterable: Iterable<T>, key: T): number {
     let i = 0;
@@ -48,7 +48,7 @@ export function* map<TSource, TResult>(
         yield converter(item);
 }
 
-export function minBy<F, T>(iterable: Iterable<F>, by: Converter<F, T>): F {
+export function minBy<F, T>(iterable: Iterable<F>, by: ConverterCallback<F, T>): F {
     let min: F | undefined = undefined;
     for (const value of iterable) {
         if (min === undefined || by(value) < by(min))
@@ -65,7 +65,7 @@ export function min<T>(iterable: Iterable<T>): T {
     return minBy(iterable, v => v);
 }
 
-export function count<T>(iterable: Iterable<T>, predicate: Predicate<T> = AllPass): number {
+export function count<T>(iterable: Iterable<T>, predicate: PredicateCallback<T> = AllPass): number {
     const iterator = getIterator(iterable);
 
     let count = 0;
@@ -79,13 +79,13 @@ export function count<T>(iterable: Iterable<T>, predicate: Predicate<T> = AllPas
     return count;
 }
 
-export function first<T>(iterable: Iterable<T>, predicate: Predicate<T> = AllPass): T | undefined {
+export function first<T>(iterable: Iterable<T>, predicate: PredicateCallback<T> = AllPass): T | undefined {
     for (const value of iterable) {
         if (predicate(value)) return value;
     }
 }
 
-export function all<T>(iterable: Iterable<T>, predicate: Predicate<T>): boolean {
+export function all<T>(iterable: Iterable<T>, predicate: PredicateCallback<T>): boolean {
     for (const value of iterable) {
         if (!predicate(value)) return false;
     }
@@ -93,7 +93,7 @@ export function all<T>(iterable: Iterable<T>, predicate: Predicate<T>): boolean 
     return true;
 }
 
-export function some<T>(iterable: Iterable<T>, predicate: Predicate<T>): boolean {
+export function some<T>(iterable: Iterable<T>, predicate: PredicateCallback<T>): boolean {
     for (const value of iterable) {
         if (predicate(value)) return true;
     }

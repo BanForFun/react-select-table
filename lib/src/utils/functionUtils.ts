@@ -1,4 +1,4 @@
-import { Converter, Tuple } from './types';
+import { ConverterCallback, Tuple } from './types';
 
 export function bindPartial<H extends Tuple, T extends Tuple, R>(
     callback: (...args: [...H, ...T]) => R,
@@ -9,7 +9,7 @@ export function bindPartial<H extends Tuple, T extends Tuple, R>(
 
 export function convertResult<A extends Tuple, F, T>(
     callback: (...args: A) => F,
-    converter: Converter<F, T>
+    converter: ConverterCallback<F, T>
 ) {
     return (...args: A) => converter(callback(...args));
 }

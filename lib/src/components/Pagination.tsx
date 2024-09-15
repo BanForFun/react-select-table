@@ -5,7 +5,6 @@ import { TableData } from '../utils/configUtils';
 import useRequiredContext from '../hooks/useRequiredContext';
 import getTableContext from '../context/tableContext';
 import useUpdateWhen from '../hooks/useUpdateWhen';
-import useUpdateStateSync from '../hooks/useUpdateStateSync';
 import { windowEventManager } from '../utils/eventUtils';
 
 enum Step {
@@ -28,7 +27,6 @@ const pageButtonProps = {
 
 export default function Pagination<TData extends TableData>() {
     const { state } = useRequiredContext(getTableContext<TData>());
-    const updateStateSync = useUpdateStateSync();
 
     useUpdateWhen(state.visibleRows.pageIndexChanged);
     useUpdateWhen(state.visibleRows.pageCountChanged);
@@ -43,9 +41,7 @@ export default function Pagination<TData extends TableData>() {
             const pageIndex = state.visibleRows.pageIndex + step;
             if (pageIndex < 0 || pageIndex >= state.visibleRows.calculatePageCount()) return;
 
-            updateStateSync(() => {
-                state.visibleRows.setPageIndex(pageIndex);
-            });
+            state.visibleRows.setPageIndex(pageIndex);
 
             timeoutId = setTimeout(repeatAction, delay);
         };
@@ -69,7 +65,7 @@ export default function Pagination<TData extends TableData>() {
             eventGroup.addListener(window, 'pointerup', handlePointerLost);
             eventGroup.addListener(window, 'pointercancel', handlePointerLost);
         };
-    }, [state, updateStateSync]);
+    }, [state]);
 
     if (!isFinite(state.pageSize.value)) return null;
 

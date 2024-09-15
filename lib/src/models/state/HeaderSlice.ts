@@ -170,7 +170,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         return this.#leafIterator(this.#headers);
     }
 
-    add = this._dispatcher('add', toUndo => (columnPath: TreePath, headerPath: TreePath) => {
+    add = this._dispatcher('add', (toUndo, columnPath: TreePath, headerPath: TreePath) => {
         if (columnPath.length === 0)
             throw new Error('Empty column path given');
 
@@ -202,7 +202,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         this._state.scheduler._add(this.#notifyChangedJob);
     });
 
-    addMany = this._dispatcher('addMany', toUndo => (columnIndices: ColumnIndexNode, headerPath: TreePath) => {
+    addMany = this._dispatcher('addMany', (toUndo, columnIndices: ColumnIndexNode, headerPath: TreePath) => {
         if (headerPath.length === 0)
             headerPath = [this.#headers.length];
 
@@ -218,7 +218,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         this._state.scheduler._add(this.#notifyChangedJob);
     });
 
-    remove = this._dispatcher('remove', toUndo => (headerPath: TreePath) => {
+    remove = this._dispatcher('remove', (toUndo, headerPath: TreePath) => {
         const headerTrail: { index: number, header: Header<TData>, siblings: Header<TData>[] }[] = [];
 
         // Step 1: Go down to find the header

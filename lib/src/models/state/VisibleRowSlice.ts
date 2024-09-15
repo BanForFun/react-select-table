@@ -166,7 +166,7 @@ export default class VisibleRowSlice<TData extends TableData> extends UndoableSt
         });
     }
 
-    #setPageIndex = this._dispatcher('setPageIndex', toUndo => (index: number, reloadPage: boolean) => {
+    #setPageIndex = this._dispatcher('setPageIndex', (toUndo, index: number, reloadPage: boolean) => {
         if (this.#pageIndex === index) return;
 
         const originalIndex = this.#pageIndex;
@@ -183,7 +183,7 @@ export default class VisibleRowSlice<TData extends TableData> extends UndoableSt
 
     setPageIndex = (index: number, reloadPage: boolean = true) => {
         const lastPageIndex = this.calculatePageCount() - 1;
-        this.#setPageIndex(clamp(index, 0, lastPageIndex), reloadPage);
+        return this.#setPageIndex(clamp(index, 0, lastPageIndex), reloadPage);
     };
 
     calculatePageCount() {

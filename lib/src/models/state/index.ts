@@ -47,11 +47,13 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
 
         this.scheduler ??= new SchedulerSlice(config.scheduler, {});
 
-        this.history ??= new HistorySlice(config.history, {});
-
         this.columns ??= new ColumnSlice(config.columns!, {});
 
         this.filter ??= new FilterSlice(config.filter, {});
+
+        this.history ??= new HistorySlice(config.history, {
+            scheduler: this.scheduler
+        });
 
         this.pageSize ??= new PageSizeSlice(config.pageSize, {
             history: this.history
@@ -107,10 +109,10 @@ export type SharedConfig<TData extends TableData, TShared extends SliceKeys> = P
     [K in SliceKeys]: K extends TShared | SubDependencyKeys[TShared] ? undefined : State<TData>[K]['config']
 }>
 
-export type Shared<TData extends TableData, TShared extends SliceKeys> = PartialByValue<{
-    [K in SliceKeys]: K extends SubDependencyKeys[TShared] ? undefined :
-        K extends TShared ? State<TData>[K] : State<TData>[K]['config']
-}>
+// export type Shared<TData extends TableData, TShared extends SliceKeys> = PartialByValue<{
+//     [K in SliceKeys]: K extends SubDependencyKeys[TShared] ? undefined :
+//         K extends TShared ? State<TData>[K] : State<TData>[K]['config']
+// }>
 
 // Public
 export function createState<

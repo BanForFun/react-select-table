@@ -33,9 +33,7 @@ const incompatibleKeySymbol = Symbol('incompatibleKey');
 export type Incompatible<K extends string> = { [incompatibleKeySymbol]?: K };
 
 
-export type GeneratorCallback<T> = () => T;
-
-export type ActionCallback = () => void;
+export type ActionCallback<T = void> = () => T;
 
 export type ConverterCallback<F, T> = (value: F) => T;
 

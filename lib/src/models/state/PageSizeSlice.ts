@@ -37,7 +37,7 @@ export default class PageSizeSlice extends UndoableStateSlice {
         return this.isStartIndex(index + 1);
     }
 
-    set = this._dispatcher('set', toUndo => (size: number) => {
+    set = this._dispatcher('set', (toUndo, size: number) => {
         if (size <= 0)
             throw new Error('Page size must be positive');
 

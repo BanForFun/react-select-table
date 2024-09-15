@@ -1,4 +1,4 @@
-import React, { useLayoutEffect } from 'react';
+import React from 'react';
 import { ReadonlyHeader } from '../models/state/HeaderSlice';
 import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
@@ -7,7 +7,6 @@ import useRequiredContext from '../hooks/useRequiredContext';
 import { isSortableColumn, SortColumn } from '../models/state/SortOrderSlice';
 import AngleIcon, { Rotation } from './AngleIcon';
 import useUpdateWhen from '../hooks/useUpdateWhen';
-import useUpdateStateSync from '../hooks/useUpdateStateSync';
 import { enableGestures } from '../utils/gestureUtils';
 import Resizer, { ResizerType } from './Resizer';
 import useElementRef from '../hooks/useElementRef';
@@ -30,7 +29,6 @@ interface AddedVisibleHeader extends VisibleHeader {
 
 export default function TableHead<TData extends TableData>() {
     const { state } = useRequiredContext(getTableContext<TData>());
-    const updateStateSync = useUpdateStateSync();
 
     useUpdateWhen(state.sortOrder.changed);
     useUpdateWhen(state.headers.changed);
@@ -115,7 +113,7 @@ export default function TableHead<TData extends TableData>() {
             if (header.sort == null) return;
             const { path } = header.sort;
 
-            updateStateSync(() => {
+            state.history.group(() => {
                 state.visibleRows.setPageIndex(0, false);
                 state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
             });

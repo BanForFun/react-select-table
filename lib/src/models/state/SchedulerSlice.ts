@@ -1,15 +1,21 @@
 import Observable from '../Observable';
 import StateSlice from '../StateSlice';
 import { ActionCallback } from '../../utils/types';
+import { flushSync } from 'react-dom';
 
 type Job = () => void;
 
 type Strategy = 'async' | 'sync' | 'batch';
 
+export interface ScheduledFlush {
+    promise: Promise<void>;
+}
+
 export default class SchedulerSlice extends StateSlice {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
     #strategy: Strategy = 'async';
+    #flush: ScheduledFlush | null = null;
     #free = new Observable();
 
     get isFree() {
@@ -64,12 +70,10 @@ export default class SchedulerSlice extends StateSlice {
         this.#commitTimeout = null;
     }
 
-    #withStrategy(strategy: Strategy, callback: ActionCallback) {
+    #withStrategy(strategy: Strategy, callback: ActionCallback): void {
         const previous = this.#strategy;
-        if (previous === strategy) {
-            callback();
-            return;
-        }
+        if (previous === strategy)
+            return callback();
 
         this.#strategy = strategy;
         callback();
@@ -91,10 +95,33 @@ export default class SchedulerSlice extends StateSlice {
     }
 
     batch(callback: ActionCallback) {
-        this.#withStrategy('batch', callback);
+        return this.#withStrategy('batch', callback);
     }
 
     sync(callback: ActionCallback) {
-        this.#withStrategy('sync', callback);
+        return this.#withStrategy('sync', callback);
+    }
+
+    flush(callback: ActionCallback): ScheduledFlush {
+        if (this.#flush != null) {
+            callback();
+            return this.#flush;
+        }
+
+        if (this.#strategy !== 'async')
+            throw new Error('scheduler.flush() cannot be nested inside scheduler.sync() or scheduler.batch()');
+
+        const promise = new Promise<void>(resolve => {
+            setTimeout(() => {
+                this.#flush = flush;
+                this.sync(() => flushSync(() => this.batch(callback)));
+                this.#flush = null;
+
+                resolve();
+            });
+        });
+
+        const flush: ScheduledFlush = { promise };
+        return flush;
     }
 }

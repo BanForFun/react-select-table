@@ -65,7 +65,7 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
         return this.config.getRowKey(row);
     };
 
-    add = this._dispatcher('add', toUndo => (rows: TData['row'][]) => {
+    add = this._dispatcher('add', (toUndo, rows: TData['row'][]) => {
         const newRows: Row<TData>[] = rows.map(this.#createRow);
 
         this.#rows.add(newRows, this.#compareRows);
@@ -78,7 +78,7 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
         toUndo(this.remove.action(keys));
     });
 
-    remove = this._dispatcher('remove', toUndo => (rowKeys: Set<RowKey>) => {
+    remove = this._dispatcher('remove', (toUndo, rowKeys: Set<RowKey>) => {
         const removed = this.#rows.remove(row => rowKeys.has(this.getRowKey(row)));
         this.removed.notify(removed);
 

@@ -85,35 +85,36 @@ const state = createState<Lesson>({
     ]
 });
 
-state.pageSize.set(20);
+state.scheduler.flush(() => {
+    state.pageSize.set(20);
 
-for (let i = 0; i < state.columns.config.length; i++)
-    state.headers.add([i], []);
+    for (let i = 0; i < state.columns.config.length; i++)
+        state.headers.add([i], []);
 
-// state.headers.add([3], [1, 1]);
-// state.headers.add([3], [1, 1]);
-// state.headers.add([1, 3], [1]);
+    // state.headers.add([3], [1, 1]);
+    // state.headers.add([3], [1, 1]);
+    // state.headers.add([1, 3], [1]);
 
-state.rows.add([
-    {
-        name: 'Katevenis',
-        monday: ['13:00', '15:00'],
-        wednesday: ['13:00', '15:00'],
-        friday: ['13:00', '15:00']
-    },
-    {
-        name: 'Markatos',
-        tuesday: ['14:00', '16:00'],
-        thursday: ['14:00', '16:00']
+    state.rows.add([
+        {
+            name: 'Katevenis',
+            monday: ['13:00', '15:00'],
+            wednesday: ['13:00', '15:00'],
+            friday: ['13:00', '15:00']
+        },
+        {
+            name: 'Markatos',
+            tuesday: ['14:00', '16:00'],
+            thursday: ['14:00', '16:00']
+        }
+    ]);
+
+    for (let i = 0; i < 100; i++) {
+        state.rows.add([{ name: 'Lesson ' + i }]);
     }
-]);
 
-for (let i = 0; i < 100; i++) {
-    state.rows.add([{ name: 'Lesson ' + i }]);
-}
-
-state.history.clear();
-
+    state.history.clear();
+});
 
 function parseColumnPathInput(input?: string) {
     if (!input) return [];

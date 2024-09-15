@@ -78,7 +78,7 @@ export default class SortOrderSlice<TData extends TableData> extends UndoableSta
         return { order: lastOrder, result: 0 };
     }
 
-    sortBy = this._dispatcher('sortBy', toUndo => (path: TreePath, newOrder: NewSortOrder, append: boolean) => {
+    sortBy = this._dispatcher('sortBy', (toUndo, path: TreePath, newOrder: NewSortOrder, append: boolean) => {
         const column = this._state.columns.getAtPath(path);
 
         if (!isSortableColumn(column))

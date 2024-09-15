@@ -1,7 +1,7 @@
-import { GeneratorCallback } from '../utils/types';
+import { ActionCallback } from '../utils/types';
 import { useRef } from 'react';
 
-export default function useConstant<T>(create: GeneratorCallback<T>) {
+export default function useConstant<T>(create: ActionCallback<T>) {
     const valueRef = useRef<T>();
     valueRef.current ??= create();
 

@@ -1,30 +1,30 @@
-type OptionalArg<T> = T extends undefined ? [] : [T];
+import { Tuple } from '../utils/types';
 
-type Observer<TArg> = (...args: OptionalArg<TArg>) => void;
+type Observer<TArgs extends Tuple> = (...args: TArgs) => void;
 
-export default class Observable<TArg = undefined> {
-    #observers = new Set<Observer<TArg>>();
-    #onceObservers = new Set<Observer<TArg>>();
+export default class Observable<TArgs extends Tuple = []> {
+    #observers = new Set<Observer<TArgs>>();
+    #onceObservers = new Set<Observer<TArgs>>();
 
-    addObserver(observer: Observer<TArg>) {
+    addObserver(observer: Observer<TArgs>) {
         this.#observers.add(observer);
         return () => this.removeObserver(observer);
     }
 
-    removeObserver(observer: Observer<TArg>) {
+    removeObserver(observer: Observer<TArgs>) {
         this.#observers.delete(observer);
     }
 
-    addOnceObserver(observer: Observer<TArg>) {
+    addOnceObserver(observer: Observer<TArgs>) {
         this.#onceObservers.add(observer);
         return () => this.removeOnceObserver(observer);
     }
 
-    removeOnceObserver(observer: Observer<TArg>) {
+    removeOnceObserver(observer: Observer<TArgs>) {
         this.#onceObservers.delete(observer);
     }
 
-    notify = (...args: OptionalArg<TArg>) => {
+    notify = (...args: TArgs) => {
         for (const observer of this.#observers)
             observer(...args);
 

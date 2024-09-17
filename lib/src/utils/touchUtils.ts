@@ -1,5 +1,5 @@
-import { Point } from './pointUtils';
+import Point from '../models/Point';
 
 export function getTouchClientPosition(touch: Touch): Point {
-    return { x: touch.clientX, y: touch.clientY };
+    return new Point(touch.clientX, touch.clientY);
 }

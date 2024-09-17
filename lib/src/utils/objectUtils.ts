@@ -1,3 +1,5 @@
+import { GenericComparatorCallback } from './types';
+
 function isObject(obj: unknown): obj is object {
     return obj !== null && typeof obj === 'object';
 }
@@ -70,19 +72,31 @@ export function extract<TObject extends object, TValue>(object: TObject, isValue
     return result;
 }
 
-function isSubset<T>(a: T, b: T) {
+function _isSubset<T extends object>(a: T, b: T, compare: GenericComparatorCallback) {
     for (const key in a) {
-        if (!isEqual(a[key], b[key])) return false;
+        if (!compare(a[key], b[key])) return false;
     }
 
     return true;
 }
 
-export function isEqual<T>(a: T, b: T) {
-    if (typeof a !== typeof b) return false;
+function _isEqual<T>(a: T, b: T, compare: GenericComparatorCallback) {
+    if (a === b)
+        return true;
 
-    if (typeof a !== 'object')
-        return a === b;
+    if (typeof a !== 'object' || typeof b !== 'object')
+        return false;
 
-    return isSubset(a, b) && isSubset(b, a);
+    if (a === null || b === null)
+        return false;
+
+    return _isSubset(a, b, compare) && _isSubset(b, a, compare);
+}
+
+export function isDeepEqual<T>(a: T, b: T): boolean {
+    return _isEqual(a, b, isDeepEqual);
+}
+
+export function isShallowEqual<T>(a: T, b: T): boolean {
+    return _isEqual(a, b, (a, b) => a === b);
 }

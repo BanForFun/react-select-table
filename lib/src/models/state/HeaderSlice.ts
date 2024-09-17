@@ -62,7 +62,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
 
     protected readonly _sliceKey = 'headers';
 
-    readonly added = new Observable<ReadonlyLeafHeader<TData>[]>();
+    readonly added = new Observable<[ReadonlyLeafHeader<TData>[]]>();
     readonly changed = new Observable();
 
     #getAtPath(path: TreePath): Header<TData> {

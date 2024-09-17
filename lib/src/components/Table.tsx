@@ -1,9 +1,12 @@
-import getTableContext, { TableCallbacks } from '../context/tableContext';
-import { useMemo, useState } from 'react';
+import getTableContext, { TableRefs } from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import State from '../models/state';
 import Pagination from './Pagination';
 import ScrollingContainer from './ScrollingContainer';
+import useConstant from '../hooks/useConstant';
+import { createElementRef } from '../utils/refUtils';
+import useComparatorMemo from '../hooks/useComparatorMemo';
+import { isShallowEqual } from '../utils/objectUtils';
 
 interface Props<TData extends TableData> {
     state: State<TData>;
@@ -11,8 +14,11 @@ interface Props<TData extends TableData> {
 }
 
 export default function Table<TData extends TableData>({ state, headerNoWrap = false }: Props<TData>) {
-    const [callbacks] = useState<TableCallbacks>({});
-    const contextValue = useMemo(() => ({ state, callbacks }), [state, callbacks]);
+    const refs = useConstant<TableRefs>(() => ({
+        head: createElementRef()
+    }));
+
+    const contextValue = useComparatorMemo({ state, refs }, isShallowEqual);
 
     const TableContext = getTableContext<TData>();
     return <div className="rst-container" data-header-nowrap={headerNoWrap}>

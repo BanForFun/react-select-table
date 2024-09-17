@@ -12,6 +12,7 @@ import { cachedIterator } from '../utils/iterableUtils';
 import { enableGestures } from '../utils/gestureUtils';
 import useConstant from '../hooks/useConstant';
 import useElementRef from '../hooks/useElementRef';
+import ColGroup from './ColumnGroup';
 
 const keyKey = 'key';
 
@@ -37,14 +38,13 @@ export default function TableBody<TData extends TableData>() {
 
     const rowRoots = useConstant(() => new DLList<RowRootNode>());
     const tableBodyRef = useElementRef<HTMLTableSectionElement>();
-    const colGroupRef = useElementRef<HTMLTableColElement>();
 
     const createRoot = useCallback((row: Row<TData>) => {
         const element = document.createElement('tr');
         element.classList.add('rst-row');
         element.dataset[keyKey] = state.rows.getRowKey(row);
 
-        enableGestures(element);
+        enableGestures({ element });
 
         const root = ReactDOM.createRoot(element);
         root.render(<TableRow state={state} data={row} />);
@@ -182,7 +182,7 @@ export default function TableBody<TData extends TableData>() {
     }), [appendRoot, rowRoots, state]));
 
     return <table className="rst-table rst-body">
-        <colgroup ref={colGroupRef.set} />
+        <ColGroup />
         {/* TODO: Add hidden thead for screen readers */}
         <tbody ref={tableBodyRef.set} />
     </table>;

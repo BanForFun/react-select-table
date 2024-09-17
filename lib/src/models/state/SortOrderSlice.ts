@@ -20,7 +20,7 @@ export interface SortColumn {
     index: number;
 }
 
-type SortableColumn<TContext> = PickRequired<LeafColumn<TContext>, 'compareContext'>
+export type SortableColumn<TContext> = PickRequired<LeafColumn<TContext>, 'compareContext'>
 
 export function isSortableColumn<TContext>(column: Column<TContext>): column is SortableColumn<TContext> {
     return !isColumnGroup(column) && column.compareContext !== undefined;

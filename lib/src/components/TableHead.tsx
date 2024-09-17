@@ -1,59 +1,50 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ReadonlyHeader } from '../models/state/HeaderSlice';
 import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
 import useRequiredContext from '../hooks/useRequiredContext';
-import { isSortableColumn, SortColumn } from '../models/state/SortOrderSlice';
-import AngleIcon, { Rotation } from './AngleIcon';
 import useUpdateWhen from '../hooks/useUpdateWhen';
-import { enableGestures } from '../utils/gestureUtils';
-import Resizer, { ResizerType } from './Resizer';
-import useElementRef from '../hooks/useElementRef';
+import { enableGestures, gestureEventManager } from '../utils/gestureUtils';
+import ColumnResizer, { ResizerType } from './ColumnResizer';
+import ColGroup from './ColumnGroup';
+import TableHeader from './TableHeader';
+import { Column } from '../utils/columnUtils';
 
-interface SortHeader {
-    path: TreePath;
-    column: SortColumn | null;
-}
-
-interface VisibleHeader {
+interface VisibleHeader<TData extends TableData> {
     key: string;
     span: number;
-    content: React.ReactNode;
-    sort?: SortHeader;
+    column: Column<TData['row']> | null;
 }
 
-interface AddedVisibleHeader extends VisibleHeader {
+interface AddedVisibleHeader<TData extends TableData> extends VisibleHeader<TData> {
     height: number;
 }
 
-export default function TableHead<TData extends TableData>() {
-    const { state } = useRequiredContext(getTableContext<TData>());
+function TableHead<TData extends TableData>() {
+    const { state, refs } = useRequiredContext(getTableContext<TData>());
 
-    useUpdateWhen(state.sortOrder.changed);
     useUpdateWhen(state.headers.changed);
 
-    const colGroupRef = useElementRef<HTMLTableColElement>();
-    const elementRef = useElementRef<HTMLTableElement>();
+    refs.head.useEffect(useCallback(element => {
+        enableGestures({ element });
+    }, []));
 
-    elementRef.useEffect(enableGestures);
+    gestureEventManager.useListener(refs.head, 'leftMouseDown', e => {
+        if (e.target === e.currentTarget)
+            e.preventDefault();
+    });
 
-    const headerRows: VisibleHeader[][] = [[]];
+    const headerRows: VisibleHeader<TData>[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;
 
-    function addHeader(header: ReadonlyHeader<TData>, path: TreePath, tallestSibling: number): AddedVisibleHeader {
-        const visibleHeader: AddedVisibleHeader = {
+    function addHeader(header: ReadonlyHeader<TData>, path: TreePath, tallestSibling: number) {
+        const visibleHeader: AddedVisibleHeader<TData> = {
             key: `header_${header.id}`,
             span: 1,
             height: 0,
-            content: header.column.header
+            column: header.column
         };
-
-        if (isSortableColumn(header.column))
-            visibleHeader.sort = {
-                path: state.columns.getPath(header.column),
-                column: state.sortOrder.get(header.column)
-            };
 
         let childCount = 0;
         if (header.children) {
@@ -81,7 +72,7 @@ export default function TableHead<TData extends TableData>() {
                 headerRows[visibleHeader.height].push({
                     key: `spacer_${column.key}`,
                     span: column.span,
-                    content: null
+                    column: null
                 });
             }
         };
@@ -99,7 +90,7 @@ export default function TableHead<TData extends TableData>() {
             headerRows[height].push({
                 key: `spacer_${visibleHeader.key}`,
                 span: visibleHeader.span,
-                content: null
+                column: null
             });
 
         return visibleHeader;
@@ -108,54 +99,26 @@ export default function TableHead<TData extends TableData>() {
     for (const column of state.headers.iterator())
         addHeader(column, [headerRows.at(-1)!.length], headerRows.length - 1);
 
-    function renderHeader(header: VisibleHeader, index: number) {
-        const handleClick: React.MouseEventHandler = e => {
-            if (header.sort == null) return;
-            const { path } = header.sort;
-
-            state.history.group(() => {
-                state.visibleRows.setPageIndex(0, false);
-                state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
-            });
-        };
-
-        return <th
-            key={header.key}
-            className="rst-header"
-            colSpan={header.span}
-            data-is-sortable={header.sort != null}
-            onClick={handleClick}
-        >
-            <Resizer index={index} type={ResizerType.Column} />
-            <div className="rst-content">
-                <span className="rst-inner rst-ellipsis">{header.content}</span>
-                {header.sort?.column && <HeaderStatus>
-                    <AngleIcon rotation={header.sort.column.order === 'ascending' ? Rotation.Up : Rotation.Down} />
-                    <div className="rst-ellipsis">
-                        {/* Narrow non-breaking space */}
-                        &#8239;
-                        <small>{header.sort.column.index + 1}</small>
-                    </div>
-                </HeaderStatus>}
-            </div>
-        </th>;
-    }
-
     return <table
         className="rst-table rst-head"
         aria-hidden={true}
-        ref={elementRef.set}
+        ref={refs.head.set}
     >
-        <colgroup ref={colGroupRef.set} />
+        <ColGroup />
         <thead>
         {headerRows.map((_, level) => {
             const height = heightOfRowLevel(level);
             const headers = headerRows[height];
             return <tr className="rst-row" key={height}>
-                {headers.map(renderHeader)}
+                {headers.map((info, index) =>
+                    <TableHeader key={info.key}
+                                 span={info.span}
+                                 column={info.column}
+                                 addResizer={index > 0}
+                    />)}
                 <th className="rst-spacer">
-                    <Resizer index={headers.length} type={ResizerType.Column} />
-                    <Resizer index={headers.length} type={ResizerType.Edge} />
+                    <ColumnResizer type={ResizerType.Normal} />
+                    <ColumnResizer type={ResizerType.Edge} />
                 </th>
             </tr>;
         })}
@@ -164,9 +127,4 @@ export default function TableHead<TData extends TableData>() {
 }
 
 
-function HeaderStatus({ children }: { children: React.ReactNode }) {
-    return <>
-        <span className="rst-spacer">{' '}</span>
-        <span className="rst-status">{children}</span>
-    </>;
-}
+export default TableHead;

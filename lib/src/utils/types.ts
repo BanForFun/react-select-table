@@ -37,6 +37,10 @@ export type ActionCallback<T = void> = () => T;
 
 export type ConverterCallback<F, T> = (value: F) => T;
 
+export type ComparatorCallback<T> = (a: T, b: T) => boolean;
+
+export type GenericComparatorCallback = <T>(a: T, b: T) => boolean;
+
 export type PredicateCallback<T> = (value: T) => boolean;
 
 export type EffectCallback<T extends Tuple = []> = (...args: T) => (void | ActionCallback);

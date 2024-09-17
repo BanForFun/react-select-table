@@ -1,4 +1,4 @@
-import { Point } from './pointUtils';
+import Point from '../models/Point';
 
 export enum PointerType {
     Mouse,
@@ -8,9 +8,9 @@ export enum PointerType {
 }
 
 export interface PointerInfo {
-    id: number;
-    type: PointerType;
-    clientPosition: Point;
+    readonly id: number;
+    readonly type: PointerType;
+    readonly clientPosition: Point;
 }
 
 export function isTouchPointerType(pointerType: PointerType) {
@@ -31,7 +31,7 @@ export function getPointerType(e: PointerEvent) {
 }
 
 export function getPointerClientPosition(e: PointerEvent): Point {
-    return { x: e.clientX, y: e.clientY };
+    return new Point(e.clientX, e.clientY);
 }
 
 export function getPointerInfo(e: PointerEvent): PointerInfo {

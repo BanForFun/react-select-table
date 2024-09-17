@@ -1,8 +1,9 @@
-import { ElementRef } from '../hooks/useElementRef';
 import { ActionCallback, StringKeyOf } from './types';
 import { useCallback } from 'react';
-import useDeepMemo from '../hooks/useDeepMemo';
 import useCurrentCallback from '../hooks/useCurrentCallback';
+import { ElementRef } from './refUtils';
+import useComparatorMemo from '../hooks/useComparatorMemo';
+import { isDeepEqual } from './objectUtils';
 
 export default function createEventManager<B extends EventTarget, M extends object>() {
     function createGroup() {
@@ -42,7 +43,7 @@ export function createElementEventManager<B extends HTMLElement, M extends objec
         listener: (this: T, e: M[E]) => void,
         options?: AddEventListenerOptions
     ) {
-        const memoOptions = useDeepMemo(options);
+        const memoOptions = useComparatorMemo(options, isDeepEqual);
         const memoListener = useCurrentCallback(listener);
 
         targetRef.useEffect(useCallback((element) => {

@@ -27,8 +27,8 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
     protected _sliceKey: string = 'rows';
 
     readonly sorted = new Observable();
-    readonly added = new Observable<Row<TData>[]>();
-    readonly removed = new Observable<Row<TData>[]>();
+    readonly added = new Observable<[Row<TData>[]]>();
+    readonly removed = new Observable<[Row<TData>[]]>();
 
     #createRow = (data: TData['row']): Row<TData> => data; // Maybe cache key in the future
 

@@ -1,14 +1,15 @@
 import { TableData } from '../utils/configUtils';
 import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
 import State from '../models/state';
+import { ElementRef } from '../utils/refUtils';
 
-export interface TableCallbacks {
-
+export interface TableRefs {
+    head: ElementRef;
 }
 
 interface TableContextValue<TData extends TableData> {
     state: State<TData>;
-    callbacks: TableCallbacks;
+    refs: TableRefs;
 }
 
 export const TableContext = createRequiredContext<TableContextValue<TableData>>();

@@ -15,7 +15,9 @@ interface Props<TData extends TableData> {
 
 export default function Table<TData extends TableData>({ state, headerNoWrap = false }: Props<TData>) {
     const refs = useConstant<TableRefs>(() => ({
-        head: createElementRef()
+        head: createElementRef(),
+        headColGroup: createElementRef(),
+        bodyColGroup: createElementRef()
     }));
 
     const contextValue = useComparatorMemo({ state, refs }, isShallowEqual);

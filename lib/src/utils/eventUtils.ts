@@ -5,7 +5,7 @@ import { ElementRef } from './refUtils';
 import useComparatorMemo from '../hooks/useComparatorMemo';
 import { isDeepEqual } from './objectUtils';
 
-export default function createEventManager<B extends EventTarget, M extends object>() {
+export function createEventManager<B extends EventTarget, M extends object>() {
     function createGroup() {
         const removeListenerCallbacks = new Set<ActionCallback>();
 

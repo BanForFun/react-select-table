@@ -14,7 +14,7 @@ interface Props {
 export default function ColumnResizer({ type }: Props) {
     const elementRef = useElementRef();
     elementRef.useEffect(useCallback(element => {
-        enableGestures({ element, rotateScroll: true });
+        enableGestures({ element, rotateScroll: true, enableDrag: true });
     }, []));
 
     return <div className={type} ref={elementRef.set} />;

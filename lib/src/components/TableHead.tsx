@@ -5,7 +5,7 @@ import { TableData } from '../utils/configUtils';
 import { TreePath } from '../utils/unrootedTreeUtils';
 import useRequiredContext from '../hooks/useRequiredContext';
 import useUpdateWhen from '../hooks/useUpdateWhen';
-import { enableGestures, gestureEventManager } from '../utils/gestureUtils';
+import { enableGestures } from '../utils/gestureUtils';
 import ColumnResizer, { ResizerType } from './ColumnResizer';
 import ColGroup from './ColumnGroup';
 import TableHeader from './TableHeader';
@@ -29,11 +29,6 @@ function TableHead<TData extends TableData>() {
     refs.head.useEffect(useCallback(element => {
         enableGestures({ element });
     }, []));
-
-    gestureEventManager.useListener(refs.head, 'leftMouseDown', e => {
-        if (e.target === e.currentTarget)
-            e.preventDefault();
-    });
 
     const headerRows: VisibleHeader<TData>[][] = [[]];
     const heightOfRowLevel = (level: number) => headerRows.length - 1 - level;

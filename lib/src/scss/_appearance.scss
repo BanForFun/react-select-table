@@ -12,7 +12,6 @@
     border-collapse: separate;
     border-spacing: 0;
     width: 100%;
-    overflow: hidden;
   }
 
   .rst-scrollingContainer {
@@ -24,7 +23,8 @@
     // we want it to fit the same amount of content and not border-width more.
     // But we want the table to have no outside borders, in order to look pretty inside bordered containers,
     // so we crop the first column's left border
-    margin-left: negative(get-config-value("column", "border-width"))
+    margin-left: negative(get-config-value("column", "border-width"));
+    overflow: hidden;
   }
 
   .rst-icon {
@@ -121,7 +121,7 @@
             @include apply-properties("header-status", ["color"]);
           }
         }
-        
+
         &[data-is-sortable="true"] {
           cursor: pointer;
         }

@@ -13,20 +13,21 @@ export interface ModifierEventArgs {
 
 interface GestureEventArgs {
     tap: EmptyObject;
-    leftMouseDown: EmptyObject;
+    dualTap: EmptyObject;
+    shortTap: EmptyObject;
     longTap: EmptyObject;
+    leftMouseDown: ModifierEventArgs;
     dragStart: EmptyObject;
     dragUpdate: { clientPosition: Point, scrollDelta: Point };
     dragEnd: EmptyObject;
-    dualTap: ModifierEventArgs;
     rightMouseDown: ModifierEventArgs;
-    shortTap: ModifierEventArgs;
     leftMouseClick: ModifierEventArgs;
 }
 
 export interface GestureTarget {
     readonly element: HTMLElement;
     rotateScroll?: boolean;
+    enableDrag?: boolean;
     headerLeft?: HTMLElement;
     headerRight?: HTMLElement;
     headerTop?: HTMLElement;
@@ -90,7 +91,7 @@ function createGestureFactory<T>(factory: (e: T, currentTarget: GestureTarget, t
     return createGesture;
 }
 
-const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, currentTarget, target) => {
+const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, currentTarget, target) => {
     const initialPointerPosition = pointer.clientPosition;
     let pointerPosition = initialPointerPosition;
 
@@ -104,8 +105,6 @@ const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, curre
     const eventGroup = elementEventManager.createGroup();
 
     eventGroup.addListener(currentTarget.element, 'wheel', e => {
-        e.preventDefault();
-
         const scrollDelta = new Point(e.deltaY, e.deltaX);
         if (e.deltaMode === WheelEvent.DOM_DELTA_LINE)
             scrollDelta.multiply(new Point(parseInt(getComputedStyle(currentTarget.element).lineHeight)));
@@ -115,8 +114,12 @@ const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, curre
         if (e.shiftKey !== !!target.rotateScroll)
             scrollDelta.rotate();
 
-        if (!isStarted)
+        if (!isStarted) {
+            if (!target.enableDrag) return;
             startDrag();
+        }
+
+        e.preventDefault();
 
         dispatchEvent(target.element, 'dragUpdate', {
             clientPosition: pointerPosition,
@@ -128,11 +131,12 @@ const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, curre
         if (e.pointerId !== pointer.id) return;
 
         pointerPosition = getPointerClientPosition(e);
-        if (!isStarted && Point.distance(pointerPosition, initialPointerPosition) > movementMarginPx)
+        if (!isStarted && Point.distance(pointerPosition, initialPointerPosition) > movementMarginPx) {
+            if (!target.enableDrag) return cancel();
             startDrag();
+        }
 
         if (!isStarted) return;
-
         dispatchEvent(target.element, 'dragUpdate', {
             clientPosition: pointerPosition,
             scrollDelta: new Point()
@@ -142,6 +146,9 @@ const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, curre
     const handlePointerLost = (e: PointerEvent): boolean => {
         if (e.pointerId !== pointer.id) return false;
 
+        if (isStarted)
+            dispatchEvent(target.element, 'dragEnd', {});
+
         cancel();
         return true;
     };
@@ -150,9 +157,7 @@ const createMouseDragGesture = createGestureFactory<PointerInfo>((pointer, curre
     eventGroup.addListener(currentTarget.element, 'pointerup', e => {
         if (!handlePointerLost(e)) return;
 
-        if (isStarted)
-            dispatchEvent(target.element, 'dragEnd', {});
-        else
+        if (!isStarted)
             dispatchEvent(target.element, 'leftMouseClick', e);
     });
 
@@ -217,16 +222,15 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget
 
     const handleTouchLost = (e: TouchEvent) => {
         for (const changedTouch of e.changedTouches) {
-            if (changedTouch.identifier === touch.identifier) {
-                cancel();
-
-                if (isStarted)
-                    dispatchEvent(target.element, 'dragEnd', {});
-
+            if (changedTouch.identifier !== touch.identifier) {
+                scrollTouchPositions.delete(changedTouch.identifier);
                 continue;
             }
 
-            scrollTouchPositions.delete(changedTouch.identifier);
+            if (isStarted)
+                dispatchEvent(target.element, 'dragEnd', {});
+
+            cancel();
         }
     };
 
@@ -240,7 +244,7 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget
     return cancel;
 });
 
-const createLongTapGesture = createGestureFactory<Touch>((touch, currentTarget, target) => {
+const createTapGesture = createGestureFactory<Touch>((touch, currentTarget, target) => {
     const eventGroup = elementEventManager.createGroup();
 
     eventGroup.addListener(currentTarget.element, 'touchstart', () => {
@@ -254,9 +258,7 @@ const createLongTapGesture = createGestureFactory<Touch>((touch, currentTarget, 
         if (updatedTouch == null) return;
 
         const movedDistance = Point.distance(getTouchClientPosition(updatedTouch), getTouchClientPosition(touch));
-        if (movedDistance <= movementMarginPx) return;
-
-        cancel();
+        if (movedDistance > movementMarginPx) cancel();
     });
 
     const handleTouchLost = (e: TouchEvent): boolean => {
@@ -270,11 +272,11 @@ const createLongTapGesture = createGestureFactory<Touch>((touch, currentTarget, 
     eventGroup.addListener(currentTarget.element, 'touchcancel', handleTouchLost);
     eventGroup.addListener(currentTarget.element, 'touchend', e => {
         if (!handleTouchLost(e)) return;
-        dispatchEvent(target.element, 'shortTap', e);
+        dispatchEvent(target.element, 'shortTap', {});
     });
 
     const timeoutId = setTimeout(() => {
-        if (dispatchEvent(target.element, 'longTap', {}))
+        if (dispatchEvent(target.element, 'longTap', {}) && target.enableDrag)
             createTouchDragGesture(touch, currentTarget, target);
 
         cancel(false);
@@ -320,8 +322,8 @@ export function enableGestures(target: GestureTarget) {
 
         if (e.button === 2)
             dispatchEvent(target.element, 'rightMouseDown', e);
-        else if (e.button === 0 && dispatchEvent(target.element, 'leftMouseDown', {}))
-            globalGestures.push(createMouseDragGesture(pointer, target));
+        else if (e.button === 0 && dispatchEvent(target.element, 'leftMouseDown', e))
+            globalGestures.push(createLeftMouseDownGesture(pointer, target));
 
         return true;
     });
@@ -332,10 +334,10 @@ export function enableGestures(target: GestureTarget) {
         switch (e.touches.length) {
             case 1:
                 if (!dispatchEvent(target.element, 'tap', {})) break;
-                globalGestures.push(createLongTapGesture(e.touches.item(0)!, target));
+                globalGestures.push(createTapGesture(e.touches.item(0)!, target));
                 break;
             case 2:
-                dispatchEvent(target.element, 'dualTap', e);
+                dispatchEvent(target.element, 'dualTap', {});
                 break;
         }
 

@@ -5,6 +5,8 @@ import { ElementRef } from '../utils/refUtils';
 
 export interface TableRefs {
     head: ElementRef;
+    headColGroup: ElementRef<HTMLTableColElement>;
+    bodyColGroup: ElementRef<HTMLTableColElement>;
 }
 
 interface TableContextValue<TData extends TableData> {

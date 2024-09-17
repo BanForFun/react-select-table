@@ -87,17 +87,18 @@ export default class SortOrderSlice<TData extends TableData> extends UndoableSta
         const oldOrder = this.#sortOrders.get(column) ?? null;
         const resolvedOrder = this.#resolveOrder(newOrder, oldOrder);
 
-        if (append || this.#sortOrders.size == 0) {
-            toUndo(this.sortBy.action(path, oldOrder, true));
+        if (this.#sortOrders.size == 0) {
+            toUndo(this.sortBy.action(path, oldOrder, false));
         } else {
             let append = false;
             for (const [column, order] of this.#sortOrders.entries()) {
                 toUndo(this.sortBy.action(this._state.columns.getPath(column), order, append));
                 append ||= true;
             }
-
-            this.#sortOrders.clear();
         }
+
+        if (!append)
+            this.#sortOrders.clear();
 
         if (resolvedOrder == null)
             this.#sortOrders.delete(column);

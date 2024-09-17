@@ -36,12 +36,16 @@ function TableHeader<TData extends TableData>({ span, column, addResizer }: Tabl
         sortBy(e.detail.shiftKey ? 'toggle' : 'cycle', e.detail.ctrlKey);
     });
 
-    gestureEventManager.useListener(elementRef, 'longTap', () => {
-        sortBy('cycle', true);
-    });
-
     gestureEventManager.useListener(elementRef, 'shortTap', () => {
         sortBy('toggle', false);
+    });
+
+    gestureEventManager.useListener(elementRef, 'dualTap', () => {
+        sortBy('toggle', true);
+    });
+
+    gestureEventManager.useListener(elementRef, 'longTap', () => {
+        sortBy('cycle', true);
     });
 
     useUpdateWhen(state.sortOrder.changed);

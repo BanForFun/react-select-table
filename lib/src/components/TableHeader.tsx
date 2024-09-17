@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { isSortableColumn } from '../models/state/SortOrderSlice';
 import ColumnResizer, { ResizerType } from './ColumnResizer';
 import AngleIcon, { Rotation } from './AngleIcon';
@@ -7,6 +7,9 @@ import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import useUpdateWhen from '../hooks/useUpdateWhen';
 import { Column } from '../utils/columnUtils';
+import useElementRef from '../hooks/useElementRef';
+import { enableGestures, gestureEventManager } from '../utils/gestureUtils';
+import { NewSortOrder } from '../models/state/ColumnSlice';
 
 interface TableHeaderProps<TData extends TableData> {
     span: number;
@@ -23,6 +26,23 @@ function Status({ children }: { children: React.ReactNode }) {
 
 function TableHeader<TData extends TableData>({ span, column, addResizer }: TableHeaderProps<TData>) {
     const { state } = useRequiredContext(getTableContext<TData>());
+    const elementRef = useElementRef();
+
+    elementRef.useEffect(useCallback(element => {
+        enableGestures({ element });
+    }, []));
+
+    gestureEventManager.useListener(elementRef, 'leftMouseClick', e => {
+        sortBy(e.detail.shiftKey ? 'toggle' : 'cycle', e.detail.ctrlKey);
+    });
+
+    gestureEventManager.useListener(elementRef, 'longTap', () => {
+        sortBy('cycle', true);
+    });
+
+    gestureEventManager.useListener(elementRef, 'shortTap', () => {
+        sortBy('toggle', false);
+    });
 
     useUpdateWhen(state.sortOrder.changed);
 
@@ -31,21 +51,21 @@ function TableHeader<TData extends TableData>({ span, column, addResizer }: Tabl
         sorted: state.sortOrder.get(column)
     } : null;
 
-    const handleClick: React.MouseEventHandler = e => {
+    const sortBy = (order: NewSortOrder, append: boolean) => {
         if (!sortable) return;
         const { path } = sortable;
 
         state.history.group(() => {
             state.visibleRows.setPageIndex(0, false);
-            state.sortOrder.sortBy(path, e.shiftKey ? 'cycle' : 'toggle', e.ctrlKey);
+            state.sortOrder.sortBy(path, order, append);
         });
     };
 
     return <th
+        ref={elementRef.set}
         className="rst-header"
         colSpan={span}
         data-is-sortable={!!sortable}
-        onClick={handleClick}
     >
         {addResizer && <ColumnResizer type={ResizerType.Normal} />}
         <div className="rst-content">

@@ -1,7 +1,7 @@
 import TableHead from './TableHead';
 import TableBody from './TableBody';
 import useElementRef from '../hooks/useElementRef';
-import { enableGestures, gestureEventManager, GestureTarget } from '../utils/gestureUtils';
+import { enableGestures, GestureTarget } from '../utils/gestureUtils';
 import { useCallback } from 'react';
 import useRequiredContext from '../hooks/useRequiredContext';
 import getTableContext from '../context/tableContext';
@@ -22,26 +22,6 @@ export default function ScrollingContainer<TData extends TableData>() {
         gestureTarget.headerTop = element;
         return () => delete gestureTarget.headerTop;
     }, [gestureTarget]));
-
-    gestureEventManager.useListener(elementRef, 'dragStart', () => {
-        console.log('Drag start');
-    });
-
-    gestureEventManager.useListener(elementRef, 'dragUpdate', () => {
-        console.log('Drag update');
-    });
-
-    gestureEventManager.useListener(elementRef, 'dragEnd', () => {
-        console.log('Drag end');
-    });
-
-    gestureEventManager.useListener(elementRef, 'contextMenu', () => {
-        console.log('Context menu');
-    });
-
-    gestureEventManager.useListener(elementRef, 'longTap', () => {
-        console.log('Long tap');
-    });
 
     return <div className="rst-scrollingContainer" ref={elementRef.set}>
         <div className="rst-resizingContainer">

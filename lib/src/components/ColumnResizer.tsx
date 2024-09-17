@@ -17,7 +17,5 @@ export default function ColumnResizer({ type }: Props) {
         enableGestures({ element, rotateScroll: true });
     }, []));
 
-    return <div className={type} ref={elementRef.set} onClick={e => {
-        e.stopPropagation();
-    }} />;
+    return <div className={type} ref={elementRef.set} />;
 }

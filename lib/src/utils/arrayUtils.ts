@@ -19,3 +19,21 @@ export function repeat<T>(number: number, generate: (index: number) => T) {
 
     return result;
 }
+
+export function* reverseIterator<T>(array: T[]) {
+    for (let i = array.length - 1; i >= 0; i--) {
+        yield array[i];
+    }
+}
+
+export function mapReverse<T, R>(
+    array: T[],
+    converter: (value: T, index: number) => R
+) {
+    const result: R[] = [];
+    for (let i = array.length - 1; i >= 0; i--) {
+        result.push(converter(array[i], i));
+    }
+
+    return result;
+}

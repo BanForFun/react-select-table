@@ -34,7 +34,7 @@ function getRowKey(element: Element) {
 }
 
 export default function TableBody<TData extends TableData>() {
-    const { state } = useRequiredContext(getTableContext<TData>());
+    const { state, refs } = useRequiredContext(getTableContext<TData>());
 
     const rowRoots = useConstant(() => new DLList<RowRootNode>());
     const tableBodyRef = useElementRef<HTMLTableSectionElement>();
@@ -84,12 +84,12 @@ export default function TableBody<TData extends TableData>() {
         return () => clearRoots(tableBody);
     }, [appendRoots, clearRoots]));
 
-    tableBodyRef.useEffect(useCallback(tableBody => state.visibleRows.changed.addObserver(() => {
+    tableBodyRef.useEffect(useCallback(tableBody => state.visibleRows.replaced.addObserver(() => {
         clearRoots(tableBody);
         appendRoots(tableBody);
     }), [state, appendRoots, clearRoots]));
 
-    tableBodyRef.useEffect(useCallback(() => state.headers.changed.addObserver(() => {
+    tableBodyRef.useEffect(useCallback(() => state.headers.rowsChanged.addObserver(() => {
         const rows = state.visibleRows.iterator();
         const rootNodes = rowRoots.head.forwardIterator();
 
@@ -182,7 +182,7 @@ export default function TableBody<TData extends TableData>() {
     }), [appendRoot, rowRoots, state]));
 
     return <table className="rst-table rst-body">
-        <ColGroup />
+        <ColGroup columnRefMap={refs.bodyColumns} />
         {/* TODO: Add hidden thead for screen readers */}
         <tbody ref={tableBodyRef.set} />
     </table>;

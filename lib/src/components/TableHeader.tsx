@@ -12,9 +12,10 @@ import { enableGestures, gestureEventManager } from '../utils/gestureUtils';
 import { NewSortOrder } from '../models/state/ColumnSlice';
 
 interface TableHeaderProps<TData extends TableData> {
+    height: number;
+    index: number;
     span: number;
-    column: Column<TData['row']> | null;
-    addResizer: boolean;
+    column?: Column<TData['row']>;
 }
 
 function Status({ children }: { children: React.ReactNode }) {
@@ -24,9 +25,13 @@ function Status({ children }: { children: React.ReactNode }) {
     </>;
 }
 
-function TableHeader<TData extends TableData>({ span, column, addResizer }: TableHeaderProps<TData>) {
+function TableHeader<TData extends TableData>(props: TableHeaderProps<TData>) {
+    const { height, index, span, column } = props;
+
     const { state } = useRequiredContext(getTableContext<TData>());
-    const elementRef = useElementRef();
+    useUpdateWhen(state.sortOrder.changed);
+
+    const elementRef = useElementRef<HTMLTableCellElement>();
 
     elementRef.useEffect(useCallback(element => {
         enableGestures({ element });
@@ -48,7 +53,9 @@ function TableHeader<TData extends TableData>({ span, column, addResizer }: Tabl
         sortBy('cycle', true);
     });
 
-    useUpdateWhen(state.sortOrder.changed);
+    gestureEventManager.useListener(elementRef, 'dragStart', () => {
+
+    });
 
     const sortable = column != null && isSortableColumn(column) ? {
         path: state.columns.getPath(column),
@@ -71,7 +78,7 @@ function TableHeader<TData extends TableData>({ span, column, addResizer }: Tabl
         colSpan={span}
         data-is-sortable={!!sortable}
     >
-        {addResizer && <ColumnResizer type={ResizerType.Normal} />}
+        <ColumnResizer height={height} index={index - 1} type={ResizerType.Normal} />
         <div className="rst-content">
             <span className="rst-inner rst-ellipsis">{column?.header}</span>
             {sortable?.sorted && <Status>

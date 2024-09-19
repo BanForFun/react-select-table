@@ -42,10 +42,11 @@ export function* cachedIterator<T>(iterable: Iterable<T>): IterableIterator<T> {
 
 export function* map<TSource, TResult>(
     iterable: Iterable<TSource>,
-    converter: ((value: TSource) => TResult)
+    converter: ((value: TSource, index: number) => TResult)
 ): IterableIterator<TResult> {
+    let index = 0;
     for (const item of iterable)
-        yield converter(item);
+        yield converter(item, index++);
 }
 
 export function minBy<F, T>(iterable: Iterable<F>, by: ConverterCallback<F, T>): F {

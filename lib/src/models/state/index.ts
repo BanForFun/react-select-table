@@ -72,6 +72,8 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
         });
 
         this.headerSizes ??= new HeaderSizeSlice(config.headerSizes!, {
+            scheduler: this.scheduler,
+            history: this.history,
             headers: this.headers
         });
 

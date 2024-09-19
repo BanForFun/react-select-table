@@ -3,16 +3,27 @@ import useRequiredContext from '../hooks/useRequiredContext';
 import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import { map } from '../utils/iterableUtils';
+import React from 'react';
+import Column from './Column';
+import { ReadonlyLeafHeader } from '../models/state/HeaderSlice';
 
-function ColGroup<TData extends TableData>() {
-    const { state, refs } = useRequiredContext(getTableContext<TData>());
+interface Props<TData extends TableData> {
+    columnRefMap: WeakMap<ReadonlyLeafHeader<TData>, HTMLTableColElement>;
+}
 
-    useUpdateWhen(state.headers.changed);
+function ColGroup<TData extends TableData>(props: Props<TData>) {
+    const { columnRefMap } = props;
 
-    return <colgroup ref={refs.headColGroup.set}>
+    const { state } = useRequiredContext(getTableContext<TData>());
+    useUpdateWhen(state.headers.rowsChanged);
+
+    return <colgroup>
         {Array.from(map(state.headers.leafIterator(), header =>
-            <col key={header.id} width={state.headerSizes.get(header) + '%'} />
-        ))}
+            <Column
+                key={header.id}
+                header={header}
+                refMap={columnRefMap}
+            />))}
         <col />
     </colgroup>;
 }

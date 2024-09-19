@@ -35,7 +35,7 @@ export default class VisibleRowSlice<TData extends TableData> extends UndoableSt
 
     protected _sliceKey: string = 'visibleRows';
 
-    readonly changed = new Observable();
+    readonly replaced = new Observable();
     readonly added = new Observable();
     readonly removed = new Observable();
     readonly pageIndexChanged = new Observable();
@@ -138,7 +138,7 @@ export default class VisibleRowSlice<TData extends TableData> extends UndoableSt
 
     #processChangedRowsJob = () => {
         this.#reloadPage();
-        this.changed.notify();
+        this.replaced.notify();
     };
 
     constructor(config: OptionalIfPartial<object>, state: Dependencies<TData>) {
@@ -174,7 +174,7 @@ export default class VisibleRowSlice<TData extends TableData> extends UndoableSt
 
         if (reloadPage) {
             this.#reloadPage(originalIndex);
-            this._state.scheduler._add(this.changed.notify);
+            this._state.scheduler._add(this.replaced.notify);
         }
 
         this.pageIndexChanged.notify();

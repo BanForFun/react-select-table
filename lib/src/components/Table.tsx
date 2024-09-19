@@ -14,10 +14,10 @@ interface Props<TData extends TableData> {
 }
 
 export default function Table<TData extends TableData>({ state, headerNoWrap = false }: Props<TData>) {
-    const refs = useConstant<TableRefs>(() => ({
+    const refs = useConstant<TableRefs<TData>>(() => ({
         head: createElementRef(),
-        headColGroup: createElementRef(),
-        bodyColGroup: createElementRef()
+        headColumns: new WeakMap(),
+        bodyColumns: new WeakMap()
     }));
 
     const contextValue = useComparatorMemo({ state, refs }, isShallowEqual);

@@ -1,3 +1,4 @@
-export function unit(value: number, unit: string) {
+export function unit(value: number | undefined, unit: string) {
+    if (value == null) return '';
     return value + unit;
 }

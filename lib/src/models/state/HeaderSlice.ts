@@ -19,12 +19,12 @@ interface BaseReadonlyHeader {
     readonly id: HeaderId;
 }
 
-interface ReadonlyHeaderGroup<TData extends TableData> extends BaseReadonlyHeader {
+export interface ReadonlyHeaderGroup<TData extends TableData> extends BaseReadonlyHeader {
     readonly column: ColumnGroup<TData['row']>;
     readonly children: Iterable<ReadonlyHeader<TData>>;
 }
 
-interface ReadonlyLeafHeader<TData extends TableData> extends BaseReadonlyHeader {
+export interface ReadonlyLeafHeader<TData extends TableData> extends BaseReadonlyHeader {
     readonly column: LeafColumn<TData['row']>;
     readonly children?: never;
 }
@@ -35,6 +35,13 @@ interface HeaderGroup<TData extends TableData> extends ReadonlyHeaderGroup<TData
 
 interface LeafHeader<TData extends TableData> extends ReadonlyLeafHeader<TData> {
 
+}
+
+export interface HeaderCell<TData extends TableData> {
+    id: number;
+    span: number;
+    height: number;
+    column?: Column<TData['row']>;
 }
 
 interface ColumnIndexNode {
@@ -55,6 +62,7 @@ function isHeaderGroup<TData extends TableData>(details: Header<TData>): details
 
 export default class HeaderSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>, object> {
     readonly #headers: Header<TData>[] = [];
+    rows: HeaderCell<TData>[][] = [[]];
 
     get #columns() {
         return this._state.columns.config;
@@ -62,8 +70,8 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
 
     protected readonly _sliceKey = 'headers';
 
-    readonly added = new Observable<[ReadonlyLeafHeader<TData>[]]>();
-    readonly changed = new Observable();
+    readonly _added = new Observable<[ReadonlyLeafHeader<TData>[]]>();
+    readonly rowsChanged = new Observable();
 
     #getAtPath(path: TreePath): Header<TData> {
         return getAtPath(this.#headers, path);
@@ -158,8 +166,68 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         }
     }
 
-    #notifyChangedJob = () => {
-        this.changed.notify();
+    #addSpacerCell(cell: HeaderCell<TData>, height: number) {
+        const spacer: HeaderCell<TData> = {
+            id: cell.id,
+            span: cell.span,
+            height
+        };
+
+        this.rows[spacer.height].push(spacer);
+        return spacer;
+    }
+
+    #addColumnCell(header: ReadonlyHeader<TData>, siblingIndex: number, tallestSiblingHeight: number) {
+        const cell: HeaderCell<TData> = {
+            id: header.id,
+            span: 1,
+            height: 0,
+            column: header.column
+        };
+
+        let childCount = 0;
+        if (header.children) {
+            let tallestChild = 0;
+            let totalSpan = 0;
+
+            for (const child of header.children) {
+                const cell = this.#addColumnCell(child, childCount++, tallestChild);
+                tallestChild = Math.max(tallestChild, cell.height);
+                totalSpan += cell.span;
+            }
+
+            cell.height = tallestChild + 1;
+            cell.span = totalSpan;
+        }
+
+        if (cell.height >= this.rows.length) this.rows.push([]);
+        const row = this.rows[cell.height];
+
+        if (cell.height > tallestSiblingHeight) {
+            const bottomRow = this.rows[cell.height - 1];
+            const endIndex = bottomRow.length - childCount;
+            const startIndex = row.length ? endIndex - siblingIndex : 0;
+
+            for (let i = startIndex; i < endIndex; i++)
+                this.#addSpacerCell(bottomRow[i], cell.height);
+        }
+
+        row.push(cell);
+
+        for (let height = cell.height + 1; height <= tallestSiblingHeight; height++)
+            this.#addSpacerCell(cell, height);
+
+        return cell;
+    }
+
+    #rebuildHeaderRowsJob = () => {
+        this.rows = [[]];
+        for (const header of this.iterator()) {
+            const maxHeight = this.rows.length - 1;
+            this.#addColumnCell(header, this.rows[maxHeight].length, maxHeight);
+        }
+        
+        this.rowsChanged.notify();
     };
 
     iterator() {
@@ -196,10 +264,10 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         const addedLeafHeaders = this.#addAllSubHeaders(lastToAdd);
         headers.splice(headerPath[headerPath.length - 1], 0, toAdd);
 
-        this.added.notify(addedLeafHeaders);
+        this._added.notify(addedLeafHeaders);
         toUndo(this.remove.action(headerPath));
 
-        this._state.scheduler._add(this.#notifyChangedJob);
+        this._state.scheduler._add(this.#rebuildHeaderRowsJob);
     });
 
     addMany = this._dispatcher('addMany', (toUndo, columnIndices: ColumnIndexNode, headerPath: TreePath) => {
@@ -212,10 +280,10 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         const addedLeafHeaders = this.#addSubHeaders(toAdd, columnIndices.children);
         headers.splice(headerPath[headerPath.length - 1], 0, toAdd);
 
-        this.added.notify(addedLeafHeaders);
+        this._added.notify(addedLeafHeaders);
         toUndo(this.remove.action(headerPath));
 
-        this._state.scheduler._add(this.#notifyChangedJob);
+        this._state.scheduler._add(this.#rebuildHeaderRowsJob);
     });
 
     remove = this._dispatcher('remove', (toUndo, headerPath: TreePath) => {
@@ -255,6 +323,6 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
 
         toUndo(this.addMany.action(removedColumnIndices![0], lastDeletedPath));
 
-        this._state.scheduler._add(this.#notifyChangedJob);
+        this._state.scheduler._add(this.#rebuildHeaderRowsJob);
     });
 }

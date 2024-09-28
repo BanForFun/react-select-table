@@ -23,26 +23,22 @@ function TableHead<TData extends TableData>() {
         aria-hidden={true}
         ref={refs.head.set}
     >
-        <ColGroup columnRefMap={refs.headColumns} />
+        <ColGroup refMap={refs.headColumns} />
         <thead>
-        {mapReverse(state.headers.rows, (cells, height) => {
-            const spacerResizerProps = { height, index: cells.length - 1 };
-            return <tr className="rst-row" key={height}>
-                {cells.map((cell, index) =>
-                    <TableHeader
-                        key={cell.id}
-                        span={cell.span}
-                        column={cell.column}
-                        height={height}
-                        index={index}
-                    />
-                )}
-                <th className="rst-spacer">
-                    <ColumnResizer {...spacerResizerProps} type={ResizerType.Normal} />
-                    <ColumnResizer {...spacerResizerProps} type={ResizerType.Edge} />
-                </th>
-            </tr>;
-        })}
+        {mapReverse(state.headers.rows, (cells, height) => <tr className="rst-row" key={height}>
+            {cells.map(cell =>
+                <TableHeader
+                    key={cell.id}
+                    span={cell.span}
+                    column={cell.column}
+                    header={cell.header}
+                />
+            )}
+            <th className="rst-spacer">
+                <ColumnResizer type={ResizerType.Normal} />
+                <ColumnResizer type={ResizerType.Edge} />
+            </th>
+        </tr>)}
         </thead>
     </table>;
 }

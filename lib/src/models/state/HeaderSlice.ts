@@ -41,6 +41,7 @@ export interface HeaderCell<TData extends TableData> {
     id: number;
     span: number;
     height: number;
+    header: ReadonlyHeader<TData>;
     column?: Column<TData['row']>;
 }
 
@@ -56,8 +57,29 @@ export type HeaderId = number;
 
 let lastHeaderId = 0;
 
-function isHeaderGroup<TData extends TableData>(details: Header<TData>): details is HeaderGroup<TData> {
+function isHeaderGroup<TData extends TableData>(
+    details: Header<TData>
+): details is HeaderGroup<TData> {
     return isColumnGroup(details.column);
+}
+
+function isReadonlyHeaderGroup<TData extends TableData>(
+    details: ReadonlyHeader<TData>
+): details is ReadonlyHeaderGroup<TData> {
+    return isColumnGroup(details.column);
+}
+
+export function* getLeafHeaders<TData extends TableData>(
+    root: ReadonlyHeader<TData>
+): IterableIterator<ReadonlyLeafHeader<TData>> {
+    if (!isReadonlyHeaderGroup(root)) {
+        yield root;
+        return;
+    }
+
+    for (const child of root.children) {
+        yield* getLeafHeaders(child);
+    }
 }
 
 export default class HeaderSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>, object> {
@@ -157,19 +179,11 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         return indexNodes;
     }
 
-    * #leafIterator(headers: Header<TData>[]): IterableIterator<ReadonlyLeafHeader<TData>> {
-        for (const header of headers) {
-            if (isHeaderGroup(header))
-                yield* this.#leafIterator(header.children);
-            else
-                yield header;
-        }
-    }
-
     #addSpacerCell(cell: HeaderCell<TData>, height: number) {
         const spacer: HeaderCell<TData> = {
             id: cell.id,
             span: cell.span,
+            header: cell.header,
             height
         };
 
@@ -182,6 +196,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
             id: header.id,
             span: 1,
             height: 0,
+            header,
             column: header.column
         };
 
@@ -226,7 +241,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
             const maxHeight = this.rows.length - 1;
             this.#addColumnCell(header, this.rows[maxHeight].length, maxHeight);
         }
-        
+
         this.rowsChanged.notify();
     };
 
@@ -234,8 +249,10 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
         return getIterableIterator(this.#headers);
     }
 
-    leafIterator() {
-        return this.#leafIterator(this.#headers);
+    * leafIterator(): IterableIterator<ReadonlyLeafHeader<TData>> {
+        for (const header of this.#headers) {
+            yield* getLeafHeaders(header);
+        }
     }
 
     add = this._dispatcher('add', (toUndo, columnPath: TreePath, headerPath: TreePath) => {

@@ -7,6 +7,7 @@ import useConstant from '../hooks/useConstant';
 import { createElementRef } from '../utils/refUtils';
 import useComparatorMemo from '../hooks/useComparatorMemo';
 import { isShallowEqual } from '../utils/objectUtils';
+import ColumnMap from '../models/ColumnMap';
 
 interface Props<TData extends TableData> {
     state: State<TData>;
@@ -16,8 +17,8 @@ interface Props<TData extends TableData> {
 export default function Table<TData extends TableData>({ state, headerNoWrap = false }: Props<TData>) {
     const refs = useConstant<TableRefs<TData>>(() => ({
         head: createElementRef(),
-        headColumns: new WeakMap(),
-        bodyColumns: new WeakMap()
+        headColumns: new ColumnMap(),
+        bodyColumns: new ColumnMap()
     }));
 
     const contextValue = useComparatorMemo({ state, refs }, isShallowEqual);

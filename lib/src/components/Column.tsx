@@ -6,10 +6,11 @@ import useUpdateWhen from '../hooks/useUpdateWhen';
 import { unit } from '../utils/unitUtils';
 import React, { useCallback } from 'react';
 import useElementRef from '../hooks/useElementRef';
+import ColumnMap from '../models/ColumnMap';
 
 interface Props<TData extends TableData> {
     header: ReadonlyLeafHeader<TData>;
-    refMap: WeakMap<ReadonlyLeafHeader<TData>, HTMLTableColElement>;
+    refMap: ColumnMap<TData>;
 }
 
 function Column<TData extends TableData>(props: Props<TData>) {
@@ -30,7 +31,7 @@ function Column<TData extends TableData>(props: Props<TData>) {
 
     elementRef.useEffect(useCallback(element => {
         refMap.set(header, element);
-        return () => refMap.delete(header);
+        return () => refMap.set(header, null);
     }, [refMap, header]));
 
     return <col ref={elementRef.set} />;

@@ -89,7 +89,6 @@
           z-index: 2;
           left: get-config-value("cell", "padding-left");
           transform: translateX(-100%);
-          max-width: 100%; //To not overflow when column is collapsed
         }
 
         & > .rst-edgeResizer {

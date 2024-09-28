@@ -2,12 +2,12 @@ import { TableData } from '../utils/configUtils';
 import { createRequiredContext, RequiredContext } from '../utils/contextUtils';
 import State from '../models/state';
 import { ElementRef } from '../utils/refUtils';
-import { ReadonlyLeafHeader } from '../models/state/HeaderSlice';
+import ColumnMap from '../models/ColumnMap';
 
 export interface TableRefs<TData extends TableData> {
     head: ElementRef;
-    headColumns: WeakMap<ReadonlyLeafHeader<TData>, HTMLTableColElement>;
-    bodyColumns: WeakMap<ReadonlyLeafHeader<TData>, HTMLTableColElement>;
+    headColumns: ColumnMap<TData>;
+    bodyColumns: ColumnMap<TData>;
 }
 
 interface TableContextValue<TData extends TableData> {

@@ -101,3 +101,13 @@ export function some<T>(iterable: Iterable<T>, predicate: PredicateCallback<T>):
 
     return false;
 }
+
+export function* filter<T>(iterable: Iterable<T>, predicate: PredicateCallback<T>): IterableIterator<T> {
+    for (const value of iterable) {
+        if (predicate(value)) yield value;
+    }
+}
+
+export function* single<T>(value: T): IterableIterator<T> {
+    yield value;
+}

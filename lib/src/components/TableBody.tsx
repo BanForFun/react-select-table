@@ -182,7 +182,7 @@ export default function TableBody<TData extends TableData>() {
     }), [appendRoot, rowRoots, state]));
 
     return <table className="rst-table rst-body">
-        <ColGroup columnRefMap={refs.bodyColumns} />
+        <ColGroup refMap={refs.bodyColumns} />
         {/* TODO: Add hidden thead for screen readers */}
         <tbody ref={tableBodyRef.set} />
     </table>;

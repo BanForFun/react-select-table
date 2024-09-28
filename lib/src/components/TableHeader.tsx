@@ -10,11 +10,11 @@ import { Column } from '../utils/columnUtils';
 import useElementRef from '../hooks/useElementRef';
 import { enableGestures, gestureEventManager } from '../utils/gestureUtils';
 import { NewSortOrder } from '../models/state/ColumnSlice';
+import { ReadonlyHeader } from '../models/state/HeaderSlice';
 
 interface TableHeaderProps<TData extends TableData> {
-    height: number;
-    index: number;
     span: number;
+    header: ReadonlyHeader<TData>;
     column?: Column<TData['row']>;
 }
 
@@ -26,7 +26,7 @@ function Status({ children }: { children: React.ReactNode }) {
 }
 
 function TableHeader<TData extends TableData>(props: TableHeaderProps<TData>) {
-    const { height, index, span, column } = props;
+    const { span, column, header } = props;
 
     const { state } = useRequiredContext(getTableContext<TData>());
     useUpdateWhen(state.sortOrder.changed);
@@ -78,7 +78,7 @@ function TableHeader<TData extends TableData>(props: TableHeaderProps<TData>) {
         colSpan={span}
         data-is-sortable={!!sortable}
     >
-        <ColumnResizer height={height} index={index - 1} type={ResizerType.Normal} />
+        <ColumnResizer header={header} type={ResizerType.Normal} />
         <div className="rst-content">
             <span className="rst-inner rst-ellipsis">{column?.header}</span>
             {sortable?.sorted && <Status>

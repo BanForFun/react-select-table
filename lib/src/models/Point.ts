@@ -1,30 +1,42 @@
-export default class Point {
-    public x: number;
-    public y: number;
+import { PointLike } from '../types/PointLike';
+import { RectLike } from '../types/RectLike';
+import { clamp } from '../utils/numericUtils';
 
+export default class Point implements PointLike {
     // noinspection JSSuspiciousNameCombination
-    constructor(x = 0, y = x) {
+    constructor(public x = 0, public y = x) {
         this.x = x;
         this.y = y;
     }
 
-    subtract(point: Point) {
+    get isZero() {
+        return this.x === 0 && this.y === 0;
+    }
+
+    subtract(point: PointLike) {
         this.x -= point.x;
         this.y -= point.y;
 
         return this;
     }
 
-    offset(point: Point) {
+    offset(point: PointLike) {
         this.x += point.x;
         this.y += point.y;
 
         return this;
     }
 
-    multiply(point: Point) {
+    multiply(point: PointLike) {
         this.x *= point.x;
         this.y *= point.y;
+
+        return this;
+    }
+
+    clamp(rect: RectLike) {
+        this.x = clamp(this.x, rect.left, rect.right);
+        this.y = clamp(this.y, rect.top, rect.bottom);
 
         return this;
     }
@@ -39,7 +51,11 @@ export default class Point {
         return this;
     }
 
-    static distance(a: Point, b: Point) {
+    clone() {
+        return new Point(this.x, this.y);
+    }
+
+    static distance(a: PointLike, b: PointLike) {
         return Math.sqrt(Math.pow((a.x - b.x), 2) + Math.pow((a.y - b.y), 2));
     }
 }

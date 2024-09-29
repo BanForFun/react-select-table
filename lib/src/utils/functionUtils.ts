@@ -13,3 +13,7 @@ export function convertResult<A extends Tuple, F, T>(
 ) {
     return (...args: A) => converter(callback(...args));
 }
+
+export function noop() {
+
+}

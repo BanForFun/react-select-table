@@ -23,6 +23,8 @@ export type PickExisting<T, K> = Pick<T, K & keyof T>;
 
 export type OptionalIfPartial<T extends object> = object extends T ? T | undefined : T;
 
+export type Defined<T> = T & { [K in keyof T]-?: unknown }
+
 export type PartialByValue<T, D = undefined> = Partial<T> & {
     [K in keyof T as D extends T[K] ? never : K]: T[K]
 }
@@ -33,7 +35,9 @@ const incompatibleKeySymbol = Symbol('incompatibleKey');
 export type Incompatible<K extends string> = { [incompatibleKeySymbol]?: K };
 
 
-export type ActionCallback<T = void> = () => T;
+export type ActionCallback<T extends Tuple = []> = (...args: T) => void;
+
+export type CreatorCallback<T> = () => T;
 
 export type ConverterCallback<F, T> = (value: F) => T;
 

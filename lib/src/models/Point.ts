@@ -41,6 +41,13 @@ export default class Point implements PointLike {
         return this;
     }
 
+    round() {
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+
+        return this;
+    }
+
     rotate() {
         const oldX = this.x;
         // noinspection JSSuspiciousNameCombination

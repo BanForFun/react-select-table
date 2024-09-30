@@ -40,7 +40,7 @@ interface Gesture {
 }
 
 const longTapDurationMs = 500;
-const movementMarginPx = 5;
+const movementMargin = 5;
 
 let lastEvent: Event | null = null;
 let stoppedPropagation = false;
@@ -73,16 +73,15 @@ function createGestureFactory<T>(factory: (e: T, currentTarget: GestureTarget, t
 }
 
 const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, currentTarget, target) => {
-    const initialPointerPosition = pointer.clientPosition;
-    let pointerPosition = initialPointerPosition;
+    const initialPosition = pointer.clientPosition;
+    let currentPosition = initialPosition;
 
     let isStarted = false;
-    const startDrag = () => {
-        dispatchEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
-            .addDragStart(initialPointerPosition)
-            .render());
-        isStarted = true;
-    };
+    const tryStartDrag = () => (isStarted ||=
+        !!target.enableDrag
+        && dispatchEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
+            .addDragStart(initialPosition)
+            .render()));
 
     target.element.setPointerCapture(pointer.id);
     const eventGroup = elementEventManager.createGroup();
@@ -98,42 +97,35 @@ const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, c
         if (e.shiftKey !== !!target.rotateScroll)
             panDelta.rotate();
 
-        if (!isStarted) {
-            if (!target.enableDrag) return;
-            startDrag();
-        }
-
+        if (!tryStartDrag()) return cancel();
         e.preventDefault();
 
         dispatchEvent(target.element, 'dragUpdate', GestureEventArgBuilder.create(currentTarget)
             .addModifiers(e)
-            .addDragUpdate(pointerPosition, panDelta)
+            .addDragUpdate(currentPosition, panDelta)
             .render());
     });
 
     eventGroup.addListener(currentTarget.element, 'pointermove', e => {
         if (e.pointerId !== pointer.id) return;
 
-        pointerPosition = getPointerClientPosition(e);
-        if (!isStarted && Point.distance(pointerPosition, initialPointerPosition) > movementMarginPx) {
-            if (!target.enableDrag) return cancel();
-            startDrag();
-        }
+        currentPosition = getPointerClientPosition(e);
+        if (!isStarted && Point.distance(currentPosition, initialPosition) > movementMargin && !tryStartDrag())
+            return cancel();
 
         if (!isStarted) return;
 
         dispatchEvent(target.element, 'dragUpdate', GestureEventArgBuilder.create(currentTarget)
             .addModifiers(e)
-            .addDragUpdate(pointerPosition)
+            .addDragUpdate(currentPosition)
             .render());
     });
 
     const handlePointerLost = (e: PointerEvent): boolean => {
         if (e.pointerId !== pointer.id) return false;
 
-        if (isStarted) {
+        if (isStarted)
             dispatchEvent(target.element, 'dragEnd', GestureEventArgBuilder.create(currentTarget).render());
-        }
 
         cancel();
         return true;
@@ -159,18 +151,16 @@ const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, c
 });
 
 const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget, target) => {
-    const initialTouchPosition = getTouchClientPosition(touch);
-    let touchPosition = initialTouchPosition;
+    const initialPosition = getTouchClientPosition(touch);
+    let currentPosition = initialPosition;
     const scrollTouchPositions = new Map<number, Point>();
 
     let isStarted = false;
-    const startDrag = () => {
-        dispatchEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
-            .addDragStart(initialTouchPosition)
-            .render());
-
-        isStarted = true;
-    };
+    const tryStartDrag = () => (isStarted ||=
+        !!target.enableDrag
+        && dispatchEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
+            .addDragStart(initialPosition)
+            .render()));
 
     const eventGroup = elementEventManager.createGroup();
 
@@ -186,10 +176,10 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget
         const panDelta = new Point();
         for (const changedTouch of e.changedTouches) {
             if (changedTouch.identifier === touch.identifier) {
-                touchPosition = getTouchClientPosition(changedTouch);
+                currentPosition = getTouchClientPosition(changedTouch);
 
-                if (!isStarted && Point.distance(touchPosition, initialTouchPosition) > movementMarginPx)
-                    startDrag();
+                if (!isStarted && Point.distance(currentPosition, initialPosition) > movementMargin && !tryStartDrag())
+                    return cancel();
 
                 continue;
             }
@@ -200,15 +190,14 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget
             const touchMovement = getTouchClientPosition(changedTouch).subtract(lastPosition);
             panDelta.offset(touchMovement);
 
-            if (!isStarted)
-                startDrag();
+            if (!tryStartDrag()) return cancel();
         }
 
         if (!isStarted) return;
 
         dispatchEvent(target.element, 'dragUpdate', GestureEventArgBuilder.create(currentTarget)
             .addModifiers(e)
-            .addDragUpdate(touchPosition, panDelta)
+            .addDragUpdate(currentPosition, panDelta)
             .render());
     });
 
@@ -250,7 +239,7 @@ const createTapGesture = createGestureFactory<Touch>((touch, currentTarget, targ
         if (updatedTouch == null) return;
 
         const movedDistance = Point.distance(getTouchClientPosition(updatedTouch), getTouchClientPosition(touch));
-        if (movedDistance > movementMarginPx) cancel();
+        if (movedDistance > movementMargin) cancel();
     });
 
     const handleTouchLost = (e: TouchEvent): boolean => {
@@ -268,12 +257,8 @@ const createTapGesture = createGestureFactory<Touch>((touch, currentTarget, targ
     });
 
     const timeoutId = setTimeout(() => {
-        if (
-            dispatchEvent(target.element, 'longTap', GestureEventArgBuilder.create(currentTarget).render())
-            && target.enableDrag
-        ) {
+        if (dispatchEvent(target.element, 'longTap', GestureEventArgBuilder.create(currentTarget).render()))
             createTouchDragGesture(touch, currentTarget, target);
-        }
 
         cancel(false);
     }, longTapDurationMs);

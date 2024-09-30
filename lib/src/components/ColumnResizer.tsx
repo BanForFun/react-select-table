@@ -5,10 +5,12 @@ import useRequiredContext from '../hooks/useRequiredContext';
 import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import { unit } from '../utils/unitUtils';
-import { filter, map } from '../utils/iterableUtils';
+import { filter, getIterator, map } from '../utils/iterableUtils';
 import { getLeafHeaders, ReadonlyHeader } from '../models/state/HeaderSlice';
 import DragAnimationManager, { AnimateCallback } from '../models/DragAnimationManager';
 import useAnimationCallback from '../hooks/useAnimationCallback';
+import { table } from '../utils/iteratorUtils';
+import { sum } from '../utils/numericUtils';
 
 export enum ResizerType {
     Edge = 'rst-edgeResizer',
@@ -20,57 +22,105 @@ interface Props<TData extends TableData> {
     type: ResizerType;
 }
 
-function freezeColumn(column: HTMLTableColElement) {
-    column.style.width = unit(column.offsetWidth, 'px');
+class ColumnCollection {
+    readonly widthFactors: number[];
+    totalWidth: number;
+
+    constructor(public readonly elements: HTMLTableColElement[]) {
+        const widths = elements.map(c => c.getBoundingClientRect().width);
+        this.totalWidth = sum(widths);
+        this.widthFactors = widths.map(w => w / this.totalWidth);
+    }
+
+    getWidths() {
+        return this.widthFactors.map(f => this.totalWidth * f);
+    }
 }
 
+interface Resizing {
+    animationManager: DragAnimationManager;
+    leftColumns: ColumnCollection;
+    rightColumns: ColumnCollection;
+}
+
+function isColumnCollapsed(column: HTMLTableColElement) {
+    return getComputedStyle(column).display === 'none';
+}
+
+function freezeColumn(column: HTMLTableColElement) {
+    column.style.width = unit(column.getBoundingClientRect().width, 'px');
+}
+
+function findVisibleColumnsLeft(header: Element | null, column: Element | null) {
+    const columns: HTMLTableColElement[] = [];
+    while (header instanceof HTMLTableCellElement) {
+        for (let i = 0; i < header.colSpan; i++) {
+            if (!(column instanceof HTMLTableColElement))
+                throw new Error('No column definition found for header');
+
+            if (!isColumnCollapsed(column))
+                columns.push(column);
+
+            column = column.previousElementSibling;
+        }
+
+        if (columns.length) break;
+        header = header.previousElementSibling;
+    }
+
+    return columns.reverse();
+}
 
 export default function ColumnResizer<TData extends TableData>(props: Props<TData>) {
     const { header, type } = props;
 
     const { state, refs } = useRequiredContext(getTableContext<TData>());
 
-    const animationManagerRef = useRef<DragAnimationManager | null>(null);
+    const resizingRef = useRef<Resizing | null>(null);
     const elementRef = useElementRef();
 
     elementRef.useEffect(useCallback(element => {
         enableGestures({ element, rotateScroll: true, enableDrag: true });
     }, []));
 
-    const animate: AnimateCallback = useAnimationCallback(useCallback((relativePosition, panDelta, scrollDelta) => {
-        if (elementRef.value == null) return;
+    const animate: AnimateCallback = useAnimationCallback(useCallback((params) => {
+        const {
+            clientPosition,
+            scrollDelta,
+            target
+        } = params;
 
-        const rightColumns = header ? Array.from(filter(
-            map(getLeafHeaders(header), l => refs.headColumns.get(l)),
-            c => c.clientWidth > 0
-        )) : [refs.headColumns.spacer];
+        const {
+            leftColumns
+        } = resizingRef.current!;
 
-        let leftColumn = rightColumns[0].previousElementSibling;
-        let leftHeader = elementRef.value.parentElement?.previousElementSibling;
-        const leftColumns: Element[] = [];
+        const leftOffset = leftColumns.elements[0].getBoundingClientRect().left;
+        leftColumns.totalWidth = Math.max(0, clientPosition.x - leftOffset);
 
-        while (!leftColumns.length && leftHeader instanceof HTMLTableCellElement) {
-            for (let i = 0; i < leftHeader.colSpan; i++) {
-                if (leftColumn == null)
-                    throw new Error('No column definition found for header');
-
-                if (leftColumn.clientWidth === 0)
-                    continue;
-
-                leftColumns.push(leftColumn);
-                leftColumn = leftColumn.previousElementSibling;
-            }
-
-            leftHeader = leftHeader.previousElementSibling;
+        for (const [column, width] of table(getIterator(leftColumns.elements), getIterator(leftColumns.getWidths()))) {
+            column.style.width = unit(width, 'px');
         }
 
-        if (!leftColumns.length) return;
-
-        console.log(relativePosition, panDelta, scrollDelta);
-    }, [elementRef, header, refs]));
+        target.scrollLeft += scrollDelta.x;
+        target.scrollTop += scrollDelta.y;
+    }, []));
 
     gestureEventManager.useListener(elementRef, 'dragStart', e => {
-        console.log('Drag start');
+        const rightColumns = header ? Array.from(filter(
+            map(getLeafHeaders(header), l => refs.headColumns.get(l)),
+            c => !isColumnCollapsed(c)
+        )) : [refs.headColumns.spacer];
+
+        if (rightColumns.length === 0)
+            return e.preventDefault();
+
+        const leftColumns = findVisibleColumnsLeft(
+            elementRef.value!.parentElement!.previousElementSibling,
+            rightColumns[0].previousElementSibling
+        );
+
+        if (leftColumns.length === 0)
+            return e.preventDefault();
 
         for (const column of refs.headColumns.getAll())
             freezeColumn(column);
@@ -78,21 +128,22 @@ export default function ColumnResizer<TData extends TableData>(props: Props<TDat
         for (const column of refs.bodyColumns.getAll())
             freezeColumn(column);
 
-        animationManagerRef.current = new DragAnimationManager(e, animate);
+        resizingRef.current = {
+            animationManager: new DragAnimationManager(e, animate),
+            leftColumns: new ColumnCollection(leftColumns),
+            rightColumns: new ColumnCollection(rightColumns)
+        };
     });
 
     gestureEventManager.useListener(elementRef, 'dragUpdate', function(e) {
-        animationManagerRef.current!.update(e);
+        resizingRef.current!.animationManager.update(e);
     });
 
     gestureEventManager.useListener(elementRef, 'dragEnd', () => {
-        console.log('Drag end');
-
-        animationManagerRef.current!.cancel(() => {
+        resizingRef.current!.animationManager.cancel(() => {
             state.headerSizes.set(0, []);
+            resizingRef.current = null;
         });
-
-        animationManagerRef.current = null;
     });
 
     return <div className={type} ref={elementRef.set} />;

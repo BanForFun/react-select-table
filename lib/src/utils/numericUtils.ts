@@ -17,3 +17,7 @@ export function inRange(num: number, min: number, max: number): boolean {
 
     return num >= min && num <= max;
 }
+
+export function sum(numbers: number[]): number {
+    return numbers.reduce((acc, n) => acc + n, 0);
+}

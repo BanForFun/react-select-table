@@ -15,6 +15,7 @@ import { ReadonlyHeader } from '../models/state/HeaderSlice';
 interface TableHeaderProps<TData extends TableData> {
     span: number;
     header: ReadonlyHeader<TData>;
+    minColumnWidthPx: number;
     column?: Column<TData['row']>;
 }
 
@@ -26,7 +27,7 @@ function Status({ children }: { children: React.ReactNode }) {
 }
 
 function TableHeader<TData extends TableData>(props: TableHeaderProps<TData>) {
-    const { span, column, header } = props;
+    const { span, column, header, minColumnWidthPx } = props;
 
     const { state } = useRequiredContext(getTableContext<TData>());
     useUpdateWhen(state.sortOrder.changed);
@@ -78,7 +79,7 @@ function TableHeader<TData extends TableData>(props: TableHeaderProps<TData>) {
         colSpan={span}
         data-is-sortable={!!sortable}
     >
-        <ColumnResizer header={header} type={ResizerType.Normal} />
+        <ColumnResizer header={header} type={ResizerType.Normal} minColumnWidthPx={minColumnWidthPx} />
         <div className="rst-content">
             <span className="rst-inner rst-ellipsis">{column?.header}</span>
             {sortable?.sorted && <Status>

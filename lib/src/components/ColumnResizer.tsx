@@ -17,23 +17,30 @@ export enum ResizerType {
     Normal = 'rst-columnResizer'
 }
 
-interface Props<TData extends TableData> {
+export interface ColumnResizerProps<TData extends TableData> {
     header?: ReadonlyHeader<TData>;
     type: ResizerType;
+    minColumnWidthPx: number;
 }
 
 class ColumnCollection {
     readonly widthFactors: number[];
-    totalWidth: number;
+    readonly minWidth: number;
+    private _totalWidth: number;
 
-    constructor(public readonly elements: HTMLTableColElement[]) {
+    constructor(public readonly elements: HTMLTableColElement[], private readonly _minColumnWidth: number) {
         const widths = elements.map(c => c.getBoundingClientRect().width);
-        this.totalWidth = sum(widths);
-        this.widthFactors = widths.map(w => w / this.totalWidth);
+        this._totalWidth = sum(widths);
+        this.widthFactors = widths.map(w => w / this._totalWidth);
+        this.minWidth = this._totalWidth / Math.min(...widths) * this._minColumnWidth;
+    }
+
+    setTotalWidth(width: number) {
+        this._totalWidth = Math.max(this.minWidth, width);
     }
 
     getWidths() {
-        return this.widthFactors.map(f => this.totalWidth * f);
+        return this.widthFactors.map(f => this._totalWidth * f);
     }
 }
 
@@ -71,8 +78,8 @@ function findVisibleColumnsLeft(header: Element | null, column: Element | null) 
     return columns.reverse();
 }
 
-export default function ColumnResizer<TData extends TableData>(props: Props<TData>) {
-    const { header, type } = props;
+export default function ColumnResizer<TData extends TableData>(props: ColumnResizerProps<TData>) {
+    const { header, type, minColumnWidthPx } = props;
 
     const { state, refs } = useRequiredContext(getTableContext<TData>());
 
@@ -95,7 +102,7 @@ export default function ColumnResizer<TData extends TableData>(props: Props<TDat
         } = resizingRef.current!;
 
         const leftOffset = leftColumns.elements[0].getBoundingClientRect().left;
-        leftColumns.totalWidth = Math.max(0, clientPosition.x - leftOffset);
+        leftColumns.setTotalWidth(clientPosition.x - leftOffset);
 
         for (const [column, width] of table(getIterator(leftColumns.elements), getIterator(leftColumns.getWidths()))) {
             column.style.width = unit(width, 'px');
@@ -130,8 +137,8 @@ export default function ColumnResizer<TData extends TableData>(props: Props<TDat
 
         resizingRef.current = {
             animationManager: new DragAnimationManager(e, animate),
-            leftColumns: new ColumnCollection(leftColumns),
-            rightColumns: new ColumnCollection(rightColumns)
+            leftColumns: new ColumnCollection(leftColumns, minColumnWidthPx),
+            rightColumns: new ColumnCollection(rightColumns, minColumnWidthPx)
         };
     });
 

@@ -1,4 +1,4 @@
-@use "vars" as *;
+@use "globals" as *;
 
 @function if-null($value, $fallback) {
   @if $value == null {

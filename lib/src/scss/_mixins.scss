@@ -1,5 +1,5 @@
 @use "functions" as *;
-@use "vars" as *;
+@use "globals" as *;
 @use "config" as *;
 
 @mixin set-config-property($module, $property, $value) {
@@ -119,7 +119,7 @@
           bottom: auto 0 0 0,
           left: 0 auto 0 0
   ), $side);
-  
+
   padding-#{$side}: nth($border, 1);
 
   &::before {

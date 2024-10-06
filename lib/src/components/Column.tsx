@@ -8,12 +8,12 @@ import React, { useCallback } from 'react';
 import useElementRef from '../hooks/useElementRef';
 import ColumnMap from '../models/ColumnMap';
 
-interface Props<TData extends TableData> {
+export interface ColumnProps<TData extends TableData> {
     header: ReadonlyLeafHeader<TData>;
     refMap: ColumnMap<TData>;
 }
 
-function Column<TData extends TableData>(props: Props<TData>) {
+function Column<TData extends TableData>(props: ColumnProps<TData>) {
     const { refMap, header } = props;
 
     const { state } = useRequiredContext(getTableContext<TData>());

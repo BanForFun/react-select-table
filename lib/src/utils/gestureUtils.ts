@@ -49,11 +49,25 @@ let globalGestures: Gesture[] = [];
 function dispatchEvent<K extends keyof GestureEventArgs>(
     element: HTMLElement,
     name: K,
-    args: GestureEventArgs[K]
+    args: GestureEventArgBuilder<GestureEventArgs[K]>,
+    bubbles = true
+) {
+    element.dispatchEvent(new CustomEvent(name, {
+        detail: args.render(),
+        bubbles,
+        cancelable: false
+    }));
+}
+
+function dispatchCancelableEvent<K extends keyof GestureEventArgs>(
+    element: HTMLElement,
+    name: K,
+    args: GestureEventArgBuilder<GestureEventArgs[K]>,
+    bubbles = true
 ) {
     return element.dispatchEvent(new CustomEvent(name, {
-        detail: args,
-        bubbles: true,
+        detail: args.render(),
+        bubbles,
         cancelable: true
     }));
 }
@@ -79,9 +93,8 @@ const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, c
     let isStarted = false;
     const tryStartDrag = () => (isStarted ||=
         !!target.enableDrag
-        && dispatchEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
-            .addDragStart(initialPosition)
-            .render()));
+        && dispatchCancelableEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
+            .addDragStart(initialPosition)));
 
     target.element.setPointerCapture(pointer.id);
     const eventGroup = elementEventManager.createGroup();
@@ -102,8 +115,7 @@ const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, c
 
         dispatchEvent(target.element, 'dragUpdate', GestureEventArgBuilder.create(currentTarget)
             .addModifiers(e)
-            .addDragUpdate(currentPosition, panDelta)
-            .render());
+            .addDragUpdate(currentPosition, panDelta));
     });
 
     eventGroup.addListener(currentTarget.element, 'pointermove', e => {
@@ -117,15 +129,14 @@ const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, c
 
         dispatchEvent(target.element, 'dragUpdate', GestureEventArgBuilder.create(currentTarget)
             .addModifiers(e)
-            .addDragUpdate(currentPosition)
-            .render());
+            .addDragUpdate(currentPosition));
     });
 
     const handlePointerLost = (e: PointerEvent): boolean => {
         if (e.pointerId !== pointer.id) return false;
 
         if (isStarted)
-            dispatchEvent(target.element, 'dragEnd', GestureEventArgBuilder.create(currentTarget).render());
+            dispatchEvent(target.element, 'dragEnd', GestureEventArgBuilder.create(currentTarget));
 
         cancel();
         return true;
@@ -137,8 +148,7 @@ const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, c
 
         if (!isStarted) {
             dispatchEvent(target.element, 'leftMouseClick', GestureEventArgBuilder.create(currentTarget)
-                .addModifiers(e)
-                .render());
+                .addModifiers(e));
         }
     });
 
@@ -158,9 +168,8 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget
     let isStarted = false;
     const tryStartDrag = () => (isStarted ||=
         !!target.enableDrag
-        && dispatchEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
-            .addDragStart(initialPosition)
-            .render()));
+        && dispatchCancelableEvent(target.element, 'dragStart', GestureEventArgBuilder.create(currentTarget)
+            .addDragStart(initialPosition)));
 
     const eventGroup = elementEventManager.createGroup();
 
@@ -197,8 +206,7 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget
 
         dispatchEvent(target.element, 'dragUpdate', GestureEventArgBuilder.create(currentTarget)
             .addModifiers(e)
-            .addDragUpdate(currentPosition, panDelta)
-            .render());
+            .addDragUpdate(currentPosition, panDelta));
     });
 
     const handleTouchLost = (e: TouchEvent) => {
@@ -209,7 +217,7 @@ const createTouchDragGesture = createGestureFactory<Touch>((touch, currentTarget
             }
 
             if (isStarted)
-                dispatchEvent(target.element, 'dragEnd', GestureEventArgBuilder.create(currentTarget).render());
+                dispatchEvent(target.element, 'dragEnd', GestureEventArgBuilder.create(currentTarget));
 
             cancel();
         }
@@ -253,11 +261,11 @@ const createTapGesture = createGestureFactory<Touch>((touch, currentTarget, targ
     eventGroup.addListener(currentTarget.element, 'touchcancel', handleTouchLost);
     eventGroup.addListener(currentTarget.element, 'touchend', e => {
         if (!handleTouchLost(e)) return;
-        dispatchEvent(target.element, 'shortTap', GestureEventArgBuilder.create(currentTarget).render());
+        dispatchEvent(target.element, 'shortTap', GestureEventArgBuilder.create(currentTarget));
     });
 
     const timeoutId = setTimeout(() => {
-        if (dispatchEvent(target.element, 'longTap', GestureEventArgBuilder.create(currentTarget).render()))
+        if (dispatchCancelableEvent(target.element, 'longTap', GestureEventArgBuilder.create(currentTarget)))
             createTouchDragGesture(touch, currentTarget, target);
 
         cancel(false);
@@ -303,13 +311,11 @@ export function enableGestures(target: GestureTarget) {
 
         if (e.button === 2) {
             dispatchEvent(target.element, 'rightMouseDown', GestureEventArgBuilder.create(target)
-                .addModifiers(e)
-                .render());
+                .addModifiers(e));
         } else if (
             e.button === 0
-            && dispatchEvent(target.element, 'leftMouseDown', GestureEventArgBuilder.create(target)
-                .addModifiers(e)
-                .render())
+            && dispatchCancelableEvent(target.element, 'leftMouseDown', GestureEventArgBuilder.create(target)
+                .addModifiers(e))
         ) {
             globalGestures.push(createLeftMouseDownGesture(pointer, target));
         }
@@ -322,11 +328,11 @@ export function enableGestures(target: GestureTarget) {
 
         switch (e.touches.length) {
             case 1:
-                if (!dispatchEvent(target.element, 'tap', GestureEventArgBuilder.create(target).render())) break;
+                if (!dispatchCancelableEvent(target.element, 'tap', GestureEventArgBuilder.create(target))) break;
                 globalGestures.push(createTapGesture(e.touches.item(0)!, target));
                 break;
             case 2:
-                dispatchEvent(target.element, 'dualTap', GestureEventArgBuilder.create(target).render());
+                dispatchEvent(target.element, 'dualTap', GestureEventArgBuilder.create(target));
                 break;
         }
 

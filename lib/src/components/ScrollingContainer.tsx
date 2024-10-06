@@ -10,7 +10,13 @@ import useConstant from '../hooks/useConstant';
 
 import { RelatedElements } from '../utils/elementUtils';
 
-export default function ScrollingContainer<TData extends TableData>() {
+export interface ScrollingContainerProps {
+    minColumnWidthPx: number;
+}
+
+export default function ScrollingContainer<TData extends TableData>(props: ScrollingContainerProps) {
+    const { minColumnWidthPx } = props;
+
     const { refs } = useRequiredContext(getTableContext<TData>());
 
     const relatedElements = useConstant<RelatedElements>(() => ({}));
@@ -27,7 +33,7 @@ export default function ScrollingContainer<TData extends TableData>() {
 
     return <div className="rst-scrollingContainer" ref={elementRef.set}>
         <div className="rst-resizingContainer">
-            <TableHead />
+            <TableHead minColumnWidthPx={minColumnWidthPx} />
             <TableBody />
         </div>
     </div>;

@@ -9,12 +9,19 @@ import useComparatorMemo from '../hooks/useComparatorMemo';
 import { isShallowEqual } from '../utils/objectUtils';
 import ColumnMap from '../models/ColumnMap';
 
-interface Props<TData extends TableData> {
+interface TableProps<TData extends TableData> {
     state: State<TData>;
     headerNoWrap?: boolean;
+    minColumnWidthPx?: number;
 }
 
-export default function Table<TData extends TableData>({ state, headerNoWrap = false }: Props<TData>) {
+export default function Table<TData extends TableData>(props: TableProps<TData>) {
+    const {
+        state,
+        headerNoWrap = false,
+        minColumnWidthPx = 25
+    } = props;
+
     const refs = useConstant<TableRefs<TData>>(() => ({
         head: createElementRef(),
         headColumns: new ColumnMap(),
@@ -26,7 +33,7 @@ export default function Table<TData extends TableData>({ state, headerNoWrap = f
     const TableContext = getTableContext<TData>();
     return <div className="rst-container" data-header-nowrap={headerNoWrap}>
         <TableContext.Provider value={contextValue}>
-            <ScrollingContainer />
+            <ScrollingContainer minColumnWidthPx={minColumnWidthPx} />
             <Pagination />
         </TableContext.Provider>
     </div>;

@@ -5,11 +5,17 @@ import useRequiredContext from '../hooks/useRequiredContext';
 import useUpdateWhen from '../hooks/useUpdateWhen';
 import { enableGestures } from '../utils/gestureUtils';
 import ColumnResizer, { ResizerType } from './ColumnResizer';
-import ColGroup from './ColumnGroup';
+import ColumnGroup from './ColumnGroup';
 import TableHeader from './TableHeader';
 import { mapReverse } from '../utils/arrayUtils';
 
-function TableHead<TData extends TableData>() {
+export interface TableHeadProps {
+    minColumnWidthPx: number;
+}
+
+function TableHead<TData extends TableData>(props: TableHeadProps) {
+    const { minColumnWidthPx } = props;
+
     const { state, refs } = useRequiredContext(getTableContext<TData>());
 
     useUpdateWhen(state.headers.rowsChanged);
@@ -23,7 +29,7 @@ function TableHead<TData extends TableData>() {
         aria-hidden={true}
         ref={refs.head.set}
     >
-        <ColGroup refMap={refs.headColumns} />
+        <ColumnGroup refMap={refs.headColumns} />
         <thead>
         {mapReverse(state.headers.rows, (cells, height) => <tr className="rst-row" key={height}>
             {cells.map(cell =>
@@ -32,11 +38,12 @@ function TableHead<TData extends TableData>() {
                     span={cell.span}
                     column={cell.column}
                     header={cell.header}
+                    minColumnWidthPx={minColumnWidthPx}
                 />
             )}
             <th className="rst-spacer">
-                <ColumnResizer type={ResizerType.Normal} />
-                <ColumnResizer type={ResizerType.Edge} />
+                <ColumnResizer type={ResizerType.Normal} minColumnWidthPx={minColumnWidthPx} />
+                <ColumnResizer type={ResizerType.Edge} minColumnWidthPx={minColumnWidthPx} />
             </th>
         </tr>)}
         </thead>

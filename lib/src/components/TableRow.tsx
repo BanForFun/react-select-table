@@ -5,12 +5,12 @@ import State from '../models/state';
 import React from 'react';
 import { buildClass } from '../utils/classNameUtils';
 
-interface Props<TData extends TableData> {
+export interface TableRowProps<TData extends TableData> {
     state: State<TData>;
     data: TData['row'];
 }
 
-export default function TableRow<TData extends TableData>(props: Props<TData>) {
+export default function TableRow<TData extends TableData>(props: TableRowProps<TData>) {
     return <>
         {Array.from(map(props.state.headers.leafIterator(), header => {
             const options: ColumnOptions = {};

@@ -12,7 +12,7 @@ import { cachedIterator } from '../utils/iterableUtils';
 import { enableGestures } from '../utils/gestureUtils';
 import useConstant from '../hooks/useConstant';
 import useElementRef from '../hooks/useElementRef';
-import ColGroup from './ColumnGroup';
+import ColumnGroup from './ColumnGroup';
 
 const keyKey = 'key';
 
@@ -182,7 +182,7 @@ export default function TableBody<TData extends TableData>() {
     }), [appendRoot, rowRoots, state]));
 
     return <table className="rst-table rst-body">
-        <ColGroup refMap={refs.bodyColumns} />
+        <ColumnGroup refMap={refs.bodyColumns} />
         {/* TODO: Add hidden thead for screen readers */}
         <tbody ref={tableBodyRef.set} />
     </table>;

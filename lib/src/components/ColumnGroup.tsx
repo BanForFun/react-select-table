@@ -8,11 +8,11 @@ import Column from './Column';
 import ColumnMap from '../models/ColumnMap';
 import useElementRef from '../hooks/useElementRef';
 
-interface Props<TData extends TableData> {
+export interface ColumnGroupProps<TData extends TableData> {
     refMap: ColumnMap<TData>;
 }
 
-function ColGroup<TData extends TableData>(props: Props<TData>) {
+function ColumnGroup<TData extends TableData>(props: ColumnGroupProps<TData>) {
     const { refMap } = props;
 
     const { state } = useRequiredContext(getTableContext<TData>());
@@ -36,4 +36,4 @@ function ColGroup<TData extends TableData>(props: Props<TData>) {
     </colgroup>;
 }
 
-export default ColGroup;
+export default ColumnGroup;

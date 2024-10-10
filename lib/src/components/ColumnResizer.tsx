@@ -11,6 +11,7 @@ import DragAnimationManager, { AnimateCallback } from '../models/DragAnimationMa
 import useAnimationCallback from '../hooks/useAnimationCallback';
 import { table } from '../utils/iteratorUtils';
 import { sum } from '../utils/numericUtils';
+import { ElementRef } from '../utils/refUtils';
 
 export enum ResizerType {
     Edge = 'rst-edgeResizer',
@@ -18,6 +19,7 @@ export enum ResizerType {
 }
 
 export interface ColumnResizerProps<TData extends TableData> {
+    headerRef: ElementRef<HTMLTableCellElement>;
     header?: ReadonlyHeader<TData>;
     type: ResizerType;
     minColumnWidthPx: number;
@@ -35,7 +37,11 @@ class ColumnCollection {
         this.minWidth = this._totalWidth / Math.min(...widths) * this._minColumnWidth;
     }
 
-    setTotalWidth(width: number) {
+    get totalWidth() {
+        return this._totalWidth;
+    }
+
+    set totalWidth(width: number) {
         this._totalWidth = Math.max(this.minWidth, width);
     }
 
@@ -48,6 +54,8 @@ interface Resizing {
     animationManager: DragAnimationManager;
     leftColumns: ColumnCollection;
     rightColumns: ColumnCollection;
+    leftOffset: number;
+    rightOffset: number;
 }
 
 function isColumnCollapsed(column: HTMLTableColElement) {
@@ -79,7 +87,7 @@ function findVisibleColumnsLeft(header: Element | null, column: Element | null) 
 }
 
 export default function ColumnResizer<TData extends TableData>(props: ColumnResizerProps<TData>) {
-    const { header, type, minColumnWidthPx } = props;
+    const { header, type, minColumnWidthPx, headerRef } = props;
 
     const { state, refs } = useRequiredContext(getTableContext<TData>());
 
@@ -92,54 +100,66 @@ export default function ColumnResizer<TData extends TableData>(props: ColumnResi
 
     const animate: AnimateCallback = useAnimationCallback(useCallback((params) => {
         const {
-            clientPosition,
+            relativePosition,
             scrollDelta,
             target
         } = params;
 
         const {
-            leftColumns
+            leftColumns,
+            rightColumns,
+            leftOffset,
+            rightOffset
         } = resizingRef.current!;
 
-        const leftOffset = leftColumns.elements[0].getBoundingClientRect().left;
-        leftColumns.setTotalWidth(clientPosition.x - leftOffset);
+        const scrollLeft = target.scrollLeft + Math.max(-target.scrollLeft, scrollDelta.x);
 
-        for (const [column, width] of table(getIterator(leftColumns.elements), getIterator(leftColumns.getWidths()))) {
+        leftColumns.totalWidth = relativePosition.x + scrollLeft - leftOffset;
+        for (const [column, width] of table(getIterator(leftColumns.elements), getIterator(leftColumns.getWidths())))
             column.style.width = unit(width, 'px');
-        }
 
-        target.scrollLeft += scrollDelta.x;
-        target.scrollTop += scrollDelta.y;
-    }, []));
+        const totalWidth = leftOffset + leftColumns.totalWidth + rightColumns.totalWidth + rightOffset;
+        refs.headColumns.spacer.style.width = unit(Math.max(0, target.clientWidth - totalWidth + scrollLeft), 'px');
+
+        target.scrollLeft = scrollLeft;
+    }, [refs]));
 
     gestureEventManager.useListener(elementRef, 'dragStart', e => {
+        const spacer = refs.headColumns.spacer;
         const rightColumns = header ? Array.from(filter(
             map(getLeafHeaders(header), l => refs.headColumns.get(l)),
             c => !isColumnCollapsed(c)
-        )) : [refs.headColumns.spacer];
+        )) : [spacer];
 
         if (rightColumns.length === 0)
             return e.preventDefault();
 
         const leftColumns = findVisibleColumnsLeft(
-            elementRef.value!.parentElement!.previousElementSibling,
+            headerRef.element.previousElementSibling,
             rightColumns[0].previousElementSibling
         );
 
         if (leftColumns.length === 0)
             return e.preventDefault();
 
+        const resizingContainer = refs.resizingContainer.element;
+        const leftBounds = resizingContainer.getBoundingClientRect().left - resizingContainer.offsetLeft;
+        const leftOffset = leftColumns[0].getBoundingClientRect().left - leftBounds;
+        const rightOffset = spacer.getBoundingClientRect().left - rightColumns.at(-1)!.getBoundingClientRect().right;
+
+        resizingRef.current = {
+            animationManager: new DragAnimationManager(e, animate),
+            leftColumns: new ColumnCollection(leftColumns, minColumnWidthPx),
+            rightColumns: new ColumnCollection(rightColumns, minColumnWidthPx),
+            leftOffset,
+            rightOffset
+        };
+
         for (const column of refs.headColumns.getAll())
             freezeColumn(column);
 
         for (const column of refs.bodyColumns.getAll())
             freezeColumn(column);
-
-        resizingRef.current = {
-            animationManager: new DragAnimationManager(e, animate),
-            leftColumns: new ColumnCollection(leftColumns, minColumnWidthPx),
-            rightColumns: new ColumnCollection(rightColumns, minColumnWidthPx)
-        };
     });
 
     gestureEventManager.useListener(elementRef, 'dragUpdate', function(e) {

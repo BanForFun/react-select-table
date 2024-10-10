@@ -32,7 +32,7 @@ export default function ScrollingContainer<TData extends TableData>(props: Scrol
     }, [relatedElements]));
 
     return <div className="rst-scrollingContainer" ref={elementRef.set}>
-        <div className="rst-resizingContainer">
+        <div className="rst-resizingContainer" ref={refs.resizingContainer.set}>
             <TableHead minColumnWidthPx={minColumnWidthPx} />
             <TableBody />
         </div>

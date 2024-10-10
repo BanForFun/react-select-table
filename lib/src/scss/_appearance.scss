@@ -18,6 +18,7 @@
   }
 
   .rst-scrollingContainer {
+    position: relative;
     flex: auto;
     overflow: auto;
   }
@@ -29,6 +30,7 @@
     // so we crop the first column's left border
     margin-left: negative(get-config-value("column", "border-width"));
     contain: paint; //overflow: hidden prevents the head from sticking to the top
+    width: fit-content;
   }
 
   .rst-icon {

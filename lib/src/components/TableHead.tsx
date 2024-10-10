@@ -8,6 +8,7 @@ import ColumnResizer, { ResizerType } from './ColumnResizer';
 import ColumnGroup from './ColumnGroup';
 import TableHeader from './TableHeader';
 import { mapReverse } from '../utils/arrayUtils';
+import useElementRef from '../hooks/useElementRef';
 
 export interface TableHeadProps {
     minColumnWidthPx: number;
@@ -19,6 +20,8 @@ function TableHead<TData extends TableData>(props: TableHeadProps) {
     const { state, refs } = useRequiredContext(getTableContext<TData>());
 
     useUpdateWhen(state.headers.rowsChanged);
+
+    const spacerRef = useElementRef<HTMLTableCellElement>();
 
     refs.head.useEffect(useCallback(element => {
         enableGestures({ element });
@@ -41,9 +44,15 @@ function TableHead<TData extends TableData>(props: TableHeadProps) {
                     minColumnWidthPx={minColumnWidthPx}
                 />
             )}
-            <th className="rst-spacer">
-                <ColumnResizer type={ResizerType.Normal} minColumnWidthPx={minColumnWidthPx} />
-                <ColumnResizer type={ResizerType.Edge} minColumnWidthPx={minColumnWidthPx} />
+            <th className="rst-spacer" ref={spacerRef.set}>
+                <ColumnResizer type={ResizerType.Normal}
+                               minColumnWidthPx={minColumnWidthPx}
+                               headerRef={spacerRef}
+                />
+                <ColumnResizer type={ResizerType.Edge}
+                               minColumnWidthPx={minColumnWidthPx}
+                               headerRef={spacerRef}
+                />
             </th>
         </tr>)}
         </thead>

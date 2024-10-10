@@ -9,7 +9,7 @@ import GestureEventArgBuilder, {
     DragUpdateEventArgs,
     ModifierEventArgs
 } from '../models/GestureEventArgBuilder';
-import { getOffsetRelativeRects, RelatedElements } from './elementUtils';
+import { getRelativeRects, RelatedElements } from './elementUtils';
 
 interface GestureEventArgs {
     tap: BaseEventArgs;
@@ -100,11 +100,11 @@ const createLeftMouseDownGesture = createGestureFactory<PointerInfo>((pointer, c
     const eventGroup = elementEventManager.createGroup();
 
     eventGroup.addListener(currentTarget.element, 'wheel', e => {
-        const panDelta = new Point(e.deltaY, e.deltaX);
+        const panDelta = new Point(e.deltaX, e.deltaY);
         if (e.deltaMode === WheelEvent.DOM_DELTA_LINE) {
             panDelta.multiply(new Point(parseInt(getComputedStyle(currentTarget.element).lineHeight)));
         } else if (e.deltaMode === WheelEvent.DOM_DELTA_PAGE) {
-            panDelta.multiply(getOffsetRelativeRects(currentTarget.element, currentTarget.relatedElements).content);
+            panDelta.multiply(getRelativeRects(currentTarget.element, currentTarget.relatedElements).content);
         }
 
         if (e.shiftKey !== !!target.rotateScroll)

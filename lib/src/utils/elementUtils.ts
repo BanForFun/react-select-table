@@ -8,12 +8,17 @@ export interface RelatedElements {
     headerBottom?: HTMLElement;
 }
 
-export function getOffsetPosition(element: HTMLElement) {
+export interface Rects {
+    client: Rect;
+    content: Rect;
+}
+
+export function getPosition(element: HTMLElement) {
     const { left, top } = element.getBoundingClientRect();
     return new Point(left, top);
 }
 
-export function getOffsetRelativeRects(element: HTMLElement, relatedElements?: RelatedElements) {
+export function getRelativeRects(element: HTMLElement, relatedElements?: RelatedElements): Rects {
     let left = element.clientLeft;
     let top = element.clientTop;
     let bottom = top + element.clientHeight;

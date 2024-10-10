@@ -6,6 +6,7 @@ import ColumnMap from '../models/ColumnMap';
 
 export interface TableRefs<TData extends TableData> {
     head: ElementRef;
+    resizingContainer: ElementRef;
     headColumns: ColumnMap<TData>;
     bodyColumns: ColumnMap<TData>;
 }

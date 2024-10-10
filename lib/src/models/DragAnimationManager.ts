@@ -1,10 +1,10 @@
 import { GestureEventMap } from '../utils/gestureUtils';
 import Point from './Point';
-import { getOffsetPosition, getOffsetRelativeRects, RelatedElements } from '../utils/elementUtils';
+import { getPosition, getRelativeRects, RelatedElements, Rects } from '../utils/elementUtils';
 
 export interface AnimationParams {
-    clientPosition: Point;
     relativePosition: Point;
+    absoluteRects: Rects;
     scrollDelta: Point;
     target: HTMLElement;
 }
@@ -35,18 +35,15 @@ export default class DragAnimationManager {
     }
 
     private _animate(timestamp: number) {
-        const rects = getOffsetRelativeRects(this._target, this._relatedTargets);
+        const rects = getRelativeRects(this._target, this._relatedTargets);
 
-        const offsetPosition = getOffsetPosition(this._target);
+        const offsetPosition = getPosition(this._target);
         rects.content.offset(offsetPosition);
         rects.client.offset(offsetPosition);
 
-        const clientPosition = this._clientPosition.clone()
-            .clamp(rects.content);
-
-        const relativePosition = clientPosition.clone()
-            .subtract(rects.client)
-            .offset(new Point(this._target.scrollLeft, this._target.scrollTop));
+        const relativePosition = this._clientPosition.clone()
+            .clamp(rects.content)
+            .subtract(rects.client);
 
         const scrollLeft = Math.min(0, this._clientPosition.x - rects.content.left);
         const scrollRight = Math.max(0, this._clientPosition.x - rects.content.right);
@@ -54,16 +51,16 @@ export default class DragAnimationManager {
         const scrollBottom = Math.max(0, this._clientPosition.y - rects.content.bottom);
 
         const scrollDelta = new Point(scrollLeft + scrollRight, scrollTop + scrollBottom);
-        const rate = this._lastTimestamp != null ? (timestamp - this._lastTimestamp) / 50 : 0;
+        const rate = this._lastTimestamp != null ? (timestamp - this._lastTimestamp) / 100 : 0;
         scrollDelta
             .multiply(new Point(rate))
             .offset(this._panDelta)
             .round();
 
         this._animateCallback({
-            clientPosition,
             relativePosition,
             scrollDelta,
+            absoluteRects: rects,
             target: this._target
         });
 

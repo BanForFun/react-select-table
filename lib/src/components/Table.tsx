@@ -24,6 +24,7 @@ export default function Table<TData extends TableData>(props: TableProps<TData>)
 
     const refs = useConstant<TableRefs<TData>>(() => ({
         head: createElementRef(),
+        resizingContainer: createElementRef(),
         headColumns: new ColumnMap(),
         bodyColumns: new ColumnMap()
     }));

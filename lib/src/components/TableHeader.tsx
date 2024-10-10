@@ -79,7 +79,11 @@ function TableHeader<TData extends TableData>(props: TableHeaderProps<TData>) {
         colSpan={span}
         data-is-sortable={!!sortable}
     >
-        <ColumnResizer header={header} type={ResizerType.Normal} minColumnWidthPx={minColumnWidthPx} />
+        <ColumnResizer header={header}
+                       type={ResizerType.Normal}
+                       minColumnWidthPx={minColumnWidthPx}
+                       headerRef={elementRef}
+        />
         <div className="rst-content">
             <span className="rst-inner rst-ellipsis">{column?.header}</span>
             {sortable?.sorted && <Status>

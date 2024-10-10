@@ -4,7 +4,8 @@ import { EffectCallback } from './types';
 import useEffectCallback from '../hooks/useEffectCallback';
 
 export interface ElementRef<T extends HTMLElement = HTMLElement> {
-    readonly value: T | null;
+    readonly element: T;
+    readonly isInitialized: boolean;
     readonly set: (value: T | null) => void;
     readonly onChanged: Observable;
     readonly useEffect: (callback: EffectCallback<[T]>) => void;
@@ -12,22 +13,28 @@ export interface ElementRef<T extends HTMLElement = HTMLElement> {
 
 export function createElementRef<T extends HTMLElement>(): ElementRef<T> {
     const onChanged = new Observable();
-    let currentValue: T | null = null;
+    let element: T | null = null;
 
     return {
         onChanged,
-        get value() {
-            return currentValue;
+        get isInitialized() {
+            return element != null;
+        },
+        get element() {
+            if (element == null)
+                throw new Error('Element is not initialized');
+
+            return element;
         },
         set: (value) => {
-            const prev = currentValue;
-            currentValue = value;
+            const prev = element;
+            element = value;
             if (value !== prev) onChanged.notify();
         },
         useEffect: (callback) => {
             const effectCallback = useEffectCallback(useCallback(() => {
-                if (currentValue == null) return;
-                return callback(currentValue);
+                if (element == null) return;
+                return callback(element);
             }, [callback]));
 
             useLayoutEffect(() => {

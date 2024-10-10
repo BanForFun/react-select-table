@@ -25,6 +25,10 @@ function ColumnGroup<TData extends TableData>(props: ColumnGroupProps<TData>) {
         return () => refMap.spacer = null;
     }, [refMap]));
 
+    spacerRef.useEffect(useCallback(el => state.headerSizes.changed.addObserver(() => {
+        el.style.width = '';
+    }), [state]));
+
     return <colgroup>
         {Array.from(map(state.headers.leafIterator(), header =>
             <Column

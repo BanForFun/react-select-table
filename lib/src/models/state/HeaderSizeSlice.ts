@@ -16,6 +16,7 @@ interface Dependencies<TData extends TableData> {
 }
 
 export default class HeaderSizeSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>, HeaderSizeConfig> {
+    // No need to remove sizes, we are using a weak map
     #sizes = new WeakMap<ReadonlyLeafHeader<TData>, number>();
 
     protected readonly _sliceKey = 'headerSize';

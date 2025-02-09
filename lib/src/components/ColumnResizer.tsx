@@ -26,9 +26,10 @@ export interface ColumnResizerProps<TData extends TableData> {
 }
 
 class ColumnCollection {
+    private _totalWidth: number;
+
     readonly widthFactors: number[];
     readonly minWidth: number;
-    private _totalWidth: number;
 
     constructor(public readonly elements: HTMLTableColElement[], private readonly _minColumnWidth: number) {
         const widths = elements.map(c => c.getBoundingClientRect().width);
@@ -155,10 +156,10 @@ export default function ColumnResizer<TData extends TableData>(props: ColumnResi
             rightOffset
         };
 
-        for (const column of refs.headColumns.getAll())
+        for (const column of refs.bodyColumns.getAll())
             freezeColumn(column);
 
-        for (const column of refs.bodyColumns.getAll())
+        for (const column of refs.headColumns.getAll())
             freezeColumn(column);
     });
 

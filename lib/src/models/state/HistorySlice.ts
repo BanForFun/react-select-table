@@ -1,7 +1,7 @@
 import StateSlice from '../StateSlice';
 import { log } from '../../utils/debugUtils';
 import { ActionCallback } from '../../utils/types';
-import SchedulerSlice, { ScheduledFlush } from './SchedulerSlice';
+import SchedulerSlice from './SchedulerSlice';
 
 interface Dependencies {
     scheduler: SchedulerSlice;
@@ -17,7 +17,7 @@ type ActionGroup = Action[];
 export type AddUndoAction = (action: Action) => void
 export type Handler<TArgs extends unknown[]> = (toUndo: AddUndoAction, ...args: TArgs) => void;
 export type Creator<TArgs extends unknown[]> = (...args: TArgs) => Action;
-export type Dispatcher<TArgs extends unknown[]> = ((...args: TArgs) => ScheduledFlush) & {
+export type Dispatcher<TArgs extends unknown[]> = ((...args: TArgs) => void) & {
     action: Creator<TArgs>,
     handler: Handler<TArgs>
 };
@@ -30,42 +30,38 @@ export default class HistorySlice extends StateSlice<Dependencies> {
     #past: ActionGroup[] = [];
     #future: ActionGroup[] = [];
 
-    #popGroup(source: ActionGroup[], dest: ActionGroup[]): ScheduledFlush {
+    #popGroup(source: ActionGroup[], dest: ActionGroup[]): void {
         if (this.#currentGroup != null)
             throw new Error('Undo/redo called inside history group');
 
-        return this._state.scheduler.flush(() => {
-            const group = source.pop();
-            if (!group) return;
+        const group = source.pop();
+        if (!group) return;
 
-            const undoGroup: ActionGroup = [];
-            for (const action of group) {
-                const handler = this.#handlers[action.type];
-                handler(action => undoGroup.push(action), ...action.args);
-            }
+        const undoGroup: ActionGroup = [];
+        for (const action of group) {
+            const handler = this.#handlers[action.type];
+            handler(action => undoGroup.push(action), ...action.args);
+        }
 
-            dest.push(undoGroup);
-        });
+        dest.push(undoGroup);
     }
 
-    #pushGroup(callback: GroupCallback): ScheduledFlush {
-        return this._state.scheduler.flush(() => {
-            if (this.#currentGroup != null)
-                return callback(this.#currentGroup);
+    #pushGroup(callback: GroupCallback): void {
+        if (this.#currentGroup != null)
+            return callback(this.#currentGroup);
 
-            const group: ActionGroup = [];
-            this.#currentGroup = group;
-            callback(group);
-            this.#currentGroup = null;
+        const group: ActionGroup = [];
+        this.#currentGroup = group;
+        callback(group);
+        this.#currentGroup = null;
 
-            if (group.length === 0) {
-                log('Discarding empty undo group');
-                return;
-            }
+        if (group.length === 0) {
+            log('Discarding empty history group');
+            return;
+        }
 
-            this.#past.push(group);
-            this.#future = [];
-        });
+        this.#past.push(group);
+        this.#future = [];
     }
 
     _createDispatcher<TArgs extends unknown[]>(type: string, handler: Handler<TArgs>): Dispatcher<TArgs> {
@@ -85,24 +81,23 @@ export default class HistorySlice extends StateSlice<Dependencies> {
     }
 
     group(callback: ActionCallback) {
-        return this.#pushGroup(callback);
+        this.#pushGroup(callback);
     }
 
     clear() {
         if (this.#currentGroup != null)
+            // Future actions inside group would never be recorded
             throw new Error('Clear called inside history group');
 
-        return this._state.scheduler.flush(() => {
-            this.#past = [];
-            this.#future = [];
-        });
+        this.#past = [];
+        this.#future = [];
     }
 
     undo() {
-        return this.#popGroup(this.#past, this.#future);
+        this.#popGroup(this.#past, this.#future);
     }
 
     redo() {
-        return this.#popGroup(this.#future, this.#past);
+        this.#popGroup(this.#future, this.#past);
     }
 }

@@ -1,10 +1,9 @@
 import { GestureEventMap } from '../utils/gestureUtils';
 import Point from './Point';
-import { getPosition, getRelativeRects, RelatedElements, Rects } from '../utils/elementUtils';
+import { getPosition, getRelativeRects, RelatedElements } from '../utils/elementUtils';
 
 export interface AnimationParams {
     relativePosition: Point;
-    absoluteRects: Rects;
     scrollDelta: Point;
     target: HTMLElement;
 }
@@ -36,10 +35,10 @@ export default class DragAnimationManager {
 
     private _animate(timestamp: number) {
         const rects = getRelativeRects(this._target, this._relatedTargets);
+        const absolutePosition = getPosition(this._target);
 
-        const offsetPosition = getPosition(this._target);
-        rects.content.offset(offsetPosition);
-        rects.client.offset(offsetPosition);
+        rects.content.offset(absolutePosition);
+        rects.client.offset(absolutePosition);
 
         const relativePosition = this._clientPosition.clone()
             .clamp(rects.content)
@@ -60,7 +59,6 @@ export default class DragAnimationManager {
         this._animateCallback({
             relativePosition,
             scrollDelta,
-            absoluteRects: rects,
             target: this._target
         });
 

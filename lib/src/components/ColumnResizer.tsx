@@ -5,7 +5,7 @@ import useRequiredContext from '../hooks/useRequiredContext';
 import getTableContext from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import { unit } from '../utils/unitUtils';
-import { filter, getIterator, map } from '../utils/iterableUtils';
+import { filter, createIterator, map } from '../utils/iterableUtils';
 import { getLeafHeaders, ReadonlyHeader } from '../models/state/HeaderSlice';
 import DragAnimationManager, { AnimateCallback } from '../models/DragAnimationManager';
 import useAnimationCallback from '../hooks/useAnimationCallback';
@@ -116,7 +116,7 @@ export default function ColumnResizer<TData extends TableData>(props: ColumnResi
         const scrollLeft = target.scrollLeft + Math.max(-target.scrollLeft, scrollDelta.x);
 
         leftColumns.totalWidth = relativePosition.x + scrollLeft - leftOffset;
-        for (const [column, width] of table(getIterator(leftColumns.elements), getIterator(leftColumns.getWidths())))
+        for (const [column, width] of table(createIterator(leftColumns.elements), createIterator(leftColumns.getWidths())))
             column.style.width = unit(width, 'px');
 
         const totalWidth = leftOffset + leftColumns.totalWidth + rightColumns.totalWidth + rightOffset;

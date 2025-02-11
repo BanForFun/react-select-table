@@ -15,17 +15,17 @@ export type Action = {
 type ActionGroup = Action[];
 
 export type AddUndoAction = (action: Action) => void
-export type Handler<TArgs extends unknown[]> = (toUndo: AddUndoAction, ...args: TArgs) => void;
+export type Handler<TArgs extends unknown[], TResult> = (toUndo: AddUndoAction, ...args: TArgs) => TResult;
 export type Creator<TArgs extends unknown[]> = (...args: TArgs) => Action;
-export type Dispatcher<TArgs extends unknown[]> = ((...args: TArgs) => void) & {
+export type Dispatcher<TArgs extends unknown[], TResult> = ((...args: TArgs) => TResult) & {
     action: Creator<TArgs>,
-    handler: Handler<TArgs>
+    handler: Handler<TArgs, TResult>
 };
 
-type GroupCallback = (group: ActionGroup) => void;
+type GroupCallback<T> = (group: ActionGroup) => T;
 
 export default class HistorySlice extends StateSlice<Dependencies> {
-    readonly #handlers: Record<string, Handler<unknown[]>> = {};
+    readonly #handlers: Record<string, Handler<unknown[], unknown>> = {};
     #currentGroup: ActionGroup | null = null;
     #past: ActionGroup[] = [];
     #future: ActionGroup[] = [];
@@ -46,31 +46,30 @@ export default class HistorySlice extends StateSlice<Dependencies> {
         dest.push(undoGroup);
     }
 
-    #pushGroup(callback: GroupCallback): void {
+    #pushGroup<T>(callback: GroupCallback<T>): T {
         if (this.#currentGroup != null)
             return callback(this.#currentGroup);
 
         const group: ActionGroup = [];
         this.#currentGroup = group;
-        callback(group);
+        const result = callback(group);
         this.#currentGroup = null;
 
         if (group.length === 0) {
             log('Discarding empty history group');
-            return;
+        } else {
+            this.#past.push(group);
+            this.#future = [];
         }
 
-        this.#past.push(group);
-        this.#future = [];
+        return result;
     }
 
-    _createDispatcher<TArgs extends unknown[]>(type: string, handler: Handler<TArgs>): Dispatcher<TArgs> {
-        const dispatcher = (...args: TArgs) => this.#pushGroup(group => {
-            // In case we are running inside scheduler.sync
-            this._state.scheduler.batch(() => {
-                handler(action => group.push(action), ...args);
-            });
-        });
+    _createDispatcher<TArgs extends unknown[], TResult>(type: string, handler: Handler<TArgs, TResult>): Dispatcher<TArgs, TResult> {
+        const dispatcher = (...args: TArgs) =>
+            this.#pushGroup(group =>
+                this._state.scheduler.batch(() =>
+                    handler(action => group.push(action), ...args)));
 
         dispatcher.action = (...args: TArgs) => ({ type, args });
         dispatcher.handler = handler;

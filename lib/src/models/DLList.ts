@@ -9,11 +9,11 @@ export type DLNode<T = unknown> = T & {
 type Comparator<T> = (a: T, b: T) => number;
 type Predicate<T> = (item: T) => boolean;
 
-function getNextNode<T>(node: DLNode<T> | null): DLNode<T> | null {
+export function getNextNode<T>(node: DLNode<T> | null): DLNode<T> | null {
     return node == null ? null : node[nextSymbol];
 }
 
-function getPreviousNode<T>(node: DLNode<T> | null): DLNode<T> | null {
+export function getPreviousNode<T>(node: DLNode<T> | null): DLNode<T> | null {
     return node == null ? null : node[previousSymbol];
 }
 
@@ -77,8 +77,6 @@ export default class DLList<T extends object = object> {
     #head = new DLNodeWrapper<T>();
     #tail = new DLNodeWrapper<T>();
 
-    // #nodeCount: number = 0;
-
     #link(previous: DLNode<T> | null, node: T, next: DLNode<T> | null): DLNode<T> {
         const linked: DLNode<T> = Object.assign(node, {
             [previousSymbol]: previous,
@@ -95,7 +93,6 @@ export default class DLList<T extends object = object> {
         else
             this.#tail.set(linked);
 
-        // this.#nodeCount++;
         return linked;
     }
 
@@ -133,8 +130,6 @@ export default class DLList<T extends object = object> {
             node[nextSymbol][previousSymbol] = node[previousSymbol];
         else
             this.#tail.set(node[previousSymbol]);
-
-        // this.#nodeCount--;
     }
 
     unlinkRight(node: DLNode<T>) {
@@ -193,12 +188,7 @@ export default class DLList<T extends object = object> {
     clear() {
         this.#head.clear();
         this.#tail.clear();
-        // this.#nodeCount = 0;
     }
-
-    // get length() {
-    //     return this.#nodeCount;
-    // }
 
     get head(): ReadonlyDLNodeWrapper<T> {
         return this.#head;

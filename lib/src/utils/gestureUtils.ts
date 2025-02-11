@@ -1,7 +1,7 @@
 import Point from '../models/Point';
 import { getPointerClientPosition, getPointerInfo, PointerInfo, PointerType } from './pointerUtils';
 import { getTouchClientPosition } from './touchUtils';
-import { all, first } from './iterableUtils';
+import { all, find } from './iterableUtils';
 import { createElementEventManager, elementEventManager } from './eventUtils';
 import GestureEventArgBuilder, {
     BaseEventArgs,
@@ -243,7 +243,7 @@ const createTapGesture = createGestureFactory<Touch>((touch, currentTarget, targ
     eventGroup.addListener(currentTarget.element, 'touchmove', e => {
         e.preventDefault();
 
-        const updatedTouch = first(e.changedTouches, t => t.identifier === touch.identifier);
+        const updatedTouch = find(e.changedTouches, t => t.identifier === touch.identifier);
         if (updatedTouch == null) return;
 
         const movedDistance = Point.distance(getTouchClientPosition(updatedTouch), getTouchClientPosition(touch));
@@ -251,7 +251,7 @@ const createTapGesture = createGestureFactory<Touch>((touch, currentTarget, targ
     });
 
     const handleTouchLost = (e: TouchEvent): boolean => {
-        const updatedTouch = first(e.changedTouches, t => t.identifier === touch.identifier);
+        const updatedTouch = find(e.changedTouches, t => t.identifier === touch.identifier);
         if (updatedTouch == null) return false;
 
         cancel();

@@ -2,7 +2,7 @@ import { Column, ColumnGroup, isColumnGroup, LeafColumn } from '../../utils/colu
 import { getAtPath, TreePath } from '../../utils/unrootedTreeUtils';
 import Observable from '../Observable';
 import { TableData } from '../../utils/configUtils';
-import { getIterableIterator } from '../../utils/iterableUtils';
+import { createIterableIterator } from '../../utils/iterableUtils';
 import SchedulerSlice from './SchedulerSlice';
 import { optional } from '../../utils/types';
 import ColumnSlice from './ColumnSlice';
@@ -246,7 +246,7 @@ export default class HeaderSlice<TData extends TableData> extends UndoableStateS
     };
 
     iterator() {
-        return getIterableIterator(this.#headers);
+        return createIterableIterator(this.#headers);
     }
 
     * leafIterator(): IterableIterator<ReadonlyLeafHeader<TData>> {

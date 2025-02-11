@@ -5,9 +5,8 @@ import { TableData } from '../../utils/configUtils';
 import SchedulerSlice from './SchedulerSlice';
 import SortOrderSlice from './SortOrderSlice';
 import HeaderSizeSlice from './HeaderSizeSlice';
-import VisibleRowSlice from './VisibleRowSlice';
 import SelectionSlice from './SelectionSlice';
-import PageSizeSlice from './PageSizeSlice';
+import PageSlice from './PageSlice';
 import FilterSlice from './FilterSlice';
 import { dependenciesSymbol, sliceKeys, SliceKeys, Slices } from '../StateSlice';
 import { PartialByValue } from '../../utils/types';
@@ -20,9 +19,8 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
     sortOrder: SortOrderSlice<TData>;
     headerSizes: HeaderSizeSlice<TData>;
     history: HistorySlice;
-    visibleRows: VisibleRowSlice<TData>;
     selection: SelectionSlice<TData>;
-    pageSize: PageSizeSlice;
+    page: PageSlice;
     filter: FilterSlice<TData>;
     rows: RowSlice<TData>;
     columns: ColumnSlice<TData>;
@@ -55,7 +53,7 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
             scheduler: this.scheduler
         });
 
-        this.pageSize ??= new PageSizeSlice(config.pageSize, {
+        this.page ??= new PageSlice(config.page, {
             history: this.history
         });
 
@@ -80,19 +78,13 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
         this.rows ??= new RowSlice(config.rows!, {
             history: this.history,
             scheduler: this.scheduler,
-            sortOrder: this.sortOrder
+            sortOrder: this.sortOrder,
+            page: this.page,
+            filter: this.filter
         });
 
         this.selection ??= new SelectionSlice(config.selection, {
             rows: this.rows
-        });
-
-        this.visibleRows ??= new VisibleRowSlice(config.visibleRows, {
-            history: this.history,
-            scheduler: this.scheduler,
-            pageSize: this.pageSize,
-            rows: this.rows,
-            filter: this.filter
         });
     }
 }

@@ -1,21 +1,15 @@
 import Observable from '../Observable';
 import StateSlice from '../StateSlice';
-import { ActionCallback } from '../../utils/types';
-import { flushSync } from 'react-dom';
+import { ActionCallback, CreatorCallback } from '../../utils/types';
 
 type Job = () => void;
 
 type Strategy = 'async' | 'sync' | 'batch';
 
-export interface ScheduledFlush {
-    promise: Promise<void>;
-}
-
 export default class SchedulerSlice extends StateSlice {
     #queuedJob: Job | null = null;
     #commitTimeout: number | null = null;
     #strategy: Strategy = 'async';
-    #flush: ScheduledFlush | null = null;
     #free = new Observable();
 
     get isFree() {
@@ -70,17 +64,19 @@ export default class SchedulerSlice extends StateSlice {
         this.#commitTimeout = null;
     }
 
-    #withStrategy(strategy: Strategy, callback: ActionCallback): void {
+    #withStrategy<T>(strategy: Strategy, callback: CreatorCallback<T>): T {
         const previous = this.#strategy;
         if (previous === strategy)
             return callback();
 
         this.#strategy = strategy;
-        callback();
+        const result = callback();
         this.#strategy = previous;
 
         this.#commit();
         this.#notifyIfFree();
+
+        return result;
     }
 
     _add(job: Job) {
@@ -94,34 +90,11 @@ export default class SchedulerSlice extends StateSlice {
             this.#free.addOnceObserver(callback);
     }
 
-    batch(callback: ActionCallback) {
+    batch<T>(callback: CreatorCallback<T>) {
         return this.#withStrategy('batch', callback);
     }
 
-    sync(callback: ActionCallback) {
+    sync<T>(callback: CreatorCallback<T>) {
         return this.#withStrategy('sync', callback);
-    }
-
-    flush(callback: ActionCallback): ScheduledFlush {
-        if (this.#flush != null) {
-            callback();
-            return this.#flush;
-        }
-
-        if (this.#strategy !== 'async')
-            throw new Error('scheduler.flush() cannot be nested inside scheduler.sync() or scheduler.batch()');
-
-        const promise = new Promise<void>(resolve => {
-            setTimeout(() => {
-                this.#flush = flush;
-                this.sync(() => flushSync(() => this.batch(callback)));
-                this.#flush = null;
-
-                resolve();
-            });
-        });
-
-        const flush: ScheduledFlush = { promise };
-        return flush;
     }
 }

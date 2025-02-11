@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 type Duration = [string, string] | undefined;
 
 interface Lesson {
+    id: string;
     name: string;
     monday?: Duration,
     tuesday?: Duration,
@@ -42,10 +43,11 @@ const state = createState<Lesson>({
         defaultColumnWidthPercentage: 20
     },
     rows: {
-        getRowKey: l => l.name
+        getRowKey: l => l.id
     },
     columns: [
-        withContext(l => l.name, simpleColumn('Name', { isHeader: true })),
+        withContext(l => l.id, simpleColumn('Code', { isHeader: true, allowSorting: true })),
+        withContext(l => l.name, simpleColumn('Name', { allowSorting: true })),
         {
             header: 'Weekdays', children: [
                 withContext(l => l.monday, lessonColumn('Monday')),
@@ -85,32 +87,35 @@ const state = createState<Lesson>({
     ]
 });
 
-state.pageSize.set(20);
+state.page.setSize(20);
 
 for (let i = 0; i < state.columns.config.length; i++)
     state.headers.add([i], []);
 
-// state.headers.add([3], [1, 1]);
-// state.headers.add([3], [1, 1]);
-// state.headers.add([1, 3], [1]);
+state.sortOrder.sortBy([0], 'ascending', false);
 
 state.rows.add([
     {
-        name: 'Katevenis',
+        id: 'HY-120',
+        name: 'Digital design',
         monday: ['13:00', '15:00'],
         wednesday: ['13:00', '15:00'],
         friday: ['13:00', '15:00']
     },
     {
-        name: 'Markatos',
+        id: 'HY-345',
+        name: 'Operating systems',
         tuesday: ['14:00', '16:00'],
         thursday: ['14:00', '16:00']
     }
 ]);
 
-for (let i = 0; i < 100; i++) {
-    state.rows.add([{ name: 'Lesson ' + i }]);
-}
+const testRows = Array.from({ length: 100 }, (_, i) => {
+    const id = i + 1;
+    return { id: `TST-${id.toString().padStart(3, '0')}`, name: 'Test ' + id };
+});
+
+state.rows.add(testRows);
 
 state.history.clear();
 
@@ -121,20 +126,38 @@ function parseColumnPathInput(input?: string) {
 
 
 function App() {
+    const nextIdRef = useRef(1);
+
     const columnPathInputRef = useRef<HTMLInputElement>(null);
     const headerPathInputRef = useRef<HTMLInputElement>(null);
     const pageSizeInputRef = useRef<HTMLInputElement>(null);
     const pageIndexInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => state.visibleRows.pageIndexChanged.addObserver(() => {
+    useEffect(() => state.rows.pageIndexChanged.addObserver(() => {
         if (pageIndexInputRef.current)
-            pageIndexInputRef.current.value = state.visibleRows.pageIndex.toString();
+            pageIndexInputRef.current.value = state.rows.pageIndex.toString();
     }), []);
 
-    useEffect(() => state.pageSize.changed.addObserver(() => {
+    useEffect(() => state.page.sizeChanged.addObserver(() => {
         if (pageSizeInputRef.current)
-            pageSizeInputRef.current.value = state.pageSize.value.toString();
+            pageSizeInputRef.current.value = state.page.size.toString();
     }), []);
+
+    const addLesson = () => {
+        const id = nextIdRef.current++;
+
+        state.rows.add([{
+            id: `ADD-${id.toString().padStart(3, '0')}`,
+            name: 'Added ' + id
+        }]);
+    };
+
+    const removeFirst = () => {
+        const firstRow = state.rows.iterator().next();
+        if (firstRow.done) return;
+
+        state.rows.remove(new Set([firstRow.value.id]));
+    };
 
     return <div>
         <div>
@@ -160,7 +183,7 @@ function App() {
             <input id="pageSize" type="number" ref={pageSizeInputRef} />
             <button onClick={() => {
                 const value = pageSizeInputRef.current?.value;
-                state.pageSize.set(value ? parseInt(value) : Infinity);
+                state.page.setSize(value ? parseInt(value) : Infinity);
             }}>Set
             </button>
         </div>
@@ -170,14 +193,17 @@ function App() {
             <input id="pageIndex" type="number" ref={pageIndexInputRef} />
             <button onClick={() => {
                 const value = pageIndexInputRef.current?.value;
-                state.visibleRows.setPageIndex(value ? parseInt(value) : 0);
+                state.rows.setPageIndex(value ? parseInt(value) : 0);
             }}>Set
             </button>
         </div>
 
         <div>
-            <button onClick={() => state.rows.add([{ name: 'Lesson' + Date.now() }])}>
+            <button onClick={addLesson}>
                 Add row
+            </button>
+            <button onClick={removeFirst}>
+                Remove first row
             </button>
             <button onClick={() => state.history.undo()}>
                 Undo

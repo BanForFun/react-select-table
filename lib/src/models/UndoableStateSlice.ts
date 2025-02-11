@@ -11,7 +11,7 @@ export default abstract class UndoableStateSlice<
 > extends StateSlice<TState, TConf> {
     protected abstract readonly _sliceKey: string;
 
-    protected _dispatcher<TArgs extends unknown[]>(key: string, handler: Handler<TArgs>) {
+    protected _dispatcher<TArgs extends unknown[], TResult>(key: string, handler: Handler<TArgs, TResult>) {
         const type = `${this._sliceKey}/${key}`;
         return this._state.history._createDispatcher(type, handler);
     }

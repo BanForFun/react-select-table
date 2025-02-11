@@ -7,8 +7,9 @@ import { enableGestures } from '../utils/gestureUtils';
 import ColumnResizer, { ResizerType } from './ColumnResizer';
 import ColumnGroup from './ColumnGroup';
 import TableHeader from './TableHeader';
-import { mapReverse } from '../utils/arrayUtils';
+import { createReverseIterator } from '../utils/arrayUtils';
 import useElementRef from '../hooks/useElementRef';
+import { map } from '../utils/iterableUtils';
 
 export interface TableHeadProps {
     minColumnWidthPx: number;
@@ -18,7 +19,6 @@ function TableHead<TData extends TableData>(props: TableHeadProps) {
     const { minColumnWidthPx } = props;
 
     const { state, refs } = useRequiredContext(getTableContext<TData>());
-
     useUpdateWhen(state.headers.rowsChanged);
 
     const spacerRef = useElementRef<HTMLTableCellElement>();
@@ -34,7 +34,8 @@ function TableHead<TData extends TableData>(props: TableHeadProps) {
     >
         <ColumnGroup refMap={refs.headColumns} />
         <thead>
-        {mapReverse(state.headers.rows, (cells, height) => <tr className="rst-row" key={height}>
+        {Array.from(map(createReverseIterator(state.headers.rows), (cells, height) => <tr className="rst-row"
+                                                                                          key={height}>
             {cells.map(cell =>
                 <TableHeader
                     key={cell.id}
@@ -54,7 +55,7 @@ function TableHead<TData extends TableData>(props: TableHeadProps) {
                                headerRef={spacerRef}
                 />
             </th>
-        </tr>)}
+        </tr>))}
         </thead>
     </table>;
 }

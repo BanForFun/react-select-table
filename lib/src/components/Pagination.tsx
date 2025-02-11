@@ -1,6 +1,5 @@
 import React, { useCallback } from 'react';
 import AngleIcon, { Rotation } from './AngleIcon';
-import { repeat } from '../utils/arrayUtils';
 import { TableData } from '../utils/configUtils';
 import useRequiredContext from '../hooks/useRequiredContext';
 import getTableContext from '../context/tableContext';
@@ -28,20 +27,20 @@ const pageButtonProps = {
 export default function Pagination<TData extends TableData>() {
     const { state } = useRequiredContext(getTableContext<TData>());
 
-    useUpdateWhen(state.visibleRows.pageIndexChanged);
-    useUpdateWhen(state.visibleRows.pageCountChanged);
+    useUpdateWhen(state.rows.pageIndexChanged);
+    useUpdateWhen(state.rows.pageCountChanged);
 
-    const { pageIndex } = state.visibleRows;
-    const pageCount = state.visibleRows.calculatePageCount();
+    const { pageIndex } = state.rows;
+    const pageCount = state.rows.calculatePageCount();
 
     const getStepButtonPointerDownHandler = useCallback((step: Step) => {
         let timeoutId: number | null = null;
 
         const repeatAction = (delay = repeatDelay) => {
-            const pageIndex = state.visibleRows.pageIndex + step;
-            if (pageIndex < 0 || pageIndex >= state.visibleRows.calculatePageCount()) return;
+            const pageIndex = state.rows.pageIndex + step;
+            if (pageIndex < 0 || pageIndex >= state.rows.calculatePageCount()) return;
 
-            state.visibleRows.setPageIndex(pageIndex);
+            state.rows.setPageIndex(pageIndex);
 
             timeoutId = setTimeout(repeatAction, delay);
         };
@@ -67,11 +66,11 @@ export default function Pagination<TData extends TableData>() {
         };
     }, [state]);
 
-    if (!isFinite(state.pageSize.value)) return null;
+    if (!isFinite(state.page.size)) return null;
 
     const PageButton = ({ index }: { index: number }) =>
         <button {...pageButtonProps}
-                onClick={() => state.visibleRows.setPageIndex(index)}
+                onClick={() => state.rows.setPageIndex(index)}
                 data-is-current={index === pageIndex}
         >{index + 1}</button>;
 
@@ -110,8 +109,10 @@ export default function Pagination<TData extends TableData>() {
         pages.push(<PageButton key="page_last" index={pageCount - 1} />);
 
     return <div className="rst-pagination">
-        {repeat(width - pageFromStart, i => <div {...pageProps} key={`padding_left_${i}`} />)}
+        {Array.from({ length: width - pageFromStart }, (_, i) =>
+            <div {...pageProps} key={`padding_left_${i}`} />)}
         {pages}
-        {repeat(width - pageFromEnd, i => <div {...pageProps} key={`padding_right_${i}`} />)}
+        {Array.from({ length: width - pageFromEnd }, (_, i) =>
+            <div {...pageProps} key={`padding_right_${i}`} />)}
     </div>;
 }

@@ -8,9 +8,8 @@ export const sliceKeys = [
     'sortOrder',
     'headerSizes',
     'history',
-    'visibleRows',
     'selection',
-    'pageSize',
+    'page',
     'filter',
     'rows'
 ] as const;

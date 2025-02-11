@@ -1,13 +1,12 @@
 import Observable from '../models/Observable';
 import useForceUpdate from './useForceUpdate';
-import { useEffect } from 'react';
+import { useLayoutEffect } from 'react';
 import { Tuple } from '../utils/types';
-
 
 export default function useUpdateWhen<T extends Tuple>(observable: Observable<T>) {
     const [update, updated] = useForceUpdate();
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         return observable.addObserver(update);
     }, [observable, update]);
 

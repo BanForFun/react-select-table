@@ -6,34 +6,7 @@ export function remove<T>(array: T[], item: T): boolean {
     return true;
 }
 
-export function pushReverse<T>(dest: T[], source: T[]) {
-    for (let i = source.length - 1; i >= 0; i--) {
-        dest.push(source[i]);
-    }
-}
-
-export function repeat<T>(number: number, generate: (index: number) => T) {
-    const result: T[] = [];
-    for (let i = 0; i < number; i++)
-        result.push(generate(i));
-
-    return result;
-}
-
-export function* reverseIterator<T>(array: T[]) {
-    for (let i = array.length - 1; i >= 0; i--) {
+export function* createReverseIterator<T>(array: T[]): IterableIterator<T> {
+    for (let i = array.length - 1; i >= 0; i--)
         yield array[i];
-    }
-}
-
-export function mapReverse<T, R>(
-    array: T[],
-    converter: (value: T, index: number) => R
-) {
-    const result: R[] = [];
-    for (let i = array.length - 1; i >= 0; i--) {
-        result.push(converter(array[i], i));
-    }
-
-    return result;
 }

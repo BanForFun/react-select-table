@@ -10,6 +10,7 @@ import PageSlice from './PageSlice';
 import FilterSlice from './FilterSlice';
 import { filter, first, limit, minBy, skip } from '../../utils/iterableUtils';
 import { clamp } from '../../utils/numericUtils';
+import Flags from '../Flags';
 
 export type RowKey = string;
 
@@ -31,6 +32,13 @@ enum Pages {
     Last
 }
 
+enum StateDependencies {
+    PageIndex,
+    PageSize,
+    SortOrder,
+    Filter
+}
+
 export type Row<TData extends TableData> = TData['row']; //Maybe cache key in the future
 
 export default class RowSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>, RowConfig<TData>> {
@@ -38,8 +46,9 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
     #visibleCount: number = 0;
     #pageStart = new DLNodeWrapper<Row<TData>>();
     #pageEnd = new DLNodeWrapper<Row<TData>>();
-    #pageIndex: number = 0;
-    #oldPageIndex: number = 0;
+    #updateRequests = new Flags<StateDependencies>();
+    #targetPageIndex: number = 0;
+    #currentPageIndex: number = 0;
 
     protected _sliceKey: string = 'rows';
 
@@ -48,30 +57,26 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
     readonly pageCountChanged = new Observable();
 
     get pageIndex() {
-        return this.#pageIndex;
-    }
-
-    get #isPageValid() {
-        return isFinite(this.#oldPageIndex);
+        return this.#targetPageIndex;
     }
 
     #reloadPageForward(startRow: ConstDLNodeWrapper<Row<TData>>, startVisibleIndex: number) {
         this.#pageStart.clear();
 
         let visibleIndex = startVisibleIndex;
-        let pageIndex = this._state.page.calculatePageIndex(visibleIndex);
+        this.#currentPageIndex = this._state.page.calculatePageIndex(visibleIndex);
 
         for (const row of startRow.forwardIterator()) {
             if (!this._state.filter.isVisible(row)) continue;
 
             if (this._state.page.isStartIndex(visibleIndex)) {
                 this.#pageStart.set(row);
-                if (visibleIndex !== startVisibleIndex) pageIndex++;
+                if (visibleIndex !== startVisibleIndex) this.#currentPageIndex++;
             }
 
             if (this._state.page.isEndIndex(visibleIndex)) {
                 this.#pageEnd.set(row);
-                if (pageIndex >= this.pageIndex) return;
+                if (this.#currentPageIndex >= this.pageIndex) return;
             }
 
             visibleIndex++;
@@ -85,32 +90,32 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
         this.#pageEnd.clear();
 
         let visibleIndex = startVisibleIndex;
-        let pageIndex = this._state.page.calculatePageIndex(visibleIndex);
+        this.#currentPageIndex = this._state.page.calculatePageIndex(visibleIndex);
 
         for (const row of startRow.backwardIterator()) {
             if (!this._state.filter.isVisible(row)) continue;
 
             if (this._state.page.isEndIndex(visibleIndex)) {
                 this.#pageEnd.set(row);
-                if (visibleIndex !== startVisibleIndex) pageIndex--;
+                if (visibleIndex !== startVisibleIndex) this.#currentPageIndex--;
             }
 
             if (this._state.page.isStartIndex(visibleIndex)) {
                 this.#pageStart.set(row);
-                if (pageIndex <= this.pageIndex) return;
+                if (this.#currentPageIndex <= this.pageIndex) return;
             }
 
             visibleIndex--;
         }
     }
 
-    #reloadPageJob = () => {
+    #reloadPage() {
         const lastPageIndex = this.calculatePageCount() - 1;
 
         // When currentPageIndex is Infinity, it will never be selected as the start page
         const startPage = minBy([
             { type: Pages.First, index: 0 },
-            { type: Pages.Old, index: this.#oldPageIndex },
+            { type: Pages.Old, index: this.#currentPageIndex },
             { type: Pages.Last, index: lastPageIndex }
         ], s => Math.abs(s.index - this.pageIndex));
 
@@ -118,31 +123,50 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
             this.#reloadPageForward(this.#rows.head.const(), 0);
         else if (startPage.type === Pages.Last)
             this.#reloadPageBackward(this.#rows.tail.const(), this.#visibleCount - 1);
-        else if (this.pageIndex > this.#oldPageIndex)
-            this.#reloadPageForward(this.#pageEnd.const(), this._state.page.calculateEndIndex(this.#oldPageIndex));
-        else if (this.pageIndex < this.#oldPageIndex)
-            this.#reloadPageBackward(this.#pageStart.const(), this._state.page.calculateStartIndex(this.#oldPageIndex));
+        else if (this.pageIndex > this.#currentPageIndex)
+            this.#reloadPageForward(this.#pageEnd.const(), this._state.page.calculateEndIndex(this.#currentPageIndex));
+        else if (this.pageIndex < this.#currentPageIndex)
+            this.#reloadPageBackward(this.#pageStart.const(), this._state.page.calculateStartIndex(this.#currentPageIndex));
 
-        this.#oldPageIndex = this.pageIndex;
         this.changed.notify();
     };
 
     #invalidatePage() {
-        this.#oldPageIndex = Infinity;
-        this._state.scheduler._add(this.#reloadPageJob);
+        this.#currentPageIndex = Infinity;
     }
 
-    #invalidatePageIndex() {
-        this.setPageIndex(this.pageIndex);
+    #updateJob = () => {
+        //TODO: Implement
+
+        if (this.#updateRequests.isSet(StateDependencies.SortOrder)) {
+
+        }
+
+        // if (this.#updateRequests.isSet(StateDependencies.Filter)) {
+        //
+        // }
+        //
+        // if (this.#updateRequests.isSet(StateDependencies.PageSize)) {
+        //
+        // }
+        //
+        // if (this.#updateRequests.isSet(StateDependencies.PageIndex)) {
+        //
+        // }
+    };
+
+    #requestUpdate(changed: StateDependencies) {
+        this.#updateRequests.set(changed);
+        this._state.scheduler._add(this.#updateJob);
     }
 
     #setPageIndex = this._dispatcher('setPageIndex', (toUndo, index: number) => {
-        const originalIndex = this.#pageIndex;
+        const originalIndex = this.#targetPageIndex;
         if (originalIndex === index) return;
 
-        this.#pageIndex = index;
+        this.#targetPageIndex = index;
         this.pageIndexChanged.notify();
-        this._state.scheduler._add(this.#reloadPageJob);
+        this.#requestUpdate(StateDependencies.PageIndex);
 
         toUndo(this.#setPageIndex.action(originalIndex));
     });
@@ -167,19 +191,17 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
         return comparison.result * -1;
     };
 
-    #sort = () => {
-        this.#rows.sort(this.#compareRows);
-        this.#invalidatePage();
-    };
 
     constructor(config: OptionalIfPartial<RowConfig<TData>>, state: Dependencies<TData>) {
         super(config, state);
-        state.sortOrder.changed.addObserver(this.#sort);
+
+        state.sortOrder.changed.addObserver(() => {
+            this.#requestUpdate(StateDependencies.SortOrder);
+        });
 
         state.page.sizeChanged.addObserver(() => {
+            this.#requestUpdate(StateDependencies.PageSize);
             this.pageCountChanged.notify();
-            this.#invalidatePage();
-            this.#invalidatePageIndex();
         });
     }
 
@@ -218,8 +240,6 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
             this.#visibleCount++;
             const lastIndex = this.#visibleCount - 1;
 
-            if (!this.#isPageValid) continue; // Reload scheduled
-
             if (!passedStart)
                 this.#pageStart.set(this.#nextVisible(this.#pageStart.backwardIterator()));
 
@@ -246,13 +266,12 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
     });
 
     remove = this._dispatcher('remove', (toUndo, keys: Set<RowKey>) => {
-        const oldPageCount = this.calculatePageCount();
-
         const rowIterator = this.#rows.head.forwardIterator();
         const removed: Row<TData>[] = [];
         let previousRow: DLNode<Row<TData>> | undefined = undefined;
         let passedStart = false, passedEnd = false;
         let rowResult: IteratorResult<DLNode<Row<TData>>, void>;
+        let removedPages = false;
 
         while (keys.size > 0) {
             rowResult = rowIterator.next();
@@ -273,7 +292,7 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
             const oldLastIndex = this.#visibleCount - 1;
             this.#visibleCount--;
 
-            if (!this.#isPageValid) continue; // Reload scheduled
+            if (removedPages) continue;
 
             if (!passedStart)
                 this.#pageStart.set(this.#nextVisible(this.#pageStart.forwardIterator()));
@@ -281,18 +300,20 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
             if (!passedEnd)
                 this.#pageEnd.set(this.#nextVisible(this.#pageEnd.forwardIterator()));
 
-            if (oldLastIndex === this._state.page.calculateStartIndex(this.#oldPageIndex))
-                this.#invalidatePage();
+            if (oldLastIndex === this._state.page.calculateStartIndex(this.#currentPageIndex))
+                removedPages = true;
 
-            if (oldLastIndex === this._state.page.calculateEndIndex(this.#oldPageIndex))
+            if (oldLastIndex === this._state.page.calculateEndIndex(this.#currentPageIndex))
                 this.#pageEnd.clear();
         }
 
-        this.#invalidatePageIndex();
-        this.changed.notify();
-
-        if (this.calculatePageCount() !== oldPageCount)
+        if (removedPages) {
+            //TODO: Update page index
+            this.#reloadPageBackward(this.#rows.tail.const(), this.#visibleCount - 1);
             this.pageCountChanged.notify();
+        }
+
+        this.changed.notify();
 
         toUndo(this.add.action(removed));
     });

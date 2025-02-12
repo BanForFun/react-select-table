@@ -4,7 +4,7 @@ import Observable from '../Observable';
 import { TableData } from '../../utils/configUtils';
 import { createIterableIterator } from '../../utils/iterableUtils';
 import SchedulerSlice from './SchedulerSlice';
-import { optional } from '../../utils/types';
+import { optional } from '../../utils/typeUtils';
 import ColumnSlice from './ColumnSlice';
 import UndoableStateSlice from '../UndoableStateSlice';
 import HistorySlice from './HistorySlice';
@@ -82,7 +82,7 @@ export function* getLeafHeaders<TData extends TableData>(
     }
 }
 
-export default class HeaderSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>, object> {
+export default class HeaderSlice<TData extends TableData> extends UndoableStateSlice<TData, Dependencies<TData>, object> {
     readonly #headers: Header<TData>[] = [];
     rows: HeaderCell<TData>[][] = [[]];
 

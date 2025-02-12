@@ -6,7 +6,7 @@ interface Dependencies<TData extends TableData> {
     rows: RowSlice<TData>;
 }
 
-export default class SelectionSlice<TData extends TableData> extends StateSlice<Dependencies<TData>> {
+export default class SelectionSlice<TData extends TableData> extends StateSlice<TData, Dependencies<TData>> {
 
 
 }

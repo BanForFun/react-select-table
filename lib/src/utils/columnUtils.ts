@@ -1,5 +1,5 @@
 import React from 'react';
-import { Primitive } from './types';
+import { Primitive } from './typeUtils';
 import { comparePrimitives } from './sortUtils';
 
 export interface ColumnOptions {
@@ -18,7 +18,6 @@ export interface LeafColumn<TContext> extends BaseColumn {
     render: (context: TContext, options: ColumnOptions) => React.ReactNode;
     isHeader?: boolean;
     compareContext?: (a: TContext, b: TContext) => number;
-    // isContextEqual?: (a: TContext, b: TContext) => boolean;
     children?: never;
 }
 
@@ -40,7 +39,6 @@ export function simpleColumn(header: React.ReactNode, options: SimpleColumnOptio
         header,
         isHeader: options.isHeader,
         compareContext: options.allowSorting ? comparePrimitives : undefined,
-        // isContextEqual: (a, b) => a === b,
         render: (context) => context
     };
 }
@@ -55,9 +53,6 @@ export function withContext<TParentContext, TContext>(
 
         return {
             ...column,
-            // isContextEqual: isContextEqual
-            //     ? (a: TParentContext, b: TParentContext) => isContextEqual(getContext(a), getContext(b))
-            //     : isContextEqual,
             compareContext: compareContext
                 ? (a: TParentContext, b: TParentContext) => compareContext(getContext(a), getContext(b))
                 : compareContext,

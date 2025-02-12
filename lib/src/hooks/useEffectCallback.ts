@@ -1,4 +1,4 @@
-import { ActionCallback, EffectCallback, Tuple } from '../utils/types';
+import { ActionCallback, EffectCallback, Tuple } from '../utils/typeUtils';
 import { useCallback, useRef } from 'react';
 
 export default function useEffectCallback<T extends Tuple>(callback: EffectCallback<T>) {

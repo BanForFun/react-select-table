@@ -68,7 +68,6 @@ function TableHeader<TData extends TableData>(props: TableHeaderProps<TData>) {
         const { path } = sortable;
 
         state.history.group(() => {
-            state.rows.setPageIndex(0);
             state.sortOrder.sortBy(path, order, append);
         });
     };

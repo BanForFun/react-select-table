@@ -1,7 +1,6 @@
 import getTableContext, { TableRefs } from '../context/tableContext';
 import { TableData } from '../utils/configUtils';
 import State from '../models/state';
-import Pagination from './Pagination';
 import ScrollingContainer from './ScrollingContainer';
 import useConstant from '../hooks/useConstant';
 import { createElementRef } from '../utils/refUtils';
@@ -35,7 +34,6 @@ export default function Table<TData extends TableData>(props: TableProps<TData>)
     return <div className="rst-container" data-header-nowrap={headerNoWrap}>
         <TableContext.Provider value={contextValue}>
             <ScrollingContainer minColumnWidthPx={minColumnWidthPx} />
-            <Pagination />
         </TableContext.Provider>
     </div>;
 }

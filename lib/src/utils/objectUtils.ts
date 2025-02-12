@@ -1,45 +1,12 @@
-import { GenericComparatorCallback } from './types';
-
-function isObject(obj: unknown): obj is object {
-    return obj !== null && typeof obj === 'object';
-}
+import { GenericEqualityComparatorCallback, isInstance, TypePredicateCallback } from './typeUtils';
 
 export function deepFreeze<T>(obj: T) {
     for (const key in obj) {
-        if (isObject(obj[key]))
+        if (isInstance(obj[key]))
             deepFreeze(obj[key]);
     }
 
     return Object.freeze(obj);
-}
-
-export function assignDefaults<
-    TObject extends Partial<TSource>,
-    TSource extends { [key in keyof TSource]: TObject[key] }
->(object: TObject, source: TSource): TObject & TSource {
-    for (const key in source) {
-        object[key] ??= source[key];
-    }
-
-    return object as TObject & TSource;
-}
-
-export function assign<
-    TObject extends TSource,
-    TSource extends { [key in keyof TSource]: TObject[key] }
->(object: TObject, source: TSource): TObject & TSource {
-    for (const key in source) {
-        object[key] = source[key];
-    }
-
-    return object as TObject & TSource;
-}
-
-export function buildObject<T>(builder: (result: Partial<T>) => void) {
-    const result = {} as Partial<T>;
-    builder(result);
-
-    return result as T;
 }
 
 export function mapValues<TSource, TMapped>(
@@ -61,7 +28,7 @@ export function mapMethods<TSource extends Record<keyof TSource, (...args: never
     return mapValues(obj, map);
 }
 
-export function extract<TObject extends object, TValue>(object: TObject, isValue: (v: unknown) => v is TValue) {
+export function extract<TObject extends object, TValue>(object: TObject, isValue: TypePredicateCallback<TValue>) {
     const result = {} as Record<keyof TObject, TValue>;
 
     for (const key in object) {
@@ -72,7 +39,7 @@ export function extract<TObject extends object, TValue>(object: TObject, isValue
     return result;
 }
 
-function _isSubset<T extends object>(a: T, b: T, compare: GenericComparatorCallback) {
+function _isSubset<T extends object>(a: T, b: T, compare: GenericEqualityComparatorCallback) {
     for (const key in a) {
         if (!compare(a[key], b[key])) return false;
     }
@@ -80,14 +47,11 @@ function _isSubset<T extends object>(a: T, b: T, compare: GenericComparatorCallb
     return true;
 }
 
-function _isEqual<T>(a: T, b: T, compare: GenericComparatorCallback) {
+function _isEqual<T>(a: T, b: T, compare: GenericEqualityComparatorCallback) {
     if (a === b)
         return true;
 
-    if (typeof a !== 'object' || typeof b !== 'object')
-        return false;
-
-    if (a === null || b === null)
+    if (!isInstance(a) || !isInstance(b))
         return false;
 
     return _isSubset(a, b, compare) && _isSubset(b, a, compare);
@@ -99,4 +63,26 @@ export function isDeepEqual<T>(a: T, b: T): boolean {
 
 export function isShallowEqual<T>(a: T, b: T): boolean {
     return _isEqual(a, b, (a, b) => a === b);
+}
+
+export function defaults<
+    T extends { [K in keyof S]?: T[K] },
+    S extends { [K in keyof S]: T[K] }
+>(target: T, source: S) {
+    for (const key in source) {
+        target[key] ??= source[key];
+    }
+
+    return target as T & S;
+}
+
+export function patch<
+    T extends { [K in keyof S]: T[K] },
+    S extends { [K in keyof S]: T[K] }
+>(target: T, source: S) {
+    for (const key in source) {
+        target[key] = source[key];
+    }
+
+    return target as T & S;
 }

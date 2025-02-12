@@ -1,4 +1,4 @@
-import { ConverterCallback, Tuple } from './types';
+import { ConverterCallback, Tuple } from './typeUtils';
 
 export function bindPartial<H extends Tuple, T extends Tuple, R>(
     callback: (...args: [...H, ...T]) => R,

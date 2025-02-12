@@ -1,4 +1,4 @@
-import { Tuple } from '../utils/types';
+import { Tuple } from '../utils/typeUtils';
 
 type Observer<TArgs extends Tuple> = (...args: TArgs) => void;
 

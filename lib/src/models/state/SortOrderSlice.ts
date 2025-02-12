@@ -1,6 +1,6 @@
 import { TableData } from '../../utils/configUtils';
 import SchedulerSlice from './SchedulerSlice';
-import { PickRequired } from '../../utils/types';
+import { PickRequired } from '../../utils/typeUtils';
 import { Column, isColumnGroup, LeafColumn } from '../../utils/columnUtils';
 import { indexOf } from '../../utils/iterableUtils';
 import Observable from '../Observable';
@@ -26,7 +26,7 @@ export function isSortableColumn<TContext>(column: Column<TContext>): column is 
     return !isColumnGroup(column) && column.compareContext !== undefined;
 }
 
-export default class SortOrderSlice<TData extends TableData> extends UndoableStateSlice<Dependencies<TData>> {
+export default class SortOrderSlice<TData extends TableData> extends UndoableStateSlice<TData, Dependencies<TData>> {
     readonly #sortOrders = new Map<SortableColumn<TData['row']>, SortOrder>();
 
     protected _sliceKey: string = 'sortOrder';
@@ -65,17 +65,18 @@ export default class SortOrderSlice<TData extends TableData> extends UndoableSta
         return { index: indexOf(this.#sortOrders.keys(), column), order };
     }
 
-    compareRowData(a: TData['row'], b: TData['row']) {
-        let lastOrder: SortOrder = 'ascending';
+    compareRowData(a: TData['row'], b: TData['row']): number {
         for (const [column, order] of this.#sortOrders) {
             const result = column.compareContext(a, b);
-            if (result !== 0)
-                return { order, result };
+            if (result === 0) continue;
 
-            lastOrder = order;
+            if (order === 'descending')
+                return result * -1;
+
+            return result;
         }
 
-        return { order: lastOrder, result: 0 };
+        return 0;
     }
 
     sortBy = this._dispatcher('sortBy', (toUndo, path: TreePath, newOrder: NewSortOrder, append: boolean) => {

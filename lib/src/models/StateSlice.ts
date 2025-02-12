@@ -1,27 +1,13 @@
 import { deepFreeze } from '../utils/objectUtils';
-import { OptionalIfPartial } from '../utils/types';
-
-export const sliceKeys = [
-    'columns',
-    'scheduler',
-    'headers',
-    'sortOrder',
-    'headerSizes',
-    'history',
-    'selection',
-    'page',
-    'filter',
-    'rows'
-] as const;
-
-export type SliceKeys = typeof sliceKeys[number];
-
-export type Slices = Record<SliceKeys, StateSlice>;
+import { OptionalIfPartial } from '../utils/typeUtils';
+import { TableData } from '../utils/configUtils';
+import type State from './state';
 
 export const dependenciesSymbol = Symbol('dependencies');
 
 export default abstract class StateSlice<
-    TState extends Partial<Slices> = object,
+    TData extends TableData = TableData,
+    TState extends Partial<State<TData>> = object,
     TConf extends object = object
 > {
     [dependenciesSymbol]: TState;

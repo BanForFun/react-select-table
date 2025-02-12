@@ -1,4 +1,4 @@
-import { optional } from './types';
+import { optional } from './typeUtils';
 
 interface NodeLike<T> {
     children?: (T & NodeLike<T>)[];

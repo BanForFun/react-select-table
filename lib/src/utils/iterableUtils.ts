@@ -1,4 +1,4 @@
-import { ConverterCallback, PredicateCallback } from './types';
+import { ConverterCallback, PredicateCallback } from './typeUtils';
 
 export function indexOf<T>(iterable: Iterable<T>, key: T): number {
     let i = 0;
@@ -11,11 +11,29 @@ export function indexOf<T>(iterable: Iterable<T>, key: T): number {
 }
 
 export function at<T>(iterable: Iterable<T>, index: number): T | undefined {
+    if (index < 0)
+        throw new Error('Index must be positive');
+
     let i = 0;
     for (const item of iterable) {
         if (i === index) return item;
         i++;
     }
+}
+
+export function closest<T>(iterable: Iterable<T>, index: number): T | undefined {
+    if (index < 0)
+        throw new Error('Index must be positive');
+
+    let i = 0;
+    let last: T | undefined = undefined;
+    for (const item of iterable) {
+        if (i === index) return item;
+        last = item;
+        i++;
+    }
+
+    return last;
 }
 
 export function* limit<T>(iterable: Iterable<T>, count: number): IterableIterator<T> {
@@ -72,20 +90,17 @@ export function* map<TSource, TResult>(
         yield converter(item, index++);
 }
 
-export function minBy<F, T>(iterable: Iterable<F>, by: ConverterCallback<F, T>): F {
+export function minBy<F, T>(iterable: Iterable<F>, by: ConverterCallback<F, T>) {
     let min: F | undefined = undefined;
     for (const value of iterable) {
         if (min === undefined || by(value) < by(min))
             min = value;
     }
 
-    if (min === undefined)
-        throw new Error('Iterable is empty');
-
     return min;
 }
 
-export function min<T>(iterable: Iterable<T>): T {
+export function min<T>(iterable: Iterable<T>) {
     return minBy(iterable, v => v);
 }
 

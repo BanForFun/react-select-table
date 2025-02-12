@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect } from 'react';
 import Observable from '../models/Observable';
-import { EffectCallback } from './types';
+import { EffectCallback } from './typeUtils';
 import useEffectCallback from '../hooks/useEffectCallback';
 
 export interface ElementRef<T extends HTMLElement = HTMLElement> {

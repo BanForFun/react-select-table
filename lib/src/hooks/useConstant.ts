@@ -1,4 +1,4 @@
-import { CreatorCallback } from '../utils/types';
+import { CreatorCallback } from '../utils/typeUtils';
 import { useRef } from 'react';
 
 export default function useConstant<T>(create: CreatorCallback<T>) {

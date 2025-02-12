@@ -34,28 +34,28 @@ function TableHead<TData extends TableData>(props: TableHeadProps) {
     >
         <ColumnGroup refMap={refs.headColumns} />
         <thead>
-        {Array.from(map(createReverseIterator(state.headers.rows), (cells, height) => <tr className="rst-row"
-                                                                                          key={height}>
-            {cells.map(cell =>
-                <TableHeader
-                    key={cell.id}
-                    span={cell.span}
-                    column={cell.column}
-                    header={cell.header}
-                    minColumnWidthPx={minColumnWidthPx}
-                />
-            )}
-            <th className="rst-spacer" ref={spacerRef.set}>
-                <ColumnResizer type={ResizerType.Normal}
-                               minColumnWidthPx={minColumnWidthPx}
-                               headerRef={spacerRef}
-                />
-                <ColumnResizer type={ResizerType.Edge}
-                               minColumnWidthPx={minColumnWidthPx}
-                               headerRef={spacerRef}
-                />
-            </th>
-        </tr>))}
+        {Array.from(map(createReverseIterator(state.headers.rows), (cells, height) =>
+            <tr className="rst-row" key={height}>
+                {cells.map(cell =>
+                    <TableHeader
+                        key={cell.id}
+                        span={cell.span}
+                        column={cell.column}
+                        header={cell.header}
+                        minColumnWidthPx={minColumnWidthPx}
+                    />
+                )}
+                <th className="rst-spacer" ref={spacerRef.set}>
+                    <ColumnResizer type={ResizerType.Normal}
+                                   minColumnWidthPx={minColumnWidthPx}
+                                   headerRef={spacerRef}
+                    />
+                    <ColumnResizer type={ResizerType.Edge}
+                                   minColumnWidthPx={minColumnWidthPx}
+                                   headerRef={spacerRef}
+                    />
+                </th>
+            </tr>))}
         </thead>
     </table>;
 }

@@ -1,7 +1,8 @@
 import StateSlice from '../StateSlice';
 import { log } from '../../utils/debugUtils';
-import { ActionCallback } from '../../utils/types';
+import { ActionCallback } from '../../utils/typeUtils';
 import SchedulerSlice from './SchedulerSlice';
+import { TableData } from '../../utils/configUtils';
 
 interface Dependencies {
     scheduler: SchedulerSlice;
@@ -24,7 +25,7 @@ export type Dispatcher<TArgs extends unknown[], TResult> = ((...args: TArgs) => 
 
 type GroupCallback<T> = (group: ActionGroup) => T;
 
-export default class HistorySlice extends StateSlice<Dependencies> {
+export default class HistorySlice extends StateSlice<TableData, Dependencies> {
     readonly #handlers: Record<string, Handler<unknown[], unknown>> = {};
     #currentGroup: ActionGroup | null = null;
     #past: ActionGroup[] = [];

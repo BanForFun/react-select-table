@@ -18,7 +18,7 @@ export default function TableBody<TData extends TableData>() {
         <tbody>
         {Array.from(map(state.rows.iterator(), row =>
             <TableRow
-                key={state.rows.getRowKey(row)}
+                key={state.rows.config.getRowKey(row)}
                 data={row}
             />
         ))}

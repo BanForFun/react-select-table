@@ -10,7 +10,7 @@ interface Dependencies {
 export type SortOrder = 'ascending' | 'descending';
 export type NewSortOrder = SortOrder | null | 'toggle' | 'cycle';
 
-export default class ColumnSlice<TData extends TableData> extends StateSlice<Dependencies, Column<TData['row']>[]> {
+export default class ColumnSlice<TData extends TableData> extends StateSlice<TData, Dependencies, Column<TData['row']>[]> {
     #paths = new Map<Column<TData['row']>, TreePath>();
 
     getAtPath(path: TreePath): Column<TData['row']> {

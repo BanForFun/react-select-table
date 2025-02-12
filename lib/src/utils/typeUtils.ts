@@ -21,14 +21,17 @@ export type ObjectValue<O extends object> = O[keyof O];
 
 export type PickExisting<T, K> = Pick<T, K & keyof T>;
 
-export type OptionalIfPartial<T extends object> = object extends T ? T | undefined : T;
+export type Flatten<T> = { [K in keyof T]: T[K] };
 
-export type Defined<T> = T & { [K in keyof T]-?: unknown }
+export type OptionalIfPartial<T extends object> = object extends T ? T | undefined : T;
 
 export type PartialByValue<T, D = undefined> = Partial<T> & {
     [K in keyof T as D extends T[K] ? never : K]: T[K]
 }
 
+export type DeepPartial<T> = T extends object ? {
+    [P in keyof T]?: DeepPartial<T[P]>
+} : T;
 
 const incompatibleKeySymbol = Symbol('incompatibleKey');
 
@@ -41,13 +44,19 @@ export type CreatorCallback<T> = () => T;
 
 export type ConverterCallback<F, T> = (value: F) => T;
 
-export type ComparatorCallback<T> = (a: T, b: T) => boolean;
+export type EqualityComparatorCallback<T> = (a: T, b: T) => boolean;
 
-export type GenericComparatorCallback = <T>(a: T, b: T) => boolean;
+export type GenericEqualityComparatorCallback = <T>(a: T, b: T) => boolean;
+
+export type TypePredicateCallback<T> = (v: unknown) => v is T;
 
 export type PredicateCallback<T> = (value: T) => boolean;
 
+export type GeneratorPredicateCallback<T> = (value: T) => { done?: boolean, value: boolean }
+
 export type EffectCallback<T extends Tuple = []> = (...args: T) => (void | ActionCallback);
+
+export type ComparatorCallback<T> = (a: T, b: T) => number;
 
 
 export function nullable<T>(value: T): T | null {
@@ -56,4 +65,12 @@ export function nullable<T>(value: T): T | null {
 
 export function optional<T>(value: T): T | undefined {
     return value;
+}
+
+export function isInstance(obj: unknown): obj is object {
+    return obj !== null && typeof obj === 'object';
+}
+
+export function isDictionary(obj: unknown): obj is object {
+    return isInstance(obj) && !Array.isArray(obj);
 }

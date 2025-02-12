@@ -1,6 +1,6 @@
 import Observable from '../Observable';
 import StateSlice from '../StateSlice';
-import { ActionCallback, CreatorCallback } from '../../utils/types';
+import { ActionCallback, CreatorCallback } from '../../utils/typeUtils';
 
 type Job = () => void;
 

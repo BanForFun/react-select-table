@@ -1,97 +1,122 @@
 const previousSymbol = Symbol('previous');
 const nextSymbol = Symbol('next');
 
-export type DLNode<T = unknown> = T & {
+export type DLNode<T> = T & {
     [previousSymbol]: DLNode<T> | null;
     [nextSymbol]: DLNode<T> | null;
 };
 
-type Comparator<T> = (a: T, b: T) => number;
-type Predicate<T> = (item: T) => boolean;
+type Chain<T> = Readonly<{
+    head: DLNode<T>;
+    tail: DLNode<T>;
+    length: number;
+}>
 
-export function getNextNode<T>(node: DLNode<T> | null): DLNode<T> | null {
-    return node == null ? null : node[nextSymbol];
-}
-
-export function getPreviousNode<T>(node: DLNode<T> | null): DLNode<T> | null {
-    return node == null ? null : node[previousSymbol];
-}
-
-class BaseDLNodeWrapper<T> {
-    constructor(protected _node: DLNode<T> | null = null) {
-
-    }
-
-    get current() {
-        return this._node;
-    }
-
-    get previous() {
-        return getPreviousNode(this.current);
-    }
-
-    get next() {
-        return getNextNode(this.current);
-    }
-
-    * #iterator(direction: keyof DLNode) {
-        let current = this._node;
-        while (current != null) {
-            yield current;
-            current = current[direction];
-        }
-    }
-
-    forwardIterator() {
-        return this.#iterator(nextSymbol);
-    }
-
-    backwardIterator() {
-        return this.#iterator(previousSymbol);
+function* iterator<T>(current: DLNode<T> | null, direction: keyof DLNode<unknown>): IterableIterator<DLNode<T>> {
+    while (current != null) {
+        yield current;
+        current = current[direction];
     }
 }
 
-export class ConstDLNodeWrapper<T> extends BaseDLNodeWrapper<T> {
-    readonly isConstant = true;
-}
+//region Unused
 
-export class ReadonlyDLNodeWrapper<T> extends BaseDLNodeWrapper<T> {
-    readonly isConstant = false;
+// type Origin<T> = Readonly<{
+//     index: number;
+//     node: DLNode<T>;
+// }>
 
-    const() {
-        return new ConstDLNodeWrapper(this._node);
+// function createOrigin<T>(node: DLNode<T> | null, index: number): Origin<T> {
+//     if (!node) throw new Error('List is empty');
+//     return { node, index };
+// }
+
+// function createChain<T>(start: Origin<T>, end: Origin<T>): Chain<T> {
+//     let head = start;
+//     let tail = end;
+//
+//     if (end.index < start.index) {
+//         head = end;
+//         tail = start;
+//     }
+//
+//     return {
+//         head: head.node,
+//         tail: tail.node,
+//         length: tail.index - head.index
+//     };
+// }
+//
+// function pickOrigin<T>(index: number, ...origins: Origin<T>[]) {
+//     const best = minBy(origins, o => Math.abs(o.index - index));
+//     if (!best) throw new Error('No origins provided');
+//
+//     return best;
+// }
+
+// function findByIndex<T>(index: number, origin: Origin<T>): Origin<T> {
+//     const offset = index - origin.index;
+//     const forward = offset > 0;
+//     const steps = Math.abs(offset);
+//
+//     const iteratorFactory = forward ? DLList.forwardIterator : DLList.backwardIterator;
+//     const node = at(iteratorFactory(origin.node), steps);
+//     if (!node) throw new Error('Index out of range');
+//
+//     return { node, index };
+// }
+
+//endregion
+
+export default class DLList<T extends object = object> implements Iterable<DLNode<T>> {
+    static getNext = <T>(node: DLNode<T> | null) =>
+        node == null ? null : node[nextSymbol];
+
+    static getPrevious = <T>(node: DLNode<T> | null) =>
+        node == null ? null : node[previousSymbol];
+
+    static iterator = <T>(start: DLNode<T> | null) =>
+        iterator(start, nextSymbol);
+
+    static reverseIterator = <T>(start: DLNode<T> | null) =>
+        iterator(start, previousSymbol);
+
+    #head: DLNode<T> | null = null;
+    #tail: DLNode<T> | null = null;
+    #count = 0;
+
+    get head() {
+        return this.#head;
     }
-}
 
-export class DLNodeWrapper<T> extends ReadonlyDLNodeWrapper<T> {
-    clear() {
-        this._node = null;
+    get tail() {
+        return this.#tail;
     }
 
-    set(node: DLNode<T> | null): void {
-        this._node = node;
+    get count() {
+        return this.#count;
     }
-}
 
-export default class DLList<T extends object = object> {
-    #head = new DLNodeWrapper<T>();
-    #tail = new DLNodeWrapper<T>();
+    get isEmpty() {
+        return this.#count === 0;
+    }
+
+    #node(previous: DLNode<T> | null, data: T, next: DLNode<T> | null): DLNode<T> {
+        return Object.assign(data, { [previousSymbol]: previous, [nextSymbol]: next });
+    }
 
     #link(previous: DLNode<T> | null, node: T, next: DLNode<T> | null): DLNode<T> {
-        const linked: DLNode<T> = Object.assign(node, {
-            [previousSymbol]: previous,
-            [nextSymbol]: next
-        });
+        const linked: DLNode<T> | null = this.#node(previous, node, next);
 
         if (previous != null)
             previous[nextSymbol] = linked;
         else
-            this.#head.set(linked);
+            this.#head = linked;
 
         if (next != null)
             next[previousSymbol] = linked;
         else
-            this.#tail.set(linked);
+            this.#tail = linked;
 
         return linked;
     }
@@ -100,110 +125,154 @@ export default class DLList<T extends object = object> {
         if (first != null)
             first[nextSymbol] = second;
         else
-            this.#head.set(second);
+            this.#head = second;
 
         if (second != null)
             second[previousSymbol] = first;
         else
-            this.#tail.set(first);
+            this.#tail = first;
     }
 
-    sort(comparator: Comparator<T>) {
-        const nodes = [...this.head.forwardIterator()].sort(comparator);
+    #chain(items: T[]): Chain<T> {
+        if (!items.length) throw new Error('No items provided');
 
-        let prevNode: DLNode<T> | null = null;
-        for (const node of nodes) {
-            this.#order(prevNode, node);
-            prevNode = node;
-        }
+        for (let i = 0; i < items.length; ++i)
+            this.#node((items[i - 1] as DLNode<T>) ?? null, items[i], (items[i + 1] as DLNode<T>) ?? null);
 
-        this.#order(prevNode, null);
+        return {
+            head: items.at(0) as DLNode<T>,
+            tail: items.at(-1) as DLNode<T>,
+            length: items.length
+        };
+    }
+
+    //region Unused
+
+    // #headOrigin() {
+    //     return createOrigin(this.#head, 0);
+    // }
+    //
+    // #tailOrigin() {
+    //     return createOrigin(this.#tail, this.#count - 1);
+    // }
+
+    // #pickOrigin(index: number, ...additionalOrigins: Origin<T>[]) {
+    //     return pickOrigin(index, this.#headOrigin(), this.#tailOrigin(), ...additionalOrigins);
+    // }
+
+    // #findByIndex(index: number, ...additionalOrigins: Origin<T>[]) {
+    //     const origin = this.#pickOrigin(index, ...additionalOrigins);
+    //     return findByIndex(index, origin);
+    // }
+
+    // #partition(startIndex: number, endIndex: number): Chain<T> {
+    //     const start = this.#findByIndex(startIndex);
+    //     const end = this.#findByIndex(endIndex, start);
+    //     return createChain(start, end);
+    // }
+    //
+    // #transplant(old: Chain<T>, replacement: Chain<T>) {
+    //     this.#order(DLList.getPrevious(old.head), replacement.head);
+    //     this.#order(replacement.tail, DLList.getNext(old.tail));
+    //     this.#count += replacement.length - old.length;
+    // }
+    //
+    // #isValidIndex(index: number) {
+    //     return inRange(index, 0, this.#count - 1);
+    // }
+
+    // overwrite(index: number, rows: T[]) {
+    //     if (!rows.length) return;
+    //
+    //     if (!this.#isValidIndex(index))
+    //         throw new Error('Invalid index');
+    //
+    //     const lastIndex = Math.min(this.#count, index + rows.length) - 1;
+    //     this.#transplant(this.#partition(index, lastIndex), this.#chain(rows));
+    // }
+
+    // addSorted(items: T[], comparator: ComparatorCallback<T>) {
+    //     const sortedItems = createIterator(items.sort(comparator));
+    //
+    //     let item = sortedItems.next();
+    //     let existingItem = this.#head;
+    //
+    //     while (!item.done) {
+    //         if (existingItem == null) {
+    //             this.append(item.value);
+    //             item = sortedItems.next();
+    //         } else if (comparator(item.value, existingItem) < 0) {
+    //             this.prepend(item.value, existingItem);
+    //             item = sortedItems.next();
+    //         } else {
+    //             existingItem = existingItem[nextSymbol];
+    //         }
+    //     }
+    // }
+    //
+    // remove(predicate: PredicateCallback<T>) {
+    //     const removed: T[] = [];
+    //     for (const node of DLList.forwardIterator(this.head)) {
+    //         if (!predicate(node)) continue;
+    //         this.unlink(node);
+    //         removed.push(node);
+    //     }
+    //
+    //     return removed;
+    // }
+
+    //endregion
+
+    [Symbol.iterator](): Iterator<DLNode<T>> {
+        return DLList.iterator(this.head);
+    }
+
+    reverseIterator(): IterableIterator<DLNode<T>> {
+        return DLList.reverseIterator(this.tail);
     }
 
     unlink(node: DLNode<T>) {
-        if (node[previousSymbol] != null)
-            node[previousSymbol][nextSymbol] = node[nextSymbol];
-        else
-            this.#head.set(node[nextSymbol]);
-
-        if (node[nextSymbol] != null)
-            node[nextSymbol][previousSymbol] = node[previousSymbol];
-        else
-            this.#tail.set(node[previousSymbol]);
+        this.#count--;
+        this.#order(node[previousSymbol], node[nextSymbol]);
     }
 
-    unlinkRight(node: DLNode<T>) {
-        this.#order(node[previousSymbol], null);
+    append(node: T, after = this.#tail) {
+        this.#count++;
+        return this.#link(after, node, DLList.getNext(after));
     }
 
-    unlinkLeft(node: DLNode<T>) {
-        this.#order(null, node[nextSymbol]);
+    prepend(node: T, before = this.#head) {
+        this.#count++;
+        return this.#link(DLList.getPrevious(before), node, before);
     }
 
-    append(node: T, after = this.#tail.current) {
-        return this.#link(after, node, getNextNode(after));
-    }
-
-    prepend(node: T, before = this.#head.current) {
-        return this.#link(getPreviousNode(before), node, before);
+    replace(old: DLNode<T>, replacement: T) {
+        this.#link(DLList.getPrevious(old), replacement, DLList.getNext(old));
     }
 
     pop() {
-        if (this.#tail.current)
-            this.unlink(this.#tail.current);
+        if (this.#tail)
+            this.unlink(this.#tail);
     }
 
     shift() {
-        if (this.#head.current)
-            this.unlink(this.#head.current);
+        if (this.#head)
+            this.unlink(this.#head);
     }
 
-    add(items: T[], comparator: Comparator<T>) {
-        items.sort(comparator);
+    push(rows: T[]) {
+        if (!rows.length) return;
 
-        let newIndex = 0;
-        let existingItem = this.#head.current;
+        const chain = this.#chain(rows);
+        this.#order(this.#tail, chain.head);
+        this.#order(chain.tail, null);
 
-        while (existingItem != null || newIndex < items.length) {
-            if (existingItem == null)
-                this.append(items[newIndex++]);
-            else if (newIndex < items.length && comparator(items[newIndex], existingItem) < 0)
-                this.prepend(items[newIndex++], existingItem);
-            else
-                existingItem = existingItem[nextSymbol];
-        }
-    }
-
-    remove(predicate: Predicate<T>) {
-        const removed: T[] = [];
-        for (const node of this.head.forwardIterator()) {
-            if (!predicate(node)) continue;
-            this.unlink(node);
-            removed.push(node);
-        }
-
-        return removed;
+        this.#count += rows.length;
     }
 
     clear() {
-        this.#head.clear();
-        this.#tail.clear();
-    }
-
-    get head(): ReadonlyDLNodeWrapper<T> {
-        return this.#head;
-    }
-
-    get tail(): ReadonlyDLNodeWrapper<T> {
-        return this.#tail;
+        this.#count = 0;
+        this.#head = null;
+        this.#tail = null;
     }
 }
-
-type Functions = keyof DLList;
-
-type Allow<T extends Functions> = T;
-
-export type Sorted = Allow<'sort' | 'unlink' | 'unlinkLeft' | 'unlinkRight' | 'pop' | 'shift' | 'add' | 'remove' | 'clear' | 'head' | 'tail'>
-
-export type RestrictedDLList<T extends object, TAllow extends Functions> =
-    DLList<T> & Record<Exclude<Functions, TAllow>, never>;

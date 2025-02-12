@@ -67,3 +67,10 @@ export function* partialNamedTable<T extends object>(columns: IteratorsFor<T>): 
         yield row;
     }
 }
+
+export function* step(start: number, step: number) {
+    while (true) {
+        yield start;
+        start += step;
+    }
+}

@@ -87,12 +87,10 @@ const state = createState<Lesson>({
     ]
 });
 
-state.page.setSize(20);
-
 for (let i = 0; i < state.columns.config.length; i++)
     state.headers.add([i], []);
 
-state.sortOrder.sortBy([0], 'ascending', false);
+// state.sortOrder.sortBy([0], 'ascending', false);
 
 state.rows.add([
     {
@@ -130,18 +128,6 @@ function App() {
 
     const columnPathInputRef = useRef<HTMLInputElement>(null);
     const headerPathInputRef = useRef<HTMLInputElement>(null);
-    const pageSizeInputRef = useRef<HTMLInputElement>(null);
-    const pageIndexInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => state.rows.pageIndexChanged.addObserver(() => {
-        if (pageIndexInputRef.current)
-            pageIndexInputRef.current.value = state.rows.pageIndex.toString();
-    }), []);
-
-    useEffect(() => state.page.sizeChanged.addObserver(() => {
-        if (pageSizeInputRef.current)
-            pageSizeInputRef.current.value = state.page.size.toString();
-    }), []);
 
     const addLesson = () => {
         const id = nextIdRef.current++;
@@ -156,7 +142,7 @@ function App() {
         const firstRow = state.rows.iterator().next();
         if (firstRow.done) return;
 
-        state.rows.remove(new Set([firstRow.value.id]));
+        state.rows.removeKeys(new Set([firstRow.value.id]));
     };
 
     return <div>
@@ -175,26 +161,6 @@ function App() {
                 parseColumnPathInput(headerPathInputRef.current?.value)
             )}>
                 Add header
-            </button>
-        </div>
-
-        <div>
-            <label htmlFor="pageSize">Page size</label>
-            <input id="pageSize" type="number" ref={pageSizeInputRef} />
-            <button onClick={() => {
-                const value = pageSizeInputRef.current?.value;
-                state.page.setSize(value ? parseInt(value) : Infinity);
-            }}>Set
-            </button>
-        </div>
-
-        <div>
-            <label htmlFor="pageIndex">Page index</label>
-            <input id="pageIndex" type="number" ref={pageIndexInputRef} />
-            <button onClick={() => {
-                const value = pageIndexInputRef.current?.value;
-                state.rows.setPageIndex(value ? parseInt(value) : 0);
-            }}>Set
             </button>
         </div>
 

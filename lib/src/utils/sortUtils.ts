@@ -1,4 +1,4 @@
-import { Primitive } from './types';
+import { Primitive } from './typeUtils';
 
 export function comparePrimitives(value: Primitive, other: Primitive) {
     if (value === other) return 0;

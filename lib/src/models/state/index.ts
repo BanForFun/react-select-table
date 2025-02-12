@@ -6,38 +6,38 @@ import SchedulerSlice from './SchedulerSlice';
 import SortOrderSlice from './SortOrderSlice';
 import HeaderSizeSlice from './HeaderSizeSlice';
 import SelectionSlice from './SelectionSlice';
-import PageSlice from './PageSlice';
 import FilterSlice from './FilterSlice';
-import { dependenciesSymbol, sliceKeys, SliceKeys, Slices } from '../StateSlice';
-import { PartialByValue } from '../../utils/types';
-import { assign } from '../../utils/objectUtils';
+import { dependenciesSymbol } from '../StateSlice';
+import { PartialByValue } from '../../utils/typeUtils';
+import { patch } from '../../utils/objectUtils';
 import ColumnSlice from './ColumnSlice';
 
-export default class State<TData extends TableData, TShared extends SliceKeys = never> implements Slices {
+export default class State<TData extends TableData, TShared extends SliceKeys = never> {
     scheduler: SchedulerSlice;
     headers: HeaderSlice<TData>;
     sortOrder: SortOrderSlice<TData>;
     headerSizes: HeaderSizeSlice<TData>;
     history: HistorySlice;
     selection: SelectionSlice<TData>;
-    page: PageSlice;
     filter: FilterSlice<TData>;
     rows: RowSlice<TData>;
     columns: ColumnSlice<TData>;
 
     #installDependencies(dependencies: Partial<State<TData>>) {
-        for (const name of sliceKeys) {
-            const dependency = dependencies[name];
+        for (const name in this) {
+            const sliceName = name as SliceKeys; //This is safe to assume at this point
+
+            const dependency = dependencies[sliceName];
             if (!dependency) continue;
 
-            const installed = this[name];
+            const installed = this[sliceName];
             if (!installed)
                 this.#installDependencies(dependency[dependenciesSymbol]);
             else if (installed !== dependency)
                 throw new Error('Incompatible dependencies');
         }
 
-        assign(this, dependencies);
+        patch(this, dependencies);
     }
 
     constructor(slices: SharedSlices<TData, TShared>, config: SharedConfig<TData, TShared>) {
@@ -51,10 +51,6 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
 
         this.history ??= new HistorySlice(config.history, {
             scheduler: this.scheduler
-        });
-
-        this.page ??= new PageSlice(config.page, {
-            history: this.history
         });
 
         this.sortOrder ??= new SortOrderSlice(config.sortOrder, {
@@ -79,7 +75,6 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
             history: this.history,
             scheduler: this.scheduler,
             sortOrder: this.sortOrder,
-            page: this.page,
             filter: this.filter
         });
 
@@ -88,6 +83,8 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
         });
     }
 }
+
+type SliceKeys = keyof State<TableData>;
 
 type DependencyKeys<TName extends SliceKeys> = keyof State<TableData>[TName][typeof dependenciesSymbol];
 

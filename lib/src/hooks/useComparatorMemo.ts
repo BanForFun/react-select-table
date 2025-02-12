@@ -1,7 +1,7 @@
 import { useRef } from 'react';
-import { ComparatorCallback } from '../utils/types';
+import { EqualityComparatorCallback } from '../utils/typeUtils';
 
-export default function useComparatorMemo<T>(value: T, comparator: ComparatorCallback<T>) {
+export default function useComparatorMemo<T>(value: T, comparator: EqualityComparatorCallback<T>) {
     const valueRef = useRef<T>(value);
     if (!comparator(value, valueRef.current))
         valueRef.current = value;

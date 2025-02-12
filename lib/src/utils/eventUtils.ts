@@ -1,4 +1,4 @@
-import { ActionCallback, StringKeyOf } from './types';
+import { ActionCallback, StringKeyOf } from './typeUtils';
 import { useCallback } from 'react';
 import useCurrentCallback from '../hooks/useCurrentCallback';
 import { ElementRef } from './refUtils';

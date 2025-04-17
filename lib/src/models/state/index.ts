@@ -9,7 +9,7 @@ import SelectionSlice from './SelectionSlice';
 import FilterSlice from './FilterSlice';
 import { dependenciesSymbol } from '../StateSlice';
 import { PartialByValue } from '../../utils/typeUtils';
-import { patch } from '../../utils/objectUtils';
+import { assign } from '../../utils/objectUtils';
 import ColumnSlice from './ColumnSlice';
 
 export default class State<TData extends TableData, TShared extends SliceKeys = never> {
@@ -37,7 +37,7 @@ export default class State<TData extends TableData, TShared extends SliceKeys = 
                 throw new Error('Incompatible dependencies');
         }
 
-        patch(this, dependencies);
+        assign(this, dependencies);
     }
 
     constructor(slices: SharedSlices<TData, TShared>, config: SharedConfig<TData, TShared>) {

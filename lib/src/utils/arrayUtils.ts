@@ -6,7 +6,12 @@ export function remove<T>(array: T[], item: T): boolean {
     return true;
 }
 
-export function* createReverseIterator<T>(array: T[]): IterableIterator<T> {
-    for (let i = array.length - 1; i >= 0; i--)
+export function* createIterator<T>(array: T[], start = 0): IterableIterator<T> {
+    for (let i = start; i < array.length; i++)
+        yield array[i];
+}
+
+export function* createReverseIterator<T>(array: T[], start = array.length - 1): IterableIterator<T> {
+    for (let i = start; i >= 0; i--)
         yield array[i];
 }

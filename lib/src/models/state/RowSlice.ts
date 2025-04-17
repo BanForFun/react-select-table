@@ -88,7 +88,7 @@ export default class RowSlice<TData extends TableData> extends UndoableStateSlic
     });
 
     removeKeys = this._dispatcher('removeKeys', (toUndo, keys: Set<RowKey>) => {
-        const removed = this.#rows.unlink((row) => {
+        const removed = this.#rows.removeBy((row) => {
             const key = this.config.getRowKey(row);
             const shouldUnlink = keys.delete(key);
             return { value: shouldUnlink, done: !keys.size };

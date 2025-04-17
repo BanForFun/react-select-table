@@ -76,7 +76,7 @@ export function defaults<
     return target as T & S;
 }
 
-export function patch<
+export function assign<
     T extends { [K in keyof S]: T[K] },
     S extends { [K in keyof S]: T[K] }
 >(target: T, source: S) {

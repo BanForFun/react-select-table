@@ -1,18 +1,20 @@
+import List, { Chain } from './List';
+import { ComparatorCallback } from '../utils/typeUtils';
+import * as arrayUtils from '../utils/arrayUtils';
+import * as iteratorUtils from '../utils/iteratorUtils';
+import { SLNode } from './SLList';
+
+const lengthSymbol = Symbol('length');
+
 const previousSymbol = Symbol('previous');
 const nextSymbol = Symbol('next');
 
-export type DLNode<T> = T & {
+export type DLNode<T = object> = T & {
     [previousSymbol]: DLNode<T> | null;
     [nextSymbol]: DLNode<T> | null;
 };
 
-type Chain<T> = Readonly<{
-    head: DLNode<T>;
-    tail: DLNode<T>;
-    length: number;
-}>
-
-function* iterator<T>(current: DLNode<T> | null, direction: keyof DLNode<unknown>): IterableIterator<DLNode<T>> {
+function* iterator<T>(current: DLNode<T> | null, direction: keyof DLNode): IterableIterator<DLNode<T>> {
     while (current != null) {
         yield current;
         current = current[direction];
@@ -69,21 +71,24 @@ function* iterator<T>(current: DLNode<T> | null, direction: keyof DLNode<unknown
 //endregion
 
 export default class DLList<T extends object = object> implements Iterable<DLNode<T>> {
-    static getNext = <T>(node: DLNode<T> | null) =>
-        node == null ? null : node[nextSymbol];
-
-    static getPrevious = <T>(node: DLNode<T> | null) =>
-        node == null ? null : node[previousSymbol];
-
     static iterator = <T>(start: DLNode<T> | null) =>
         iterator(start, nextSymbol);
 
     static reverseIterator = <T>(start: DLNode<T> | null) =>
         iterator(start, previousSymbol);
 
+    [lengthSymbol] = 0;
+
     #head: DLNode<T> | null = null;
     #tail: DLNode<T> | null = null;
-    #count = 0;
+
+    get #length() {
+        return this[lengthSymbol];
+    }
+
+    set #length(value: number) {
+        this[lengthSymbol] = Math.max(0, value);
+    }
 
     get head() {
         return this.#head;
@@ -93,32 +98,12 @@ export default class DLList<T extends object = object> implements Iterable<DLNod
         return this.#tail;
     }
 
-    get count() {
-        return this.#count;
+    get length() {
+        return this.#length;
     }
 
-    get isEmpty() {
-        return this.#count === 0;
-    }
-
-    #node(previous: DLNode<T> | null, data: T, next: DLNode<T> | null): DLNode<T> {
+    #createNode(previous: DLNode<T> | null, data: T, next: DLNode<T> | null): DLNode<T> {
         return Object.assign(data, { [previousSymbol]: previous, [nextSymbol]: next });
-    }
-
-    #link(previous: DLNode<T> | null, node: T, next: DLNode<T> | null): DLNode<T> {
-        const linked: DLNode<T> | null = this.#node(previous, node, next);
-
-        if (previous != null)
-            previous[nextSymbol] = linked;
-        else
-            this.#head = linked;
-
-        if (next != null)
-            next[previousSymbol] = linked;
-        else
-            this.#tail = linked;
-
-        return linked;
     }
 
     #order(first: DLNode<T> | null, second: DLNode<T> | null): void {
@@ -133,17 +118,41 @@ export default class DLList<T extends object = object> implements Iterable<DLNod
             this.#tail = first;
     }
 
-    #chain(items: T[]): Chain<T> {
-        if (!items.length) throw new Error('No items provided');
+    #createChain(previous: DLNode<T> | null, items: Iterator<T>, after: DLNode<T> | null): Chain<DLNode<T>> | null {
+        const firstResult = items.next();
+        if (firstResult.done) return null;
 
-        for (let i = 0; i < items.length; ++i)
-            this.#node((items[i - 1] as DLNode<T>) ?? null, items[i], (items[i + 1] as DLNode<T>) ?? null);
+        let length = 0;
+        let currentResult = firstResult;
+        let nextResult = items.next();
+
+        while (!nextResult.done) {
+            previous = this.#createNode(previous, currentResult.value, nextResult.value as DLNode<T>);
+            currentResult = nextResult;
+            nextResult = items.next();
+            length++;
+        }
 
         return {
-            head: items.at(0) as DLNode<T>,
-            tail: items.at(-1) as DLNode<T>,
-            length: items.length
+            head: firstResult.value as DLNode<T>,
+            tail: this.#createNode(previous, currentResult.value, after),
+            length
         };
+    }
+
+    #linkChain(chain: Chain<DLNode<T>>) {
+        const previous = chain.head[previousSymbol];
+        const next = chain.tail[nextSymbol];
+
+        if (previous != null)
+            previous[nextSymbol] = chain.head;
+        else
+            this.#head = chain.head;
+
+        if (next != null)
+            next[previousSymbol] = chain.tail;
+        else
+            this.#tail = chain.tail;
     }
 
     //region Unused
@@ -191,24 +200,6 @@ export default class DLList<T extends object = object> implements Iterable<DLNod
     //     this.#transplant(this.#partition(index, lastIndex), this.#chain(rows));
     // }
 
-    // addSorted(items: T[], comparator: ComparatorCallback<T>) {
-    //     const sortedItems = createIterator(items.sort(comparator));
-    //
-    //     let item = sortedItems.next();
-    //     let existingItem = this.#head;
-    //
-    //     while (!item.done) {
-    //         if (existingItem == null) {
-    //             this.append(item.value);
-    //             item = sortedItems.next();
-    //         } else if (comparator(item.value, existingItem) < 0) {
-    //             this.prepend(item.value, existingItem);
-    //             item = sortedItems.next();
-    //         } else {
-    //             existingItem = existingItem[nextSymbol];
-    //         }
-    //     }
-    // }
     //
     // remove(predicate: PredicateCallback<T>) {
     //     const removed: T[] = [];
@@ -231,47 +222,66 @@ export default class DLList<T extends object = object> implements Iterable<DLNod
         return DLList.reverseIterator(this.tail);
     }
 
+    unshift(items: Iterator<T>) {
+        const chain = this.#createChain(null, items, this.#head);
+        if (chain == null) return 0;
+
+        this.#linkChain(chain);
+        this.#length += chain.length;
+    }
+
+    push(items: Iterator<T>) {
+        const chain = this.#createChain(this.#tail, items, null);
+        if (chain == null) return 0;
+
+        this.#linkChain(chain);
+        this.#length += chain.length;
+    }
+
+    insertBefore(node: DLNode<T>, items: Iterator<T>) {
+        const chain = this.#createChain(node[previousSymbol], items, node);
+        if (chain == null) return 0;
+
+        this.#linkChain(chain);
+        this.#length += chain.length;
+    }
+
+    insertAfter(node: DLNode<T>, items: Iterator<T>) {
+        const chain = this.#createChain(node, items, node[nextSymbol]);
+        if (chain == null) return 0;
+
+        this.#linkChain(chain);
+        this.#length += chain.length;
+    }
+
+    mergeSorted(items: T[], comparator: ComparatorCallback<T>, allowAppend = true) {
+        let newItemIndex = 0;
+        let currentItem = this.#head;
+
+        while (newItemIndex < items.length && currentItem != null) {
+            const newItem = items[newItemIndex];
+            if (comparator(newItem, currentItem) < 0) {
+                this.insertBefore(currentItem, iteratorUtils.singleValue(newItem));
+                newItemIndex++;
+            } else {
+                currentItem = currentItem[nextSymbol];
+            }
+        }
+
+        if (allowAppend)
+            return newItemIndex;
+
+        this.push(arrayUtils.createIterator(items, newItemIndex));
+        return items.length;
+    }
+
     unlink(node: DLNode<T>) {
-        this.#count--;
         this.#order(node[previousSymbol], node[nextSymbol]);
-    }
-
-    append(node: T, after = this.#tail) {
-        this.#count++;
-        return this.#link(after, node, DLList.getNext(after));
-    }
-
-    prepend(node: T, before = this.#head) {
-        this.#count++;
-        return this.#link(DLList.getPrevious(before), node, before);
-    }
-
-    replace(old: DLNode<T>, replacement: T) {
-        this.#link(DLList.getPrevious(old), replacement, DLList.getNext(old));
-    }
-
-    pop() {
-        if (this.#tail)
-            this.unlink(this.#tail);
-    }
-
-    shift() {
-        if (this.#head)
-            this.unlink(this.#head);
-    }
-
-    push(rows: T[]) {
-        if (!rows.length) return;
-
-        const chain = this.#chain(rows);
-        this.#order(this.#tail, chain.head);
-        this.#order(chain.tail, null);
-
-        this.#count += rows.length;
+        this.#length--;
     }
 
     clear() {
-        this.#count = 0;
+        this.#length = 0;
         this.#head = null;
         this.#tail = null;
     }

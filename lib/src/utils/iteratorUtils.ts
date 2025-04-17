@@ -74,3 +74,22 @@ export function* step(start: number, step: number) {
         start += step;
     }
 }
+
+export function* concat<T>(...iterators: Iterator<T>[]): IterableIterator<T> {
+    let iteratorIndex = 0;
+    while (iteratorIndex < iterators.length) {
+        const iterator = iterators[iteratorIndex];
+
+        let currentResult = iterators[0].next();
+        while (!currentResult.done) {
+            yield currentResult.value;
+            currentResult = iterator.next();
+        }
+
+        iteratorIndex++;
+    }
+}
+
+export function* singleValue<T>(value: T): IterableIterator<T> {
+    yield value;
+}

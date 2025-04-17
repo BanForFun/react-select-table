@@ -139,7 +139,3 @@ export function* filter<T>(iterable: Iterable<T>, predicate: PredicateCallback<T
         if (predicate(value)) yield value;
     }
 }
-
-export function* single<T>(value: T): IterableIterator<T> {
-    yield value;
-}
